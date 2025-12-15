@@ -157,21 +157,79 @@
 
 ---
 
+#### 21:00 - 에디터 컴포넌트 구현 ✅
+
+**완료된 파일:**
+
+| 파일명 | 설명 |
+|--------|------|
+| `src/stores/editor-store.ts` | Zustand 에디터 상태 관리 스토어 |
+| `src/components/editor/blocks/heading-block.tsx` | 제목 블록 컴포넌트 (H1-H4) |
+| `src/components/editor/blocks/text-block.tsx` | 텍스트 블록 컴포넌트 |
+| `src/components/editor/blocks/image-block.tsx` | 이미지 블록 컴포넌트 (업로드, 캡션) |
+| `src/components/editor/blocks/button-block.tsx` | 버튼 블록 컴포넌트 (3가지 스타일) |
+| `src/components/editor/blocks/divider-block.tsx` | 구분선 블록 컴포넌트 |
+| `src/components/editor/blocks/spacer-block.tsx` | 공백 블록 컴포넌트 |
+| `src/components/editor/blocks/list-block.tsx` | 리스트 블록 컴포넌트 (bullet/number) |
+| `src/components/editor/blocks/quote-block.tsx` | 인용문 블록 컴포넌트 |
+| `src/components/editor/blocks/index.ts` | 블록 컴포넌트 통합 export |
+| `src/components/editor/block-renderer.tsx` | 블록 타입별 렌더러 |
+| `src/components/editor/editor-section.tsx` | 섹션 컴포넌트 (드래그앤드롭) |
+| `src/components/editor/editor-toolbar.tsx` | 에디터 툴바 (Undo/Redo, 저장, 내보내기) |
+| `src/components/editor/detail-page-editor.tsx` | 메인 에디터 컴포넌트 |
+| `src/components/editor/index.ts` | 에디터 컴포넌트 통합 export |
+| `src/hooks/use-auto-save.ts` | 자동 저장 훅 (30초 간격) |
+| `src/app/api/projects/[id]/drafts/route.ts` | 드래프트 저장/조회 API |
+| `src/app/api/projects/[id]/export/route.ts` | HTML/JSON 내보내기 API |
+| `src/app/(dashboard)/dashboard/projects/[id]/page.tsx` | 프로젝트 상세 페이지 (에디터) |
+| `src/app/(dashboard)/dashboard/projects/[id]/preview/page.tsx` | 프로젝트 미리보기 페이지 |
+
+**구현된 기능:**
+- 8가지 블록 타입 (heading, text, image, button, list, quote, divider, spacer)
+- 블록 드래그앤드롭 재정렬
+- 섹션 단위 관리 (추가, 삭제, 복제, 이동)
+- 인라인 편집 (더블클릭으로 편집 모드)
+- Undo/Redo 기능 (Ctrl+Z, Ctrl+Shift+Z)
+- 자동 저장 (30초 간격, Ctrl+S 단축키)
+- 반응형 프리뷰 (Desktop/Tablet/Mobile)
+- HTML/JSON 내보내기
+- 버전 히스토리 관리
+
+---
+
+#### 21:30 - RAG 파이프라인 구현 ✅
+
+**완료된 파일:**
+
+| 파일명 | 설명 |
+|--------|------|
+| `src/lib/pinecone.ts` | Pinecone 벡터 DB 클라이언트 설정 |
+| `src/services/rag/text-chunker.ts` | 텍스트 청킹 유틸리티 (HTML 추출 포함) |
+| `src/services/rag/embeddings.ts` | OpenAI 임베딩 생성 서비스 |
+| `src/services/rag/web-crawler.ts` | 웹사이트 크롤링 서비스 |
+| `src/services/rag/brand-context.ts` | 브랜드 컨텍스트 검색 서비스 |
+| `src/services/rag/index.ts` | RAG 서비스 통합 export |
+| `src/app/api/brands/[id]/knowledge/route.ts` | 브랜드 지식 베이스 API |
+
+**구현된 기능:**
+- Pinecone 벡터 데이터베이스 연동
+- 웹사이트 크롤링 (단일 URL / 사이트 전체)
+- HTML 텍스트 추출 및 정제
+- 텍스트 청킹 (오버랩 지원, 토큰 기반)
+- OpenAI text-embedding-3-small 임베딩 생성
+- 브랜드별 네임스페이스 벡터 저장
+- 유사도 기반 컨텍스트 검색
+- 브랜드 지식 베이스 CRUD API
+
+---
+
 ### 진행 예정 작업
 
-#### 8단계: 에디터 컴포넌트 구현
-- [ ] 블록 기반 에디터 구조
-- [ ] 텍스트 블록 편집
-- [ ] 이미지 블록 편집
-- [ ] 섹션 드래그앤드롭
-- [ ] 자동 저장 (30초 간격)
-
-#### 9단계: RAG 파이프라인 구현
-- [ ] Pinecone 클라이언트 설정
-- [ ] 웹사이트 크롤링 서비스
-- [ ] 텍스트 청킹 유틸리티
-- [ ] 임베딩 생성 (OpenAI)
-- [ ] 브랜드 컨텍스트 검색
+#### 10단계: 추가 기능 구현
+- [ ] Motion/GIF 생성 기능
+- [ ] 실시간 진행 표시기
+- [ ] 이미지 품질 옵션 (draft/HD)
+- [ ] 프로젝트 히스토리 & 버전 관리 UI 개선
 
 ---
 
@@ -207,7 +265,10 @@ Triple_C/
     │   │       ├── page.tsx
     │   │       └── projects/
     │   │           ├── page.tsx
-    │   │           └── new/page.tsx
+    │   │           ├── new/page.tsx
+    │   │           └── [id]/
+    │   │               ├── page.tsx
+    │   │               └── preview/page.tsx
     │   ├── api/
     │   │   ├── auth/
     │   │   │   ├── [...nextauth]/route.ts
@@ -215,14 +276,36 @@ Triple_C/
     │   │   │   └── verify-email/route.ts
     │   │   ├── projects/
     │   │   │   ├── route.ts
-    │   │   │   └── [id]/route.ts
-    │   │   ├── brands/route.ts
+    │   │   │   └── [id]/
+    │   │   │       ├── route.ts
+    │   │   │       ├── drafts/route.ts
+    │   │   │       └── export/route.ts
+    │   │   ├── brands/
+    │   │   │   ├── route.ts
+    │   │   │   └── [id]/
+    │   │   │       └── knowledge/route.ts
     │   │   └── generate/detail-page/route.ts
     │   ├── globals.css
     │   ├── layout.tsx
     │   ├── page.tsx
     │   └── providers.tsx
     ├── components/
+    │   ├── editor/
+    │   │   ├── blocks/
+    │   │   │   ├── heading-block.tsx
+    │   │   │   ├── text-block.tsx
+    │   │   │   ├── image-block.tsx
+    │   │   │   ├── button-block.tsx
+    │   │   │   ├── divider-block.tsx
+    │   │   │   ├── spacer-block.tsx
+    │   │   │   ├── list-block.tsx
+    │   │   │   ├── quote-block.tsx
+    │   │   │   └── index.ts
+    │   │   ├── block-renderer.tsx
+    │   │   ├── editor-section.tsx
+    │   │   ├── editor-toolbar.tsx
+    │   │   ├── detail-page-editor.tsx
+    │   │   └── index.ts
     │   └── ui/
     │       ├── avatar.tsx
     │       ├── button.tsx
@@ -237,16 +320,26 @@ Triple_C/
     │       ├── toast.tsx
     │       └── toaster.tsx
     ├── hooks/
-    │   └── use-toast.ts
+    │   ├── use-toast.ts
+    │   └── use-auto-save.ts
     ├── lib/
     │   ├── auth.ts
+    │   ├── pinecone.ts
     │   ├── prisma.ts
     │   ├── utils.ts
     │   └── validations.ts
     ├── middleware.ts
     ├── services/
-    │   └── ai/
-    │       └── detail-page-generator.ts
+    │   ├── ai/
+    │   │   └── detail-page-generator.ts
+    │   └── rag/
+    │       ├── text-chunker.ts
+    │       ├── embeddings.ts
+    │       ├── web-crawler.ts
+    │       ├── brand-context.ts
+    │       └── index.ts
+    ├── stores/
+    │   └── editor-store.ts
     └── types/
         ├── api.ts
         ├── index.ts
@@ -257,7 +350,7 @@ Triple_C/
 
 ## Sprint 로드맵 (PRD 기반)
 
-### Sprint 1 - Core (진행중)
+### Sprint 1 - Core (완료)
 - [x] 프로젝트 설정
 - [x] 타입 정의
 - [x] 데이터베이스 스키마
@@ -266,8 +359,8 @@ Triple_C/
 - [x] 상세 페이지 자동 생성 (기본)
 - [x] UI 컴포넌트 라이브러리
 - [x] 페이지 및 레이아웃
-- [ ] 기본 에디터 v1
-- [ ] 브랜드 분석 RAG (기본)
+- [x] 기본 에디터 v1
+- [x] 브랜드 분석 RAG (기본)
 
 ### Sprint 2 - Templates & Motion
 - [x] 샘플 템플릿 (5개 카테고리 seed)
@@ -281,7 +374,7 @@ Triple_C/
 
 ---
 
-## 완료된 파일 목록 (총 44개)
+## 완료된 파일 목록 (총 76개)
 
 ### 설정 파일 (7개)
 1. `package.json`
@@ -301,55 +394,89 @@ Triple_C/
 11. `src/types/api.ts`
 12. `src/types/next-auth.d.ts`
 
-### 라이브러리 (4개)
+### 라이브러리 (5개)
 13. `src/lib/prisma.ts`
 14. `src/lib/auth.ts`
-15. `src/lib/utils.ts`
-16. `src/lib/validations.ts`
+15. `src/lib/pinecone.ts`
+16. `src/lib/utils.ts`
+17. `src/lib/validations.ts`
 
-### API 라우트 (7개)
-17. `src/app/api/auth/[...nextauth]/route.ts`
-18. `src/app/api/auth/signup/route.ts`
-19. `src/app/api/auth/verify-email/route.ts`
-20. `src/app/api/projects/route.ts`
-21. `src/app/api/projects/[id]/route.ts`
-22. `src/app/api/brands/route.ts`
-23. `src/app/api/generate/detail-page/route.ts`
+### API 라우트 (10개)
+18. `src/app/api/auth/[...nextauth]/route.ts`
+19. `src/app/api/auth/signup/route.ts`
+20. `src/app/api/auth/verify-email/route.ts`
+21. `src/app/api/projects/route.ts`
+22. `src/app/api/projects/[id]/route.ts`
+23. `src/app/api/projects/[id]/drafts/route.ts`
+24. `src/app/api/projects/[id]/export/route.ts`
+25. `src/app/api/brands/route.ts`
+26. `src/app/api/brands/[id]/knowledge/route.ts`
+27. `src/app/api/generate/detail-page/route.ts`
 
 ### AI 서비스 (1개)
-24. `src/services/ai/detail-page-generator.ts`
+28. `src/services/ai/detail-page-generator.ts`
+
+### RAG 서비스 (5개)
+29. `src/services/rag/text-chunker.ts`
+30. `src/services/rag/embeddings.ts`
+31. `src/services/rag/web-crawler.ts`
+32. `src/services/rag/brand-context.ts`
+33. `src/services/rag/index.ts`
 
 ### UI 컴포넌트 (13개)
-25. `src/app/globals.css`
-26. `src/components/ui/button.tsx`
-27. `src/components/ui/input.tsx`
-28. `src/components/ui/label.tsx`
-29. `src/components/ui/card.tsx`
-30. `src/components/ui/dialog.tsx`
-31. `src/components/ui/toast.tsx`
-32. `src/components/ui/toaster.tsx`
-33. `src/components/ui/select.tsx`
-34. `src/components/ui/avatar.tsx`
-35. `src/components/ui/textarea.tsx`
-36. `src/components/ui/dropdown-menu.tsx`
-37. `src/components/ui/index.ts`
+34. `src/app/globals.css`
+35. `src/components/ui/button.tsx`
+36. `src/components/ui/input.tsx`
+37. `src/components/ui/label.tsx`
+38. `src/components/ui/card.tsx`
+39. `src/components/ui/dialog.tsx`
+40. `src/components/ui/toast.tsx`
+41. `src/components/ui/toaster.tsx`
+42. `src/components/ui/select.tsx`
+43. `src/components/ui/avatar.tsx`
+44. `src/components/ui/textarea.tsx`
+45. `src/components/ui/dropdown-menu.tsx`
+46. `src/components/ui/index.ts`
 
-### Hooks (1개)
-38. `src/hooks/use-toast.ts`
+### 에디터 컴포넌트 (15개)
+47. `src/stores/editor-store.ts`
+48. `src/components/editor/blocks/heading-block.tsx`
+49. `src/components/editor/blocks/text-block.tsx`
+50. `src/components/editor/blocks/image-block.tsx`
+51. `src/components/editor/blocks/button-block.tsx`
+52. `src/components/editor/blocks/divider-block.tsx`
+53. `src/components/editor/blocks/spacer-block.tsx`
+54. `src/components/editor/blocks/list-block.tsx`
+55. `src/components/editor/blocks/quote-block.tsx`
+56. `src/components/editor/blocks/index.ts`
+57. `src/components/editor/block-renderer.tsx`
+58. `src/components/editor/editor-section.tsx`
+59. `src/components/editor/editor-toolbar.tsx`
+60. `src/components/editor/detail-page-editor.tsx`
+61. `src/components/editor/index.ts`
 
-### 페이지 및 레이아웃 (8개)
-39. `src/app/layout.tsx`
-40. `src/app/providers.tsx`
-41. `src/app/page.tsx`
-42. `src/app/(auth)/login/page.tsx`
-43. `src/app/(auth)/signup/page.tsx`
-44. `src/app/(dashboard)/layout.tsx`
-45. `src/app/(dashboard)/dashboard/page.tsx`
-46. `src/app/(dashboard)/dashboard/projects/page.tsx`
-47. `src/app/(dashboard)/dashboard/projects/new/page.tsx`
+### Hooks (2개)
+62. `src/hooks/use-toast.ts`
+63. `src/hooks/use-auto-save.ts`
+
+### 페이지 및 레이아웃 (11개)
+64. `src/app/layout.tsx`
+65. `src/app/providers.tsx`
+66. `src/app/page.tsx`
+67. `src/app/(auth)/login/page.tsx`
+68. `src/app/(auth)/signup/page.tsx`
+69. `src/app/(dashboard)/layout.tsx`
+70. `src/app/(dashboard)/dashboard/page.tsx`
+71. `src/app/(dashboard)/dashboard/projects/page.tsx`
+72. `src/app/(dashboard)/dashboard/projects/new/page.tsx`
+73. `src/app/(dashboard)/dashboard/projects/[id]/page.tsx`
+74. `src/app/(dashboard)/dashboard/projects/[id]/preview/page.tsx`
 
 ### 미들웨어 (1개)
-48. `src/middleware.ts`
+75. `src/middleware.ts`
+
+### 스토어 (1개)
+76. `src/stores/editor-store.ts` (에디터 컴포넌트 카테고리에 포함됨)
 
 ---
 
