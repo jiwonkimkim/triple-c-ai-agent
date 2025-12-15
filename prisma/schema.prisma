@@ -7,7 +7,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = "postgres://postgres:YOUR_PASSWORD_HERE@localhost:5432/triple_c"
 }
 
 // ============================================
@@ -63,6 +63,13 @@ enum UserType {
   B2B
 }
 
+enum Plan {
+  FREE
+  STARTER
+  PRO
+  ENTERPRISE
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -73,7 +80,13 @@ model User {
   image         String?
   industry      String?
   userType      UserType  @default(B2C) @map("user_type")
+  plan          Plan      @default(FREE)
   trialCredits  Int       @default(3) @map("trial_credits")
+  credits       Int       @default(0)
+  stripeCustomerId    String?   @unique @map("stripe_customer_id")
+  stripeSubscriptionId String?  @map("stripe_subscription_id")
+  stripePriceId       String?   @map("stripe_price_id")
+  stripeCurrentPeriodEnd DateTime? @map("stripe_current_period_end")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
@@ -85,6 +98,9 @@ model User {
   projects             Project[]
   editorDrafts         EditorDraft[]
   createdVersions      ProjectVersion[]   @relation("VersionCreator")
+  subscriptions        Subscription[]
+  payments             Payment[]
+  creditTransactions   CreditTransaction[]
 
   @@map("users")
 }
@@ -262,8 +278,7 @@ model DetailPageVersion {
   createdAt   DateTime @default(now()) @map("created_at")
 
   // Relations
-  project   Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  histories ProjectHistory[]
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
   @@map("detail_page_versions")
@@ -448,4 +463,167 @@ model UploadedFile {
 
   @@index([userId])
   @@map("uploaded_files")
+}
+
+// ============================================
+// Payment & Subscription Models
+// ============================================
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  UNPAID
+  TRIALING
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String             @map("user_id")
+  stripeSubscriptionId String             @unique @map("stripe_subscription_id")
+  stripePriceId        String             @map("stripe_price_id")
+  stripeCustomerId     String             @map("stripe_customer_id")
+  plan                 Plan
+  status               SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart   DateTime           @map("current_period_start")
+  currentPeriodEnd     DateTime           @map("current_period_end")
+  cancelAtPeriodEnd    Boolean            @default(false) @map("cancel_at_period_end")
+  canceledAt           DateTime?          @map("canceled_at")
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([stripeCustomerId])
+  @@map("subscriptions")
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  userId          String        @map("user_id")
+  stripePaymentId String        @unique @map("stripe_payment_id")
+  amount          Int           // in cents/smallest currency unit
+  currency        String        @default("krw")
+  status          PaymentStatus @default(PENDING)
+  description     String?
+  metadata        Json          @default("{}")
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("payments")
+}
+
+enum CreditTransactionType {
+  PURCHASE
+  SUBSCRIPTION_RENEWAL
+  USAGE
+  REFUND
+  BONUS
+  ADMIN_ADJUSTMENT
+}
+
+model CreditTransaction {
+  id          String                @id @default(cuid())
+  userId      String                @map("user_id")
+  type        CreditTransactionType
+  amount      Int                   // positive for additions, negative for usage
+  balance     Int                   // balance after transaction
+  description String?
+  metadata    Json                  @default("{}")
+  createdAt   DateTime              @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("credit_transactions")
+}
+
+// ============================================
+// A/B Testing Models
+// ============================================
+
+enum ABTestStatus {
+  DRAFT
+  RUNNING
+  PAUSED
+  COMPLETED
+}
+
+model ABTest {
+  id          String       @id @default(cuid())
+  projectId   String       @map("project_id")
+  name        String
+  description String?      @db.Text
+  status      ABTestStatus @default(DRAFT)
+  startedAt   DateTime?    @map("started_at")
+  endedAt     DateTime?    @map("ended_at")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  variants ABTestVariant[]
+  events   ABTestEvent[]
+
+  @@index([projectId])
+  @@index([status])
+  @@map("ab_tests")
+}
+
+model ABTestVariant {
+  id          String  @id @default(cuid())
+  testId      String  @map("test_id")
+  name        String
+  description String?
+  content     Json    // Variant content (sections, etc.)
+  weight      Int     @default(50) // Traffic allocation percentage
+  isControl   Boolean @default(false) @map("is_control")
+
+  // Relations
+  test   ABTest        @relation(fields: [testId], references: [id], onDelete: Cascade)
+  events ABTestEvent[]
+
+  @@index([testId])
+  @@map("ab_test_variants")
+}
+
+enum ABTestEventType {
+  VIEW
+  CLICK
+  CONVERSION
+  SCROLL
+  TIME_SPENT
+}
+
+model ABTestEvent {
+  id        String          @id @default(cuid())
+  testId    String          @map("test_id")
+  variantId String          @map("variant_id")
+  type      ABTestEventType
+  visitorId String          @map("visitor_id") // Anonymous visitor ID
+  metadata  Json            @default("{}")
+  createdAt DateTime        @default(now()) @map("created_at")
+
+  // Relations
+  test    ABTest        @relation(fields: [testId], references: [id], onDelete: Cascade)
+  variant ABTestVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@index([testId])
+  @@index([variantId])
+  @@index([visitorId])
+  @@index([createdAt])
+  @@map("ab_test_events")
 }

@@ -7,6 +7,224 @@
 
 ---
 
+## 개발 환경 및 버전 정보
+
+### 런타임 환경
+
+| 항목 | 권장 버전 | 비고 |
+|------|----------|------|
+| **Node.js** | 18.17.0 이상 (LTS 20.x 권장) | Next.js 14 요구사항 |
+| **npm** | 9.x 이상 | Node.js와 함께 설치 |
+| **yarn** | 1.22.x (선택사항) | 대체 패키지 매니저 |
+| **pnpm** | 8.x (선택사항) | 대체 패키지 매니저 |
+
+### 프레임워크 및 언어
+
+| 패키지 | 버전 | 설명 |
+|--------|------|------|
+| **TypeScript** | ^5.6.3 | 정적 타입 언어 |
+| **Next.js** | 14.2.15 | React 풀스택 프레임워크 |
+| **React** | ^18.3.1 | UI 라이브러리 |
+| **React DOM** | ^18.3.1 | React DOM 렌더러 |
+
+### 데이터베이스 및 ORM
+
+| 패키지 | 버전 | 설명 |
+|--------|------|------|
+| **PostgreSQL** | 14.x 이상 | 관계형 데이터베이스 |
+| **Prisma** | ^5.22.0 | ORM / 마이그레이션 도구 |
+| **@prisma/client** | ^5.22.0 | Prisma 클라이언트 |
+
+### 인증 및 보안
+
+| 패키지 | 버전 | 설명 |
+|--------|------|------|
+| **NextAuth.js** | ^4.24.8 | 인증 라이브러리 |
+| **@auth/prisma-adapter** | ^2.7.0 | Prisma 어댑터 |
+| **bcryptjs** | ^2.4.3 | 비밀번호 해싱 |
+
+### AI / ML 서비스
+
+| 패키지 | 버전 | 설명 |
+|--------|------|------|
+| **@anthropic-ai/sdk** | ^0.30.0 | Claude AI API |
+| **openai** | ^4.68.0 | OpenAI API (GPT, DALL-E, Embeddings) |
+| **ai** | ^3.4.0 | Vercel AI SDK |
+| **@pinecone-database/pinecone** | ^3.0.0 | 벡터 데이터베이스 |
+
+### 결제 시스템
+
+| 패키지 | 버전 | 설명 |
+|--------|------|------|
+| **stripe** | ^14.0.0 | Stripe 서버 SDK |
+| **@stripe/stripe-js** | ^2.2.0 | Stripe 클라이언트 SDK |
+
+### 상태 관리 및 데이터 페칭
+
+| 패키지 | 버전 | 설명 |
+|--------|------|------|
+| **zustand** | ^5.0.0 | 클라이언트 상태 관리 |
+| **@tanstack/react-query** | ^5.59.0 | 서버 상태 관리 / 캐싱 |
+
+### UI / 스타일링
+
+| 패키지 | 버전 | 설명 |
+|--------|------|------|
+| **Tailwind CSS** | ^3.4.14 | 유틸리티 CSS 프레임워크 |
+| **tailwindcss-animate** | ^1.0.7 | 애니메이션 플러그인 |
+| **class-variance-authority** | ^0.7.0 | 컴포넌트 variants 관리 |
+| **clsx** | ^2.1.1 | 조건부 클래스 유틸리티 |
+| **tailwind-merge** | ^2.5.4 | Tailwind 클래스 병합 |
+| **framer-motion** | ^11.11.0 | 애니메이션 라이브러리 |
+| **lucide-react** | ^0.453.0 | 아이콘 라이브러리 |
+| **next-themes** | ^0.3.0 | 다크모드 지원 |
+
+### Radix UI 컴포넌트
+
+| 패키지 | 버전 | 설명 |
+|--------|------|------|
+| **@radix-ui/react-accordion** | ^1.2.1 | 아코디언 |
+| **@radix-ui/react-alert-dialog** | ^1.1.2 | 알림 다이얼로그 |
+| **@radix-ui/react-avatar** | ^1.1.1 | 아바타 |
+| **@radix-ui/react-checkbox** | ^1.1.2 | 체크박스 |
+| **@radix-ui/react-dialog** | ^1.1.2 | 다이얼로그 |
+| **@radix-ui/react-dropdown-menu** | ^2.1.2 | 드롭다운 메뉴 |
+| **@radix-ui/react-label** | ^2.1.0 | 레이블 |
+| **@radix-ui/react-popover** | ^1.1.2 | 팝오버 |
+| **@radix-ui/react-progress** | ^1.1.0 | 프로그레스 바 |
+| **@radix-ui/react-scroll-area** | ^1.2.0 | 스크롤 영역 |
+| **@radix-ui/react-select** | ^2.1.2 | 셀렉트 |
+| **@radix-ui/react-slider** | ^1.2.1 | 슬라이더 |
+| **@radix-ui/react-separator** | ^1.1.0 | 구분선 |
+| **@radix-ui/react-slot** | ^1.1.0 | 슬롯 |
+| **@radix-ui/react-tabs** | ^1.1.1 | 탭 |
+| **@radix-ui/react-toast** | ^1.2.2 | 토스트 |
+| **@radix-ui/react-tooltip** | ^1.1.3 | 툴팁 |
+
+### 폼 및 유효성 검사
+
+| 패키지 | 버전 | 설명 |
+|--------|------|------|
+| **react-hook-form** | ^7.53.0 | 폼 상태 관리 |
+| **@hookform/resolvers** | ^3.9.0 | 폼 유효성 검사 리졸버 |
+| **zod** | ^3.23.8 | 스키마 유효성 검사 |
+
+### 유틸리티
+
+| 패키지 | 버전 | 설명 |
+|--------|------|------|
+| **date-fns** | ^4.1.0 | 날짜 처리 라이브러리 |
+| **uuid** | ^10.0.0 | UUID 생성 |
+| **react-dropzone** | ^14.2.9 | 파일 드래그앤드롭 |
+
+### 개발 도구 (devDependencies)
+
+| 패키지 | 버전 | 설명 |
+|--------|------|------|
+| **ESLint** | ^8.57.1 | 코드 린팅 |
+| **eslint-config-next** | 14.2.15 | Next.js ESLint 설정 |
+| **Vitest** | ^2.1.3 | 테스트 프레임워크 |
+| **@testing-library/react** | ^16.0.1 | React 테스트 유틸리티 |
+| **jsdom** | ^25.0.1 | DOM 시뮬레이션 |
+| **tsx** | ^4.19.1 | TypeScript 실행기 |
+| **autoprefixer** | ^10.4.20 | CSS 자동 접두사 |
+| **postcss** | ^8.4.47 | CSS 변환 도구 |
+
+### 타입 정의
+
+| 패키지 | 버전 | 설명 |
+|--------|------|------|
+| **@types/node** | ^22.7.5 | Node.js 타입 |
+| **@types/react** | ^18.3.11 | React 타입 |
+| **@types/react-dom** | ^18.3.1 | React DOM 타입 |
+| **@types/bcryptjs** | ^2.4.6 | bcryptjs 타입 |
+| **@types/uuid** | ^10.0.0 | uuid 타입 |
+
+### 외부 서비스 요구사항
+
+| 서비스 | 용도 | 필수 여부 |
+|--------|------|----------|
+| **PostgreSQL** | 메인 데이터베이스 | 필수 |
+| **Pinecone** | 벡터 데이터베이스 (RAG) | 필수 |
+| **OpenAI API** | GPT-4, DALL-E 3, Embeddings | 필수 |
+| **Anthropic API** | Claude AI | 선택 |
+| **Stripe** | 결제 시스템 | 프로덕션 필수 |
+| **Runway ML** | 영상 생성 | 선택 |
+| **Google OAuth** | 소셜 로그인 | 선택 |
+
+### 환경 변수 (.env)
+
+```bash
+# Database
+DATABASE_URL="postgresql://user:password@localhost:5432/triple_c"
+
+# NextAuth
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-key"
+
+# OAuth Providers
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+
+# AI Services
+OPENAI_API_KEY="your-openai-api-key"
+ANTHROPIC_API_KEY="your-anthropic-api-key"
+
+# Vector Database
+PINECONE_API_KEY="your-pinecone-api-key"
+PINECONE_ENVIRONMENT="your-pinecone-environment"
+PINECONE_INDEX="your-pinecone-index"
+
+# Payment
+STRIPE_SECRET_KEY="your-stripe-secret-key"
+STRIPE_WEBHOOK_SECRET="your-stripe-webhook-secret"
+STRIPE_STARTER_MONTHLY_PRICE_ID="price_xxx"
+STRIPE_STARTER_YEARLY_PRICE_ID="price_xxx"
+STRIPE_PRO_MONTHLY_PRICE_ID="price_xxx"
+STRIPE_PRO_YEARLY_PRICE_ID="price_xxx"
+STRIPE_ENTERPRISE_MONTHLY_PRICE_ID="price_xxx"
+STRIPE_ENTERPRISE_YEARLY_PRICE_ID="price_xxx"
+
+# Video Generation (Optional)
+RUNWAY_API_KEY="your-runway-api-key"
+```
+
+### 설치 및 실행
+
+```bash
+# 의존성 설치
+npm install
+
+# Prisma 클라이언트 생성
+npm run db:generate
+
+# 데이터베이스 마이그레이션
+npm run db:migrate
+
+# 시드 데이터 생성 (선택)
+npm run db:seed
+
+# 개발 서버 실행
+npm run dev
+
+# 프로덕션 빌드
+npm run build
+
+# 프로덕션 서버 실행
+npm run start
+
+# 테스트 실행
+npm run test
+
+# 린트 검사
+npm run lint
+
+# 타입 체크
+npm run type-check
+```
+
+---
+
 ## 개발 진행 현황
 
 ### 2025-12-15 (일)
@@ -395,6 +613,139 @@
 
 ---
 
+#### 01:30 - Stripe 결제 시스템 구현 ✅ (Sprint 4)
+
+**완료된 파일:**
+
+| 파일명 | 설명 |
+|--------|------|
+| `src/lib/stripe.ts` | Stripe 클라이언트 및 플랜 구성 |
+| `src/app/api/billing/checkout/route.ts` | 체크아웃 세션 생성 API |
+| `src/app/api/billing/webhook/route.ts` | Stripe 웹훅 핸들러 |
+| `src/app/api/billing/portal/route.ts` | 고객 포탈 세션 API |
+| `src/app/api/billing/subscription/route.ts` | 구독 관리 API (조회/취소/변경) |
+| `src/app/api/billing/credits/route.ts` | 크레딧 관리 API |
+| `src/components/billing/pricing-plans.tsx` | 요금제 선택 UI |
+| `src/components/billing/billing-dashboard.tsx` | 결제 대시보드 UI |
+| `src/components/billing/index.ts` | Billing 컴포넌트 통합 export |
+| `src/hooks/use-billing.ts` | 결제 관련 훅 |
+
+**구현된 기능:**
+- 4단계 플랜 구성 (FREE, STARTER, PRO, ENTERPRISE)
+- 월간/연간 결제 주기 선택
+- Stripe Checkout 연동
+- Stripe Customer Portal 연동
+- 웹훅 기반 구독 상태 동기화
+- 크레딧 기반 사용량 과금
+- 결제 내역 및 크레딧 트랜잭션 기록
+
+**Prisma 스키마 업데이트:**
+- `Plan` enum 추가 (FREE, STARTER, PRO, ENTERPRISE)
+- `User` 모델에 Stripe 관련 필드 추가
+- `Subscription` 모델 추가
+- `Payment` 모델 추가
+- `CreditTransaction` 모델 추가
+
+---
+
+#### 02:00 - 사용량 분석 대시보드 구현 ✅ (Sprint 4)
+
+**완료된 파일:**
+
+| 파일명 | 설명 |
+|--------|------|
+| `src/app/api/analytics/usage/route.ts` | 사용량 분석 API |
+| `src/components/analytics/usage-chart.tsx` | 사용량 차트 컴포넌트 |
+| `src/components/analytics/pie-chart.tsx` | 파이 차트 컴포넌트 |
+| `src/components/analytics/analytics-dashboard.tsx` | 분석 대시보드 메인 컴포넌트 |
+| `src/components/analytics/index.ts` | Analytics 컴포넌트 통합 export |
+| `src/hooks/use-analytics.ts` | 분석 데이터 훅 |
+
+**구현된 기능:**
+- 기간별 통계 조회 (7일, 30일, 90일, 1년)
+- 일별 프로젝트 생성 추이 차트
+- 일별 크레딧 사용량 차트
+- 기능별 사용량 파이 차트
+- Motion 효과 분포 차트
+- 최근 프로젝트 목록
+
+---
+
+#### 02:30 - A/B 테스트 기능 구현 ✅ (Sprint 4)
+
+**완료된 파일:**
+
+| 파일명 | 설명 |
+|--------|------|
+| `src/app/api/ab-tests/route.ts` | A/B 테스트 목록/생성 API |
+| `src/app/api/ab-tests/[id]/route.ts` | A/B 테스트 상세/수정/삭제 API |
+| `src/app/api/ab-tests/[id]/events/route.ts` | 이벤트 트래킹 API |
+| `src/components/ab-testing/ab-test-card.tsx` | A/B 테스트 카드 컴포넌트 |
+| `src/components/ab-testing/ab-test-results.tsx` | 테스트 결과 분석 컴포넌트 |
+| `src/components/ab-testing/index.ts` | A/B Testing 컴포넌트 통합 export |
+
+**구현된 기능:**
+- A/B 테스트 생성/관리
+- 다중 배리언트 지원 (가중치 기반 트래픽 분배)
+- 컨트롤/트리트먼트 그룹 설정
+- 이벤트 트래킹 (조회, 클릭, 전환)
+- 통계적 유의성 분석
+- 테스트 상태 관리 (초안, 실행중, 일시정지, 완료)
+
+**Prisma 스키마 업데이트:**
+- `ABTestStatus` enum 추가
+- `ABTest` 모델 추가
+- `ABTestVariant` 모델 추가
+- `ABTestEventType` enum 추가
+- `ABTestEvent` 모델 추가
+
+---
+
+#### 03:00 - 다국어 지원 (i18n) 구현 ✅ (Sprint 4)
+
+**완료된 파일:**
+
+| 파일명 | 설명 |
+|--------|------|
+| `src/lib/i18n/index.ts` | i18n 시스템 통합 export |
+| `src/lib/i18n/translations/ko.ts` | 한국어 번역 파일 |
+| `src/lib/i18n/translations/en.ts` | 영어 번역 파일 |
+| `src/lib/i18n/translations/index.ts` | 번역 파일 통합 export |
+| `src/lib/i18n/context.tsx` | I18n Context Provider |
+| `src/lib/i18n/hook.ts` | useTranslation 훅 |
+| `src/components/language-selector.tsx` | 언어 선택 컴포넌트 |
+
+**구현된 기능:**
+- 한국어/영어 지원
+- React Context 기반 전역 언어 상태 관리
+- 브라우저 언어 자동 감지
+- LocalStorage 기반 언어 설정 유지
+- 파라미터 치환 지원 (예: `{name}`)
+- 네임스페이스 기반 번역 키 구조
+
+**번역 카테고리:**
+- common: 공통 UI 요소
+- auth: 인증 관련
+- nav: 네비게이션
+- dashboard: 대시보드
+- projects: 프로젝트 관리
+- editor: 에디터
+- generation: 생성 기능
+- templates: 템플릿
+- team: 팀 협업
+- billing: 결제
+- analytics: 분석
+- abTesting: A/B 테스트
+- export: 내보내기
+- errors: 오류 메시지
+- success: 성공 메시지
+
+---
+
+### Sprint 4 완료 ✅
+
+---
+
 ## 디렉토리 구조 (현재)
 
 ```
@@ -450,10 +801,34 @@ Triple_C/
     │   │   │   ├── route.ts
     │   │   │   └── [id]/
     │   │   │       └── knowledge/route.ts
-    │   │   └── generate/
-    │   │       ├── detail-page/route.ts
-    │   │       ├── stream/route.ts
-    │   │       └── motion/route.ts
+    │   │   ├── generate/
+    │   │   │   ├── detail-page/route.ts
+    │   │   │   ├── stream/route.ts
+    │   │   │   ├── motion/route.ts
+    │   │   │   └── video/route.ts
+    │   │   ├── templates/
+    │   │   │   ├── route.ts
+    │   │   │   └── [id]/
+    │   │   │       ├── route.ts
+    │   │   │       └── apply/route.ts
+    │   │   ├── workspaces/
+    │   │   │   └── [id]/
+    │   │   │       └── members/
+    │   │   │           ├── route.ts
+    │   │   │           └── [memberId]/route.ts
+    │   │   ├── billing/
+    │   │   │   ├── checkout/route.ts
+    │   │   │   ├── webhook/route.ts
+    │   │   │   ├── portal/route.ts
+    │   │   │   ├── subscription/route.ts
+    │   │   │   └── credits/route.ts
+    │   │   ├── analytics/
+    │   │   │   └── usage/route.ts
+    │   │   └── ab-tests/
+    │   │       ├── route.ts
+    │   │       └── [id]/
+    │   │           ├── route.ts
+    │   │           └── events/route.ts
     │   ├── globals.css
     │   ├── layout.tsx
     │   ├── page.tsx
@@ -486,6 +861,35 @@ Triple_C/
     │   │   ├── version-compare.tsx
     │   │   ├── history-panel.tsx
     │   │   └── index.ts
+    │   ├── video/
+    │   │   ├── video-style-selector.tsx
+    │   │   ├── video-options.tsx
+    │   │   ├── video-generator.tsx
+    │   │   └── index.ts
+    │   ├── templates/
+    │   │   ├── template-card.tsx
+    │   │   ├── template-gallery.tsx
+    │   │   ├── template-preview-modal.tsx
+    │   │   └── index.ts
+    │   ├── team/
+    │   │   ├── member-list.tsx
+    │   │   ├── invite-member-dialog.tsx
+    │   │   ├── team-panel.tsx
+    │   │   └── index.ts
+    │   ├── billing/
+    │   │   ├── pricing-plans.tsx
+    │   │   ├── billing-dashboard.tsx
+    │   │   └── index.ts
+    │   ├── analytics/
+    │   │   ├── usage-chart.tsx
+    │   │   ├── pie-chart.tsx
+    │   │   ├── analytics-dashboard.tsx
+    │   │   └── index.ts
+    │   ├── ab-testing/
+    │   │   ├── ab-test-card.tsx
+    │   │   ├── ab-test-results.tsx
+    │   │   └── index.ts
+    │   ├── language-selector.tsx
     │   └── ui/
     │       ├── avatar.tsx
     │       ├── button.tsx
@@ -503,18 +907,31 @@ Triple_C/
     │       ├── textarea.tsx
     │       ├── toast.tsx
     │       ├── toaster.tsx
-    │       └── tooltip.tsx
+    │       ├── tooltip.tsx
+    │       ├── alert-dialog.tsx
+    │       └── badge.tsx
     ├── hooks/
     │   ├── use-toast.ts
     │   ├── use-auto-save.ts
     │   ├── use-generation.ts
-    │   └── use-version-history.ts
+    │   ├── use-version-history.ts
+    │   ├── use-billing.ts
+    │   └── use-analytics.ts
     ├── lib/
     │   ├── auth.ts
     │   ├── pinecone.ts
     │   ├── prisma.ts
+    │   ├── stripe.ts
     │   ├── utils.ts
-    │   └── validations.ts
+    │   ├── validations.ts
+    │   └── i18n/
+    │       ├── index.ts
+    │       ├── context.tsx
+    │       ├── hook.ts
+    │       └── translations/
+    │           ├── index.ts
+    │           ├── ko.ts
+    │           └── en.ts
     ├── middleware.ts
     ├── services/
     │   ├── ai/
@@ -524,6 +941,9 @@ Triple_C/
     │   │   └── index.ts
     │   ├── motion/
     │   │   ├── motion-generator.ts
+    │   │   └── index.ts
+    │   ├── video/
+    │   │   ├── video-generator.ts
     │   │   └── index.ts
     │   └── rag/
     │       ├── text-chunker.ts
@@ -569,15 +989,21 @@ Triple_C/
 - [x] 템플릿 마켓플레이스
 - [x] 팀 협업 기능
 
-### Sprint 4+ - (예정)
-- [ ] 결제 시스템 (Stripe)
-- [ ] 사용량 분석 대시보드
-- [ ] A/B 테스트 기능
-- [ ] 다국어 지원
+### Sprint 4 - Payment & Analytics (완료) ✅
+- [x] 결제 시스템 (Stripe)
+- [x] 사용량 분석 대시보드
+- [x] A/B 테스트 기능
+- [x] 다국어 지원 (i18n)
+
+### Sprint 5+ - (예정)
+- [ ] 고급 에디터 기능 (드래그앤드롭 개선)
+- [ ] 소셜 미디어 연동 (Instagram API)
+- [ ] 실시간 협업 (WebSocket)
+- [ ] 모바일 앱 (React Native)
 
 ---
 
-## 완료된 파일 목록 (총 125개+)
+## 완료된 파일 목록 (총 150개+)
 
 ### 설정 파일 (7개)
 1. `package.json`
@@ -714,9 +1140,85 @@ Triple_C/
 ### 미들웨어 (1개)
 101. `src/middleware.ts`
 
+### Video 서비스 (2개)
+102. `src/services/video/video-generator.ts`
+103. `src/services/video/index.ts`
+
+### Video 컴포넌트 (4개)
+104. `src/components/video/video-style-selector.tsx`
+105. `src/components/video/video-options.tsx`
+106. `src/components/video/video-generator.tsx`
+107. `src/components/video/index.ts`
+
+### Template 컴포넌트 (4개)
+108. `src/components/templates/template-card.tsx`
+109. `src/components/templates/template-gallery.tsx`
+110. `src/components/templates/template-preview-modal.tsx`
+111. `src/components/templates/index.ts`
+
+### Team 컴포넌트 (4개)
+112. `src/components/team/member-list.tsx`
+113. `src/components/team/invite-member-dialog.tsx`
+114. `src/components/team/team-panel.tsx`
+115. `src/components/team/index.ts`
+
+### Billing 컴포넌트 (3개)
+116. `src/components/billing/pricing-plans.tsx`
+117. `src/components/billing/billing-dashboard.tsx`
+118. `src/components/billing/index.ts`
+
+### Analytics 컴포넌트 (4개)
+119. `src/components/analytics/usage-chart.tsx`
+120. `src/components/analytics/pie-chart.tsx`
+121. `src/components/analytics/analytics-dashboard.tsx`
+122. `src/components/analytics/index.ts`
+
+### A/B Testing 컴포넌트 (3개)
+123. `src/components/ab-testing/ab-test-card.tsx`
+124. `src/components/ab-testing/ab-test-results.tsx`
+125. `src/components/ab-testing/index.ts`
+
+### i18n 시스템 (5개)
+126. `src/lib/i18n/index.ts`
+127. `src/lib/i18n/translations/ko.ts`
+128. `src/lib/i18n/translations/en.ts`
+129. `src/lib/i18n/translations/index.ts`
+130. `src/lib/i18n/context.tsx`
+131. `src/lib/i18n/hook.ts`
+
+### 추가 컴포넌트 (2개)
+132. `src/components/language-selector.tsx`
+133. `src/components/ui/alert-dialog.tsx`
+
+### Sprint 3 API 라우트 (5개)
+134. `src/app/api/generate/video/route.ts`
+135. `src/app/api/templates/route.ts`
+136. `src/app/api/templates/[id]/route.ts`
+137. `src/app/api/templates/[id]/apply/route.ts`
+138. `src/app/api/workspaces/[id]/members/route.ts`
+139. `src/app/api/workspaces/[id]/members/[memberId]/route.ts`
+
+### Sprint 4 API 라우트 (9개)
+140. `src/app/api/billing/checkout/route.ts`
+141. `src/app/api/billing/webhook/route.ts`
+142. `src/app/api/billing/portal/route.ts`
+143. `src/app/api/billing/subscription/route.ts`
+144. `src/app/api/billing/credits/route.ts`
+145. `src/app/api/analytics/usage/route.ts`
+146. `src/app/api/ab-tests/route.ts`
+147. `src/app/api/ab-tests/[id]/route.ts`
+148. `src/app/api/ab-tests/[id]/events/route.ts`
+
+### 추가 Hooks (2개)
+149. `src/hooks/use-billing.ts`
+150. `src/hooks/use-analytics.ts`
+
+### Stripe 라이브러리 (1개)
+151. `src/lib/stripe.ts`
+
 ### 문서 (2개)
-102. `CLAUDE.md`
-103. `project_develop_plan.md`
+152. `CLAUDE.md`
+153. `project_develop_plan.md`
 
 ---
 
