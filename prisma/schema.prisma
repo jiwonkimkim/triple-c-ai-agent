@@ -78,13 +78,13 @@ model User {
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  accounts          Account[]
-  sessions          Session[]
-  ownedWorkspaces   Workspace[]       @relation("WorkspaceOwner")
+  accounts             Account[]
+  sessions             Session[]
+  ownedWorkspaces      Workspace[]        @relation("WorkspaceOwner")
   workspaceMemberships WorkspaceMember[]
-  projects          Project[]
-  editorDrafts      EditorDraft[]
-  projectHistories  ProjectHistory[]
+  projects             Project[]
+  editorDrafts         EditorDraft[]
+  createdVersions      ProjectVersion[]   @relation("VersionCreator")
 
   @@map("users")
 }
@@ -219,6 +219,8 @@ model Project {
   brandProfileId String?       @map("brand_profile_id")
   title          String
   description    String?       @db.Text
+  content        Json?         // Current content (sections)
+  currentVersion Int           @default(0) @map("current_version")
   status         ProjectStatus @default(ACTIVE)
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime      @updatedAt @map("updated_at")
@@ -230,6 +232,7 @@ model Project {
   detailPageVersions DetailPageVersion[]
   editorDraft        EditorDraft?
   histories          ProjectHistory[]
+  versions           ProjectVersion[]
   motionJobs         MotionJob[]
   videoJobs          VideoJob[]
 
@@ -327,23 +330,27 @@ enum JobStatus {
   FAILED
 }
 
-enum MotionPreset {
-  ZOOM_IN
+enum MotionEffect {
+  ZOOM
+  PAN
+  ROTATE
+  BOUNCE
   FADE
-  SLIDE
+  PARALLAX
 }
 
 model MotionJob {
   id           String       @id @default(cuid())
   projectId    String       @map("project_id")
-  imageUrl     String       @map("image_url")
-  preset       MotionPreset
+  inputImages  String[]     @map("input_images") // Array of image URLs
+  effect       MotionEffect @default(ZOOM)
+  parameters   Json         @default("{}") // Full effect parameters
+  outputUrl    String?      @map("output_url")
   status       JobStatus    @default(PENDING)
-  resultGifUrl String?      @map("result_gif_url")
-  resultMp4Url String?      @map("result_mp4_url")
   errorMessage String?      @map("error_message")
   createdAt    DateTime     @default(now()) @map("created_at")
   updatedAt    DateTime     @updatedAt @map("updated_at")
+  completedAt  DateTime?    @map("completed_at")
 
   // Relations
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -377,20 +384,51 @@ model VideoJob {
 // History & Versioning Models
 // ============================================
 
-model ProjectHistory {
-  id                  String   @id @default(cuid())
-  projectId           String   @map("project_id")
-  versionLabel        String   @map("version_label")
-  detailPageVersionId String   @map("detail_page_version_id")
-  createdAt           DateTime @default(now()) @map("created_at")
-  createdBy           String   @map("created_by")
+enum VersionAction {
+  CREATE
+  UPDATE
+  GENERATE
+  RESTORE
+  AUTO_SAVE
+  GENERATE_IMAGE
+  GENERATE_MOTION
+  EXPORT
+}
+
+model ProjectVersion {
+  id            String        @id @default(cuid())
+  projectId     String        @map("project_id")
+  versionNumber Int           @map("version_number")
+  action        VersionAction @default(UPDATE)
+  description   String?       @db.Text
+  content       Json          // Sections and metadata snapshot
+  thumbnail     String?       // Preview image URL
+  changes       Json?         // { added: number, modified: number, deleted: number }
+  createdById   String        @map("created_by_id")
+  createdAt     DateTime      @default(now()) @map("created_at")
 
   // Relations
-  project           Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  detailPageVersion DetailPageVersion @relation(fields: [detailPageVersionId], references: [id])
-  creator           User              @relation(fields: [createdBy], references: [id])
+  project       Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdByUser User    @relation("VersionCreator", fields: [createdById], references: [id])
+
+  @@unique([projectId, versionNumber])
+  @@index([projectId])
+  @@index([createdAt])
+  @@map("project_versions")
+}
+
+model ProjectHistory {
+  id        String   @id @default(cuid())
+  projectId String   @map("project_id")
+  action    String   // Action type (CREATE, UPDATE, GENERATE, etc.)
+  details   Json     @default("{}") // Action-specific details
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
+  @@index([createdAt])
   @@map("project_histories")
 }
 

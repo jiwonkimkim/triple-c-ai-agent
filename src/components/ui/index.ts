@@ -65,3 +65,26 @@ export {
   ToastAction,
 } from './toast';
 export { Toaster } from './toaster';
+export { Progress } from './progress';
+export { ScrollArea, ScrollBar } from './scroll-area';
+export {
+  Sheet,
+  SheetPortal,
+  SheetOverlay,
+  SheetTrigger,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetFooter,
+  SheetTitle,
+  SheetDescription,
+} from './sheet';
+export { Slider } from './slider';
+export {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from './tooltip';
+export { Alert, AlertTitle, AlertDescription } from './alert';
+export { Badge, badgeVariants } from './badge';

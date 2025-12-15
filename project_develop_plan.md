@@ -223,13 +223,175 @@
 
 ---
 
-### 진행 예정 작업
+#### 22:00 - 실시간 진행 표시기 구현 ✅
 
-#### 10단계: 추가 기능 구현
-- [ ] Motion/GIF 생성 기능
-- [ ] 실시간 진행 표시기
-- [ ] 이미지 품질 옵션 (draft/HD)
-- [ ] 프로젝트 히스토리 & 버전 관리 UI 개선
+**완료된 파일:**
+
+| 파일명 | 설명 |
+|--------|------|
+| `src/stores/generation-store.ts` | 생성 작업 상태 관리 스토어 |
+| `src/components/ui/progress.tsx` | Progress 바 컴포넌트 |
+| `src/components/generation/generation-progress.tsx` | 단계별 진행 표시 컴포넌트 |
+| `src/components/generation/generation-modal.tsx` | 생성 진행 모달 |
+| `src/components/generation/index.ts` | Generation 컴포넌트 통합 export |
+| `src/app/api/generate/stream/route.ts` | SSE 기반 스트리밍 생성 API |
+| `src/hooks/use-generation.ts` | 생성 작업 훅 (SSE 소비) |
+
+**구현된 기능:**
+- Server-Sent Events (SSE) 기반 실시간 진행 스트리밍
+- 단계별 진행 상태 표시 (6단계)
+- Undo/Redo 지원 히스토리 관리
+- 작업 완료/실패 알림
+- 경과 시간 표시
+
+---
+
+#### 22:30 - 이미지 품질 옵션 구현 ✅
+
+**완료된 파일:**
+
+| 파일명 | 설명 |
+|--------|------|
+| `src/services/image/image-generator.ts` | DALL-E 3 이미지 생성 서비스 |
+| `src/services/image/index.ts` | Image 서비스 통합 export |
+| `src/components/generation/quality-selector.tsx` | 품질 선택 UI 컴포넌트 |
+
+**구현된 기능:**
+- Draft/HD 품질 옵션
+- DALL-E 3 통합 (OpenAI)
+- Hero/Feature/Lifestyle/Banner 이미지 타입
+- 예상 생성 시간 표시
+
+---
+
+#### 23:00 - Motion/GIF 생성 기능 구현 ✅
+
+**완료된 파일:**
+
+| 파일명 | 설명 |
+|--------|------|
+| `src/services/motion/motion-generator.ts` | Motion/GIF 생성 서비스 |
+| `src/services/motion/index.ts` | Motion 서비스 통합 export |
+| `src/app/api/generate/motion/route.ts` | Motion 생성 API |
+| `src/components/generation/motion-selector.tsx` | Motion 효과 선택 UI |
+| `src/components/ui/slider.tsx` | Slider 컴포넌트 |
+
+**구현된 기능:**
+- 6가지 모션 효과 (Zoom, Pan, Rotate, Bounce, Fade, Parallax)
+- 3단계 강도 조절 (Subtle, Moderate, Dramatic)
+- GIF/MP4/WebM 출력 포맷
+- CSS 애니메이션 프리뷰
+- 이징 함수 선택
+
+---
+
+#### 23:30 - 프로젝트 히스토리 & 버전 관리 UI 구현 ✅
+
+**완료된 파일:**
+
+| 파일명 | 설명 |
+|--------|------|
+| `src/stores/history-store.ts` | 버전 히스토리 상태 관리 스토어 |
+| `src/components/history/version-timeline.tsx` | 버전 타임라인 컴포넌트 |
+| `src/components/history/version-compare.tsx` | 버전 비교 뷰 컴포넌트 |
+| `src/components/history/history-panel.tsx` | 히스토리 패널 (통합 컴포넌트) |
+| `src/components/history/index.ts` | History 컴포넌트 통합 export |
+| `src/hooks/use-version-history.ts` | 버전 히스토리 훅 |
+| `src/app/api/projects/[id]/versions/route.ts` | 버전 목록/생성 API |
+| `src/app/api/projects/[id]/versions/[versionId]/restore/route.ts` | 버전 복원 API |
+
+**구현된 기능:**
+- 버전 타임라인 UI (시간순 정렬, 액션별 아이콘/색상)
+- 두 버전 간 비교 뷰 (섹션/블록 단위 diff)
+- 버전 복원 기능 (새 버전으로 기록)
+- 자동 저장 지원 (interval 기반)
+- 변경사항 요약 (추가/수정/삭제 카운트)
+
+**Prisma 스키마 업데이트:**
+- `ProjectVersion` 모델 추가 (버전 스냅샷 저장)
+- `Project` 모델에 `content`, `currentVersion` 필드 추가
+- `ProjectHistory` 모델 단순화 (액션 로깅용)
+- `MotionJob` 모델 업데이트 (새 모션 효과 지원)
+
+---
+
+### Sprint 2 완료 ✅
+
+---
+
+#### 00:00 - 짧은 광고 영상 생성 기능 구현 ✅ (Sprint 3)
+
+**완료된 파일:**
+
+| 파일명 | 설명 |
+|--------|------|
+| `src/services/video/video-generator.ts` | Runway ML API 연동 영상 생성 서비스 |
+| `src/services/video/index.ts` | Video 서비스 통합 export |
+| `src/app/api/generate/video/route.ts` | 영상 생성 API |
+| `src/components/video/video-style-selector.tsx` | 영상 스타일 선택 UI |
+| `src/components/video/video-options.tsx` | 영상 옵션 (비율, 길이, 모션) UI |
+| `src/components/video/video-generator.tsx` | 영상 생성 메인 컴포넌트 |
+| `src/components/video/index.ts` | Video 컴포넌트 통합 export |
+
+**구현된 기능:**
+- Runway ML API 연동 (Image-to-Video)
+- 5가지 영상 스타일 (시네마틱, 광고, 소셜미디어, 제품 쇼케이스, 라이프스타일)
+- 4가지 화면 비율 (16:9, 9:16, 1:1, 4:5)
+- 3단계 영상 길이 (4초, 8초, 16초)
+- 3단계 모션 강도
+- 참조 이미지 업로드
+- 크레딧 기반 과금 시스템
+
+---
+
+#### 00:30 - 템플릿 마켓플레이스 구현 ✅ (Sprint 3)
+
+**완료된 파일:**
+
+| 파일명 | 설명 |
+|--------|------|
+| `src/app/api/templates/route.ts` | 템플릿 목록/생성 API |
+| `src/app/api/templates/[id]/route.ts` | 템플릿 상세/수정/삭제 API |
+| `src/app/api/templates/[id]/apply/route.ts` | 템플릿 적용 API |
+| `src/components/templates/template-card.tsx` | 템플릿 카드 컴포넌트 |
+| `src/components/templates/template-gallery.tsx` | 템플릿 갤러리 (마켓플레이스) |
+| `src/components/templates/template-preview-modal.tsx` | 템플릿 미리보기 모달 |
+| `src/components/templates/index.ts` | Templates 컴포넌트 통합 export |
+
+**구현된 기능:**
+- 템플릿 마켓플레이스 UI (그리드/페이지네이션)
+- 카테고리별 필터링 (일반, 패션, 음식, 뷰티, 디지털)
+- 검색 기능
+- 템플릿 미리보기 (반응형 뷰포트)
+- 프로젝트에 템플릿 적용
+- 사용자 템플릿 생성/관리
+
+---
+
+#### 01:00 - 팀 협업 기능 구현 ✅ (Sprint 3)
+
+**완료된 파일:**
+
+| 파일명 | 설명 |
+|--------|------|
+| `src/app/api/workspaces/[id]/members/route.ts` | 워크스페이스 멤버 목록/초대 API |
+| `src/app/api/workspaces/[id]/members/[memberId]/route.ts` | 멤버 역할 변경/제거 API |
+| `src/components/team/member-list.tsx` | 팀 멤버 목록 컴포넌트 |
+| `src/components/team/invite-member-dialog.tsx` | 멤버 초대 다이얼로그 |
+| `src/components/team/team-panel.tsx` | 팀 관리 패널 |
+| `src/components/team/index.ts` | Team 컴포넌트 통합 export |
+| `src/components/ui/alert-dialog.tsx` | Alert Dialog 컴포넌트 |
+
+**구현된 기능:**
+- 워크스페이스 멤버 관리
+- 역할 기반 권한 (소유자, 관리자, 편집자, 뷰어)
+- 이메일로 멤버 초대
+- 멤버 역할 변경
+- 멤버 제거 / 워크스페이스 떠나기
+
+---
+
+### Sprint 3 완료 ✅
 
 ---
 
@@ -279,12 +441,19 @@ Triple_C/
     │   │   │   └── [id]/
     │   │   │       ├── route.ts
     │   │   │       ├── drafts/route.ts
-    │   │   │       └── export/route.ts
+    │   │   │       ├── export/route.ts
+    │   │   │       └── versions/
+    │   │   │           ├── route.ts
+    │   │   │           └── [versionId]/
+    │   │   │               └── restore/route.ts
     │   │   ├── brands/
     │   │   │   ├── route.ts
     │   │   │   └── [id]/
     │   │   │       └── knowledge/route.ts
-    │   │   └── generate/detail-page/route.ts
+    │   │   └── generate/
+    │   │       ├── detail-page/route.ts
+    │   │       ├── stream/route.ts
+    │   │       └── motion/route.ts
     │   ├── globals.css
     │   ├── layout.tsx
     │   ├── page.tsx
@@ -306,6 +475,17 @@ Triple_C/
     │   │   ├── editor-toolbar.tsx
     │   │   ├── detail-page-editor.tsx
     │   │   └── index.ts
+    │   ├── generation/
+    │   │   ├── generation-progress.tsx
+    │   │   ├── generation-modal.tsx
+    │   │   ├── quality-selector.tsx
+    │   │   ├── motion-selector.tsx
+    │   │   └── index.ts
+    │   ├── history/
+    │   │   ├── version-timeline.tsx
+    │   │   ├── version-compare.tsx
+    │   │   ├── history-panel.tsx
+    │   │   └── index.ts
     │   └── ui/
     │       ├── avatar.tsx
     │       ├── button.tsx
@@ -315,13 +495,20 @@ Triple_C/
     │       ├── index.ts
     │       ├── input.tsx
     │       ├── label.tsx
+    │       ├── progress.tsx
+    │       ├── scroll-area.tsx
     │       ├── select.tsx
+    │       ├── sheet.tsx
+    │       ├── slider.tsx
     │       ├── textarea.tsx
     │       ├── toast.tsx
-    │       └── toaster.tsx
+    │       ├── toaster.tsx
+    │       └── tooltip.tsx
     ├── hooks/
     │   ├── use-toast.ts
-    │   └── use-auto-save.ts
+    │   ├── use-auto-save.ts
+    │   ├── use-generation.ts
+    │   └── use-version-history.ts
     ├── lib/
     │   ├── auth.ts
     │   ├── pinecone.ts
@@ -332,6 +519,12 @@ Triple_C/
     ├── services/
     │   ├── ai/
     │   │   └── detail-page-generator.ts
+    │   ├── image/
+    │   │   ├── image-generator.ts
+    │   │   └── index.ts
+    │   ├── motion/
+    │   │   ├── motion-generator.ts
+    │   │   └── index.ts
     │   └── rag/
     │       ├── text-chunker.ts
     │       ├── embeddings.ts
@@ -339,7 +532,9 @@ Triple_C/
     │       ├── brand-context.ts
     │       └── index.ts
     ├── stores/
-    │   └── editor-store.ts
+    │   ├── editor-store.ts
+    │   ├── generation-store.ts
+    │   └── history-store.ts
     └── types/
         ├── api.ts
         ├── index.ts
@@ -350,7 +545,7 @@ Triple_C/
 
 ## Sprint 로드맵 (PRD 기반)
 
-### Sprint 1 - Core (완료)
+### Sprint 1 - Core (완료) ✅
 - [x] 프로젝트 설정
 - [x] 타입 정의
 - [x] 데이터베이스 스키마
@@ -362,19 +557,27 @@ Triple_C/
 - [x] 기본 에디터 v1
 - [x] 브랜드 분석 RAG (기본)
 
-### Sprint 2 - Templates & Motion
+### Sprint 2 - Templates & Motion (완료) ✅
 - [x] 샘플 템플릿 (5개 카테고리 seed)
-- [ ] Motion/GIF 생성
-- [ ] 프로젝트 히스토리 & 버전 관리
+- [x] Motion/GIF 생성
+- [x] 실시간 진행 표시기
+- [x] 이미지 품질 옵션 (draft/HD)
+- [x] 프로젝트 히스토리 & 버전 관리 UI 개선
 
-### Sprint 3+ - Video & Advanced
-- [ ] 짧은 광고 영상 생성 (Runway)
-- [ ] 실시간 진행 표시기
-- [ ] 이미지 품질 옵션 (draft/HD)
+### Sprint 3 - Video & Advanced (완료) ✅
+- [x] 짧은 광고 영상 생성 (Runway ML)
+- [x] 템플릿 마켓플레이스
+- [x] 팀 협업 기능
+
+### Sprint 4+ - (예정)
+- [ ] 결제 시스템 (Stripe)
+- [ ] 사용량 분석 대시보드
+- [ ] A/B 테스트 기능
+- [ ] 다국어 지원
 
 ---
 
-## 완료된 파일 목록 (총 76개)
+## 완료된 파일 목록 (총 125개+)
 
 ### 설정 파일 (7개)
 1. `package.json`
@@ -401,7 +604,7 @@ Triple_C/
 16. `src/lib/utils.ts`
 17. `src/lib/validations.ts`
 
-### API 라우트 (10개)
+### API 라우트 (14개)
 18. `src/app/api/auth/[...nextauth]/route.ts`
 19. `src/app/api/auth/signup/route.ts`
 20. `src/app/api/auth/verify-email/route.ts`
@@ -409,74 +612,111 @@ Triple_C/
 22. `src/app/api/projects/[id]/route.ts`
 23. `src/app/api/projects/[id]/drafts/route.ts`
 24. `src/app/api/projects/[id]/export/route.ts`
-25. `src/app/api/brands/route.ts`
-26. `src/app/api/brands/[id]/knowledge/route.ts`
-27. `src/app/api/generate/detail-page/route.ts`
+25. `src/app/api/projects/[id]/versions/route.ts`
+26. `src/app/api/projects/[id]/versions/[versionId]/restore/route.ts`
+27. `src/app/api/brands/route.ts`
+28. `src/app/api/brands/[id]/knowledge/route.ts`
+29. `src/app/api/generate/detail-page/route.ts`
+30. `src/app/api/generate/stream/route.ts`
+31. `src/app/api/generate/motion/route.ts`
 
 ### AI 서비스 (1개)
-28. `src/services/ai/detail-page-generator.ts`
+32. `src/services/ai/detail-page-generator.ts`
 
 ### RAG 서비스 (5개)
-29. `src/services/rag/text-chunker.ts`
-30. `src/services/rag/embeddings.ts`
-31. `src/services/rag/web-crawler.ts`
-32. `src/services/rag/brand-context.ts`
-33. `src/services/rag/index.ts`
+33. `src/services/rag/text-chunker.ts`
+34. `src/services/rag/embeddings.ts`
+35. `src/services/rag/web-crawler.ts`
+36. `src/services/rag/brand-context.ts`
+37. `src/services/rag/index.ts`
 
-### UI 컴포넌트 (13개)
-34. `src/app/globals.css`
-35. `src/components/ui/button.tsx`
-36. `src/components/ui/input.tsx`
-37. `src/components/ui/label.tsx`
-38. `src/components/ui/card.tsx`
-39. `src/components/ui/dialog.tsx`
-40. `src/components/ui/toast.tsx`
-41. `src/components/ui/toaster.tsx`
-42. `src/components/ui/select.tsx`
-43. `src/components/ui/avatar.tsx`
-44. `src/components/ui/textarea.tsx`
-45. `src/components/ui/dropdown-menu.tsx`
-46. `src/components/ui/index.ts`
+### Image 서비스 (2개)
+38. `src/services/image/image-generator.ts`
+39. `src/services/image/index.ts`
 
-### 에디터 컴포넌트 (15개)
-47. `src/stores/editor-store.ts`
-48. `src/components/editor/blocks/heading-block.tsx`
-49. `src/components/editor/blocks/text-block.tsx`
-50. `src/components/editor/blocks/image-block.tsx`
-51. `src/components/editor/blocks/button-block.tsx`
-52. `src/components/editor/blocks/divider-block.tsx`
-53. `src/components/editor/blocks/spacer-block.tsx`
-54. `src/components/editor/blocks/list-block.tsx`
-55. `src/components/editor/blocks/quote-block.tsx`
-56. `src/components/editor/blocks/index.ts`
-57. `src/components/editor/block-renderer.tsx`
-58. `src/components/editor/editor-section.tsx`
-59. `src/components/editor/editor-toolbar.tsx`
-60. `src/components/editor/detail-page-editor.tsx`
-61. `src/components/editor/index.ts`
+### Motion 서비스 (2개)
+40. `src/services/motion/motion-generator.ts`
+41. `src/services/motion/index.ts`
 
-### Hooks (2개)
-62. `src/hooks/use-toast.ts`
-63. `src/hooks/use-auto-save.ts`
+### UI 컴포넌트 (18개)
+42. `src/app/globals.css`
+43. `src/components/ui/button.tsx`
+44. `src/components/ui/input.tsx`
+45. `src/components/ui/label.tsx`
+46. `src/components/ui/card.tsx`
+47. `src/components/ui/dialog.tsx`
+48. `src/components/ui/toast.tsx`
+49. `src/components/ui/toaster.tsx`
+50. `src/components/ui/select.tsx`
+51. `src/components/ui/avatar.tsx`
+52. `src/components/ui/textarea.tsx`
+53. `src/components/ui/dropdown-menu.tsx`
+54. `src/components/ui/progress.tsx`
+55. `src/components/ui/scroll-area.tsx`
+56. `src/components/ui/sheet.tsx`
+57. `src/components/ui/slider.tsx`
+58. `src/components/ui/tooltip.tsx`
+59. `src/components/ui/index.ts`
+
+### 에디터 컴포넌트 (14개)
+60. `src/components/editor/blocks/heading-block.tsx`
+61. `src/components/editor/blocks/text-block.tsx`
+62. `src/components/editor/blocks/image-block.tsx`
+63. `src/components/editor/blocks/button-block.tsx`
+64. `src/components/editor/blocks/divider-block.tsx`
+65. `src/components/editor/blocks/spacer-block.tsx`
+66. `src/components/editor/blocks/list-block.tsx`
+67. `src/components/editor/blocks/quote-block.tsx`
+68. `src/components/editor/blocks/index.ts`
+69. `src/components/editor/block-renderer.tsx`
+70. `src/components/editor/editor-section.tsx`
+71. `src/components/editor/editor-toolbar.tsx`
+72. `src/components/editor/detail-page-editor.tsx`
+73. `src/components/editor/index.ts`
+
+### Generation 컴포넌트 (5개)
+74. `src/components/generation/generation-progress.tsx`
+75. `src/components/generation/generation-modal.tsx`
+76. `src/components/generation/quality-selector.tsx`
+77. `src/components/generation/motion-selector.tsx`
+78. `src/components/generation/index.ts`
+
+### History 컴포넌트 (4개)
+79. `src/components/history/version-timeline.tsx`
+80. `src/components/history/version-compare.tsx`
+81. `src/components/history/history-panel.tsx`
+82. `src/components/history/index.ts`
+
+### Hooks (4개)
+83. `src/hooks/use-toast.ts`
+84. `src/hooks/use-auto-save.ts`
+85. `src/hooks/use-generation.ts`
+86. `src/hooks/use-version-history.ts`
+
+### 스토어 (3개)
+87. `src/stores/editor-store.ts`
+88. `src/stores/generation-store.ts`
+89. `src/stores/history-store.ts`
 
 ### 페이지 및 레이아웃 (11개)
-64. `src/app/layout.tsx`
-65. `src/app/providers.tsx`
-66. `src/app/page.tsx`
-67. `src/app/(auth)/login/page.tsx`
-68. `src/app/(auth)/signup/page.tsx`
-69. `src/app/(dashboard)/layout.tsx`
-70. `src/app/(dashboard)/dashboard/page.tsx`
-71. `src/app/(dashboard)/dashboard/projects/page.tsx`
-72. `src/app/(dashboard)/dashboard/projects/new/page.tsx`
-73. `src/app/(dashboard)/dashboard/projects/[id]/page.tsx`
-74. `src/app/(dashboard)/dashboard/projects/[id]/preview/page.tsx`
+90. `src/app/layout.tsx`
+91. `src/app/providers.tsx`
+92. `src/app/page.tsx`
+93. `src/app/(auth)/login/page.tsx`
+94. `src/app/(auth)/signup/page.tsx`
+95. `src/app/(dashboard)/layout.tsx`
+96. `src/app/(dashboard)/dashboard/page.tsx`
+97. `src/app/(dashboard)/dashboard/projects/page.tsx`
+98. `src/app/(dashboard)/dashboard/projects/new/page.tsx`
+99. `src/app/(dashboard)/dashboard/projects/[id]/page.tsx`
+100. `src/app/(dashboard)/dashboard/projects/[id]/preview/page.tsx`
 
 ### 미들웨어 (1개)
-75. `src/middleware.ts`
+101. `src/middleware.ts`
 
-### 스토어 (1개)
-76. `src/stores/editor-store.ts` (에디터 컴포넌트 카테고리에 포함됨)
+### 문서 (2개)
+102. `CLAUDE.md`
+103. `project_develop_plan.md`
 
 ---
 
