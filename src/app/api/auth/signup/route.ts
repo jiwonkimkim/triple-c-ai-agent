@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
 import { hashPassword, generateVerificationToken } from '@/lib/auth';
+import { sendEmail, getVerificationEmailTemplate } from '@/lib/email';
 
 // Validation schemas
 const b2cSignupSchema = z.object({
@@ -135,7 +136,17 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // TODO: Send verification email
+      // Send verification email
+      const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+      const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
+      const emailTemplate = getVerificationEmailTemplate(b2bData.name, verificationUrl);
+
+      await sendEmail({
+        to: user.email,
+        subject: emailTemplate.subject,
+        html: emailTemplate.html,
+        text: emailTemplate.text,
+      });
 
       return NextResponse.json(
         {
@@ -143,7 +154,7 @@ export async function POST(request: NextRequest) {
           data: {
             userId: user.id,
             workspaceId: workspace.id,
-            message: 'Account created. Please verify your email.',
+            message: 'Account created. Please check your email to verify your account.',
           },
         },
         { status: 201 }
@@ -173,14 +184,24 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // TODO: Send verification email
+      // Send verification email
+      const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+      const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
+      const emailTemplate = getVerificationEmailTemplate(b2cData.name || '', verificationUrl);
+
+      await sendEmail({
+        to: user.email,
+        subject: emailTemplate.subject,
+        html: emailTemplate.html,
+        text: emailTemplate.text,
+      });
 
       return NextResponse.json(
         {
           success: true,
           data: {
             userId: user.id,
-            message: 'Account created. Please verify your email.',
+            message: 'Account created. Please check your email to verify your account.',
           },
         },
         { status: 201 }
