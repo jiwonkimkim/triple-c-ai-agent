@@ -49,12 +49,14 @@ export default function NewProjectPage() {
     keyFeatures: string[];
     targetAudience: string;
     copyLength: 'short' | 'medium' | 'long';
+    productUrl: string;
   }>({
     productName: '',
     category: '',
     keyFeatures: [''],
     targetAudience: '',
     copyLength: 'medium',
+    productUrl: '',
   });
 
   const {
@@ -221,15 +223,6 @@ export default function NewProjectPage() {
       return;
     }
 
-    if (productImages.length === 0) {
-      toast({
-        variant: 'destructive',
-        title: '이미지가 필요합니다',
-        description: '최소 1개의 제품 이미지를 업로드해 주세요.',
-      });
-      return;
-    }
-
     if (!productInfo.productName || !productInfo.category) {
       toast({
         variant: 'destructive',
@@ -254,18 +247,17 @@ export default function NewProjectPage() {
     }
 
     setIsLoading(true);
-    toast({
-      title: '이미지 업로드 중...',
-      description: '제품 이미지를 업로드하고 있습니다.',
-    });
 
     try {
-      // 1. 이미지 업로드
-      const imageUrls = await uploadImages(productImages);
-      setUploadedImageUrls(imageUrls);
-
-      if (imageUrls.length === 0) {
-        throw new Error('이미지 업로드에 실패했습니다.');
+      // 1. 이미지 업로드 (이미지가 있는 경우에만)
+      let imageUrls: string[] = [];
+      if (productImages.length > 0) {
+        toast({
+          title: '이미지 업로드 중...',
+          description: '제품 이미지를 업로드하고 있습니다.',
+        });
+        imageUrls = await uploadImages(productImages);
+        setUploadedImageUrls(imageUrls);
       }
 
       toast({
@@ -285,6 +277,7 @@ export default function NewProjectPage() {
           keyFeatures: filteredFeatures,
           targetAudience: productInfo.targetAudience || '일반 소비자',
           copyLength: productInfo.copyLength,
+          productUrl: productInfo.productUrl || undefined,
         }),
       });
 
@@ -402,9 +395,9 @@ export default function NewProjectPage() {
           {/* Image Upload */}
           <Card>
             <CardHeader>
-              <CardTitle>제품 이미지</CardTitle>
+              <CardTitle>제품 이미지 (선택)</CardTitle>
               <CardDescription>
-                최대 5장의 제품 이미지를 업로드하세요 (최소 1장 필수)
+                최대 5장의 제품 이미지를 업로드할 수 있습니다
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -486,6 +479,20 @@ export default function NewProjectPage() {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>상품 URL (선택)</Label>
+                <Input
+                  placeholder="예: https://www.coupang.com/... 또는 https://smartstore.naver.com/..."
+                  value={productInfo.productUrl}
+                  onChange={(e) =>
+                    setProductInfo((prev) => ({ ...prev, productUrl: e.target.value }))
+                  }
+                />
+                <p className="text-xs text-muted-foreground">
+                  쿠팡, 네이버 스마트스토어 등의 상품 URL을 입력하면 상품 정보를 참고하여 콘텐츠를 생성합니다.
+                </p>
               </div>
 
               <div className="space-y-2">

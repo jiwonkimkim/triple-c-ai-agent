@@ -17,6 +17,23 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // 개발 환경에서 사용자 ID 동기화
+    if (process.env.NODE_ENV === 'development') {
+      const existingUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+      });
+
+      if (!existingUser) {
+        const userByEmail = await prisma.user.findUnique({
+          where: { email: session.user.email },
+        });
+
+        if (userByEmail) {
+          session.user.id = userByEmail.id;
+        }
+      }
+    }
+
     const { searchParams } = new URL(request.url);
     const workspaceId = searchParams.get('workspaceId');
     const status = searchParams.get('status') as 'ACTIVE' | 'ARCHIVED' | null;
@@ -152,12 +169,54 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Check access
-      if (brandProfile.workspaceId !== validatedData.workspaceId) {
-        return NextResponse.json(
-          { success: false, error: 'Brand profile does not belong to workspace' },
-          { status: 403 }
-        );
+      // Check access based on workspace or user ownership
+      const projectWorkspaceId = validatedData.workspaceId || null;
+      const brandWorkspaceId = brandProfile.workspaceId || null;
+
+      if (projectWorkspaceId) {
+        // B2B: Project has workspace - brand must belong to same workspace
+        if (brandWorkspaceId !== projectWorkspaceId) {
+          return NextResponse.json(
+            { success: false, error: 'Brand profile does not belong to workspace' },
+            { status: 403 }
+          );
+        }
+      } else {
+        // B2C: Personal project - brand must be personal and belong to current user
+        if (brandWorkspaceId) {
+          // Brand belongs to a workspace but project is personal
+          return NextResponse.json(
+            { success: false, error: 'Cannot use workspace brand for personal project' },
+            { status: 403 }
+          );
+        }
+
+        // Check if brand belongs to current user
+        // Also check by email for dev environment compatibility
+        let hasAccess = false;
+
+        if (brandProfile.userId === session.user.id) {
+          hasAccess = true;
+        } else if (process.env.NODE_ENV === 'development' && brandProfile.userId) {
+          // In dev, check if brand owner has same email as current user
+          const brandOwner = await prisma.user.findUnique({
+            where: { id: brandProfile.userId },
+            select: { email: true },
+          });
+          if (brandOwner?.email === session.user.email) {
+            hasAccess = true;
+          }
+        } else if (!brandProfile.userId) {
+          // Brand has no userId set - allow for backwards compatibility
+          hasAccess = true;
+        }
+
+        if (!hasAccess) {
+          return NextResponse.json(
+            { success: false, error: 'Brand profile does not belong to you' },
+            { status: 403 }
+          );
+        }
       }
     }
 

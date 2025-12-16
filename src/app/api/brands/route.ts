@@ -17,6 +17,23 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // 개발 환경에서 사용자 ID 동기화
+    if (process.env.NODE_ENV === 'development') {
+      const existingUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+      });
+
+      if (!existingUser) {
+        const userByEmail = await prisma.user.findUnique({
+          where: { email: session.user.email },
+        });
+
+        if (userByEmail) {
+          session.user.id = userByEmail.id;
+        }
+      }
+    }
+
     const { searchParams } = new URL(request.url);
     const workspaceId = searchParams.get('workspaceId');
 
@@ -94,6 +111,23 @@ export async function POST(request: NextRequest) {
         { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
+    }
+
+    // 개발 환경에서 사용자 ID 동기화
+    if (process.env.NODE_ENV === 'development') {
+      const existingUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+      });
+
+      if (!existingUser) {
+        const userByEmail = await prisma.user.findUnique({
+          where: { email: session.user.email },
+        });
+
+        if (userByEmail) {
+          session.user.id = userByEmail.id;
+        }
+      }
     }
 
     const body = await request.json();

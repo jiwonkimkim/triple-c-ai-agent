@@ -1,8 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 import { z } from 'zod';
+
+// 개발 환경에서 사용자 ID 동기화 헬퍼 함수
+async function syncDevUserId(user: { id: string; email: string }) {
+  if (process.env.NODE_ENV === 'development') {
+    const existingUser = await prisma.user.findUnique({
+      where: { id: user.id },
+    });
+
+    if (!existingUser) {
+      const userByEmail = await prisma.user.findUnique({
+        where: { email: user.email },
+      });
+
+      if (userByEmail) {
+        user.id = userByEmail.id;
+      }
+    }
+  }
+}
 
 const draftSchema = z.object({
   versionId: z.string().optional(),
@@ -23,6 +42,9 @@ export async function POST(
         { status: 401 }
       );
     }
+
+    // 개발 환경에서 사용자 ID 동기화
+    await syncDevUserId(session.user as { id: string; email: string });
 
     const projectId = params.id;
 
@@ -126,7 +148,7 @@ export async function PUT(
 
 // GET /api/projects/[id]/drafts - Get latest draft
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -138,6 +160,9 @@ export async function GET(
         { status: 401 }
       );
     }
+
+    // 개발 환경에서 사용자 ID 동기화
+    await syncDevUserId(session.user as { id: string; email: string });
 
     const projectId = params.id;
 
