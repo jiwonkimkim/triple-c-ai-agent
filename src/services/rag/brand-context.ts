@@ -155,11 +155,14 @@ export async function getBrandContext(
   const matches = await queryBrandVectors(brandProfileId, queryEmbedding, topK);
 
   // Extract relevant chunks
-  const relevantChunks = matches.map((match) => ({
-    text: (match.metadata as BrandVectorMetadata)?.text || '',
-    score: match.score || 0,
-    source: (match.metadata as BrandVectorMetadata)?.sourceUrl,
-  }));
+  const relevantChunks = matches.map((match) => {
+    const metadata = match.metadata as unknown as BrandVectorMetadata | undefined;
+    return {
+      text: metadata?.text || '',
+      score: match.score || 0,
+      source: metadata?.sourceUrl,
+    };
+  });
 
   return {
     brandProfileId,

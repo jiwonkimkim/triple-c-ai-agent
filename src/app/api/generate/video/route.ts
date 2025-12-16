@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     const project = await prisma.project.findFirst({
       where: {
         id: validatedData.projectId,
-        userId: session.user.id,
+        ownerId: session.user.id,
       },
     });
 
@@ -191,7 +191,7 @@ export async function GET(request: NextRequest) {
       where: {
         id: jobId,
         project: {
-          userId: session.user.id,
+          ownerId: session.user.id,
         },
       },
     });

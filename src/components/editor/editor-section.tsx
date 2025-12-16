@@ -62,7 +62,7 @@ const defaultBlockContent: Record<BlockType, Omit<EditorBlock, 'id'>> = {
   quote: { type: 'quote', content: '', author: '' },
   divider: { type: 'divider' },
   spacer: { type: 'spacer', height: 32 },
-};
+} as Record<BlockType, Omit<EditorBlock, 'id'>>;
 
 export function EditorSection({
   section,

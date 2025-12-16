@@ -53,6 +53,78 @@ const COPY_LENGTH_CONFIG = {
   },
 };
 
+// Check if valid API keys are configured
+function hasValidApiKey(): boolean {
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  const openaiKey = process.env.OPENAI_API_KEY;
+
+  // Check if keys are placeholder values or actual keys
+  const isPlaceholder = (key: string | undefined) =>
+    !key ||
+    key.includes('your-') ||
+    key.includes('placeholder') ||
+    key.length < 20;
+
+  return !isPlaceholder(anthropicKey) || !isPlaceholder(openaiKey);
+}
+
+// Generate mock detail page for development
+function generateMockDetailPage(input: GenerateDetailPageInput, versionIndex: number): DetailPageVersion {
+  const variations = [
+    {
+      hookMessage: `${input.productName} - ${input.targetAudience}를 위한 완벽한 선택`,
+      angle: '혜택 중심',
+    },
+    {
+      hookMessage: `지금 바로 ${input.productName}의 놀라운 가치를 경험하세요`,
+      angle: '행동 유도',
+    },
+  ];
+
+  const variation = variations[versionIndex] || variations[0];
+
+  return {
+    hookMessage: variation.hookMessage,
+    sections: [
+      {
+        id: uuidv4(),
+        type: 'HERO',
+        title: `${input.productName} 소개`,
+        body: `${input.targetAudience}를 위해 설계된 ${input.productName}입니다. ${input.keyFeatures[0] || '뛰어난 품질'}을 자랑합니다.`,
+        order: 0,
+      },
+      {
+        id: uuidv4(),
+        type: 'FEATURES',
+        title: '주요 특징',
+        body: input.keyFeatures.map((f, i) => `${i + 1}. ${f}`).join('\n') || '다양한 기능을 제공합니다.',
+        order: 1,
+      },
+      {
+        id: uuidv4(),
+        type: 'SOCIAL_PROOF',
+        title: '고객 후기',
+        body: `"${input.productName}을 사용한 후 정말 만족합니다!" - 실제 사용자 후기`,
+        order: 2,
+      },
+      {
+        id: uuidv4(),
+        type: 'HOW_TO_USE',
+        title: '사용 방법',
+        body: `1. ${input.productName}을 준비합니다.\n2. 간단한 설정을 완료합니다.\n3. 바로 사용을 시작하세요!`,
+        order: 3,
+      },
+      {
+        id: uuidv4(),
+        type: 'FAQ',
+        title: '자주 묻는 질문',
+        body: `Q: ${input.productName}의 주요 특징은 무엇인가요?\nA: ${input.keyFeatures[0] || '뛰어난 품질과 성능'}입니다.`,
+        order: 4,
+      },
+    ],
+  };
+}
+
 // Initialize AI clients
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -209,6 +281,15 @@ function parseResponse(response: string, versionIndex: number): DetailPageVersio
 export async function generateDetailPage(
   input: GenerateDetailPageInput
 ): Promise<DetailPageVersion[]> {
+  // Development mode fallback: return mock data if no valid API keys
+  if (process.env.NODE_ENV === 'development' && !hasValidApiKey()) {
+    console.log('[DEV] Using mock detail page generation - no valid API keys configured');
+    return [
+      generateMockDetailPage(input, 0),
+      generateMockDetailPage(input, 1),
+    ];
+  }
+
   const systemPrompt = buildSystemPrompt(input.copyLength, input.brandContext);
   const userPrompt = buildUserPrompt(input);
 
@@ -217,7 +298,7 @@ export async function generateDetailPage(
   const useOpenAI = process.env.OPENAI_API_KEY;
 
   if (!useAnthropic && !useOpenAI) {
-    throw new Error('No AI API key configured');
+    throw new Error('No AI API key configured. Please set ANTHROPIC_API_KEY or OPENAI_API_KEY in your .env file.');
   }
 
   const generateVersion = async (versionIndex: number): Promise<DetailPageVersion> => {
@@ -284,6 +365,12 @@ export async function generateHookMessage(
   brandTone?: string,
   copyLength: 'short' | 'medium' | 'long' = 'medium'
 ): Promise<string> {
+  // Development mode fallback
+  if (process.env.NODE_ENV === 'development' && !hasValidApiKey()) {
+    console.log('[DEV] Using mock hook message - no valid API keys configured');
+    return `${productName} - ${targetAudience}를 위한 최고의 선택!`;
+  }
+
   const lengthConfig = COPY_LENGTH_CONFIG[copyLength];
 
   const prompt = `Create a compelling hook message for the following product:
@@ -325,6 +412,23 @@ export async function generateSectionCopy(
   brandTone?: string,
   copyLength: 'short' | 'medium' | 'long' = 'medium'
 ): Promise<{ title: string; body: string }> {
+  // Development mode fallback
+  if (process.env.NODE_ENV === 'development' && !hasValidApiKey()) {
+    console.log('[DEV] Using mock section copy - no valid API keys configured');
+    const mockTitles: Record<string, string> = {
+      HERO: `${productName} 소개`,
+      FEATURES: '주요 특징',
+      SOCIAL_PROOF: '고객 후기',
+      HOW_TO_USE: '사용 방법',
+      FAQ: '자주 묻는 질문',
+      CUSTOM: '추가 정보',
+    };
+    return {
+      title: mockTitles[sectionType] || '섹션 제목',
+      body: `${productName}의 ${keyFeatures[0] || '뛰어난 품질'}을 경험해보세요.`,
+    };
+  }
+
   const lengthConfig = COPY_LENGTH_CONFIG[copyLength];
 
   const sectionDescriptions: Record<string, string> = {

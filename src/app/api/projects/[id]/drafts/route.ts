@@ -30,7 +30,7 @@ export async function POST(
     const project = await prisma.project.findFirst({
       where: {
         id: projectId,
-        userId: session.user.id,
+        ownerId: session.user.id,
       },
     });
 
@@ -145,7 +145,7 @@ export async function GET(
     const project = await prisma.project.findFirst({
       where: {
         id: projectId,
-        userId: session.user.id,
+        ownerId: session.user.id,
       },
     });
 

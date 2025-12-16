@@ -21,6 +21,24 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    // 개발 환경에서 사용자 ID 확인 및 동기화
+    if (process.env.NODE_ENV === 'development') {
+      const existingUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+      });
+
+      if (!existingUser) {
+        // 이메일로 사용자 찾기
+        const userByEmail = await prisma.user.findUnique({
+          where: { email: session.user.email },
+        });
+
+        if (userByEmail) {
+          session.user.id = userByEmail.id;
+        }
+      }
+    }
+
     const project = await prisma.project.findUnique({
       where: { id: params.id },
       include: {
@@ -97,6 +115,23 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
+    }
+
+    // 개발 환경에서 사용자 ID 확인 및 동기화
+    if (process.env.NODE_ENV === 'development') {
+      const existingUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+      });
+
+      if (!existingUser) {
+        const userByEmail = await prisma.user.findUnique({
+          where: { email: session.user.email },
+        });
+
+        if (userByEmail) {
+          session.user.id = userByEmail.id;
+        }
+      }
     }
 
     const project = await prisma.project.findUnique({
@@ -183,6 +218,23 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
         { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
+    }
+
+    // 개발 환경에서 사용자 ID 확인 및 동기화
+    if (process.env.NODE_ENV === 'development') {
+      const existingUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+      });
+
+      if (!existingUser) {
+        const userByEmail = await prisma.user.findUnique({
+          where: { email: session.user.email },
+        });
+
+        if (userByEmail) {
+          session.user.id = userByEmail.id;
+        }
+      }
     }
 
     const project = await prisma.project.findUnique({

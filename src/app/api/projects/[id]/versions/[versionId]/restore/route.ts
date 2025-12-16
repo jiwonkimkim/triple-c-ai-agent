@@ -21,7 +21,7 @@ export async function POST(
     const project = await prisma.project.findFirst({
       where: {
         id: projectId,
-        userId: session.user.id,
+        ownerId: session.user.id,
       },
     });
 
@@ -57,7 +57,6 @@ export async function POST(
         action: 'RESTORE',
         description: `v${versionToRestore.versionNumber}에서 복원됨`,
         content: versionToRestore.content as any,
-        changes: null,
         createdById: session.user.id,
       },
     });

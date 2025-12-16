@@ -54,3 +54,6 @@ logs
 # Temp files
 tmp
 temp
+
+# Uploaded files
+/public/uploads

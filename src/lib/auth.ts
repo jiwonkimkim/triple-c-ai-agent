@@ -70,24 +70,22 @@ export const authOptions: NextAuthOptions = {
             name: 'dev-login',
             credentials: {},
             async authorize() {
-              // Find or create dev user in database
+              // 개발용 사용자 - upsert로 없으면 생성, 있으면 반환
               const devEmail = 'dev@example.com';
 
-              let user = await prisma.user.findUnique({
+              const user = await prisma.user.upsert({
                 where: { email: devEmail },
+                update: {}, // 이미 있으면 업데이트 없이 반환
+                create: {
+                  email: devEmail,
+                  name: 'Developer',
+                  userType: 'B2C',
+                  emailVerified: new Date(),
+                  trialCredits: 100,
+                },
               });
 
-              if (!user) {
-                user = await prisma.user.create({
-                  data: {
-                    email: devEmail,
-                    name: 'Developer',
-                    emailVerified: new Date(),
-                    userType: 'B2C',
-                    trialCredits: 100,
-                  },
-                });
-              }
+              console.log('Dev login user:', user.id, user.email);
 
               return {
                 id: user.id,

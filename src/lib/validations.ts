@@ -71,11 +71,11 @@ export const updateBrandProfileSchema = createBrandProfileSchema.partial();
 
 export const generateDetailPageSchema = z.object({
   projectId: z.string().min(1, 'Project ID is required'),
-  productImages: z.array(z.string().url()).min(1, 'At least one product image is required'),
+  productImages: z.array(z.string().min(1)).min(1, 'At least one product image is required'),
   productName: z.string().min(1, 'Product name is required').max(100, 'Product name is too long'),
   category: z.string().min(1, 'Category is required'),
-  keyFeatures: z.array(z.string()).min(1, 'At least one key feature is required'),
-  targetAudience: z.string().min(1, 'Target audience is required'),
+  keyFeatures: z.array(z.string().min(1)).min(1, 'At least one key feature is required'),
+  targetAudience: z.string().optional().default('일반 소비자'),
   copyLength: z.enum(['short', 'medium', 'long']),
 });
 

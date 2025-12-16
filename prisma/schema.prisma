@@ -184,6 +184,8 @@ model BrandProfile {
   name          String
   identity      String   @db.Text
   toneAndManner String   @map("tone_and_manner") @db.Text
+  voiceTone     String?  @map("voice_tone") @db.Text // Voice and tone guidelines
+  styleGuide    Json?    @map("style_guide") // Brand style guide
   imageKeywords String[] @map("image_keywords")
   websiteUrl    String?  @map("website_url")
   instagramUrl  String?  @map("instagram_url")
@@ -272,16 +274,28 @@ enum SectionType {
   CUSTOM
 }
 
+enum DetailPageStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
 model DetailPageVersion {
-  id          String   @id @default(cuid())
-  projectId   String   @map("project_id")
-  hookMessage String   @map("hook_message") @db.Text
-  sections    Json     // Array of DetailPageSection
-  createdAt   DateTime @default(now()) @map("created_at")
+  id            String           @id @default(cuid())
+  projectId     String           @map("project_id")
+  versionNumber Int              @default(1) @map("version_number")
+  hookMessage   String?          @map("hook_message") @db.Text // Optional for drafts
+  sections      Json?            // Array of DetailPageSection, optional for drafts
+  contentJson   Json?            @map("content_json") // Editor content JSON
+  contentHtml   String?          @map("content_html") @db.Text // Rendered HTML
+  status        DetailPageStatus @default(DRAFT)
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
 
   // Relations
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
+  @@unique([projectId, versionNumber])
   @@index([projectId])
   @@map("detail_page_versions")
 }

@@ -222,7 +222,7 @@ export const useEditorStore = create<EditorState>()(
             return {
               ...section,
               blocks: section.blocks.map((block) =>
-                block.id === blockId ? { ...block, ...updates } : block
+                block.id === blockId ? ({ ...block, ...updates } as EditorBlock) : block
               ),
             };
           }),

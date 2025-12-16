@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     const project = await prisma.project.findFirst({
       where: {
         id: validatedData.projectId,
-        userId: session.user.id,
+        ownerId: session.user.id,
       },
     });
 
@@ -76,11 +76,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Create motion job in database
+    // Map lowercase effect types from the API schema to uppercase Prisma enum values
+    const effectTypeMap: Record<string, 'ZOOM' | 'PAN' | 'ROTATE' | 'BOUNCE' | 'FADE' | 'PARALLAX'> = {
+      zoom: 'ZOOM',
+      pan: 'PAN',
+      rotate: 'ROTATE',
+      bounce: 'BOUNCE',
+      fade: 'FADE',
+      parallax: 'PARALLAX',
+    };
+
     const motionJob = await prisma.motionJob.create({
       data: {
         projectId: validatedData.projectId,
         inputImages: validatedData.images,
-        effect: validatedData.effect.type,
+        effect: effectTypeMap[validatedData.effect.type] || 'ZOOM',
         parameters: validatedData,
         status: 'PENDING',
       },
@@ -168,7 +178,7 @@ export async function GET(request: NextRequest) {
       where: {
         id: jobId,
         project: {
-          userId: session.user.id,
+          ownerId: session.user.id,
         },
       },
     });

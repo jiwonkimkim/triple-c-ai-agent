@@ -22,7 +22,7 @@ export async function GET(
     const project = await prisma.project.findFirst({
       where: {
         id: projectId,
-        userId: session.user.id,
+        ownerId: session.user.id,
       },
     });
 
@@ -112,7 +112,7 @@ export async function POST(
     const project = await prisma.project.findFirst({
       where: {
         id: projectId,
-        userId: session.user.id,
+        ownerId: session.user.id,
       },
     });
 
@@ -138,7 +138,7 @@ export async function POST(
           validatedData.description ||
           `${validatedData.action === 'AUTO_SAVE' ? '자동 저장' : '수동 저장'}`,
         content: validatedData.content,
-        changes: validatedData.changes || null,
+        changes: validatedData.changes,
         createdById: session.user.id,
       },
     });

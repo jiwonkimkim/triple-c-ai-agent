@@ -261,4 +261,11 @@ export const ko = {
   },
 } as const;
 
-export type TranslationKeys = typeof ko;
+// Helper type to convert literal strings to string
+type DeepString<T> = T extends string
+  ? string
+  : T extends object
+    ? { [K in keyof T]: DeepString<T[K]> }
+    : T;
+
+export type TranslationKeys = DeepString<typeof ko>;

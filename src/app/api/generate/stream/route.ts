@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { generateDetailPage } from '@/services/ai/detail-page-generator';
-import { getBrandContext, buildContextPrompt } from '@/services/rag/brand-context';
+import { getBrandContext } from '@/services/rag/brand-context';
 
 const generateSchema = z.object({
   projectId: z.string(),
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
   const project = await prisma.project.findFirst({
     where: {
       id: projectId,
-      userId: session.user.id,
+      ownerId: session.user.id,
     },
   });
 
@@ -113,7 +113,14 @@ export async function POST(request: NextRequest) {
       });
 
       // Step 2: Brand Analysis (if brand profile provided)
-      let brandContext = '';
+      let brandContext: {
+        name: string;
+        identity: string;
+        toneAndManner: string;
+        imageKeywords: string[];
+        ragContext?: string;
+      } | null = null;
+
       if (options.brandProfileId) {
         await sendEvent('progress', {
           jobId,
@@ -129,7 +136,14 @@ export async function POST(request: NextRequest) {
         );
 
         if (context) {
-          brandContext = buildContextPrompt(context);
+          // Transform RAG BrandContext to AI BrandContext format
+          brandContext = {
+            name: context.brandName,
+            identity: context.voiceTone || '',
+            toneAndManner: context.voiceTone || '',
+            imageKeywords: [],
+            ragContext: context.relevantChunks.map(c => c.text).join('\n\n'),
+          };
         }
 
         await sendEvent('progress', {
@@ -162,14 +176,13 @@ export async function POST(request: NextRequest) {
 
       // Actually generate content
       const generatedVersions = await generateDetailPage({
+        productImages: options.productImages || [],
         productName: options.productName,
-        productDescription: options.productDescription,
         category: options.category,
         keyFeatures: options.keyFeatures || [],
-        targetAudience: options.targetAudience,
+        targetAudience: options.targetAudience || '일반 소비자',
         copyLength: options.copyLength || 'medium',
         brandContext: brandContext || undefined,
-        imageUrls: options.productImages,
       });
 
       await sendEvent('progress', {
@@ -245,10 +258,8 @@ export async function POST(request: NextRequest) {
         const version = await prisma.detailPageVersion.create({
           data: {
             projectId,
-            versionNumber: versionCount + i + 1,
-            contentJson: generatedVersions[i].content as any,
-            contentHtml: generatedVersions[i].html,
-            status: 'DRAFT',
+            hookMessage: generatedVersions[i].hookMessage,
+            sections: generatedVersions[i].sections as any,
           },
         });
         savedVersions.push(version);

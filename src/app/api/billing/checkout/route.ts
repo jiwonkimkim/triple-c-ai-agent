@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     const plan = PLANS[planId];
 
-    if (!plan || planId === 'FREE') {
+    if (!plan) {
       return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
     }
 

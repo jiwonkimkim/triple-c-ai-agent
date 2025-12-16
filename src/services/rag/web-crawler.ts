@@ -229,7 +229,7 @@ function extractLinks(
   }
 
   // Remove duplicates
-  return [...new Set(links)];
+  return Array.from(new Set(links));
 }
 
 /**

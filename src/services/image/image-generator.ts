@@ -70,7 +70,7 @@ export async function generateImage(
       response_format: 'url',
     });
 
-    if (response.data[0]) {
+    if (response.data?.[0]) {
       results.push({
         url: response.data[0].url!,
         revisedPrompt: response.data[0].revised_prompt,

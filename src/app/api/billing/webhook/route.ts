@@ -347,7 +347,9 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
       description: '결제 실패',
       metadata: {
         invoiceId: invoice.id,
-        subscriptionId: invoice.subscription,
+        subscriptionId: typeof invoice.subscription === 'string'
+          ? invoice.subscription
+          : invoice.subscription?.id ?? null,
       },
     },
   });

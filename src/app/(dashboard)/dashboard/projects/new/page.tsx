@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Upload, X, Loader2 } from 'lucide-react';
@@ -34,11 +35,14 @@ const copyLengthOptions = [
 
 export default function NewProjectPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(1);
+  const [projectId, setProjectId] = useState<string | null>(null);
   const [productImages, setProductImages] = useState<string[]>([]);
   const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
   const [productInfo, setProductInfo] = useState<{
     productName: string;
     category: string;
@@ -60,6 +64,21 @@ export default function NewProjectPage() {
   } = useForm<CreateProjectInput>({
     resolver: zodResolver(createProjectSchema),
   });
+
+  // 세션 로딩 중이면 로딩 표시
+  if (status === 'loading') {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  // 인증되지 않은 경우 로그인 페이지로 리다이렉트
+  if (status === 'unauthenticated' || !session) {
+    router.push('/login');
+    return null;
+  }
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -114,11 +133,33 @@ export default function NewProjectPage() {
         }),
       });
 
-      if (!projectRes.ok) {
-        throw new Error('Failed to create project');
+      const result = await projectRes.json();
+
+      if (!projectRes.ok || !result.success) {
+        // 에러 메시지 상세 처리
+        let errorMessage = result.error || '프로젝트 생성에 실패했습니다.';
+        if (result.details) {
+          // details가 배열인 경우 (Zod validation 에러)
+          if (Array.isArray(result.details)) {
+            const validationErrors = result.details
+              .map((e: { path: string[]; message: string }) => e.message)
+              .join(', ');
+            errorMessage = `입력 오류: ${validationErrors}`;
+          } else if (typeof result.details === 'string') {
+            // details가 문자열인 경우 (개발 환경 상세 에러)
+            errorMessage = `${errorMessage} (${result.details})`;
+          }
+        }
+        throw new Error(errorMessage);
       }
 
-      const { data: project } = await projectRes.json();
+      // 프로젝트 데이터 확인
+      if (!result.data?.id) {
+        throw new Error('프로젝트 생성 응답이 올바르지 않습니다.');
+      }
+
+      // 프로젝트 ID 저장
+      setProjectId(result.data.id);
 
       toast({
         title: '프로젝트가 생성되었습니다!',
@@ -127,17 +168,59 @@ export default function NewProjectPage() {
 
       setStep(2);
     } catch (error) {
+      console.error('Project creation error:', error);
       toast({
         variant: 'destructive',
         title: '오류',
-        description: '프로젝트 생성에 실패했습니다. 다시 시도해 주세요.',
+        description: error instanceof Error ? error.message : '프로젝트 생성에 실패했습니다. 다시 시도해 주세요.',
       });
     } finally {
       setIsLoading(false);
     }
   };
 
+  // 이미지를 서버에 업로드하는 함수
+  const uploadImages = async (blobUrls: string[]): Promise<string[]> => {
+    const uploadedUrls: string[] = [];
+
+    for (const blobUrl of blobUrls) {
+      try {
+        // Blob URL에서 File 객체 가져오기
+        const response = await fetch(blobUrl);
+        const blob = await response.blob();
+
+        const formData = new FormData();
+        formData.append('file', blob, `image-${Date.now()}.jpg`);
+
+        const uploadRes = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (uploadRes.ok) {
+          const { url } = await uploadRes.json();
+          uploadedUrls.push(url);
+        }
+      } catch (error) {
+        console.error('Image upload failed:', error);
+      }
+    }
+
+    return uploadedUrls;
+  };
+
   const handleGenerate = async () => {
+    // 프로젝트 ID 확인
+    if (!projectId) {
+      toast({
+        variant: 'destructive',
+        title: '프로젝트 오류',
+        description: '프로젝트가 생성되지 않았습니다. 다시 시도해 주세요.',
+      });
+      setStep(1);
+      return;
+    }
+
     if (productImages.length === 0) {
       toast({
         variant: 'destructive',
@@ -156,20 +239,80 @@ export default function NewProjectPage() {
       return;
     }
 
+    // 빈 특징 필터링
+    const filteredFeatures = productInfo.keyFeatures.filter(
+      (feature) => feature.trim() !== ''
+    );
+
+    if (filteredFeatures.length === 0) {
+      toast({
+        variant: 'destructive',
+        title: '특징이 필요합니다',
+        description: '최소 1개의 제품 특징을 입력해 주세요.',
+      });
+      return;
+    }
+
     setIsLoading(true);
     toast({
-      title: '생성 중...',
-      description: 'AI가 상품 상세페이지를 생성하고 있습니다. 잠시만 기다려 주세요.',
+      title: '이미지 업로드 중...',
+      description: '제품 이미지를 업로드하고 있습니다.',
     });
 
-    // Simulate generation (in production, call the generate API)
-    setTimeout(() => {
+    try {
+      // 1. 이미지 업로드
+      const imageUrls = await uploadImages(productImages);
+      setUploadedImageUrls(imageUrls);
+
+      if (imageUrls.length === 0) {
+        throw new Error('이미지 업로드에 실패했습니다.');
+      }
+
+      toast({
+        title: '생성 중...',
+        description: 'AI가 상품 상세페이지를 생성하고 있습니다. 잠시만 기다려 주세요.',
+      });
+
+      // 2. 상세페이지 생성 API 호출
+      const generateRes = await fetch('/api/generate/detail-page', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          productImages: imageUrls,
+          productName: productInfo.productName,
+          category: productInfo.category,
+          keyFeatures: filteredFeatures,
+          targetAudience: productInfo.targetAudience || '일반 소비자',
+          copyLength: productInfo.copyLength,
+        }),
+      });
+
+      if (!generateRes.ok) {
+        const errorData = await generateRes.json();
+        throw new Error(errorData.error || '상세페이지 생성에 실패했습니다.');
+      }
+
+      const result = await generateRes.json();
+
       toast({
         title: '완료!',
-        description: '상세페이지가 생성되었습니다.',
+        description: `상세페이지가 생성되었습니다. 남은 크레딧: ${result.data.remainingCredits}`,
       });
-      router.push('/dashboard/projects');
-    }, 3000);
+
+      // Blob URL 메모리 해제
+      productImages.forEach((url) => URL.revokeObjectURL(url));
+
+      router.push(`/dashboard/projects/${projectId}`);
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: '생성 실패',
+        description: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

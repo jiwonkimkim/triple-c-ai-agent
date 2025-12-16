@@ -84,6 +84,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 개발 환경에서 사용자가 DB에 없으면 자동 생성
+    if (process.env.NODE_ENV === 'development') {
+      const existingUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+      });
+
+      if (!existingUser) {
+        // 이메일로 찾거나 새로 생성
+        const user = await prisma.user.upsert({
+          where: { email: session.user.email },
+          update: {},
+          create: {
+            email: session.user.email,
+            name: session.user.name || 'Developer',
+            userType: 'B2C',
+            emailVerified: new Date(),
+            trialCredits: 100,
+          },
+        });
+        // 세션 user.id와 DB user.id가 다를 수 있으므로 DB의 id 사용
+        session.user.id = user.id;
+        console.log('Auto-created dev user in API:', user.id);
+      }
+    }
+
     const body = await request.json();
     const validatedData = createProjectSchema.parse(body);
 
@@ -175,8 +200,30 @@ export async function POST(request: NextRequest) {
     }
 
     console.error('Create project error:', error);
+
+    // Prisma 에러 상세 처리
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const isPrismaError = errorMessage.includes('Foreign key constraint') ||
+                          errorMessage.includes('P2003') ||
+                          errorMessage.includes('P2025');
+
+    if (isPrismaError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: '사용자 정보를 찾을 수 없습니다. 다시 로그인해 주세요.',
+          details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+        },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
-      { success: false, error: 'Internal server error' },
+      {
+        success: false,
+        error: 'Internal server error',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      },
       { status: 500 }
     );
   }
