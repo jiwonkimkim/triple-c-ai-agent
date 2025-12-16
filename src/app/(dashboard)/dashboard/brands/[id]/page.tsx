@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Loader2, FolderKanban } from 'lucide-react';
@@ -37,8 +37,7 @@ interface Project {
   updatedAt: string;
 }
 
-export default function BrandDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params);
+export default function BrandDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const { toast } = useToast();
   const [brand, setBrand] = useState<Brand | null>(null);
@@ -49,7 +48,7 @@ export default function BrandDetailPage({ params }: { params: Promise<{ id: stri
   useEffect(() => {
     const fetchBrand = async () => {
       try {
-        const res = await fetch(`/api/brands/${resolvedParams.id}`);
+        const res = await fetch(`/api/brands/${params.id}`);
         const data = await res.json();
 
         if (!res.ok) {
@@ -59,10 +58,10 @@ export default function BrandDetailPage({ params }: { params: Promise<{ id: stri
         setBrand(data.data);
 
         // Fetch connected projects
-        const projectsRes = await fetch(`/api/projects?brandProfileId=${resolvedParams.id}`);
+        const projectsRes = await fetch(`/api/projects?brandProfileId=${params.id}`);
         const projectsData = await projectsRes.json();
-        if (projectsData.success) {
-          setProjects(projectsData.data || []);
+        if (projectsData.success && projectsData.data?.items) {
+          setProjects(projectsData.data.items);
         }
       } catch (error) {
         toast({
@@ -77,7 +76,7 @@ export default function BrandDetailPage({ params }: { params: Promise<{ id: stri
     };
 
     fetchBrand();
-  }, [resolvedParams.id, router, toast]);
+  }, [params.id, router, toast]);
 
   if (isLoading) {
     return (
