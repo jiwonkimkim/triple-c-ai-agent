@@ -35,8 +35,8 @@ export const signupSchema = z.object({
 export const createProjectSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100, 'Title is too long'),
   description: z.string().max(500, 'Description is too long').optional(),
-  workspaceId: z.string().optional(),
-  brandProfileId: z.string().optional(),
+  workspaceId: z.string().nullable().optional(),
+  brandProfileId: z.string().nullable().optional(),
 });
 
 export const updateProjectSchema = z.object({
