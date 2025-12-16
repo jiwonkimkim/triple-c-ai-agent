@@ -74,6 +74,38 @@ export default function LoginPage() {
     }
   };
 
+  const handleDevLogin = async () => {
+    setIsLoading(true);
+    try {
+      const result = await signIn('dev-login', {
+        redirect: false,
+      });
+
+      if (result?.error) {
+        toast({
+          variant: 'destructive',
+          title: '개발 로그인 실패',
+          description: result.error,
+        });
+      } else {
+        toast({
+          title: '개발자 모드',
+          description: '개발자로 로그인되었습니다.',
+        });
+        router.push('/dashboard');
+        router.refresh();
+      }
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: '오류',
+        description: '개발 로그인에 실패했습니다.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/50 px-4">
       <Card className="w-full max-w-md">
@@ -165,6 +197,29 @@ export default function LoginPage() {
               로그인
             </Button>
           </form>
+
+          {process.env.NODE_ENV === 'development' && (
+            <>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-dashed border-orange-300" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-orange-500">
+                    개발자 전용
+                  </span>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                className="w-full border-orange-500 text-orange-500 hover:bg-orange-50 hover:text-orange-600"
+                onClick={handleDevLogin}
+                disabled={isLoading}
+              >
+                🔧 개발자 로그인 (인증 불필요)
+              </Button>
+            </>
+          )}
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">

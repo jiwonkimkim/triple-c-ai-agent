@@ -62,6 +62,26 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
+    // Development-only login provider (no authentication required)
+    ...(process.env.NODE_ENV === 'development'
+      ? [
+          CredentialsProvider({
+            id: 'dev-login',
+            name: 'dev-login',
+            credentials: {},
+            async authorize() {
+              // Return a mock developer user
+              return {
+                id: 'dev-user-id',
+                email: 'dev@example.com',
+                name: 'Developer',
+                image: null,
+                userType: 'B2C' as const,
+              };
+            },
+          }),
+        ]
+      : []),
   ],
   session: {
     strategy: 'jwt',
