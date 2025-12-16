@@ -68,24 +68,28 @@ export const authOptions: NextAuthOptions = {
           CredentialsProvider({
             id: 'dev-login',
             name: 'dev-login',
-            credentials: {},
-            async authorize() {
-              // 개발용 사용자 - upsert로 없으면 생성, 있으면 반환
-              const devEmail = 'dev@example.com';
+            credentials: {
+              userType: { label: 'User Type', type: 'text' },
+            },
+            async authorize(credentials) {
+              // userType 파라미터로 B2C/B2B 구분
+              const userType = (credentials?.userType === 'B2B' ? 'B2B' : 'B2C') as 'B2C' | 'B2B';
+              const devEmail = userType === 'B2B' ? 'dev-b2b@example.com' : 'dev@example.com';
+              const devName = userType === 'B2B' ? 'Developer (기업)' : 'Developer (개인)';
 
               const user = await prisma.user.upsert({
                 where: { email: devEmail },
-                update: {}, // 이미 있으면 업데이트 없이 반환
+                update: { userType }, // userType 업데이트
                 create: {
                   email: devEmail,
-                  name: 'Developer',
-                  userType: 'B2C',
+                  name: devName,
+                  userType,
                   emailVerified: new Date(),
                   trialCredits: 100,
                 },
               });
 
-              console.log('Dev login user:', user.id, user.email);
+              console.log('Dev login user:', user.id, user.email, user.userType);
 
               return {
                 id: user.id,

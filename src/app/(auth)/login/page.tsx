@@ -6,10 +6,12 @@ import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { User, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { loginSchema, type LoginInput } from '@/lib/validations';
 
@@ -17,6 +19,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [userType, setUserType] = useState<'B2C' | 'B2B'>('B2C');
 
   const {
     register,
@@ -78,6 +81,7 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const result = await signIn('dev-login', {
+        userType,
         redirect: false,
       });
 
@@ -90,7 +94,7 @@ export default function LoginPage() {
       } else {
         toast({
           title: '개발자 모드',
-          description: '개발자로 로그인되었습니다.',
+          description: userType === 'B2C' ? '개인 개발자로 로그인 되었습니다.' : '기업 개발자로 로그인 되었습니다.',
         });
         router.push('/dashboard');
         router.refresh();
@@ -119,6 +123,32 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* 사용자 유형 탭 */}
+          <Tabs value={userType} onValueChange={(v) => setUserType(v as 'B2C' | 'B2B')} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="B2C" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                개인 사용자
+              </TabsTrigger>
+              <TabsTrigger value="B2B" className="flex items-center gap-2">
+                <Building2 className="h-4 w-4" />
+                기업 사용자
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="B2C" className="space-y-4 mt-4">
+              <p className="text-sm text-muted-foreground text-center">
+                개인 크리에이터를 위한 로그인
+              </p>
+            </TabsContent>
+
+            <TabsContent value="B2B" className="space-y-4 mt-4">
+              <p className="text-sm text-muted-foreground text-center">
+                기업 및 팀을 위한 로그인
+              </p>
+            </TabsContent>
+          </Tabs>
+
           <Button
             variant="outline"
             className="w-full"
@@ -216,7 +246,7 @@ export default function LoginPage() {
                 onClick={handleDevLogin}
                 disabled={isLoading}
               >
-                🔧 개발자 로그인 (인증 불필요)
+                {userType === 'B2C' ? '🔧 개인 개발자 로그인 (인증 불필요)' : '🏢 기업 개발자 로그인 (인증 불필요)'}
               </Button>
             </>
           )}
@@ -224,8 +254,8 @@ export default function LoginPage() {
         <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">
             계정이 없으신가요?{' '}
-            <Link href="/signup" className="text-primary hover:underline">
-              회원가입
+            <Link href={`/signup?type=${userType}`} className="text-primary hover:underline">
+              {userType === 'B2C' ? '개인 회원가입' : '기업 회원가입'}
             </Link>
           </p>
         </CardFooter>
