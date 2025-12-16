@@ -14,6 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { createProjectSchema, type CreateProjectInput } from '@/lib/validations';
+import { BrandSelect } from '@/components/brands';
 
 const categories = [
   { value: 'Fashion', label: '패션' },
@@ -37,12 +38,19 @@ export default function NewProjectPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [productImages, setProductImages] = useState<string[]>([]);
-  const [productInfo, setProductInfo] = useState({
+  const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
+  const [productInfo, setProductInfo] = useState<{
+    productName: string;
+    category: string;
+    keyFeatures: string[];
+    targetAudience: string;
+    copyLength: 'short' | 'medium' | 'long';
+  }>({
     productName: '',
     category: '',
     keyFeatures: [''],
     targetAudience: '',
-    copyLength: 'medium' as const,
+    copyLength: 'medium',
   });
 
   const {
@@ -96,11 +104,14 @@ export default function NewProjectPage() {
   const onSubmitProject = async (data: CreateProjectInput) => {
     setIsLoading(true);
     try {
-      // Create project
+      // Create project with brand profile
       const projectRes = await fetch('/api/projects', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          brandProfileId: selectedBrandId,
+        }),
       });
 
       if (!projectRes.ok) {
@@ -216,6 +227,12 @@ export default function NewProjectPage() {
                   rows={3}
                 />
               </div>
+
+              {/* 브랜드 선택 */}
+              <BrandSelect
+                value={selectedBrandId}
+                onChange={setSelectedBrandId}
+              />
 
               <div className="flex justify-end gap-4">
                 <Link href="/dashboard/projects">

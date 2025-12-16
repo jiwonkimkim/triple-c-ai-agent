@@ -1,13 +1,55 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { Plus, FolderKanban, Palette, Clock, Zap } from 'lucide-react';
+import { Plus, FolderKanban, Palette, Clock, Zap, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
+interface DashboardStats {
+  totalProjects: number;
+  totalBrands: number;
+  generatedPages: number;
+  remainingCredits: number;
+}
+
 export default function DashboardPage() {
   const { data: session } = useSession();
+  const [stats, setStats] = useState<DashboardStats>({
+    totalProjects: 0,
+    totalBrands: 0,
+    generatedPages: 0,
+    remainingCredits: 3,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        // Fetch brands count
+        const brandsRes = await fetch('/api/brands');
+        const brandsData = await brandsRes.json();
+
+        // Fetch projects count
+        const projectsRes = await fetch('/api/projects');
+        const projectsData = await projectsRes.json();
+
+        setStats({
+          totalProjects: projectsData.success ? projectsData.data?.length || 0 : 0,
+          totalBrands: brandsData.success ? brandsData.data?.length || 0 : 0,
+          generatedPages: 0, // TODO: Implement actual count
+          remainingCredits: 3, // TODO: Get from user data
+        });
+      } catch (error) {
+        console.error('Failed to fetch dashboard stats:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   return (
     <div className="space-y-8">
@@ -33,25 +75,27 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="총 프로젝트"
-          value="0"
+          value={isLoading ? '-' : stats.totalProjects.toString()}
           description="활성 프로젝트"
           icon={<FolderKanban className="h-4 w-4 text-muted-foreground" />}
+          href="/dashboard/projects"
         />
         <StatsCard
           title="브랜드 프로필"
-          value="0"
+          value={isLoading ? '-' : stats.totalBrands.toString()}
           description="등록된 브랜드"
           icon={<Palette className="h-4 w-4 text-muted-foreground" />}
+          href="/dashboard/brands"
         />
         <StatsCard
           title="생성된 페이지"
-          value="0"
+          value={isLoading ? '-' : stats.generatedPages.toString()}
           description="이번 달"
           icon={<Zap className="h-4 w-4 text-muted-foreground" />}
         />
         <StatsCard
           title="남은 크레딧"
-          value="3"
+          value={isLoading ? '-' : stats.remainingCredits.toString()}
           description="무료 체험 크레딧"
           icon={<Clock className="h-4 w-4 text-muted-foreground" />}
         />
@@ -87,9 +131,9 @@ export default function DashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/dashboard/brands/new">
+            <Link href="/dashboard/brands">
               <Button variant="outline" className="w-full">
-                브랜드 추가
+                브랜드 관리
               </Button>
             </Link>
           </CardContent>
@@ -152,14 +196,16 @@ function StatsCard({
   value,
   description,
   icon,
+  href,
 }: {
   title: string;
   value: string;
   description: string;
   icon: React.ReactNode;
+  href?: string;
 }) {
-  return (
-    <Card>
+  const content = (
+    <Card className={href ? 'hover:shadow-md transition-shadow cursor-pointer' : ''}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         {icon}
@@ -170,4 +216,10 @@ function StatsCard({
       </CardContent>
     </Card>
   );
+
+  if (href) {
+    return <Link href={href}>{content}</Link>;
+  }
+
+  return content;
 }
