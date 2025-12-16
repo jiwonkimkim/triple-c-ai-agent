@@ -13,10 +13,10 @@ export default function LandingPage() {
           </Link>
           <nav className="flex items-center space-x-4">
             <Link href="/login">
-              <Button variant="ghost">Login</Button>
+              <Button variant="ghost">로그인</Button>
             </Link>
             <Link href="/signup">
-              <Button>Get Started</Button>
+              <Button>시작하기</Button>
             </Link>
           </nav>
         </div>
@@ -26,32 +26,32 @@ export default function LandingPage() {
       <section className="container flex flex-1 flex-col items-center justify-center space-y-8 py-24 text-center md:py-32">
         <div className="space-y-4">
           <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
-            Create Professional
+            전문적인
             <br />
-            <span className="text-primary">Product Detail Pages</span>
+            <span className="text-primary">상품 상세페이지</span>를
             <br />
-            in Minutes
+            몇 분 만에 제작하세요
           </h1>
           <p className="mx-auto max-w-[700px] text-lg text-muted-foreground md:text-xl">
-            Triple C is an AI-powered marketing contents agent that helps you generate,
-            edit, and export stunning product detail pages and promotional creatives.
+            Triple C는 AI 기반 마케팅 콘텐츠 에이전트로, 매력적인 상품 상세페이지와
+            프로모션 크리에이티브를 생성, 편집, 내보내기할 수 있도록 도와드립니다.
           </p>
         </div>
         <div className="flex flex-col gap-4 sm:flex-row">
           <Link href="/signup">
             <Button size="lg" className="gap-2">
-              Start Free Trial
+              무료 체험 시작하기
               <ArrowRight className="h-4 w-4" />
             </Button>
           </Link>
           <Link href="#features">
             <Button size="lg" variant="outline">
-              Learn More
+              자세히 알아보기
             </Button>
           </Link>
         </div>
         <p className="text-sm text-muted-foreground">
-          No credit card required. 3 free generations included.
+          신용카드 없이 시작 가능. 무료 생성 3회 제공.
         </p>
       </section>
 
@@ -60,32 +60,32 @@ export default function LandingPage() {
         <div className="container">
           <div className="mb-16 text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Everything You Need to Create
+              콘텐츠 제작에 필요한 모든 것
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              From idea to published content in one seamless workflow
+              아이디어부터 콘텐츠 게시까지 하나의 워크플로우로
             </p>
           </div>
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             <FeatureCard
               icon={<Zap className="h-10 w-10 text-primary" />}
-              title="AI-Powered Generation"
-              description="Generate complete detail pages with compelling copy from just a few product images and basic info."
+              title="AI 기반 자동 생성"
+              description="몇 장의 제품 이미지와 기본 정보만으로 완성도 높은 상세페이지와 매력적인 카피를 생성합니다."
             />
             <FeatureCard
               icon={<Palette className="h-10 w-10 text-primary" />}
-              title="Brand Consistency"
-              description="RAG-based brand analysis ensures all content matches your unique brand voice and style."
+              title="브랜드 일관성 유지"
+              description="RAG 기반 브랜드 분석으로 모든 콘텐츠가 브랜드 고유의 톤앤매너와 스타일을 유지합니다."
             />
             <FeatureCard
               icon={<Clock className="h-10 w-10 text-primary" />}
-              title="10x Faster"
-              description="What used to take hours now takes minutes. Focus on strategy, not execution."
+              title="10배 빠른 제작"
+              description="기존 몇 시간 걸리던 작업을 몇 분 만에 완료. 전략에 집중하고 실행은 AI에게 맡기세요."
             />
             <FeatureCard
               icon={<Users className="h-10 w-10 text-primary" />}
-              title="Team Collaboration"
-              description="B2B workspaces let your entire marketing team collaborate on projects seamlessly."
+              title="팀 협업 지원"
+              description="B2B 워크스페이스로 마케팅 팀 전체가 프로젝트를 원활하게 협업할 수 있습니다."
             />
           </div>
         </div>
@@ -96,27 +96,27 @@ export default function LandingPage() {
         <div className="container">
           <div className="mb-16 text-center">
             <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              How It Works
+              이용 방법
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Three simple steps to professional marketing content
+              3단계로 전문적인 마케팅 콘텐츠 완성
             </p>
           </div>
           <div className="grid gap-8 md:grid-cols-3">
             <StepCard
               step="1"
-              title="Upload & Describe"
-              description="Upload your product images and provide basic information like name, features, and target audience."
+              title="업로드 및 입력"
+              description="제품 이미지를 업로드하고 제품명, 특징, 타겟 고객 등 기본 정보를 입력하세요."
             />
             <StepCard
               step="2"
-              title="Generate & Choose"
-              description="AI generates two unique versions of your detail page. Pick the one that fits best or mix and match."
+              title="생성 및 선택"
+              description="AI가 두 가지 버전의 상세페이지를 생성합니다. 원하는 버전을 선택하거나 조합하세요."
             />
             <StepCard
               step="3"
-              title="Edit & Export"
-              description="Fine-tune with our visual editor. Export as HTML, images, GIFs, or videos for any platform."
+              title="편집 및 내보내기"
+              description="비주얼 에디터로 세부 조정 후 HTML, 이미지, GIF, 영상 등 다양한 형식으로 내보내세요."
             />
           </div>
         </div>
@@ -126,11 +126,10 @@ export default function LandingPage() {
       <section className="border-t bg-primary py-24 text-primary-foreground">
         <div className="container text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Ready to Transform Your Marketing?
+            마케팅 콘텐츠 제작을 혁신할 준비가 되셨나요?
           </h2>
           <p className="mx-auto mt-4 max-w-[600px] text-lg text-primary-foreground/90">
-            Join thousands of marketers who are already creating stunning content
-            with Triple C.
+            이미 수천 명의 마케터들이 Triple C로 멋진 콘텐츠를 제작하고 있습니다.
           </p>
           <div className="mt-8">
             <Link href="/signup">
@@ -139,7 +138,7 @@ export default function LandingPage() {
                 variant="secondary"
                 className="gap-2"
               >
-                Get Started Free
+                무료로 시작하기
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
@@ -153,7 +152,7 @@ export default function LandingPage() {
           <div className="flex items-center space-x-2">
             <span className="text-xl font-bold text-primary">Triple C</span>
             <span className="text-sm text-muted-foreground">
-              Marketing Contents Agent
+              마케팅 콘텐츠 에이전트
             </span>
           </div>
           <p className="text-sm text-muted-foreground">

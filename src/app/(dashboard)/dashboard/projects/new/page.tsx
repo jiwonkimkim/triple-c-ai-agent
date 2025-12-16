@@ -16,19 +16,19 @@ import { useToast } from '@/hooks/use-toast';
 import { createProjectSchema, type CreateProjectInput } from '@/lib/validations';
 
 const categories = [
-  'Fashion',
-  'Food & Beverage',
-  'Beauty & Skincare',
-  'Electronics',
-  'Home & Living',
-  'Sports & Fitness',
-  'Other',
+  { value: 'Fashion', label: '패션' },
+  { value: 'Food & Beverage', label: '식품/음료' },
+  { value: 'Beauty & Skincare', label: '뷰티/스킨케어' },
+  { value: 'Electronics', label: '전자제품' },
+  { value: 'Home & Living', label: '홈/리빙' },
+  { value: 'Sports & Fitness', label: '스포츠/피트니스' },
+  { value: 'Other', label: '기타' },
 ];
 
 const copyLengthOptions = [
-  { value: 'short', label: 'Short', description: 'Concise and punchy' },
-  { value: 'medium', label: 'Medium', description: 'Balanced and informative' },
-  { value: 'long', label: 'Long', description: 'Detailed and comprehensive' },
+  { value: 'short', label: '짧게', description: '간결하고 임팩트 있게' },
+  { value: 'medium', label: '보통', description: '균형 잡힌 정보 전달' },
+  { value: 'long', label: '길게', description: '상세하고 포괄적으로' },
 ];
 
 export default function NewProjectPage() {
@@ -110,16 +110,16 @@ export default function NewProjectPage() {
       const { data: project } = await projectRes.json();
 
       toast({
-        title: 'Project created!',
-        description: 'Now let\'s add product details.',
+        title: '프로젝트가 생성되었습니다!',
+        description: '이제 제품 정보를 입력해 주세요.',
       });
 
       setStep(2);
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to create project. Please try again.',
+        title: '오류',
+        description: '프로젝트 생성에 실패했습니다. 다시 시도해 주세요.',
       });
     } finally {
       setIsLoading(false);
@@ -130,8 +130,8 @@ export default function NewProjectPage() {
     if (productImages.length === 0) {
       toast({
         variant: 'destructive',
-        title: 'Images required',
-        description: 'Please upload at least one product image.',
+        title: '이미지가 필요합니다',
+        description: '최소 1개의 제품 이미지를 업로드해 주세요.',
       });
       return;
     }
@@ -139,23 +139,23 @@ export default function NewProjectPage() {
     if (!productInfo.productName || !productInfo.category) {
       toast({
         variant: 'destructive',
-        title: 'Missing information',
-        description: 'Please fill in product name and category.',
+        title: '정보가 부족합니다',
+        description: '제품명과 카테고리를 입력해 주세요.',
       });
       return;
     }
 
     setIsLoading(true);
     toast({
-      title: 'Generating...',
-      description: 'AI is creating your product detail page. This may take a moment.',
+      title: '생성 중...',
+      description: 'AI가 상품 상세페이지를 생성하고 있습니다. 잠시만 기다려 주세요.',
     });
 
     // Simulate generation (in production, call the generate API)
     setTimeout(() => {
       toast({
-        title: 'Success!',
-        description: 'Your detail page has been generated.',
+        title: '완료!',
+        description: '상세페이지가 생성되었습니다.',
       });
       router.push('/dashboard/projects');
     }, 3000);
@@ -171,9 +171,9 @@ export default function NewProjectPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold">Create New Project</h1>
+          <h1 className="text-2xl font-bold">새 프로젝트 만들기</h1>
           <p className="text-muted-foreground">
-            Step {step} of 2: {step === 1 ? 'Project Details' : 'Product Information'}
+            {step}단계 / 2단계: {step === 1 ? '프로젝트 정보' : '제품 정보'}
           </p>
         </div>
       </div>
@@ -187,18 +187,18 @@ export default function NewProjectPage() {
       {step === 1 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Project Details</CardTitle>
+            <CardTitle>프로젝트 정보</CardTitle>
             <CardDescription>
-              Give your project a name and optional description
+              프로젝트 이름과 설명을 입력해 주세요
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSubmitProject)} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Project Title *</Label>
+                <Label htmlFor="title">프로젝트 제목 *</Label>
                 <Input
                   id="title"
-                  placeholder="e.g., Summer Collection Launch"
+                  placeholder="예: 여름 신상품 런칭"
                   {...register('title')}
                   error={!!errors.title}
                 />
@@ -208,10 +208,10 @@ export default function NewProjectPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Description (Optional)</Label>
+                <Label htmlFor="description">설명 (선택)</Label>
                 <Textarea
                   id="description"
-                  placeholder="Brief description of this project..."
+                  placeholder="프로젝트에 대한 간단한 설명..."
                   {...register('description')}
                   rows={3}
                 />
@@ -220,17 +220,17 @@ export default function NewProjectPage() {
               <div className="flex justify-end gap-4">
                 <Link href="/dashboard/projects">
                   <Button variant="outline" type="button">
-                    Cancel
+                    취소
                   </Button>
                 </Link>
                 <Button type="submit" disabled={isLoading}>
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Creating...
+                      생성 중...
                     </>
                   ) : (
-                    'Continue'
+                    '계속'
                   )}
                 </Button>
               </div>
@@ -242,9 +242,9 @@ export default function NewProjectPage() {
           {/* Image Upload */}
           <Card>
             <CardHeader>
-              <CardTitle>Product Images</CardTitle>
+              <CardTitle>제품 이미지</CardTitle>
               <CardDescription>
-                Upload up to 5 product images (at least 1 required)
+                최대 5장의 제품 이미지를 업로드하세요 (최소 1장 필수)
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -253,7 +253,7 @@ export default function NewProjectPage() {
                   <div key={index} className="relative aspect-square">
                     <img
                       src={img}
-                      alt={`Product ${index + 1}`}
+                      alt={`제품 ${index + 1}`}
                       className="h-full w-full rounded-lg object-cover"
                     />
                     <button
@@ -270,7 +270,7 @@ export default function NewProjectPage() {
                     <div className="text-center">
                       <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
                       <span className="mt-2 block text-sm text-muted-foreground">
-                        Upload
+                        업로드
                       </span>
                     </div>
                     <input
@@ -289,17 +289,17 @@ export default function NewProjectPage() {
           {/* Product Info */}
           <Card>
             <CardHeader>
-              <CardTitle>Product Information</CardTitle>
+              <CardTitle>제품 정보</CardTitle>
               <CardDescription>
-                Tell us about your product for AI-powered content generation
+                AI 콘텐츠 생성을 위해 제품 정보를 입력해 주세요
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>Product Name *</Label>
+                  <Label>제품명 *</Label>
                   <Input
-                    placeholder="e.g., Premium Leather Handbag"
+                    placeholder="예: 프리미엄 가죽 핸드백"
                     value={productInfo.productName}
                     onChange={(e) =>
                       setProductInfo((prev) => ({ ...prev, productName: e.target.value }))
@@ -307,7 +307,7 @@ export default function NewProjectPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Category *</Label>
+                  <Label>카테고리 *</Label>
                   <Select
                     value={productInfo.category}
                     onValueChange={(value) =>
@@ -315,12 +315,12 @@ export default function NewProjectPage() {
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
+                      <SelectValue placeholder="카테고리 선택" />
                     </SelectTrigger>
                     <SelectContent>
                       {categories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>
-                          {cat}
+                        <SelectItem key={cat.value} value={cat.value}>
+                          {cat.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -329,12 +329,12 @@ export default function NewProjectPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Key Features *</Label>
+                <Label>주요 특징 *</Label>
                 <div className="space-y-2">
                   {productInfo.keyFeatures.map((feature, index) => (
                     <div key={index} className="flex gap-2">
                       <Input
-                        placeholder={`Feature ${index + 1}`}
+                        placeholder={`특징 ${index + 1}`}
                         value={feature}
                         onChange={(e) => updateFeature(index, e.target.value)}
                       />
@@ -353,15 +353,15 @@ export default function NewProjectPage() {
                 </div>
                 {productInfo.keyFeatures.length < 5 && (
                   <Button type="button" variant="outline" size="sm" onClick={addFeature}>
-                    Add Feature
+                    특징 추가
                   </Button>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label>Target Audience</Label>
+                <Label>타겟 고객</Label>
                 <Input
-                  placeholder="e.g., Fashion-forward women aged 25-40"
+                  placeholder="예: 25-40세 패션에 관심 있는 여성"
                   value={productInfo.targetAudience}
                   onChange={(e) =>
                     setProductInfo((prev) => ({ ...prev, targetAudience: e.target.value }))
@@ -370,7 +370,7 @@ export default function NewProjectPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Copy Length</Label>
+                <Label>카피 길이</Label>
                 <div className="grid gap-2 sm:grid-cols-3">
                   {copyLengthOptions.map((option) => (
                     <label
@@ -408,16 +408,16 @@ export default function NewProjectPage() {
           {/* Actions */}
           <div className="flex justify-between">
             <Button variant="outline" onClick={() => setStep(1)}>
-              Back
+              이전
             </Button>
             <Button onClick={handleGenerate} disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generating...
+                  생성 중...
                 </>
               ) : (
-                'Generate Detail Page'
+                '상세페이지 생성하기'
               )}
             </Button>
           </div>

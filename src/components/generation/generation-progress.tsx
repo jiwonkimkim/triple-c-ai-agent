@@ -51,10 +51,10 @@ export function GenerationProgress({
         <div className="flex items-center justify-between text-sm">
           <span className="font-medium">
             {job.status === 'completed'
-              ? 'Generation Complete'
+              ? '생성 완료'
               : job.status === 'error'
-              ? 'Generation Failed'
-              : 'Generating...'}
+              ? '생성 실패'
+              : '생성 중...'}
           </span>
           <span className="text-muted-foreground">{job.overallProgress}%</span>
         </div>
@@ -119,10 +119,10 @@ export function GenerationProgress({
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
           )}
           {job.type === 'detail_page'
-            ? 'Detail Page Generation'
+            ? '상세페이지 생성'
             : job.type === 'motion'
-            ? 'Motion Generation'
-            : 'Video Generation'}
+            ? '모션 생성'
+            : '영상 생성'}
         </CardTitle>
       </CardHeader>
       <CardContent>{content}</CardContent>
@@ -231,8 +231,8 @@ function ElapsedTime({
 
   return (
     <span>
-      {endTime ? 'Completed in' : 'Elapsed'}: {minutes > 0 && `${minutes}m `}
-      {seconds}s
+      {endTime ? '완료 시간' : '경과 시간'}: {minutes > 0 && `${minutes}분 `}
+      {seconds}초
     </span>
   );
 }

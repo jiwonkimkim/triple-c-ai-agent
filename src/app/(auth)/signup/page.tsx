@@ -15,19 +15,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 
 const signupSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.string().email('유효하지 않은 이메일 주소입니다'),
   password: z
     .string()
-    .min(8, 'Password must be at least 8 characters')
+    .min(8, '비밀번호는 8자 이상이어야 합니다')
     .regex(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      'Password must contain uppercase, lowercase, and number'
+      '비밀번호는 대문자, 소문자, 숫자를 포함해야 합니다'
     ),
   confirmPassword: z.string(),
-  name: z.string().min(1, 'Name is required'),
+  name: z.string().min(1, '이름을 입력해 주세요'),
   userType: z.enum(['B2C', 'B2B']),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: 'Passwords do not match',
+  message: '비밀번호가 일치하지 않습니다',
   path: ['confirmPassword'],
 });
 
@@ -70,20 +70,20 @@ export default function SignupPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Signup failed');
+        throw new Error(result.error || '회원가입에 실패했습니다');
       }
 
       toast({
         title: '계정이 생성되었습니다!',
-        description: '이메일을 확인하여 계정을 인증해주세요.',
+        description: '이메일을 확인하여 계정을 인증해 주세요.',
       });
 
       router.push('/verify-email');
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Signup failed',
-        description: error instanceof Error ? error.message : 'Something went wrong',
+        title: '회원가입 실패',
+        description: error instanceof Error ? error.message : '문제가 발생했습니다',
       });
     } finally {
       setIsLoading(false);
@@ -97,8 +97,8 @@ export default function SignupPage() {
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to sign in with Google.',
+        title: '오류',
+        description: 'Google 로그인에 실패했습니다.',
       });
       setIsLoading(false);
     }
@@ -111,9 +111,9 @@ export default function SignupPage() {
           <Link href="/" className="mb-4 inline-block">
             <span className="text-2xl font-bold text-primary">Triple C</span>
           </Link>
-          <CardTitle className="text-2xl">Create an account</CardTitle>
+          <CardTitle className="text-2xl">계정 만들기</CardTitle>
           <CardDescription>
-            Start creating professional marketing content today
+            지금 바로 전문적인 마케팅 콘텐츠 제작을 시작하세요
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -141,7 +141,7 @@ export default function SignupPage() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Continue with Google
+            Google로 계속하기
           </Button>
 
           <div className="relative">
@@ -150,35 +150,35 @@ export default function SignupPage() {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-background px-2 text-muted-foreground">
-                Or continue with email
+                또는 이메일로 계속
               </span>
             </div>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="userType">Account Type</Label>
+              <Label htmlFor="userType">계정 유형</Label>
               <Select
                 value={userType}
                 onValueChange={(value: 'B2C' | 'B2B') => setValue('userType', value)}
                 disabled={isLoading}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select account type" />
+                  <SelectValue placeholder="계정 유형 선택" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="B2C">Individual (B2C)</SelectItem>
-                  <SelectItem value="B2B">Business (B2B)</SelectItem>
+                  <SelectItem value="B2C">개인 (B2C)</SelectItem>
+                  <SelectItem value="B2B">기업 (B2B)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name">이름</Label>
               <Input
                 id="name"
                 type="text"
-                placeholder="John Doe"
+                placeholder="홍길동"
                 {...register('name')}
                 error={!!errors.name}
                 disabled={isLoading}
@@ -189,7 +189,7 @@ export default function SignupPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">이메일</Label>
               <Input
                 id="email"
                 type="email"
@@ -204,7 +204,7 @@ export default function SignupPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">비밀번호</Label>
               <Input
                 id="password"
                 type="password"
@@ -218,7 +218,7 @@ export default function SignupPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword">비밀번호 확인</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -234,27 +234,27 @@ export default function SignupPage() {
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading} isLoading={isLoading}>
-              Create Account
+              계정 만들기
             </Button>
           </form>
 
           <p className="text-center text-xs text-muted-foreground">
-            By creating an account, you agree to our{' '}
+            계정을 만들면{' '}
             <Link href="/terms" className="underline hover:text-primary">
-              Terms of Service
+              서비스 약관
             </Link>{' '}
-            and{' '}
+            및{' '}
             <Link href="/privacy" className="underline hover:text-primary">
-              Privacy Policy
+              개인정보 처리방침
             </Link>
-            .
+            에 동의하게 됩니다.
           </p>
         </CardContent>
         <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">
-            Already have an account?{' '}
+            이미 계정이 있으신가요?{' '}
             <Link href="/login" className="text-primary hover:underline">
-              Sign in
+              로그인
             </Link>
           </p>
         </CardFooter>

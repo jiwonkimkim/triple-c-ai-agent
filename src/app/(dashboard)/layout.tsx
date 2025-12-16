@@ -30,11 +30,11 @@ import { cn } from '@/lib/utils';
 import { getInitials } from '@/lib/utils';
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Projects', href: '/dashboard/projects', icon: FolderKanban },
-  { name: 'Brand Profiles', href: '/dashboard/brands', icon: Palette },
-  { name: 'Templates', href: '/dashboard/templates', icon: FileText },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { name: '대시보드', href: '/dashboard', icon: LayoutDashboard },
+  { name: '프로젝트', href: '/dashboard/projects', icon: FolderKanban },
+  { name: '브랜드 프로필', href: '/dashboard/brands', icon: Palette },
+  { name: '템플릿', href: '/dashboard/templates', icon: FileText },
+  { name: '설정', href: '/dashboard/settings', icon: Settings },
 ];
 
 export default function DashboardLayout({
@@ -112,7 +112,7 @@ export default function DashboardLayout({
             </Avatar>
             <div className="flex-1 truncate">
               <p className="truncate text-sm font-medium">
-                {session?.user?.name || 'User'}
+                {session?.user?.name || '사용자'}
               </p>
               <p className="truncate text-xs text-muted-foreground">
                 {session?.user?.email}
@@ -148,18 +148,18 @@ export default function DashboardLayout({
                   </AvatarFallback>
                 </Avatar>
                 <span className="hidden md:inline-block">
-                  {session?.user?.name || 'User'}
+                  {session?.user?.name || '사용자'}
                 </span>
                 <ChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>내 계정</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href="/dashboard/settings" className="cursor-pointer">
                   <User className="mr-2 h-4 w-4" />
-                  Profile Settings
+                  프로필 설정
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -168,7 +168,7 @@ export default function DashboardLayout({
                 onClick={() => signOut({ callbackUrl: '/' })}
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                Sign Out
+                로그아웃
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

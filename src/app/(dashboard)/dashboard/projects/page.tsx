@@ -58,15 +58,15 @@ export default function ProjectsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
+          <h1 className="text-3xl font-bold tracking-tight">프로젝트</h1>
           <p className="text-muted-foreground">
-            Manage your product detail page projects
+            상품 상세페이지 프로젝트를 관리하세요
           </p>
         </div>
         <Link href="/dashboard/projects/new">
           <Button className="gap-2">
             <Plus className="h-4 w-4" />
-            New Project
+            새 프로젝트
           </Button>
         </Link>
       </div>
@@ -76,7 +76,7 @@ export default function ProjectsPage() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search projects..."
+            placeholder="프로젝트 검색..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -102,9 +102,9 @@ export default function ProjectsPage() {
       ) : error ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <p className="text-destructive">Failed to load projects</p>
+            <p className="text-destructive">프로젝트를 불러오는데 실패했습니다</p>
             <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
-              Try Again
+              다시 시도
             </Button>
           </CardContent>
         </Card>
@@ -113,18 +113,18 @@ export default function ProjectsPage() {
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <FolderKanban className="h-12 w-12 text-muted-foreground/50" />
             <h3 className="mt-4 text-lg font-medium">
-              {searchQuery ? 'No projects found' : 'No projects yet'}
+              {searchQuery ? '프로젝트를 찾을 수 없습니다' : '아직 프로젝트가 없습니다'}
             </h3>
             <p className="mt-2 text-sm text-muted-foreground">
               {searchQuery
-                ? 'Try a different search term'
-                : 'Create your first project to start generating content'}
+                ? '다른 검색어를 시도해 보세요'
+                : '첫 번째 프로젝트를 만들어 콘텐츠 생성을 시작하세요'}
             </p>
             {!searchQuery && (
               <Link href="/dashboard/projects/new" className="mt-4">
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />
-                  Create Project
+                  프로젝트 만들기
                 </Button>
               </Link>
             )}
@@ -152,7 +152,7 @@ function ProjectCard({ project }: { project: Project }) {
             </CardTitle>
           </Link>
           <CardDescription>
-            {project.brandProfile?.name || 'No brand profile'}
+            {project.brandProfile?.name || '브랜드 프로필 없음'}
           </CardDescription>
         </div>
         <DropdownMenu>
@@ -169,24 +169,24 @@ function ProjectCard({ project }: { project: Project }) {
             <DropdownMenuItem asChild>
               <Link href={`/dashboard/projects/${project.id}`}>
                 <Pencil className="mr-2 h-4 w-4" />
-                Edit
+                편집
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
               <Archive className="mr-2 h-4 w-4" />
-              Archive
+              보관
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive focus:text-destructive">
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete
+              삭제
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>{project._count.detailPageVersions} versions</span>
+          <span>{project._count.detailPageVersions}개 버전</span>
           <span>{formatRelativeTime(project.updatedAt)}</span>
         </div>
       </CardContent>

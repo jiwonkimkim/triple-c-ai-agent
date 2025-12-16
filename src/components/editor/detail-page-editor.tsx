@@ -63,7 +63,7 @@ export function DetailPageEditor({
     } else {
       // Create default section if none provided
       addSection({
-        name: 'Hero Section',
+        name: '히어로 섹션',
         blocks: [],
       });
     }
@@ -82,8 +82,8 @@ export function DetailPageEditor({
       } else {
         toast({
           variant: 'destructive',
-          title: 'Auto-save failed',
-          description: 'Unable to save your changes. Please try saving manually.',
+          title: '자동 저장 실패',
+          description: '변경 사항을 저장할 수 없습니다. 수동으로 저장해 주세요.',
         });
       }
     },
@@ -124,7 +124,7 @@ export function DetailPageEditor({
 
   const handleAddSection = useCallback(() => {
     addSection({
-      name: `Section ${sections.length + 1}`,
+      name: `섹션 ${sections.length + 1}`,
       blocks: [],
     });
   }, [addSection, sections.length]);
@@ -134,7 +134,7 @@ export function DetailPageEditor({
       const section = sections.find((s) => s.id === sectionId);
       if (section) {
         addSection({
-          name: `${section.name} (Copy)`,
+          name: `${section.name} (복사본)`,
           blocks: JSON.parse(JSON.stringify(section.blocks)).map((b: EditorBlock) => ({
             ...b,
             id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -190,14 +190,14 @@ export function DetailPageEditor({
         }
 
         toast({
-          title: 'Export successful',
-          description: `Your detail page has been exported as ${format.toUpperCase()}.`,
+          title: '내보내기 완료',
+          description: `상세페이지가 ${format.toUpperCase()} 형식으로 내보내졌습니다.`,
         });
       } catch (error) {
         toast({
           variant: 'destructive',
-          title: 'Export failed',
-          description: 'Unable to export your detail page. Please try again.',
+          title: '내보내기 실패',
+          description: '상세페이지를 내보낼 수 없습니다. 다시 시도해 주세요.',
         });
       }
     },

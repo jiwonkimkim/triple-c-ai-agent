@@ -55,13 +55,13 @@ export function EditorToolbar({
   onSetPreviewMode,
 }: EditorToolbarProps) {
   const formatLastSaved = (date: Date | null) => {
-    if (!date) return 'Never saved';
+    if (!date) return '저장된 적 없음';
     const now = new Date();
     const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-    if (diff < 60) return 'Just now';
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    if (diff < 60) return '방금 전';
+    if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
     return date.toLocaleDateString();
   };
 
@@ -75,7 +75,7 @@ export function EditorToolbar({
             size="icon"
             onClick={onUndo}
             disabled={!canUndo}
-            title="Undo (Ctrl+Z)"
+            title="실행 취소 (Ctrl+Z)"
           >
             <Undo2 className="h-4 w-4" />
           </Button>
@@ -84,7 +84,7 @@ export function EditorToolbar({
             size="icon"
             onClick={onRedo}
             disabled={!canRedo}
-            title="Redo (Ctrl+Shift+Z)"
+            title="다시 실행 (Ctrl+Shift+Z)"
           >
             <Redo2 className="h-4 w-4" />
           </Button>
@@ -92,7 +92,7 @@ export function EditorToolbar({
 
         <Button variant="outline" size="sm" className="gap-2" onClick={onAddSection}>
           <Plus className="h-4 w-4" />
-          Add Section
+          섹션 추가
         </Button>
       </div>
 
@@ -103,7 +103,7 @@ export function EditorToolbar({
           size="icon"
           className="h-7 w-7"
           onClick={() => onSetPreviewMode('desktop')}
-          title="Desktop view"
+          title="데스크톱 보기"
         >
           <Monitor className="h-4 w-4" />
         </Button>
@@ -112,7 +112,7 @@ export function EditorToolbar({
           size="icon"
           className="h-7 w-7"
           onClick={() => onSetPreviewMode('tablet')}
-          title="Tablet view"
+          title="태블릿 보기"
         >
           <Tablet className="h-4 w-4" />
         </Button>
@@ -121,7 +121,7 @@ export function EditorToolbar({
           size="icon"
           className="h-7 w-7"
           onClick={() => onSetPreviewMode('mobile')}
-          title="Mobile view"
+          title="모바일 보기"
         >
           <Smartphone className="h-4 w-4" />
         </Button>
@@ -134,12 +134,12 @@ export function EditorToolbar({
           {isSaving ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Saving...</span>
+              <span>저장 중...</span>
             </>
           ) : isDirty ? (
             <>
               <AlertCircle className="h-4 w-4 text-yellow-500" />
-              <span>Unsaved changes</span>
+              <span>저장되지 않은 변경사항</span>
             </>
           ) : (
             <>
@@ -153,22 +153,22 @@ export function EditorToolbar({
 
         <Button variant="ghost" size="sm" onClick={onPreview}>
           <Eye className="h-4 w-4 mr-2" />
-          Preview
+          미리보기
         </Button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm">
               <Download className="h-4 w-4 mr-2" />
-              Export
+              내보내기
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => onExport('html')}>
-              Export as HTML
+              HTML로 내보내기
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onExport('json')}>
-              Export as JSON
+              JSON으로 내보내기
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -179,7 +179,7 @@ export function EditorToolbar({
           ) : (
             <Save className="h-4 w-4 mr-2" />
           )}
-          Save
+          저장
         </Button>
       </div>
     </div>

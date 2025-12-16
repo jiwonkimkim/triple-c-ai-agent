@@ -92,14 +92,14 @@ export function GenerationModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            AI Generation
+            AI 생성
           </DialogTitle>
           <DialogDescription>
             {job?.status === 'completed'
-              ? 'Your content has been generated successfully!'
+              ? '콘텐츠가 성공적으로 생성되었습니다!'
               : job?.status === 'error'
-              ? 'Generation encountered an error.'
-              : 'Please wait while we generate your content.'}
+              ? '생성 중 오류가 발생했습니다.'
+              : '콘텐츠를 생성하는 중입니다. 잠시만 기다려 주세요.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -117,22 +117,22 @@ export function GenerationModal({
           {job?.status === 'completed' && (
             <>
               <Button variant="outline" onClick={handleClose}>
-                Close
+                닫기
               </Button>
               <Button onClick={handleViewResult}>
                 <ExternalLink className="h-4 w-4 mr-2" />
-                View Result
+                결과 보기
               </Button>
             </>
           )}
           {job?.status === 'error' && (
             <Button variant="outline" onClick={handleClose}>
-              Close
+              닫기
             </Button>
           )}
           {job && job.status !== 'completed' && job.status !== 'error' && (
             <p className="text-xs text-muted-foreground">
-              This may take a few minutes. Please don't close this window.
+              몇 분 정도 소요될 수 있습니다. 이 창을 닫지 마세요.
             </p>
           )}
         </div>
