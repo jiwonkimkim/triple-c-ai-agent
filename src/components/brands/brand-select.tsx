@@ -75,44 +75,29 @@ export function BrandSelect({ value, onChange, workspaceId, error }: BrandSelect
         </Link>
       </div>
 
-      {brands.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-4 text-center">
-          <Palette className="mx-auto h-8 w-8 text-muted-foreground/50" />
-          <p className="mt-2 text-sm text-muted-foreground">
-            등록된 브랜드가 없습니다
-          </p>
-          <Link href="/dashboard/brands/new" target="_blank">
-            <Button type="button" variant="outline" size="sm" className="mt-2">
-              <Plus className="mr-2 h-4 w-4" />
-              브랜드 만들기
-            </Button>
-          </Link>
-        </div>
-      ) : (
-        <Select
-          value={value || 'none'}
-          onValueChange={(val) => onChange(val === 'none' ? null : val)}
-        >
-          <SelectTrigger className={error ? 'border-destructive' : ''}>
-            <SelectValue placeholder="브랜드를 선택하세요" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">
+      <Select
+        value={value || 'none'}
+        onValueChange={(val) => onChange(val === 'none' ? null : val)}
+      >
+        <SelectTrigger className={error ? 'border-destructive' : ''}>
+          <SelectValue placeholder="브랜드를 선택하세요" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="none">
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">브랜드 없이 진행</span>
+            </div>
+          </SelectItem>
+          {brands.map((brand) => (
+            <SelectItem key={brand.id} value={brand.id}>
               <div className="flex items-center gap-2">
-                <span className="text-muted-foreground">브랜드 없이 진행</span>
+                <Palette className="h-4 w-4 text-primary" />
+                <span>{brand.name}</span>
               </div>
             </SelectItem>
-            {brands.map((brand) => (
-              <SelectItem key={brand.id} value={brand.id}>
-                <div className="flex items-center gap-2">
-                  <Palette className="h-4 w-4 text-primary" />
-                  <span>{brand.name}</span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      )}
+          ))}
+        </SelectContent>
+      </Select>
 
       {value && brands.find((b) => b.id === value) && (
         <div className="rounded-lg bg-muted/50 p-3 text-sm">
