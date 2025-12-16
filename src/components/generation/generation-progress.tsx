@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Check, Loader2, AlertCircle, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
@@ -211,7 +211,7 @@ function ElapsedTime({
   startTime: Date;
   endTime?: Date;
 }) {
-  const [elapsed, setElapsed] = React.useState(0);
+  const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
     if (endTime) {
@@ -236,6 +236,3 @@ function ElapsedTime({
     </span>
   );
 }
-
-// Import React for useState in ElapsedTime
-import * as React from 'react';
