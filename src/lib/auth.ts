@@ -70,13 +70,31 @@ export const authOptions: NextAuthOptions = {
             name: 'dev-login',
             credentials: {},
             async authorize() {
-              // Return a mock developer user
+              // Find or create dev user in database
+              const devEmail = 'dev@example.com';
+
+              let user = await prisma.user.findUnique({
+                where: { email: devEmail },
+              });
+
+              if (!user) {
+                user = await prisma.user.create({
+                  data: {
+                    email: devEmail,
+                    name: 'Developer',
+                    emailVerified: new Date(),
+                    userType: 'B2C',
+                    trialCredits: 100,
+                  },
+                });
+              }
+
               return {
-                id: 'dev-user-id',
-                email: 'dev@example.com',
-                name: 'Developer',
-                image: null,
-                userType: 'B2C' as const,
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                image: user.image,
+                userType: user.userType,
               };
             },
           }),
