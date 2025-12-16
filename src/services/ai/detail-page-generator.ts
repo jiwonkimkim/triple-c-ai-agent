@@ -277,13 +277,29 @@ function parseResponse(response: string, versionIndex: number): DetailPageVersio
   }
 }
 
+// Check if we should use mock generation (development without valid API keys)
+function shouldUseMockGeneration(): boolean {
+  // Always use mock if explicitly disabled
+  if (process.env.USE_MOCK_AI === 'true') {
+    return true;
+  }
+
+  // In development, use mock if no valid API keys
+  const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
+  if (isDev && !hasValidApiKey()) {
+    return true;
+  }
+
+  return false;
+}
+
 // Main generation function
 export async function generateDetailPage(
   input: GenerateDetailPageInput
 ): Promise<DetailPageVersion[]> {
   // Development mode fallback: return mock data if no valid API keys
-  if (process.env.NODE_ENV === 'development' && !hasValidApiKey()) {
-    console.log('[DEV] Using mock detail page generation - no valid API keys configured');
+  if (shouldUseMockGeneration()) {
+    console.log('[DEV] Using mock detail page generation - mock mode enabled or no valid API keys');
     return [
       generateMockDetailPage(input, 0),
       generateMockDetailPage(input, 1),
@@ -298,7 +314,12 @@ export async function generateDetailPage(
   const useOpenAI = process.env.OPENAI_API_KEY;
 
   if (!useAnthropic && !useOpenAI) {
-    throw new Error('No AI API key configured. Please set ANTHROPIC_API_KEY or OPENAI_API_KEY in your .env file.');
+    // Fall back to mock generation instead of throwing error
+    console.log('[DEV] No API keys configured, using mock generation');
+    return [
+      generateMockDetailPage(input, 0),
+      generateMockDetailPage(input, 1),
+    ];
   }
 
   const generateVersion = async (versionIndex: number): Promise<DetailPageVersion> => {
@@ -348,13 +369,31 @@ export async function generateDetailPage(
     }
   };
 
-  // Generate both versions concurrently
-  const [version1, version2] = await Promise.all([
-    generateVersion(0),
-    generateVersion(1),
-  ]);
+  // Generate both versions concurrently with fallback to mock on failure
+  try {
+    const [version1, version2] = await Promise.all([
+      generateVersion(0),
+      generateVersion(1),
+    ]);
 
-  return [version1, version2];
+    return [version1, version2];
+  } catch (error) {
+    // Log the error for debugging
+    console.error('[AI] Failed to generate content from AI API:', error);
+
+    // In development or if NODE_ENV is not set, fall back to mock generation
+    const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
+    if (isDev) {
+      console.log('[DEV] Falling back to mock generation due to API error');
+      return [
+        generateMockDetailPage(input, 0),
+        generateMockDetailPage(input, 1),
+      ];
+    }
+
+    // In production, re-throw the error
+    throw error;
+  }
 }
 
 // Generate hook message only
@@ -366,8 +405,8 @@ export async function generateHookMessage(
   copyLength: 'short' | 'medium' | 'long' = 'medium'
 ): Promise<string> {
   // Development mode fallback
-  if (process.env.NODE_ENV === 'development' && !hasValidApiKey()) {
-    console.log('[DEV] Using mock hook message - no valid API keys configured');
+  if (shouldUseMockGeneration()) {
+    console.log('[DEV] Using mock hook message - mock mode enabled or no valid API keys');
     return `${productName} - ${targetAudience}를 위한 최고의 선택!`;
   }
 
@@ -413,8 +452,8 @@ export async function generateSectionCopy(
   copyLength: 'short' | 'medium' | 'long' = 'medium'
 ): Promise<{ title: string; body: string }> {
   // Development mode fallback
-  if (process.env.NODE_ENV === 'development' && !hasValidApiKey()) {
-    console.log('[DEV] Using mock section copy - no valid API keys configured');
+  if (shouldUseMockGeneration()) {
+    console.log('[DEV] Using mock section copy - mock mode enabled or no valid API keys');
     const mockTitles: Record<string, string> = {
       HERO: `${productName} 소개`,
       FEATURES: '주요 특징',
