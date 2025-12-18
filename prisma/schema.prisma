@@ -230,6 +230,7 @@ model BrandDocumentChunk {
 enum ProjectStatus {
   ACTIVE
   ARCHIVED
+  DELETED
 }
 
 model Project {

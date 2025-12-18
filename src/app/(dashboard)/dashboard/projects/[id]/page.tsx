@@ -7,8 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Loader2, Settings, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { DetailPageEditor } from '@/components/editor';
-import type { Section } from '@/stores/editor-store';
+import { UnifiedEditor } from '@/components/editor';
 
 interface ProjectData {
   id: string;
@@ -23,7 +22,7 @@ interface ProjectData {
     id: string;
     versionNumber: number;
     status: string;
-    contentJson: Section[] | null;
+    contentJson: unknown;
     createdAt: string;
     updatedAt: string;
   }>;
@@ -91,8 +90,6 @@ export default function ProjectDetailPage() {
   const latestVersion = project.detailPageVersions
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
 
-  const initialSections = latestVersion?.contentJson as Section[] | undefined;
-
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
       {/* Header */}
@@ -146,14 +143,13 @@ export default function ProjectDetailPage() {
       {/* Content */}
       <div className="flex-1 overflow-hidden">
         {activeTab === 'editor' && (
-          <DetailPageEditor
+          <UnifiedEditor
             projectId={projectId}
             versionId={latestVersion?.id}
-            initialSections={initialSections}
             onSaveSuccess={() => {
               toast({
-                title: 'Saved',
-                description: 'Your changes have been saved.',
+                title: '저장됨',
+                description: '변경 사항이 저장되었습니다.',
               });
             }}
           />

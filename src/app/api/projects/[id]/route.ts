@@ -271,9 +271,8 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    await prisma.project.delete({
-      where: { id: params.id },
-    });
+    // Soft delete - status를 DELETED로 변경
+    await prisma.$executeRaw`UPDATE projects SET status = 'DELETED' WHERE id = ${params.id}`;
 
     return NextResponse.json({
       success: true,

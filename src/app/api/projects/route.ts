@@ -36,14 +36,20 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const workspaceId = searchParams.get('workspaceId');
-    const status = searchParams.get('status') as 'ACTIVE' | 'ARCHIVED' | null;
+    const status = searchParams.get('status') as 'ACTIVE' | 'ARCHIVED' | 'DELETED' | null;
+    const includeDeleted = searchParams.get('includeDeleted') === 'true';
     const page = parseInt(searchParams.get('page') || '1');
     const pageSize = parseInt(searchParams.get('pageSize') || '10');
 
+    // 기본: DELETED 제외, includeDeleted=true면 전체 조회
     const where = {
       ownerId: session.user.id,
       ...(workspaceId && { workspaceId }),
-      ...(status && { status }),
+      ...(status
+        ? { status }
+        : !includeDeleted
+        ? { status: { not: 'DELETED' as const } }
+        : {}),
     };
 
     const [projects, total] = await Promise.all([
