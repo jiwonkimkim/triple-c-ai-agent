@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "atlassian": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-atlassian"],
+      "env": {
+        "JIRA_HOST": "https://chwns617.atlassian.net",
+        "JIRA_EMAIL": "${JIRA_EMAIL}",
+        "JIRA_API_TOKEN": "${JIRA_API_TOKEN}"
+      }
+    }
+  }
+}
