@@ -23,7 +23,9 @@ import {
   Upload,
   Sparkles,
   Loader2,
+  History,
 } from 'lucide-react';
+import { HistoryPanel } from '@/components/history/history-panel';
 
 // 편집 가능한 요소 타입
 interface EditableElement {
@@ -63,6 +65,7 @@ export function UnifiedEditor({
   const [elements, setElements] = useState<EditableElement[]>(initialElements || []);
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [chatMessage, setChatMessage] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
@@ -180,13 +183,17 @@ export function UnifiedEditor({
   }, [historyIndex, history]);
 
   // 저장
-  const handleSave = useCallback(async () => {
+  const handleSave = useCallback(async (action: 'UPDATE' | 'AUTO_SAVE' = 'UPDATE') => {
     setIsSaving(true);
     try {
       const response = await fetch(`/api/projects/${projectId}/content`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ elements, versionId: currentVersionId }),
+        body: JSON.stringify({
+          elements,
+          versionId: currentVersionId,
+          action, // 히스토리에 기록될 액션 타입
+        }),
       });
 
       if (!response.ok) throw new Error('저장 실패');
@@ -198,7 +205,9 @@ export function UnifiedEditor({
 
       setIsDirty(false);
       onSaveSuccess?.();
-      toast({ title: '저장됨', description: '변경 사항이 저장되었습니다.' });
+      if (action === 'UPDATE') {
+        toast({ title: '저장됨', description: '변경 사항이 저장되었습니다.' });
+      }
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -270,7 +279,7 @@ export function UnifiedEditor({
       }
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
-        handleSave();
+        handleSave('UPDATE');
       }
       if (e.key === 'Escape') {
         setSelectedElementId(null);
@@ -355,6 +364,17 @@ export function UnifiedEditor({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* History toggle */}
+          <Button
+            variant={isHistoryOpen ? 'secondary' : 'outline'}
+            size="sm"
+            onClick={() => setIsHistoryOpen(true)}
+            className="gap-2"
+          >
+            <History className="h-4 w-4" />
+            히스토리
+          </Button>
+
           {/* AI Chat toggle */}
           <Button
             variant={isChatOpen ? 'secondary' : 'outline'}
@@ -370,7 +390,7 @@ export function UnifiedEditor({
           {isDirty && <span className="text-sm text-muted-foreground">저장되지 않음</span>}
 
           {/* Save button */}
-          <Button onClick={handleSave} disabled={isSaving || !isDirty} size="sm" className="gap-2">
+          <Button onClick={() => handleSave('UPDATE')} disabled={isSaving || !isDirty} size="sm" className="gap-2">
             {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             저장
           </Button>
@@ -468,6 +488,27 @@ export function UnifiedEditor({
           </div>
         )}
       </div>
+
+      {/* History Panel */}
+      <HistoryPanel
+        projectId={projectId}
+        currentVersionId={currentVersionId}
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        onRestoreComplete={(version) => {
+          // 복원 완료 시 콘텐츠 새로고침
+          setCurrentVersionId(version.id);
+          if (version.content?.sections) {
+            // sections을 elements 형식으로 변환이 필요할 수 있음
+            // 우선은 페이지 새로고침으로 처리
+            window.location.reload();
+          }
+          toast({
+            title: '버전 복원 완료',
+            description: `v${version.versionNumber} 버전으로 복원되었습니다.`,
+          });
+        }}
+      />
     </div>
   );
 }

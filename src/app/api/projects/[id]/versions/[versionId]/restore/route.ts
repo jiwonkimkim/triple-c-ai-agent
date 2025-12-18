@@ -71,6 +71,28 @@ export async function POST(
       },
     });
 
+    // Also update detailPageVersion for the editor
+    // Convert from projectVersion format ({ sections }) to detailPageVersion format ({ elements })
+    const contentData = versionToRestore.content as { sections?: any[] };
+    const elements = contentData?.sections || [];
+
+    // Get latest detailPageVersion number
+    const latestDetailVersion = await prisma.detailPageVersion.findFirst({
+      where: { projectId },
+      orderBy: { versionNumber: 'desc' },
+    });
+    const newDetailVersionNumber = (latestDetailVersion?.versionNumber || 0) + 1;
+
+    // Create new detailPageVersion with restored content
+    await prisma.detailPageVersion.create({
+      data: {
+        projectId,
+        versionNumber: newDetailVersionNumber,
+        contentJson: { elements },
+        status: 'DRAFT',
+      },
+    });
+
     // Log history
     await prisma.projectHistory.create({
       data: {

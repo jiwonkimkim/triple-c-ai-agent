@@ -150,6 +150,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const validatedData = updateContentSchema.parse(body);
     const { elements, versionId } = validatedData;
 
+    // Get action type from request (default: UPDATE)
+    const action = body.action || 'UPDATE';
+
     // Verify project ownership or edit permission
     const project = await prisma.project.findUnique({
       where: { id: projectId },
@@ -183,8 +186,37 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     // Content to save
     const contentJson = { elements };
 
+    // Also create a projectVersion record for history tracking
+    const latestProjectVersion = await prisma.projectVersion.findFirst({
+      where: { projectId },
+      orderBy: { versionNumber: 'desc' },
+    });
+    const newProjectVersionNumber = (latestProjectVersion?.versionNumber || 0) + 1;
+
+    // Create projectVersion for history
+    await prisma.projectVersion.create({
+      data: {
+        projectId,
+        versionNumber: newProjectVersionNumber,
+        action: action,
+        description: action === 'AUTO_SAVE' ? '자동 저장' : '수동 저장',
+        content: { sections: elements },
+        createdById: session.user.id,
+      },
+    });
+
+    // Update project's current version
+    await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        content: { sections: elements },
+        currentVersion: newProjectVersionNumber,
+        updatedAt: new Date(),
+      },
+    });
+
     if (versionId) {
-      // Update existing version
+      // Update existing detailPageVersion
       const existingVersion = await prisma.detailPageVersion.findFirst({
         where: {
           id: versionId,
@@ -209,6 +241,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         data: {
           versionId: updatedVersion.id,
           updatedAt: updatedVersion.updatedAt,
+          historyVersionNumber: newProjectVersionNumber,
         },
       });
     } else {
@@ -232,6 +265,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
           versionId: newVersion.id,
           versionNumber: newVersion.versionNumber,
           createdAt: newVersion.createdAt,
+          historyVersionNumber: newProjectVersionNumber,
         },
       });
     }

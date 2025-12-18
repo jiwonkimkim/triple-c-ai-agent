@@ -1,13 +1,26 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Loader2, Settings, History } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { ArrowLeft, Loader2, Settings, History, RefreshCw, Eye, RotateCcw, GitCompare, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Input } from '@/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { UnifiedEditor } from '@/components/editor';
+import { VersionCompare } from '@/components/history/version-compare';
+import { VersionSnapshot, formatVersionDate, getActionLabel, getActionColor } from '@/stores/history-store';
 
 interface ProjectData {
   id: string;
@@ -39,15 +52,60 @@ export default function ProjectDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const projectId = params.id as string;
 
   const [activeTab, setActiveTab] = useState<'editor' | 'settings' | 'history'>('editor');
+
+  // History state
+  const [versions, setVersions] = useState<VersionSnapshot[]>([]);
+  const [isLoadingVersions, setIsLoadingVersions] = useState(false);
+  const [compareMode, setCompareMode] = useState(false);
+  const [selectedForCompare, setSelectedForCompare] = useState<VersionSnapshot[]>([]);
+  const [compareVersions, setCompareVersions] = useState<[VersionSnapshot, VersionSnapshot] | null>(null);
+  const [previewVersion, setPreviewVersion] = useState<VersionSnapshot | null>(null);
+  const [restoreDialogOpen, setRestoreDialogOpen] = useState(false);
+  const [versionToRestore, setVersionToRestore] = useState<VersionSnapshot | null>(null);
+  const [isRestoring, setIsRestoring] = useState(false);
+  const [editorKey, setEditorKey] = useState(0); // 에디터 리마운트용 key
+
+  // 버전 이름 수정 state
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [versionToRename, setVersionToRename] = useState<VersionSnapshot | null>(null);
+  const [newVersionName, setNewVersionName] = useState('');
+  const [isRenaming, setIsRenaming] = useState(false);
 
   const { data: project, isLoading, error } = useQuery({
     queryKey: ['project', projectId],
     queryFn: () => fetchProject(projectId),
     enabled: !!projectId,
   });
+
+  // Fetch versions when History tab is active
+  const fetchVersions = useCallback(async () => {
+    if (!projectId) return;
+    setIsLoadingVersions(true);
+    try {
+      const response = await fetch(`/api/projects/${projectId}/versions`);
+      if (!response.ok) throw new Error('Failed to fetch versions');
+      const data = await response.json();
+      setVersions(data.versions || []);
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        title: '오류',
+        description: '버전 히스토리를 불러올 수 없습니다.',
+      });
+    } finally {
+      setIsLoadingVersions(false);
+    }
+  }, [projectId, toast]);
+
+  useEffect(() => {
+    if (activeTab === 'history') {
+      fetchVersions();
+    }
+  }, [activeTab, fetchVersions]);
 
   useEffect(() => {
     if (error) {
@@ -58,6 +116,107 @@ export default function ProjectDetailPage() {
       });
     }
   }, [error, toast]);
+
+  // Handle compare selection
+  const handleCompareSelect = (version: VersionSnapshot) => {
+    if (selectedForCompare.length === 0) {
+      setSelectedForCompare([version]);
+    } else if (selectedForCompare.length === 1) {
+      if (selectedForCompare[0].id !== version.id) {
+        const [older, newer] =
+          new Date(selectedForCompare[0].createdAt) < new Date(version.createdAt)
+            ? [selectedForCompare[0], version]
+            : [version, selectedForCompare[0]];
+        setCompareVersions([older, newer]);
+        setSelectedForCompare([]);
+        setCompareMode(false);
+      }
+    }
+  };
+
+  // Handle restore
+  const handleRestore = async () => {
+    if (!versionToRestore) return;
+    setIsRestoring(true);
+    try {
+      const response = await fetch(
+        `/api/projects/${projectId}/versions/${versionToRestore.id}/restore`,
+        { method: 'POST' }
+      );
+      if (!response.ok) throw new Error('Failed to restore');
+
+      await fetchVersions();
+      queryClient.invalidateQueries({ queryKey: ['project', projectId] });
+
+      // 에디터 리마운트를 위해 key 변경
+      setEditorKey((prev) => prev + 1);
+
+      toast({
+        title: '복원 완료',
+        description: `v${versionToRestore.versionNumber} 버전으로 복원되었습니다.`,
+      });
+      setRestoreDialogOpen(false);
+      setVersionToRestore(null);
+
+      // 에디터 탭으로 자동 전환
+      setActiveTab('editor');
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        title: '복원 실패',
+        description: '버전을 복원할 수 없습니다.',
+      });
+    } finally {
+      setIsRestoring(false);
+    }
+  };
+
+  // Handle rename
+  const openRenameDialog = (version: VersionSnapshot) => {
+    setVersionToRename(version);
+    setNewVersionName(version.description || `버전 ${version.versionNumber}`);
+    setRenameDialogOpen(true);
+  };
+
+  const handleRename = async () => {
+    if (!versionToRename || !newVersionName.trim()) return;
+    setIsRenaming(true);
+    try {
+      const response = await fetch(
+        `/api/projects/${projectId}/versions/${versionToRename.id}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ description: newVersionName.trim() }),
+        }
+      );
+      if (!response.ok) throw new Error('Failed to rename');
+
+      // Update local state
+      setVersions((prev) =>
+        prev.map((v) =>
+          v.id === versionToRename.id
+            ? { ...v, description: newVersionName.trim() }
+            : v
+        )
+      );
+
+      toast({
+        title: '이름 변경 완료',
+        description: `v${versionToRename.versionNumber} 이름이 변경되었습니다.`,
+      });
+      setRenameDialogOpen(false);
+      setVersionToRename(null);
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        title: '이름 변경 실패',
+        description: '버전 이름을 변경할 수 없습니다.',
+      });
+    } finally {
+      setIsRenaming(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -144,6 +303,7 @@ export default function ProjectDetailPage() {
       <div className="flex-1 overflow-hidden">
         {activeTab === 'editor' && (
           <UnifiedEditor
+            key={editorKey}
             projectId={projectId}
             versionId={latestVersion?.id}
             onSaveSuccess={() => {
@@ -156,45 +316,350 @@ export default function ProjectDetailPage() {
         )}
 
         {activeTab === 'history' && (
-          <div className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Version History</h2>
-            {project.detailPageVersions.length === 0 ? (
-              <p className="text-muted-foreground">No versions yet. Start editing to create your first version.</p>
+          <div className="flex flex-col h-full">
+            {/* Compare View */}
+            {compareVersions ? (
+              <VersionCompare
+                versionA={compareVersions[0]}
+                versionB={compareVersions[1]}
+                onClose={() => setCompareVersions(null)}
+                onRestoreVersion={(version) => {
+                  setVersionToRestore(version);
+                  setRestoreDialogOpen(true);
+                  setCompareVersions(null);
+                }}
+              />
             ) : (
-              <div className="space-y-3">
-                {project.detailPageVersions
-                  .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-                  .map((version) => (
-                    <div
-                      key={version.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                    >
-                      <div>
-                        <p className="font-medium">Version {version.versionNumber}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(version.updatedAt).toLocaleString()}
-                        </p>
-                      </div>
+              <>
+                {/* Header */}
+                <div className="flex items-center justify-between p-4 border-b">
+                  <div className="flex items-center gap-3">
+                    <History className="h-5 w-5" />
+                    <h2 className="text-lg font-semibold">버전 히스토리</h2>
+                    <Badge variant="secondary">{versions.length}개</Badge>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {!compareMode ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCompareMode(true)}
+                        disabled={isLoadingVersions || versions.length < 2}
+                      >
+                        <GitCompare className="h-4 w-4 mr-1" />
+                        비교
+                      </Button>
+                    ) : (
                       <div className="flex items-center gap-2">
-                        <span
-                          className={`px-2 py-1 text-xs rounded-full ${
-                            version.status === 'PUBLISHED'
-                              ? 'bg-green-100 text-green-700'
-                              : version.status === 'DRAFT'
-                              ? 'bg-yellow-100 text-yellow-700'
-                              : 'bg-gray-100 text-gray-700'
-                          }`}
-                        >
-                          {version.status}
+                        <span className="text-sm text-muted-foreground">
+                          {selectedForCompare.length === 0 ? '첫 번째 버전 선택' : '두 번째 버전 선택'}
                         </span>
-                        <Button variant="outline" size="sm">
-                          Restore
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setCompareMode(false);
+                            setSelectedForCompare([]);
+                          }}
+                        >
+                          취소
                         </Button>
                       </div>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={fetchVersions}
+                      disabled={isLoadingVersions}
+                    >
+                      <RefreshCw className={`h-4 w-4 ${isLoadingVersions ? 'animate-spin' : ''}`} />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Version List */}
+                <ScrollArea className="flex-1 p-4">
+                  {isLoadingVersions ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                     </div>
-                  ))}
-              </div>
+                  ) : versions.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                      <History className="h-12 w-12 mb-4 opacity-50" />
+                      <p className="text-sm">버전 히스토리가 없습니다</p>
+                      <p className="text-xs mt-1">변경사항이 저장되면 여기에 표시됩니다</p>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      {/* Timeline line */}
+                      <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-border" />
+
+                      {/* Version items */}
+                      <div className="space-y-4">
+                        {versions.map((version, index) => {
+                          const isCurrent = index === 0;
+                          const isSelectedForCompare = selectedForCompare.some(v => v.id === version.id);
+
+                          return (
+                            <div
+                              key={version.id}
+                              className={`relative pl-10 ${
+                                compareMode ? 'cursor-pointer hover:bg-muted/50 rounded-lg p-2 -ml-2' : ''
+                              } ${isSelectedForCompare ? 'bg-primary/10 rounded-lg p-2 -ml-2' : ''}`}
+                              onClick={() => compareMode && handleCompareSelect(version)}
+                            >
+                              {/* Timeline dot */}
+                              <div
+                                className={`absolute left-2.5 w-3 h-3 rounded-full border-2 border-background ${
+                                  isCurrent ? 'bg-primary' : getActionColor(version.action)
+                                }`}
+                              />
+
+                              {/* Version card */}
+                              <div
+                                className={`border rounded-lg p-4 transition-all ${
+                                  isCurrent ? 'border-primary bg-primary/5' : ''
+                                } ${!compareMode ? 'hover:border-muted-foreground/50' : ''}`}
+                              >
+                                {/* Version header */}
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <Badge
+                                        variant={isCurrent ? 'default' : 'secondary'}
+                                        className="text-xs cursor-pointer hover:opacity-80 flex items-center gap-1"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          openRenameDialog(version);
+                                        }}
+                                      >
+                                        {version.description &&
+                                        !['수동 저장', '자동 저장', `v${version.versionNumber}에서 복원됨`].some(d => version.description?.includes(d))
+                                          ? version.description
+                                          : `v${version.versionNumber}`}
+                                        <Pencil className="h-3 w-3 ml-0.5 opacity-60" />
+                                      </Badge>
+                                      <span
+                                        className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full text-white ${getActionColor(version.action)}`}
+                                      >
+                                        {getActionLabel(version.action)}
+                                      </span>
+                                      {isCurrent && (
+                                        <Badge variant="outline" className="text-xs">현재</Badge>
+                                      )}
+                                    </div>
+
+                                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                                      <span>{formatVersionDate(version.createdAt)}</span>
+                                      <span>{version.createdBy}</span>
+                                    </div>
+
+                                    {/* Changes summary */}
+                                    {version.changes && (
+                                      <div className="flex items-center gap-3 mt-2 text-xs">
+                                        {version.changes.added > 0 && (
+                                          <span className="text-green-600">+{version.changes.added} 추가</span>
+                                        )}
+                                        {version.changes.modified > 0 && (
+                                          <span className="text-blue-600">~{version.changes.modified} 수정</span>
+                                        )}
+                                        {version.changes.deleted > 0 && (
+                                          <span className="text-red-600">-{version.changes.deleted} 삭제</span>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Thumbnail */}
+                                  {version.thumbnail && (
+                                    <div className="ml-4 w-16 h-16 rounded border bg-muted overflow-hidden flex-shrink-0">
+                                      <img
+                                        src={version.thumbnail}
+                                        alt={`Version ${version.versionNumber}`}
+                                        className="w-full h-full object-cover"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Actions */}
+                                {!compareMode && (
+                                  <div className="flex items-center gap-2 mt-3 pt-3 border-t">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setPreviewVersion(version);
+                                      }}
+                                    >
+                                      <Eye className="h-4 w-4 mr-1" />
+                                      미리보기
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openRenameDialog(version);
+                                      }}
+                                    >
+                                      <Pencil className="h-4 w-4 mr-1" />
+                                      이름 변경
+                                    </Button>
+                                    {!isCurrent && (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setVersionToRestore(version);
+                                          setRestoreDialogOpen(true);
+                                        }}
+                                      >
+                                        <RotateCcw className="h-4 w-4 mr-1" />
+                                        복원
+                                      </Button>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </ScrollArea>
+              </>
             )}
+
+            {/* Restore Confirmation Dialog */}
+            <Dialog open={restoreDialogOpen} onOpenChange={setRestoreDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>버전 복원</DialogTitle>
+                  <DialogDescription>
+                    {versionToRestore && (
+                      <>
+                        <strong>v{versionToRestore.versionNumber}</strong> 버전으로 복원하시겠습니까?
+                        <br /><br />
+                        현재 작업 중인 내용이 저장되고, 선택한 버전의 내용으로 교체됩니다.
+                        이 작업은 새로운 버전으로 기록됩니다.
+                      </>
+                    )}
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setRestoreDialogOpen(false)}
+                    disabled={isRestoring}
+                  >
+                    취소
+                  </Button>
+                  <Button onClick={handleRestore} disabled={isRestoring}>
+                    {isRestoring ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        복원 중...
+                      </>
+                    ) : (
+                      '복원'
+                    )}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {/* Preview Dialog */}
+            <Dialog open={!!previewVersion} onOpenChange={() => setPreviewVersion(null)}>
+              <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
+                <DialogHeader>
+                  <DialogTitle>
+                    v{previewVersion?.versionNumber} 미리보기
+                  </DialogTitle>
+                  <DialogDescription>
+                    {previewVersion?.description} - {previewVersion && formatVersionDate(previewVersion.createdAt)}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="border rounded-lg bg-white min-h-[300px] max-h-[500px] overflow-auto">
+                  {previewVersion?.content?.sections && previewVersion.content.sections.length > 0 ? (
+                    <div className="p-6 space-y-4">
+                      {previewVersion.content.sections.map((element: any, index: number) => (
+                        <PreviewElement key={element.id || index} element={element} />
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-center py-8">
+                      콘텐츠가 없습니다.
+                    </p>
+                  )}
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setPreviewVersion(null)}>
+                    닫기
+                  </Button>
+                  {previewVersion && versions[0]?.id !== previewVersion.id && (
+                    <Button
+                      onClick={() => {
+                        setVersionToRestore(previewVersion);
+                        setPreviewVersion(null);
+                        setRestoreDialogOpen(true);
+                      }}
+                    >
+                      <RotateCcw className="h-4 w-4 mr-1" />
+                      이 버전으로 복원
+                    </Button>
+                  )}
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {/* Rename Dialog */}
+            <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>버전 이름 변경</DialogTitle>
+                  <DialogDescription>
+                    {versionToRename && (
+                      <>v{versionToRename.versionNumber} 버전의 이름을 변경합니다.</>
+                    )}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                  <Input
+                    value={newVersionName}
+                    onChange={(e) => setNewVersionName(e.target.value)}
+                    placeholder="버전 이름 입력"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleRename();
+                      }
+                    }}
+                  />
+                </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setRenameDialogOpen(false)}
+                    disabled={isRenaming}
+                  >
+                    취소
+                  </Button>
+                  <Button onClick={handleRename} disabled={isRenaming || !newVersionName.trim()}>
+                    {isRenaming ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        저장 중...
+                      </>
+                    ) : (
+                      '저장'
+                    )}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         )}
 
@@ -237,6 +702,50 @@ export default function ProjectDetailPage() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// 미리보기용 요소 렌더링 컴포넌트
+function PreviewElement({ element }: { element: any }) {
+  const styles: React.CSSProperties = element.styles || {};
+
+  if (element.type === 'heading') {
+    const HeadingTag = `h${element.level || 2}` as keyof JSX.IntrinsicElements;
+    return (
+      <HeadingTag style={styles} className="whitespace-pre-wrap">
+        {element.content || '제목'}
+      </HeadingTag>
+    );
+  }
+
+  if (element.type === 'text') {
+    return (
+      <p style={styles} className="whitespace-pre-wrap">
+        {element.content || '텍스트'}
+      </p>
+    );
+  }
+
+  if (element.type === 'image') {
+    return element.content ? (
+      <img
+        src={element.content}
+        alt={element.alt || '이미지'}
+        style={styles}
+        className="max-w-full h-auto rounded"
+      />
+    ) : (
+      <div className="w-full h-32 bg-muted flex items-center justify-center rounded border-2 border-dashed">
+        <span className="text-muted-foreground text-sm">이미지</span>
+      </div>
+    );
+  }
+
+  // 기타 타입은 텍스트로 표시
+  return (
+    <div className="p-2 bg-muted/50 rounded text-sm">
+      {element.content || `[${element.type}]`}
     </div>
   );
 }
