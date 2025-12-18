@@ -5,6 +5,10 @@ import { crawlSite, crawlUrl } from './web-crawler';
 export interface BrandContext {
   brandProfileId: string;
   brandName: string;
+  identity: string;
+  toneAndManner: string;
+  voiceTone: string | null;
+  imageKeywords: string[];
   relevantChunks: {
     text: string;
     source?: string;
@@ -157,6 +161,10 @@ export async function getBrandContext(
   return {
     brandProfileId,
     brandName: brandProfile.name,
+    identity: brandProfile.identity,
+    toneAndManner: brandProfile.toneAndManner,
+    voiceTone: brandProfile.voiceTone,
+    imageKeywords: brandProfile.imageKeywords,
     relevantChunks,
   };
 }

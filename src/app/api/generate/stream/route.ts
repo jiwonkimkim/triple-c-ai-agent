@@ -139,9 +139,9 @@ export async function POST(request: NextRequest) {
           // Transform RAG BrandContext to AI BrandContext format
           brandContext = {
             name: context.brandName,
-            identity: context.voiceTone || '',
-            toneAndManner: context.voiceTone || '',
-            imageKeywords: [],
+            identity: context.identity || '',
+            toneAndManner: context.toneAndManner || '',
+            imageKeywords: context.imageKeywords || [],
             ragContext: context.relevantChunks.map(c => c.text).join('\n\n'),
           };
         }
