@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
-import { Plus, Search, FolderKanban, MoreVertical, Pencil, Trash2, Archive } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Plus, Search, FolderKanban, MoreVertical, Pencil, Trash2, Archive, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +14,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 import { formatRelativeTime } from '@/lib/utils';
 
 interface Project {
@@ -142,54 +153,124 @@ export default function ProjectsPage() {
 }
 
 function ProjectCard({ project }: { project: Project }) {
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/projects/${project.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || '삭제에 실패했습니다.');
+      }
+
+      toast({
+        title: '삭제 완료',
+        description: '프로젝트가 삭제되었습니다.',
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: '삭제 실패',
+        description: error instanceof Error ? error.message : '프로젝트 삭제에 실패했습니다.',
+      });
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  };
+
   return (
-    <Card className="group hover:shadow-md transition-shadow">
-      <CardHeader className="flex flex-row items-start justify-between space-y-0">
-        <div className="space-y-1">
-          <Link href={`/dashboard/projects/${project.id}`}>
-            <CardTitle className="hover:text-primary transition-colors cursor-pointer">
-              {project.title}
-            </CardTitle>
-          </Link>
-          <CardDescription>
-            {project.brandProfile?.name || '브랜드 프로필 없음'}
-          </CardDescription>
-        </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="opacity-0 group-hover:opacity-100 transition-opacity"
+    <>
+      <Card className="group hover:shadow-md transition-shadow">
+        <CardHeader className="flex flex-row items-start justify-between space-y-0">
+          <div className="space-y-1">
+            <Link href={`/dashboard/projects/${project.id}`}>
+              <CardTitle className="hover:text-primary transition-colors cursor-pointer">
+                {project.title}
+              </CardTitle>
+            </Link>
+            <CardDescription>
+              {project.brandProfile?.name || '브랜드 프로필 없음'}
+            </CardDescription>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link href={`/dashboard/projects/${project.id}`}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  편집
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Archive className="mr-2 h-4 w-4" />
+                보관
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                삭제
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span>{project._count.detailPageVersions}개 버전</span>
+            <span>{formatRelativeTime(project.updatedAt)}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>프로젝트 삭제</AlertDialogTitle>
+            <AlertDialogDescription>
+              &quot;{project.title}&quot; 프로젝트를 삭제하시겠습니까?
+              <br />
+              이 작업은 되돌릴 수 없으며, 모든 버전과 히스토리가 함께 삭제됩니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link href={`/dashboard/projects/${project.id}`}>
-                <Pencil className="mr-2 h-4 w-4" />
-                편집
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Archive className="mr-2 h-4 w-4" />
-              보관
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive focus:text-destructive">
-              <Trash2 className="mr-2 h-4 w-4" />
-              삭제
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>{project._count.detailPageVersions}개 버전</span>
-          <span>{formatRelativeTime(project.updatedAt)}</span>
-        </div>
-      </CardContent>
-    </Card>
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  삭제 중...
+                </>
+              ) : (
+                '삭제'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
