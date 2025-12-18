@@ -12,25 +12,23 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user) {
+    if (!session?.user?.email) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    // 사용자 조회 (개발 환경에서는 없으면 자동 생성)
+    // 사용자 조회 - email 기반으로 조회하여 세션 ID 불일치 문제 해결
     let user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { email: session.user.email },
       select: { id: true, trialCredits: true, credits: true },
     });
 
     // 개발 환경에서 사용자가 DB에 없으면 자동 생성
     if (!user && process.env.NODE_ENV === 'development') {
-      user = await prisma.user.upsert({
-        where: { email: session.user.email },
-        update: {},
-        create: {
+      user = await prisma.user.create({
+        data: {
           email: session.user.email,
           name: session.user.name || 'Developer',
           userType: 'B2C',
@@ -39,9 +37,12 @@ export async function POST(request: NextRequest) {
         },
         select: { id: true, trialCredits: true, credits: true },
       });
-      // 세션 ID 업데이트
-      session.user.id = user.id;
       console.log('Auto-created dev user in generate API:', user.id);
+    }
+
+    // 세션 ID를 DB의 실제 ID로 동기화
+    if (user) {
+      session.user.id = user.id;
     }
 
     // Check user credits

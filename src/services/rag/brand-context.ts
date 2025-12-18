@@ -1,40 +1,25 @@
-import { prisma } from '@/lib/prisma';
-import {
-  upsertBrandVectors,
-  queryBrandVectors,
-  deleteBrandVectors,
-  getBrandVectorCount,
-  type BrandVectorMetadata,
-} from '@/lib/pinecone';
-import { generateEmbeddings, generateQueryEmbedding } from './embeddings';
-import { chunkText, extractTextFromHtml } from './text-chunker';
-import { crawlUrl, crawlSite, type CrawlResult } from './web-crawler';
+import prisma from '@/lib/prisma';
+import { chunkText } from './text-chunker';
+import { crawlSite, crawlUrl } from './web-crawler';
 
 export interface BrandContext {
   brandProfileId: string;
   brandName: string;
-  voiceTone: string | null;
-  styleGuide: Record<string, any> | null;
   relevantChunks: {
     text: string;
-    score: number;
     source?: string;
   }[];
 }
 
 export interface IndexBrandOptions {
-  // Website URLs to crawl
   websiteUrls?: string[];
-  // Manual text content to index
   manualContent?: string;
-  // Maximum pages to crawl per URL
   maxPagesPerUrl?: number;
-  // Clear existing vectors before indexing
   clearExisting?: boolean;
 }
 
 /**
- * Index brand content into vector database
+ * Index brand content into database (simple text storage)
  */
 export async function indexBrandContent(
   brandProfileId: string,
@@ -47,12 +32,14 @@ export async function indexBrandContent(
     clearExisting = false,
   } = options;
 
-  // Clear existing vectors if requested
+  // Clear existing chunks if requested
   if (clearExisting) {
-    await deleteBrandVectors(brandProfileId);
+    await prisma.brandDocumentChunk.deleteMany({
+      where: { brandProfileId },
+    });
   }
 
-  const allChunks: { text: string; sourceUrl?: string; sourceType: 'website' | 'document' | 'manual' }[] = [];
+  const allChunks: { text: string; sourceUrl?: string; sourceType: 'WEBSITE' | 'UPLOAD' | 'INSTAGRAM' }[] = [];
   let pagesProcessed = 0;
 
   // Process website URLs
@@ -71,7 +58,7 @@ export async function indexBrandContent(
           allChunks.push({
             text: chunk.text,
             sourceUrl: result.url,
-            sourceType: 'website',
+            sourceType: 'WEBSITE',
           });
         }
       }
@@ -90,7 +77,7 @@ export async function indexBrandContent(
     for (const chunk of chunks) {
       allChunks.push({
         text: chunk.text,
-        sourceType: 'manual',
+        sourceType: 'UPLOAD',
       });
     }
   }
@@ -99,47 +86,36 @@ export async function indexBrandContent(
     return { chunksIndexed: 0, pagesProcessed };
   }
 
-  // Generate embeddings
-  const embeddings = await generateEmbeddings(allChunks.map((c) => c.text));
-
-  // Create vectors with metadata
-  const vectors = embeddings.map((emb, index) => ({
-    id: `${brandProfileId}-${Date.now()}-${index}`,
-    values: emb.embedding,
-    metadata: {
+  // Save chunks to database
+  await prisma.brandDocumentChunk.createMany({
+    data: allChunks.map((chunk) => ({
       brandProfileId,
-      sourceUrl: allChunks[index].sourceUrl,
-      sourceType: allChunks[index].sourceType,
-      chunkIndex: index,
-      totalChunks: embeddings.length,
-      text: allChunks[index].text,
-      createdAt: new Date().toISOString(),
-    } as BrandVectorMetadata,
-  }));
-
-  // Upsert vectors
-  await upsertBrandVectors(brandProfileId, vectors);
-
-  // Update brand profile with index status
-  await prisma.brandProfile.update({
-    where: { id: brandProfileId },
-    data: {
-      updatedAt: new Date(),
-    },
+      source: chunk.sourceType,
+      content: chunk.text,
+      metadata: {
+        sourceUrl: chunk.sourceUrl || null,
+        createdAt: new Date().toISOString(),
+      },
+    })),
   });
 
-  return { chunksIndexed: vectors.length, pagesProcessed };
+  // Update brand profile timestamp
+  await prisma.brandProfile.update({
+    where: { id: brandProfileId },
+    data: { updatedAt: new Date() },
+  });
+
+  return { chunksIndexed: allChunks.length, pagesProcessed };
 }
 
 /**
- * Retrieve relevant brand context for a query
+ * Retrieve brand context using simple text search
  */
 export async function getBrandContext(
   brandProfileId: string,
   query: string,
   topK = 5
 ): Promise<BrandContext | null> {
-  // Get brand profile
   const brandProfile = await prisma.brandProfile.findUnique({
     where: { id: brandProfileId },
   });
@@ -148,27 +124,39 @@ export async function getBrandContext(
     return null;
   }
 
-  // Generate query embedding
-  const queryEmbedding = await generateQueryEmbedding(query);
+  // Simple keyword search (can be improved with full-text search later)
+  const keywords = query.toLowerCase().split(/\s+/).filter(k => k.length > 2);
 
-  // Query vectors
-  const matches = await queryBrandVectors(brandProfileId, queryEmbedding, topK);
+  let chunks;
+  if (keywords.length > 0) {
+    // Search for chunks containing any of the keywords
+    chunks = await prisma.brandDocumentChunk.findMany({
+      where: {
+        brandProfileId,
+        OR: keywords.map(keyword => ({
+          content: { contains: keyword, mode: 'insensitive' as const },
+        })),
+      },
+      take: topK,
+      orderBy: { createdAt: 'desc' },
+    });
+  } else {
+    // If no keywords, just get recent chunks
+    chunks = await prisma.brandDocumentChunk.findMany({
+      where: { brandProfileId },
+      take: topK,
+      orderBy: { createdAt: 'desc' },
+    });
+  }
 
-  // Extract relevant chunks
-  const relevantChunks = matches.map((match) => {
-    const metadata = match.metadata as unknown as BrandVectorMetadata | undefined;
-    return {
-      text: metadata?.text || '',
-      score: match.score || 0,
-      source: metadata?.sourceUrl,
-    };
-  });
+  const relevantChunks = chunks.map((chunk) => ({
+    text: chunk.content,
+    source: (chunk.metadata as { sourceUrl?: string })?.sourceUrl,
+  }));
 
   return {
     brandProfileId,
     brandName: brandProfile.name,
-    voiceTone: brandProfile.voiceTone,
-    styleGuide: brandProfile.styleGuide as Record<string, any> | null,
     relevantChunks,
   };
 }
@@ -178,18 +166,6 @@ export async function getBrandContext(
  */
 export function buildContextPrompt(context: BrandContext): string {
   let prompt = `\n## Brand Context: ${context.brandName}\n\n`;
-
-  if (context.voiceTone) {
-    prompt += `**Voice & Tone:** ${context.voiceTone}\n\n`;
-  }
-
-  if (context.styleGuide) {
-    prompt += `**Style Guide:**\n`;
-    for (const [key, value] of Object.entries(context.styleGuide)) {
-      prompt += `- ${key}: ${JSON.stringify(value)}\n`;
-    }
-    prompt += '\n';
-  }
 
   if (context.relevantChunks.length > 0) {
     prompt += `**Relevant Brand Information:**\n\n`;
@@ -212,14 +188,17 @@ export async function getBrandIndexStats(brandProfileId: string): Promise<{
   vectorCount: number;
   lastUpdated: Date | null;
 }> {
-  const brandProfile = await prisma.brandProfile.findUnique({
-    where: { id: brandProfileId },
-  });
-
-  const vectorCount = await getBrandVectorCount(brandProfileId);
+  const [brandProfile, chunkCount] = await Promise.all([
+    prisma.brandProfile.findUnique({
+      where: { id: brandProfileId },
+    }),
+    prisma.brandDocumentChunk.count({
+      where: { brandProfileId },
+    }),
+  ]);
 
   return {
-    vectorCount,
+    vectorCount: chunkCount,
     lastUpdated: brandProfile?.updatedAt || null,
   };
 }
@@ -228,7 +207,9 @@ export async function getBrandIndexStats(brandProfileId: string): Promise<{
  * Delete brand knowledge base
  */
 export async function deleteBrandIndex(brandProfileId: string): Promise<void> {
-  await deleteBrandVectors(brandProfileId);
+  await prisma.brandDocumentChunk.deleteMany({
+    where: { brandProfileId },
+  });
 }
 
 /**
@@ -238,33 +219,32 @@ export async function indexBrandUrl(
   brandProfileId: string,
   url: string
 ): Promise<{ chunksIndexed: number }> {
-  const result = await crawlUrl(url);
-  const chunks = chunkText(result.text, {
-    maxChunkSize: 1000,
-    overlap: 200,
-  });
+  try {
+    const result = await crawlUrl(url);
+    const chunks = chunkText(result.text, {
+      maxChunkSize: 1000,
+      overlap: 200,
+    });
 
-  if (chunks.length === 0) {
+    if (chunks.length === 0) {
+      return { chunksIndexed: 0 };
+    }
+
+    await prisma.brandDocumentChunk.createMany({
+      data: chunks.map((chunk) => ({
+        brandProfileId,
+        source: 'WEBSITE' as const,
+        content: chunk.text,
+        metadata: {
+          sourceUrl: url,
+          createdAt: new Date().toISOString(),
+        },
+      })),
+    });
+
+    return { chunksIndexed: chunks.length };
+  } catch (error) {
+    console.error(`Failed to index URL ${url}:`, error);
     return { chunksIndexed: 0 };
   }
-
-  const embeddings = await generateEmbeddings(chunks.map((c) => c.text));
-
-  const vectors = embeddings.map((emb, index) => ({
-    id: `${brandProfileId}-${Date.now()}-${index}`,
-    values: emb.embedding,
-    metadata: {
-      brandProfileId,
-      sourceUrl: url,
-      sourceType: 'website' as const,
-      chunkIndex: index,
-      totalChunks: embeddings.length,
-      text: chunks[index].text,
-      createdAt: new Date().toISOString(),
-    } as BrandVectorMetadata,
-  }));
-
-  await upsertBrandVectors(brandProfileId, vectors);
-
-  return { chunksIndexed: vectors.length };
 }

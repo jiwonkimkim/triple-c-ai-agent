@@ -10,28 +10,20 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user) {
+    if (!session?.user?.email) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    // 개발 환경에서 사용자 ID 동기화
-    if (process.env.NODE_ENV === 'development') {
-      const existingUser = await prisma.user.findUnique({
-        where: { id: session.user.id },
-      });
+    // email 기반으로 사용자 조회하여 세션 ID 불일치 문제 해결
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
 
-      if (!existingUser) {
-        const userByEmail = await prisma.user.findUnique({
-          where: { email: session.user.email },
-        });
-
-        if (userByEmail) {
-          session.user.id = userByEmail.id;
-        }
-      }
+    if (user) {
+      session.user.id = user.id;
     }
 
     const { searchParams } = new URL(request.url);
@@ -100,36 +92,40 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user) {
+    if (!session?.user?.email) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    // 개발 환경에서 사용자가 DB에 없으면 자동 생성
-    if (process.env.NODE_ENV === 'development') {
-      const existingUser = await prisma.user.findUnique({
-        where: { id: session.user.id },
-      });
+    // email 기반으로 사용자 조회하여 세션 ID 불일치 문제 해결
+    let user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
 
-      if (!existingUser) {
-        // 이메일로 찾거나 새로 생성
-        const user = await prisma.user.upsert({
-          where: { email: session.user.email },
-          update: {},
-          create: {
-            email: session.user.email,
-            name: session.user.name || 'Developer',
-            userType: 'B2C',
-            emailVerified: new Date(),
-            trialCredits: 100,
-          },
-        });
-        // 세션 user.id와 DB user.id가 다를 수 있으므로 DB의 id 사용
-        session.user.id = user.id;
-        console.log('Auto-created dev user in API:', user.id);
-      }
+    // 개발 환경에서 사용자가 DB에 없으면 자동 생성
+    if (!user && process.env.NODE_ENV === 'development') {
+      user = await prisma.user.create({
+        data: {
+          email: session.user.email,
+          name: session.user.name || 'Developer',
+          userType: 'B2C',
+          emailVerified: new Date(),
+          trialCredits: 100,
+        },
+      });
+      console.log('Auto-created dev user in API:', user.id);
+    }
+
+    // 세션 ID를 DB의 실제 ID로 동기화
+    if (user) {
+      session.user.id = user.id;
+    } else {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      );
     }
 
     const body = await request.json();
