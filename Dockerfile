@@ -3,15 +3,16 @@ FROM node:20-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat openssl openssl-dev
 WORKDIR /app
 
 # Copy package files
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm install --ignore-scripts
 
 # Development image
 FROM base AS dev
+RUN apk add --no-cache openssl openssl-dev
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

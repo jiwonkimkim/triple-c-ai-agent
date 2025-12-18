@@ -31,7 +31,7 @@ services:
     container_name: triple_c_app
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3002:3000"
     volumes:
       - .:/app
       - /app/node_modules
