@@ -4,11 +4,16 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Loader2, Settings, History, RefreshCw, Eye, RotateCcw, GitCompare, Pencil } from 'lucide-react';
+import { ArrowLeft, Loader2, Settings, History, RefreshCw, Eye, RotateCcw, GitCompare, Pencil, X, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { BrandSelect } from '@/components/brands';
 import {
   Dialog,
   DialogContent,
@@ -75,6 +80,35 @@ export default function ProjectDetailPage() {
   const [newVersionName, setNewVersionName] = useState('');
   const [isRenaming, setIsRenaming] = useState(false);
 
+  // Settings state
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [settingsForm, setSettingsForm] = useState({
+    title: '',
+    description: '',
+    brandProfileId: null as string | null,
+    productName: '',
+    category: '',
+    keyFeatures: [''] as string[],
+    targetAudience: '',
+    copyLength: 'medium' as 'short' | 'medium' | 'long',
+  });
+
+  const categories = [
+    { value: 'Fashion', label: '패션' },
+    { value: 'Food & Beverage', label: '식품/음료' },
+    { value: 'Beauty & Skincare', label: '뷰티/스킨케어' },
+    { value: 'Electronics', label: '전자제품' },
+    { value: 'Home & Living', label: '홈/리빙' },
+    { value: 'Sports & Fitness', label: '스포츠/피트니스' },
+    { value: 'Other', label: '기타' },
+  ];
+
+  const copyLengthOptions = [
+    { value: 'short', label: '짧게', description: '간결하고 임팩트 있게' },
+    { value: 'medium', label: '보통', description: '균형 잡힌 정보 전달' },
+    { value: 'long', label: '길게', description: '상세하고 포괄적으로' },
+  ];
+
   const { data: project, isLoading, error } = useQuery({
     queryKey: ['project', projectId],
     queryFn: () => fetchProject(projectId),
@@ -116,6 +150,90 @@ export default function ProjectDetailPage() {
       });
     }
   }, [error, toast]);
+
+  // Initialize settings form when project loads
+  useEffect(() => {
+    if (project) {
+      setSettingsForm({
+        title: project.title || '',
+        description: project.description || '',
+        brandProfileId: project.brandProfile?.id || null,
+        productName: '',
+        category: '',
+        keyFeatures: [''],
+        targetAudience: '',
+        copyLength: 'medium',
+      });
+    }
+  }, [project]);
+
+  // Settings handlers
+  const addFeature = () => {
+    if (settingsForm.keyFeatures.length < 5) {
+      setSettingsForm((prev) => ({
+        ...prev,
+        keyFeatures: [...prev.keyFeatures, ''],
+      }));
+    }
+  };
+
+  const updateFeature = (index: number, value: string) => {
+    const newFeatures = [...settingsForm.keyFeatures];
+    newFeatures[index] = value;
+    setSettingsForm((prev) => ({ ...prev, keyFeatures: newFeatures }));
+  };
+
+  const removeFeature = (index: number) => {
+    if (settingsForm.keyFeatures.length > 1) {
+      setSettingsForm((prev) => ({
+        ...prev,
+        keyFeatures: prev.keyFeatures.filter((_, i) => i !== index),
+      }));
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    if (!settingsForm.title.trim()) {
+      toast({
+        variant: 'destructive',
+        title: '오류',
+        description: '프로젝트 제목은 필수입니다.',
+      });
+      return;
+    }
+
+    setIsSavingSettings(true);
+    try {
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: settingsForm.title,
+          description: settingsForm.description,
+          brandProfileId: settingsForm.brandProfileId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save settings');
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['project', projectId] });
+
+      toast({
+        title: '저장 완료',
+        description: '프로젝트 설정이 저장되었습니다.',
+      });
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        title: '저장 실패',
+        description: '설정을 저장할 수 없습니다.',
+      });
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
 
   // Handle compare selection
   const handleCompareSelect = (version: VersionSnapshot) => {
@@ -253,21 +371,21 @@ export default function ProjectDetailPage() {
     <div className="flex flex-col h-[calc(100vh-4rem)]">
       {/* Header */}
       <div className="flex items-center justify-between border-b px-4 py-3">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard/projects">
+        <div className="flex items-center gap-4 min-w-0 flex-1">
+          <Link href="/dashboard/projects" className="flex-shrink-0">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <div>
-            <h1 className="text-lg font-semibold">{project.title}</h1>
+          <div className="min-w-0">
+            <h1 className="text-lg font-semibold truncate">{project.title}</h1>
             {project.brandProfile && (
-              <p className="text-sm text-muted-foreground">{project.brandProfile.name}</p>
+              <p className="text-sm text-muted-foreground truncate">{project.brandProfile.name}</p>
             )}
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <div className="flex rounded-md border">
             <Button
               variant={activeTab === 'editor' ? 'secondary' : 'ghost'}
@@ -664,42 +782,201 @@ export default function ProjectDetailPage() {
         )}
 
         {activeTab === 'settings' && (
-          <div className="p-6 max-w-2xl">
-            <h2 className="text-xl font-semibold mb-4">Project Settings</h2>
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium mb-2">Project Title</label>
-                <input
-                  type="text"
-                  defaultValue={project.title}
-                  className="w-full px-3 py-2 border rounded-md"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Description</label>
-                <textarea
-                  defaultValue={project.description || ''}
-                  rows={3}
-                  className="w-full px-3 py-2 border rounded-md"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Brand Profile</label>
-                <select className="w-full px-3 py-2 border rounded-md">
-                  <option value="">No brand profile</option>
-                  {project.brandProfile && (
-                    <option value={project.brandProfile.id} selected>
-                      {project.brandProfile.name}
-                    </option>
+          <ScrollArea className="h-full">
+            <div className="max-w-3xl space-y-6 p-6">
+              {/* 1단계: 프로젝트 정보 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>프로젝트 정보</CardTitle>
+                  <CardDescription>
+                    프로젝트의 기본 정보를 설정합니다
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="settings-title">프로젝트 제목 *</Label>
+                    <Input
+                      id="settings-title"
+                      value={settingsForm.title}
+                      onChange={(e) =>
+                        setSettingsForm((prev) => ({ ...prev, title: e.target.value }))
+                      }
+                      placeholder="프로젝트 제목"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="settings-description">설명</Label>
+                    <Textarea
+                      id="settings-description"
+                      value={settingsForm.description}
+                      onChange={(e) =>
+                        setSettingsForm((prev) => ({ ...prev, description: e.target.value }))
+                      }
+                      placeholder="프로젝트에 대한 간단한 설명..."
+                      rows={3}
+                    />
+                  </div>
+
+                  <BrandSelect
+                    value={settingsForm.brandProfileId}
+                    onChange={(value) =>
+                      setSettingsForm((prev) => ({ ...prev, brandProfileId: value }))
+                    }
+                  />
+                </CardContent>
+              </Card>
+
+              {/* 2단계: 제품 정보 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>제품 정보</CardTitle>
+                  <CardDescription>
+                    AI 콘텐츠 생성을 위한 제품 정보를 설정합니다
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label>제품명</Label>
+                      <Input
+                        placeholder="예: 프리미엄 가죽 핸드백"
+                        value={settingsForm.productName}
+                        onChange={(e) =>
+                          setSettingsForm((prev) => ({ ...prev, productName: e.target.value }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>카테고리</Label>
+                      <Select
+                        value={settingsForm.category}
+                        onValueChange={(value) =>
+                          setSettingsForm((prev) => ({ ...prev, category: value }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="카테고리 선택" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((cat) => (
+                            <SelectItem key={cat.value} value={cat.value}>
+                              {cat.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>주요 특징</Label>
+                    <div className="space-y-2">
+                      {settingsForm.keyFeatures.map((feature, index) => (
+                        <div key={index} className="flex gap-2">
+                          <Input
+                            placeholder={`특징 ${index + 1}`}
+                            value={feature}
+                            onChange={(e) => updateFeature(index, e.target.value)}
+                          />
+                          {settingsForm.keyFeatures.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeFeature(index)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {settingsForm.keyFeatures.length < 5 && (
+                      <Button type="button" variant="outline" size="sm" onClick={addFeature}>
+                        특징 추가
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>타겟 고객</Label>
+                    <Input
+                      placeholder="예: 25-40세 패션에 관심 있는 여성"
+                      value={settingsForm.targetAudience}
+                      onChange={(e) =>
+                        setSettingsForm((prev) => ({ ...prev, targetAudience: e.target.value }))
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>카피 길이</Label>
+                    <div className="grid gap-2 sm:grid-cols-3">
+                      {copyLengthOptions.map((option) => (
+                        <label
+                          key={option.value}
+                          className={`cursor-pointer rounded-lg border p-3 transition-colors ${
+                            settingsForm.copyLength === option.value
+                              ? 'border-primary bg-primary/5'
+                              : 'hover:border-muted-foreground/50'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="copyLength"
+                            value={option.value}
+                            checked={settingsForm.copyLength === option.value}
+                            onChange={(e) =>
+                              setSettingsForm((prev) => ({
+                                ...prev,
+                                copyLength: e.target.value as 'short' | 'medium' | 'long',
+                              }))
+                            }
+                            className="sr-only"
+                          />
+                          <div className="font-medium">{option.label}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {option.description}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 저장 버튼 */}
+              <div className="flex justify-end gap-4">
+                <Button onClick={handleSaveSettings} disabled={isSavingSettings}>
+                  {isSavingSettings ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      저장 중...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" />
+                      설정 저장
+                    </>
                   )}
-                </select>
+                </Button>
               </div>
-              <div className="pt-4 border-t">
-                <h3 className="text-lg font-medium text-destructive mb-4">Danger Zone</h3>
-                <Button variant="destructive">Delete Project</Button>
-              </div>
+
+              {/* Danger Zone */}
+              <Card className="border-destructive/50">
+                <CardHeader>
+                  <CardTitle className="text-destructive">위험 구역</CardTitle>
+                  <CardDescription>
+                    프로젝트를 삭제하면 복구할 수 없습니다
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button variant="destructive">프로젝트 삭제</Button>
+                </CardContent>
+              </Card>
             </div>
-          </div>
+          </ScrollArea>
         )}
       </div>
     </div>
