@@ -36,11 +36,12 @@ services:
       - .:/app
       - /app/node_modules
       - /app/.next
+      - /dev/null:/app/.env:ro
     environment:
       - NODE_ENV=development
       - DATABASE_URL=postgresql://postgres:YOUR_PASSWORD_HERE@postgres:5432/triple_c?schema=public
-      - NEXTAUTH_URL=http://localhost:3000
-      - NEXTAUTH_SECRET=your-nextauth-secret-key-here
+      - NEXTAUTH_URL=http://localhost:3002
+      - NEXTAUTH_SECRET=NEXTAUTH_SECRET_REMOVED
     env_file:
       - .env.docker
     depends_on:
