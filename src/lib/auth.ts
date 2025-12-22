@@ -49,7 +49,8 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Invalid email or password');
         }
 
-        if (!user.emailVerified) {
+        // 개발 환경에서는 이메일 인증 건너뛰기
+        if (!user.emailVerified && process.env.NODE_ENV !== 'development') {
           throw new Error('Please verify your email before logging in');
         }
 
@@ -112,7 +113,7 @@ export const authOptions: NextAuthOptions = {
     signOut: '/login',
     error: '/login',
     verifyRequest: '/verify-email',
-    newUser: '/onboarding',
+    newUser: '/dashboard',
   },
   callbacks: {
     async jwt({ token, user, trigger, session }) {
