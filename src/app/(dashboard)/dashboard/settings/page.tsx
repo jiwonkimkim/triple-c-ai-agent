@@ -27,8 +27,6 @@ import {
   UserPlus,
   MoreHorizontal,
   Smartphone,
-  Download,
-  Link2,
   History,
   Laptop,
   MapPin,
@@ -42,9 +40,6 @@ import {
   QrCode,
   ShieldCheck,
   LogOut,
-  Keyboard,
-  FileDown,
-  Github,
   X,
   ChevronDown,
   Receipt,
@@ -104,7 +99,7 @@ import {
 import { cn, getInitials, formatDate, formatRelativeTime } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
-type SettingsTab = 'profile' | 'appearance' | 'security' | 'workspace' | 'billing' | 'data' | 'shortcuts';
+type SettingsTab = 'profile' | 'appearance' | 'security' | 'workspace' | 'billing';
 
 interface Workspace {
   id: string;
@@ -140,12 +135,6 @@ interface LoginHistory {
   success: boolean;
 }
 
-interface ConnectedAccount {
-  id: string;
-  provider: 'google' | 'github' | 'kakao' | 'naver';
-  email: string;
-  connectedAt: Date;
-}
 
 interface PaymentHistory {
   id: string;
@@ -155,12 +144,6 @@ interface PaymentHistory {
   status: 'succeeded' | 'pending' | 'failed';
 }
 
-interface ShortcutKey {
-  id: string;
-  action: string;
-  keys: string[];
-  category: string;
-}
 
 const settingsTabs = [
   { id: 'profile' as const, label: '프로필', icon: User, description: '개인 정보 관리' },
@@ -168,8 +151,6 @@ const settingsTabs = [
   { id: 'security' as const, label: '보안', icon: Shield, description: '비밀번호 및 보안' },
   { id: 'workspace' as const, label: '워크스페이스', icon: Users, description: '팀 관리' },
   { id: 'billing' as const, label: '결제', icon: CreditCard, description: '구독 및 결제' },
-  { id: 'data' as const, label: '데이터', icon: Download, description: '내보내기 및 연결' },
-  { id: 'shortcuts' as const, label: '단축키', icon: Keyboard, description: '키보드 단축키' },
 ];
 
 const roleLabels: Record<string, string> = {
@@ -230,18 +211,6 @@ const plans = [
   },
 ];
 
-const defaultShortcuts: ShortcutKey[] = [
-  { id: '1', action: '새 프로젝트', keys: ['⌘', 'N'], category: '일반' },
-  { id: '2', action: '저장', keys: ['⌘', 'S'], category: '일반' },
-  { id: '3', action: '실행 취소', keys: ['⌘', 'Z'], category: '편집' },
-  { id: '4', action: '다시 실행', keys: ['⌘', 'Shift', 'Z'], category: '편집' },
-  { id: '5', action: '복사', keys: ['⌘', 'C'], category: '편집' },
-  { id: '6', action: '붙여넣기', keys: ['⌘', 'V'], category: '편집' },
-  { id: '7', action: '미리보기', keys: ['⌘', 'P'], category: '보기' },
-  { id: '8', action: '전체 화면', keys: ['⌘', 'Enter'], category: '보기' },
-  { id: '9', action: '검색', keys: ['⌘', 'K'], category: '탐색' },
-  { id: '10', action: '설정', keys: ['⌘', ','], category: '탐색' },
-];
 
 // Animation variants
 const fadeInUp = {
@@ -308,12 +277,6 @@ export default function SettingsPage() {
   const [totalCredits, setTotalCredits] = useState(3);
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistory[]>([]);
 
-  // Data
-  const [connectedAccounts, setConnectedAccounts] = useState<ConnectedAccount[]>([]);
-  const [isExporting, setIsExporting] = useState(false);
-
-  // Shortcuts
-  const [shortcuts, setShortcuts] = useState<ShortcutKey[]>(defaultShortcuts);
 
   // Password validation
   const passwordErrors = {
@@ -392,9 +355,6 @@ export default function SettingsPage() {
     } catch (error) {
       console.error('Failed to fetch security data:', error);
     }
-
-    // Mock connected accounts (OAuth 연동 정보는 별도 API 필요)
-    setConnectedAccounts([]);
 
     // Mock payment history (결제 내역은 별도 API 필요)
     setPaymentHistory([]);
@@ -699,35 +659,6 @@ export default function SettingsPage() {
         variant: 'destructive',
       });
     }
-  };
-
-  const handleExportData = async () => {
-    setIsExporting(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      toast({
-        title: '내보내기 완료',
-        description: '데이터 파일이 다운로드됩니다.',
-        variant: 'success',
-      });
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const handleConnectAccount = async (provider: string) => {
-    toast({
-      title: '계정 연결',
-      description: `${provider} 계정 연결을 시작합니다...`,
-    });
-  };
-
-  const handleDisconnectAccount = async (accountId: string) => {
-    setConnectedAccounts(connectedAccounts.filter(a => a.id !== accountId));
-    toast({
-      title: '연결 해제',
-      description: '계정 연결이 해제되었습니다.',
-    });
   };
 
   const handleDeleteAccount = async () => {
@@ -1688,135 +1619,6 @@ export default function SettingsPage() {
                 </motion.div>
               )}
 
-              {/* Data Tab */}
-              {activeTab === 'data' && (
-                <motion.div
-                  key="data"
-                  variants={fadeInUp}
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
-                  className="space-y-6"
-                >
-                  {/* Export Data */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <FileDown className="h-5 w-5 text-primary" />
-                        데이터 내보내기
-                      </CardTitle>
-                      <CardDescription>모든 데이터를 JSON 형식으로 내보냅니다.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-lg border bg-muted/50">
-                        <div className="flex items-center gap-4">
-                          <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                            <Download className="h-6 w-6 text-primary" />
-                          </div>
-                          <div>
-                            <p className="font-medium">전체 데이터 내보내기</p>
-                            <p className="text-sm text-muted-foreground">프로젝트, 브랜드 프로필, 설정 포함</p>
-                          </div>
-                        </div>
-                        <Button onClick={handleExportData} disabled={isExporting} className="gap-2">
-                          {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                          {isExporting ? '준비 중...' : '내보내기'}
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Connected Accounts */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Link2 className="h-5 w-5 text-primary" />
-                        연결된 계정
-                      </CardTitle>
-                      <CardDescription>소셜 로그인 계정을 관리합니다.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {[
-                        { provider: 'google', name: 'Google', icon: '🔵', connected: connectedAccounts.some(a => a.provider === 'google') },
-                        { provider: 'github', name: 'GitHub', icon: '⚫', connected: connectedAccounts.some(a => a.provider === 'github') },
-                        { provider: 'kakao', name: 'Kakao', icon: '🟡', connected: connectedAccounts.some(a => a.provider === 'kakao') },
-                        { provider: 'naver', name: 'Naver', icon: '🟢', connected: connectedAccounts.some(a => a.provider === 'naver') },
-                      ].map((account) => {
-                        const connectedAccount = connectedAccounts.find(a => a.provider === account.provider);
-                        return (
-                          <div key={account.provider} className="flex items-center justify-between p-4 rounded-lg border">
-                            <div className="flex items-center gap-4">
-                              <span className="text-2xl">{account.icon}</span>
-                              <div>
-                                <p className="font-medium">{account.name}</p>
-                                {connectedAccount ? (
-                                  <p className="text-sm text-muted-foreground">{connectedAccount.email}</p>
-                                ) : (
-                                  <p className="text-sm text-muted-foreground">연결되지 않음</p>
-                                )}
-                              </div>
-                            </div>
-                            {connectedAccount ? (
-                              <Button variant="outline" size="sm" onClick={() => handleDisconnectAccount(connectedAccount.id)}>
-                                연결 해제
-                              </Button>
-                            ) : (
-                              <Button variant="outline" size="sm" onClick={() => handleConnectAccount(account.name)}>
-                                연결
-                              </Button>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
-
-              {/* Shortcuts Tab */}
-              {activeTab === 'shortcuts' && (
-                <motion.div
-                  key="shortcuts"
-                  variants={fadeInUp}
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
-                  className="space-y-6"
-                >
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Keyboard className="h-5 w-5 text-primary" />
-                        키보드 단축키
-                      </CardTitle>
-                      <CardDescription>자주 사용하는 기능의 단축키입니다.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-6">
-                        {['일반', '편집', '보기', '탐색'].map((category) => (
-                          <div key={category}>
-                            <h4 className="text-sm font-medium text-muted-foreground mb-3">{category}</h4>
-                            <div className="space-y-2">
-                              {shortcuts.filter(s => s.category === category).map((shortcut) => (
-                                <div key={shortcut.id} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/50">
-                                  <span className="text-sm">{shortcut.action}</span>
-                                  <div className="flex items-center gap-1">
-                                    {shortcut.keys.map((key, i) => (
-                                      <kbd key={i} className="px-2 py-1 text-xs font-semibold bg-muted border rounded">
-                                        {key}
-                                      </kbd>
-                                    ))}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
             </AnimatePresence>
           </main>
         </div>
