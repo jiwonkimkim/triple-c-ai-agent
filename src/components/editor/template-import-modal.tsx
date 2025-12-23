@@ -26,7 +26,8 @@ import {
   Layout,
   Loader2,
   Upload,
-  FileJson,
+  FileImage,
+  FileText,
   Download,
   ChevronLeft,
   ChevronRight,
@@ -34,6 +35,8 @@ import {
   Eye,
   Check,
   AlertCircle,
+  Image as ImageIcon,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -58,18 +61,36 @@ interface TemplateSection {
   imageUrl?: string;
 }
 
-// 템플릿 데이터 타입
-interface TemplateData {
+// 마켓플레이스 템플릿 데이터 타입
+interface MarketplaceTemplate {
   id: string;
   name: string;
   category: string;
   thumbnailUrl?: string | null;
+  description?: string | null;
+  price: number;
+  tags?: string[];
+  downloadCount: number;
+  rating?: number | null;
+  ratingCount: number;
   isReference: boolean;
   createdBy: 'SYSTEM' | 'USER';
-  createdAt: Date;
+  publishedAt?: Date;
   sections?: TemplateSection[];
-  price?: number;
-  downloadCount?: number;
+  seller?: {
+    id: string;
+    name: string;
+    image?: string | null;
+  } | null;
+  isPurchased?: boolean;
+  isOwner?: boolean;
+}
+
+// 업로드된 파일 정보
+interface UploadedFile {
+  file: File;
+  preview: string;
+  type: 'image' | 'pdf';
 }
 
 // 제품 정보 타입
@@ -229,7 +250,7 @@ export function TemplateImportModal({
   const [activeTab, setActiveTab] = useState<'marketplace' | 'local'>('marketplace');
 
   // 마켓플레이스 상태
-  const [templates, setTemplates] = useState<TemplateData[]>([]);
+  const [templates, setTemplates] = useState<MarketplaceTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -237,27 +258,26 @@ export function TemplateImportModal({
   const [totalPages, setTotalPages] = useState(1);
 
   // 선택된 템플릿
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateData | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<MarketplaceTemplate | null>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
   // 제품 정보 적용 옵션
   const [applyProductInfo, setApplyProductInfo] = useState(!!productInfo);
 
-  // 로컬 파일 상태
-  const [localFile, setLocalFile] = useState<File | null>(null);
-  const [localSections, setLocalSections] = useState<TemplateSection[] | null>(null);
+  // 로컬 파일 상태 (PDF/이미지)
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [isProcessingFiles, setIsProcessingFiles] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 템플릿 목록 불러오기
+  // 마켓플레이스 템플릿 목록 불러오기
   const fetchTemplates = useCallback(async () => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: '8',
-        sortBy: 'createdAt',
-        sortOrder: 'desc',
+        sortBy: 'newest',
       });
 
       if (selectedCategory !== 'all') {
@@ -268,18 +288,18 @@ export function TemplateImportModal({
         params.append('search', searchQuery);
       }
 
-      const response = await fetch(`/api/templates?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch templates');
+      const response = await fetch(`/api/marketplace/templates?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch marketplace templates');
 
       const data = await response.json();
-      setTemplates(data.data.templates);
-      setTotalPages(data.data.pagination.totalPages);
+      setTemplates(data.templates || []);
+      setTotalPages(data.pagination?.totalPages || 1);
     } catch (error) {
-      console.error('Failed to fetch templates:', error);
+      console.error('Failed to fetch marketplace templates:', error);
       toast({
         variant: 'destructive',
         title: '템플릿 로딩 실패',
-        description: '템플릿 목록을 불러오는데 실패했습니다.',
+        description: '마켓플레이스 템플릿을 불러오는데 실패했습니다.',
       });
     } finally {
       setIsLoading(false);
@@ -304,8 +324,8 @@ export function TemplateImportModal({
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // 템플릿 상세 정보 불러오기
-  const loadTemplateDetails = async (template: TemplateData) => {
+  // 템플릿 상세 정보 불러오기 (섹션 포함)
+  const loadTemplateDetails = async (template: MarketplaceTemplate) => {
     if (template.sections) {
       setSelectedTemplate(template);
       return;
@@ -319,7 +339,7 @@ export function TemplateImportModal({
       const data = await response.json();
       setSelectedTemplate({
         ...template,
-        sections: data.data.sections,
+        sections: data.data?.sections || data.sections || [],
       });
     } catch (error) {
       console.error('Failed to load template details:', error);
@@ -351,72 +371,138 @@ export function TemplateImportModal({
     handleClose();
   };
 
-  // 로컬 파일 처리
+  // 파일 업로드 처리 (PDF/이미지)
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    setLocalFile(file);
     setLocalError(null);
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const content = event.target?.result as string;
-        const parsed = JSON.parse(content);
+    const newFiles: UploadedFile[] = [];
 
-        // 섹션 배열 확인
-        let sections: TemplateSection[];
-        if (Array.isArray(parsed)) {
-          sections = parsed;
-        } else if (parsed.sections && Array.isArray(parsed.sections)) {
-          sections = parsed.sections;
-        } else {
-          throw new Error('올바른 템플릿 형식이 아닙니다.');
-        }
+    Array.from(files).forEach((file) => {
+      const isImage = file.type.startsWith('image/');
+      const isPdf = file.type === 'application/pdf';
 
-        // 섹션 유효성 검사
-        const isValid = sections.every((s) =>
-          s.id && s.type && typeof s.title === 'string' && typeof s.body === 'string'
-        );
-
-        if (!isValid) {
-          throw new Error('템플릿 섹션 형식이 올바르지 않습니다.');
-        }
-
-        setLocalSections(sections);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : '파일을 파싱할 수 없습니다.';
-        setLocalError(message);
-        setLocalSections(null);
+      if (!isImage && !isPdf) {
+        setLocalError('이미지 또는 PDF 파일만 업로드할 수 있습니다.');
+        return;
       }
-    };
-    reader.readAsText(file);
+
+      // 파일 크기 제한 (10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setLocalError('파일 크기는 10MB 이하여야 합니다.');
+        return;
+      }
+
+      const preview = isImage ? URL.createObjectURL(file) : '';
+      newFiles.push({
+        file,
+        preview,
+        type: isImage ? 'image' : 'pdf',
+      });
+    });
+
+    setUploadedFiles((prev) => [...prev, ...newFiles]);
+
+    // input 초기화
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
-  // 로컬 파일 템플릿 적용
-  const handleApplyLocalTemplate = () => {
-    if (!localSections) return;
-
-    const elements = convertSectionsToElements(
-      localSections,
-      productInfo,
-      applyProductInfo
-    );
-
-    onImport(elements);
-    toast({
-      title: '템플릿 적용 완료',
-      description: `로컬 템플릿이 적용되었습니다.`,
+  // 업로드된 파일 제거
+  const removeUploadedFile = (index: number) => {
+    setUploadedFiles((prev) => {
+      const file = prev[index];
+      if (file.preview) {
+        URL.revokeObjectURL(file.preview);
+      }
+      return prev.filter((_, i) => i !== index);
     });
-    handleClose();
+  };
+
+  // 업로드된 파일을 에디터 요소로 변환
+  const handleApplyUploadedFiles = () => {
+    if (uploadedFiles.length === 0) return;
+
+    setIsProcessingFiles(true);
+
+    try {
+      const elements: EditableElement[] = [];
+
+      // 제목 추가
+      elements.push({
+        id: `uploaded-heading-${Date.now()}`,
+        type: 'heading',
+        content: productInfo?.productName || '상품 상세페이지',
+        level: 1,
+        styles: { textAlign: 'center', fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '1rem' },
+      });
+
+      // 설명 추가
+      if (productInfo?.description) {
+        elements.push({
+          id: `uploaded-desc-${Date.now()}`,
+          type: 'text',
+          content: productInfo.description,
+          styles: { textAlign: 'center', fontSize: '1.25rem', lineHeight: '1.8', color: '#666', marginBottom: '2rem' },
+        });
+      }
+
+      // 업로드된 이미지들 추가
+      uploadedFiles.forEach((uploadedFile, index) => {
+        if (uploadedFile.type === 'image') {
+          elements.push({
+            id: `uploaded-image-${Date.now()}-${index}`,
+            type: 'image',
+            content: uploadedFile.preview,
+            alt: `상품 이미지 ${index + 1}`,
+            styles: { width: '100%', maxHeight: '600px', objectFit: 'contain', marginBottom: '1rem' },
+          });
+        }
+      });
+
+      // 특징 섹션 추가
+      if (productInfo?.keyFeatures?.length) {
+        elements.push({
+          id: `uploaded-features-heading-${Date.now()}`,
+          type: 'heading',
+          content: '주요 특징',
+          level: 2,
+          styles: { fontSize: '1.75rem', fontWeight: '600', marginTop: '2rem', marginBottom: '1rem' },
+        });
+        elements.push({
+          id: `uploaded-features-body-${Date.now()}`,
+          type: 'text',
+          content: productInfo.keyFeatures.map((f) => `• ${f}`).join('\n'),
+          styles: { fontSize: '1rem', lineHeight: '2', whiteSpace: 'pre-wrap' },
+        });
+      }
+
+      onImport(elements);
+      toast({
+        title: '파일 적용 완료',
+        description: `${uploadedFiles.length}개 파일이 적용되었습니다.`,
+      });
+      handleClose();
+    } catch (error) {
+      setLocalError('파일을 처리하는 중 오류가 발생했습니다.');
+    } finally {
+      setIsProcessingFiles(false);
+    }
   };
 
   // 모달 닫기
   const handleClose = () => {
     setSelectedTemplate(null);
-    setLocalFile(null);
-    setLocalSections(null);
+    // 업로드된 파일 미리보기 URL 정리
+    uploadedFiles.forEach((f) => {
+      if (f.preview) {
+        URL.revokeObjectURL(f.preview);
+      }
+    });
+    setUploadedFiles([]);
     setLocalError(null);
     onClose();
   };
@@ -648,41 +734,28 @@ export function TemplateImportModal({
 
           {/* 로컬 파일 탭 */}
           <TabsContent value="local" className="flex-1 overflow-hidden flex flex-col mt-4">
-            <div className="flex-1">
+            <div className="flex-1 overflow-y-auto">
               {/* 파일 업로드 영역 */}
               <div
                 className={cn(
                   'border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors',
-                  localFile ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-primary/50'
+                  uploadedFiles.length > 0 ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-primary/50'
                 )}
                 onClick={() => fileInputRef.current?.click()}
               >
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".json"
+                  accept="image/*,.pdf"
+                  multiple
                   className="hidden"
                   onChange={handleFileChange}
                 />
-                {localFile ? (
-                  <div className="flex items-center justify-center gap-3">
-                    <FileJson className="h-8 w-8 text-primary" />
-                    <div className="text-left">
-                      <p className="font-medium">{localFile.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {(localFile.size / 1024).toFixed(1)} KB
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <Upload className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-                    <p className="font-medium">클릭하여 JSON 파일 업로드</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      또는 파일을 여기에 드래그하세요
-                    </p>
-                  </>
-                )}
+                <Upload className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                <p className="font-medium">클릭하여 이미지 또는 PDF 파일 업로드</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  여러 파일을 선택할 수 있습니다 (최대 10MB/파일)
+                </p>
               </div>
 
               {/* 에러 메시지 */}
@@ -693,31 +766,58 @@ export function TemplateImportModal({
                 </div>
               )}
 
-              {/* 로컬 섹션 미리보기 */}
-              {localSections && (
-                <>
-                  <div className="border rounded-lg p-4 bg-muted/30 mt-4 max-h-[250px] overflow-y-auto">
-                    <h4 className="text-sm font-medium mb-3">
-                      섹션 구성 ({localSections.length}개)
-                    </h4>
-                    <div className="space-y-2">
-                      {localSections.map((section, index) => (
-                        <div key={section.id} className="flex items-start gap-3 p-2 bg-background rounded border">
-                          <span className="text-xs text-muted-foreground w-6">{index + 1}</span>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="text-xs">
-                                {section.type}
-                              </Badge>
-                              <span className="font-medium text-sm truncate">{section.title}</span>
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
-                              {section.body}
-                            </p>
+              {/* 업로드된 파일 목록 */}
+              {uploadedFiles.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium mb-3">
+                    업로드된 파일 ({uploadedFiles.length}개)
+                  </h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {uploadedFiles.map((uploadedFile, index) => (
+                      <div
+                        key={index}
+                        className="relative group border rounded-lg overflow-hidden bg-muted"
+                      >
+                        {uploadedFile.type === 'image' ? (
+                          <div className="aspect-square">
+                            <img
+                              src={uploadedFile.preview}
+                              alt={uploadedFile.file.name}
+                              className="w-full h-full object-cover"
+                            />
                           </div>
+                        ) : (
+                          <div className="aspect-square flex flex-col items-center justify-center p-4">
+                            <FileText className="h-10 w-10 text-red-500 mb-2" />
+                            <span className="text-xs text-muted-foreground text-center truncate w-full">
+                              {uploadedFile.file.name}
+                            </span>
+                          </div>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeUploadedFile(index);
+                          }}
+                          className="absolute top-1 right-1 p-1 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-4 w-4 text-white" />
+                        </button>
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1 truncate">
+                          {uploadedFile.type === 'image' ? (
+                            <span className="flex items-center gap-1">
+                              <ImageIcon className="h-3 w-3" />
+                              {(uploadedFile.file.size / 1024).toFixed(0)}KB
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1">
+                              <FileText className="h-3 w-3" />
+                              PDF
+                            </span>
+                          )}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                   </div>
 
                   {/* 제품 정보 적용 옵션 */}
@@ -738,36 +838,50 @@ export function TemplateImportModal({
                       </Label>
                     </div>
                   )}
-                </>
+                </div>
               )}
 
               {/* 파일 형식 안내 */}
               <div className="mt-4 p-4 bg-muted/50 rounded-lg">
-                <h4 className="text-sm font-medium mb-2">지원 파일 형식</h4>
-                <pre className="text-xs text-muted-foreground bg-background p-3 rounded overflow-x-auto">
-{`{
-  "sections": [
-    {
-      "id": "section-1",
-      "type": "HERO",
-      "title": "제목",
-      "body": "본문 내용",
-      "order": 0
-    }
-  ]
-}`}
-                </pre>
-                <p className="text-xs text-muted-foreground mt-2">
-                  지원 타입: HERO, FEATURES, SOCIAL_PROOF, HOW_TO_USE, FAQ, CUSTOM
+                <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                  <FileImage className="h-4 w-4" />
+                  지원 파일 형식
+                </h4>
+                <div className="flex gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4 text-blue-500" />
+                    <span>이미지 (JPG, PNG, GIF, WebP)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-red-500" />
+                    <span>PDF 문서</span>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-3">
+                  업로드된 파일은 상세페이지 에디터에 순서대로 추가됩니다.
+                  제품 정보가 있는 경우 자동으로 제목과 설명이 추가됩니다.
                 </p>
               </div>
             </div>
 
             {/* 적용 버튼 */}
-            {localSections && (
-              <Button className="w-full mt-4" onClick={handleApplyLocalTemplate}>
-                <Check className="h-4 w-4 mr-2" />
-                이 템플릿 적용하기
+            {uploadedFiles.length > 0 && (
+              <Button
+                className="w-full mt-4"
+                onClick={handleApplyUploadedFiles}
+                disabled={isProcessingFiles}
+              >
+                {isProcessingFiles ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    처리 중...
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    {uploadedFiles.length}개 파일 적용하기
+                  </>
+                )}
               </Button>
             )}
           </TabsContent>
