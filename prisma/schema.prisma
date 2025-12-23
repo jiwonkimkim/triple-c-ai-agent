@@ -40,6 +40,15 @@ model Session {
   userId       String   @map("user_id")
   expires      DateTime
 
+  // Security tracking fields
+  deviceInfo   String?  @map("device_info")   // "MacBook Pro, Chrome 120"
+  browser      String?                         // Browser name
+  os           String?                         // Operating system
+  ipAddress    String?  @map("ip_address")
+  location     String?                         // Geo location from IP
+  lastActive   DateTime @default(now()) @map("last_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
@@ -52,6 +61,26 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verification_tokens")
+}
+
+model LoginHistory {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  device    String?  // Device type and name
+  browser   String?  // Browser name and version
+  os        String?  // Operating system
+  ipAddress String?  @map("ip_address")
+  location  String?  // Geo location from IP
+  success   Boolean  @default(true)
+  failReason String? @map("fail_reason")  // For failed logins
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("login_history")
 }
 
 // ============================================
@@ -87,12 +116,18 @@ model User {
   stripeSubscriptionId String?  @map("stripe_subscription_id")
   stripePriceId       String?   @map("stripe_price_id")
   stripeCurrentPeriodEnd DateTime? @map("stripe_current_period_end")
+
+  // 2FA fields
+  twoFactorEnabled Boolean   @default(false) @map("two_factor_enabled")
+  twoFactorSecret  String?   @map("two_factor_secret")  // Encrypted TOTP secret
+
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
   // Relations
   accounts             Account[]
   sessions             Session[]
+  loginHistory         LoginHistory[]
   ownedWorkspaces      Workspace[]        @relation("WorkspaceOwner")
   workspaceMemberships WorkspaceMember[]
   projects             Project[]

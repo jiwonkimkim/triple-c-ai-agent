@@ -288,6 +288,8 @@ export default function SettingsPage() {
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
   const [show2FADialog, setShow2FADialog] = useState(false);
   const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [twoFactorQRCode, setTwoFactorQRCode] = useState('');
+  const [twoFactorSecretKey, setTwoFactorSecretKey] = useState('');
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loginHistory, setLoginHistory] = useState<LoginHistory[]>([]);
 
@@ -336,33 +338,66 @@ export default function SettingsPage() {
 
   useEffect(() => {
     fetchWorkspaces();
-    fetchMockData();
+    fetchSecurityData();
+    recordCurrentSession();
   }, []);
 
-  const fetchMockData = () => {
-    // Mock sessions
-    setSessions([
-      { id: '1', device: 'MacBook Pro', browser: 'Chrome 120', location: '서울, 대한민국', ip: '123.456.789.0', lastActive: new Date(), isCurrent: true },
-      { id: '2', device: 'iPhone 15', browser: 'Safari Mobile', location: '서울, 대한민국', ip: '123.456.789.1', lastActive: new Date(Date.now() - 3600000), isCurrent: false },
-    ]);
+  // Record current session for tracking
+  const recordCurrentSession = async () => {
+    try {
+      await fetch('/api/auth/record-session', { method: 'POST' });
+    } catch (error) {
+      console.error('Failed to record session:', error);
+    }
+  };
 
-    // Mock login history
-    setLoginHistory([
-      { id: '1', device: 'MacBook Pro', location: '서울, 대한민국', ip: '123.456.789.0', timestamp: new Date(), success: true },
-      { id: '2', device: 'iPhone 15', location: '서울, 대한민국', ip: '123.456.789.1', timestamp: new Date(Date.now() - 86400000), success: true },
-      { id: '3', device: 'Unknown', location: '부산, 대한민국', ip: '111.222.333.4', timestamp: new Date(Date.now() - 172800000), success: false },
-    ]);
+  // Fetch 2FA status, sessions, and login history
+  const fetchSecurityData = async () => {
+    try {
+      // Fetch 2FA status
+      const twoFARes = await fetch('/api/settings/2fa');
+      if (twoFARes.ok) {
+        const data = await twoFARes.json();
+        setIs2FAEnabled(data.enabled);
+      }
 
-    // Mock connected accounts
-    setConnectedAccounts([
-      { id: '1', provider: 'google', email: 'user@gmail.com', connectedAt: new Date(Date.now() - 86400000 * 30) },
-    ]);
+      // Fetch current session info
+      const sessionInfoRes = await fetch('/api/auth/record-session');
+      if (sessionInfoRes.ok) {
+        const sessionInfo = await sessionInfoRes.json();
+        setSessions([{
+          id: 'current',
+          device: sessionInfo.device,
+          browser: sessionInfo.browser,
+          location: sessionInfo.location || '현재 위치',
+          ip: sessionInfo.ip,
+          lastActive: new Date(),
+          isCurrent: true,
+        }]);
+      }
 
-    // Mock payment history
-    setPaymentHistory([
-      { id: '1', date: new Date(Date.now() - 86400000 * 30), amount: 49000, description: '프로 플랜 - 월간', status: 'succeeded' },
-      { id: '2', date: new Date(Date.now() - 86400000 * 60), amount: 49000, description: '프로 플랜 - 월간', status: 'succeeded' },
-    ]);
+      // Fetch login history
+      const historyRes = await fetch('/api/settings/login-history?limit=10');
+      if (historyRes.ok) {
+        const data = await historyRes.json();
+        setLoginHistory(data.history.map((h: any) => ({
+          id: h.id,
+          device: h.device,
+          location: h.location,
+          ip: h.ip,
+          timestamp: new Date(h.timestamp),
+          success: h.success,
+        })));
+      }
+    } catch (error) {
+      console.error('Failed to fetch security data:', error);
+    }
+
+    // Mock connected accounts (OAuth 연동 정보는 별도 API 필요)
+    setConnectedAccounts([]);
+
+    // Mock payment history (결제 내역은 별도 API 필요)
+    setPaymentHistory([]);
   };
 
   const fetchWorkspaces = async () => {
@@ -577,26 +612,93 @@ export default function SettingsPage() {
 
   const handleToggle2FA = async () => {
     if (is2FAEnabled) {
-      setIs2FAEnabled(false);
-      toast({
-        title: '2단계 인증 비활성화',
-        description: '2단계 인증이 비활성화되었습니다.',
-      });
+      // Disable 2FA
+      try {
+        const res = await fetch('/api/settings/2fa', { method: 'DELETE' });
+        if (res.ok) {
+          setIs2FAEnabled(false);
+          toast({
+            title: '2단계 인증 비활성화',
+            description: '2단계 인증이 비활성화되었습니다.',
+          });
+        } else {
+          const data = await res.json();
+          toast({
+            title: '비활성화 실패',
+            description: data.error || '2단계 인증 비활성화에 실패했습니다.',
+            variant: 'destructive',
+          });
+        }
+      } catch (error) {
+        toast({
+          title: '오류',
+          description: '2단계 인증 비활성화 중 오류가 발생했습니다.',
+          variant: 'destructive',
+        });
+      }
     } else {
-      setShow2FADialog(true);
+      // Setup 2FA - get QR code
+      try {
+        const res = await fetch('/api/settings/2fa/setup', { method: 'POST' });
+        if (res.ok) {
+          const data = await res.json();
+          setTwoFactorQRCode(data.qrCode);
+          setTwoFactorSecretKey(data.secret);
+          setShow2FADialog(true);
+        } else {
+          const data = await res.json();
+          toast({
+            title: '설정 실패',
+            description: data.error || '2단계 인증 설정에 실패했습니다.',
+            variant: 'destructive',
+          });
+        }
+      } catch (error) {
+        toast({
+          title: '오류',
+          description: '2단계 인증 설정 중 오류가 발생했습니다.',
+          variant: 'destructive',
+        });
+      }
     }
   };
 
   const handleEnable2FA = async () => {
     if (twoFactorCode.length !== 6) return;
-    setIs2FAEnabled(true);
-    setShow2FADialog(false);
-    setTwoFactorCode('');
-    toast({
-      title: '2단계 인증 활성화',
-      description: '계정 보안이 강화되었습니다.',
-      variant: 'success',
-    });
+
+    try {
+      const res = await fetch('/api/settings/2fa/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: twoFactorCode }),
+      });
+
+      if (res.ok) {
+        setIs2FAEnabled(true);
+        setShow2FADialog(false);
+        setTwoFactorCode('');
+        setTwoFactorQRCode('');
+        setTwoFactorSecretKey('');
+        toast({
+          title: '2단계 인증 활성화',
+          description: '계정 보안이 강화되었습니다.',
+          variant: 'success',
+        });
+      } else {
+        const data = await res.json();
+        toast({
+          title: '인증 실패',
+          description: data.error || '잘못된 인증 코드입니다.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      toast({
+        title: '오류',
+        description: '2단계 인증 활성화 중 오류가 발생했습니다.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleExportData = async () => {
@@ -976,22 +1078,40 @@ export default function SettingsPage() {
                   </Card>
 
                   {/* 2FA Dialog */}
-                  <Dialog open={show2FADialog} onOpenChange={setShow2FADialog}>
+                  <Dialog open={show2FADialog} onOpenChange={(open) => {
+                    setShow2FADialog(open);
+                    if (!open) {
+                      setTwoFactorCode('');
+                      setTwoFactorQRCode('');
+                      setTwoFactorSecretKey('');
+                    }
+                  }}>
                     <DialogContent className="sm:max-w-md">
                       <DialogHeader>
                         <DialogTitle>2단계 인증 설정</DialogTitle>
                         <DialogDescription>인증 앱으로 QR 코드를 스캔한 후 생성된 코드를 입력하세요.</DialogDescription>
                       </DialogHeader>
                       <div className="flex flex-col items-center gap-4 py-4">
-                        <div className="h-48 w-48 bg-muted rounded-lg flex items-center justify-center">
-                          <QrCode className="h-32 w-32 text-muted-foreground" />
+                        <div className="h-48 w-48 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
+                          {twoFactorQRCode ? (
+                            <img src={twoFactorQRCode} alt="2FA QR Code" className="h-full w-full object-contain" />
+                          ) : (
+                            <QrCode className="h-32 w-32 text-muted-foreground" />
+                          )}
                         </div>
                         <div className="flex items-center gap-2">
-                          <code className="px-3 py-1 bg-muted rounded text-sm">ABCD-EFGH-IJKL-MNOP</code>
-                          <Button size="icon" variant="ghost" onClick={() => copyToClipboard('ABCD-EFGH-IJKL-MNOP')}>
-                            <Copy className="h-4 w-4" />
-                          </Button>
+                          <code className="px-3 py-1 bg-muted rounded text-sm font-mono">
+                            {twoFactorSecretKey || '시크릿 키 로딩 중...'}
+                          </code>
+                          {twoFactorSecretKey && (
+                            <Button size="icon" variant="ghost" onClick={() => copyToClipboard(twoFactorSecretKey)}>
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
+                        <p className="text-sm text-muted-foreground text-center">
+                          QR 코드를 스캔할 수 없다면 위 코드를 직접 입력하세요.
+                        </p>
                         <Input
                           placeholder="6자리 코드 입력"
                           value={twoFactorCode}
