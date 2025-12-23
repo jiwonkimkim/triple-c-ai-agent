@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
-import { hashPassword, generateVerificationToken } from '@/lib/auth';
-import { sendEmail, getVerificationEmailTemplate } from '@/lib/email';
+import { hashPassword } from '@/lib/auth';
 
 // Validation schemas
 const b2cSignupSchema = z.object({
@@ -68,10 +67,6 @@ export async function POST(request: NextRequest) {
     // Hash password
     const passwordHash = await hashPassword(validatedData.password);
 
-    // Generate verification token
-    const verificationToken = generateVerificationToken();
-    const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
     // Create user based on type
     if (userType === 'B2B') {
       const b2bData = validatedData as z.infer<typeof b2bSignupSchema>;
@@ -101,7 +96,7 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Create user
+      // Create user with emailVerified set immediately
       const user = await prisma.user.create({
         data: {
           email: b2bData.email,
@@ -109,6 +104,7 @@ export async function POST(request: NextRequest) {
           name: b2bData.name,
           userType: 'B2B',
           trialCredits: 3,
+          emailVerified: new Date(),
         },
       });
 
@@ -127,34 +123,13 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Create verification token
-      await prisma.verificationToken.create({
-        data: {
-          identifier: user.email,
-          token: verificationToken,
-          expires: tokenExpiry,
-        },
-      });
-
-      // Send verification email
-      const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-      const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
-      const emailTemplate = getVerificationEmailTemplate(b2bData.name, verificationUrl);
-
-      await sendEmail({
-        to: user.email,
-        subject: emailTemplate.subject,
-        html: emailTemplate.html,
-        text: emailTemplate.text,
-      });
-
       return NextResponse.json(
         {
           success: true,
           data: {
             userId: user.id,
             workspaceId: workspace.id,
-            message: 'Account created. Please check your email to verify your account.',
+            message: '계정이 생성되었습니다. 로그인해 주세요.',
           },
         },
         { status: 201 }
@@ -172,28 +147,8 @@ export async function POST(request: NextRequest) {
           industry: b2cData.industry,
           userType: 'B2C',
           trialCredits: 3,
+          emailVerified: new Date(),
         },
-      });
-
-      // Create verification token
-      await prisma.verificationToken.create({
-        data: {
-          identifier: user.email,
-          token: verificationToken,
-          expires: tokenExpiry,
-        },
-      });
-
-      // Send verification email
-      const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-      const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${verificationToken}&email=${encodeURIComponent(user.email)}`;
-      const emailTemplate = getVerificationEmailTemplate(b2cData.name || '', verificationUrl);
-
-      await sendEmail({
-        to: user.email,
-        subject: emailTemplate.subject,
-        html: emailTemplate.html,
-        text: emailTemplate.text,
       });
 
       return NextResponse.json(
@@ -201,7 +156,7 @@ export async function POST(request: NextRequest) {
           success: true,
           data: {
             userId: user.id,
-            message: 'Account created. Please check your email to verify your account.',
+            message: '계정이 생성되었습니다. 로그인해 주세요.',
           },
         },
         { status: 201 }

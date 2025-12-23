@@ -75,10 +75,10 @@ export default function SignupPage() {
 
       toast({
         title: '계정이 생성되었습니다!',
-        description: '이메일을 확인하여 계정을 인증해 주세요.',
+        description: '로그인하여 서비스를 이용해 주세요.',
       });
 
-      router.push('/verify-email');
+      router.push('/login');
     } catch (error) {
       toast({
         variant: 'destructive',
