@@ -7,11 +7,21 @@ import { Plus, FolderKanban, Palette, Clock, Zap, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
+interface RecentProject {
+  id: string;
+  title: string;
+  status: string;
+  updatedAt: string;
+  brandProfile: { name: string } | null;
+  _count: { detailPageVersions: number };
+}
+
 interface DashboardStats {
   totalProjects: number;
   totalBrands: number;
   generatedPages: number;
   remainingCredits: number;
+  recentProjects: RecentProject[];
 }
 
 export default function DashboardPage() {
@@ -21,26 +31,25 @@ export default function DashboardPage() {
     totalBrands: 0,
     generatedPages: 0,
     remainingCredits: 3,
+    recentProjects: [],
   });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Fetch brands count
-        const brandsRes = await fetch('/api/brands');
-        const brandsData = await brandsRes.json();
+        const response = await fetch('/api/dashboard/stats');
+        const data = await response.json();
 
-        // Fetch projects count
-        const projectsRes = await fetch('/api/projects');
-        const projectsData = await projectsRes.json();
-
-        setStats({
-          totalProjects: projectsData.success ? projectsData.data?.length || 0 : 0,
-          totalBrands: brandsData.success ? brandsData.data?.length || 0 : 0,
-          generatedPages: 0, // TODO: Implement actual count
-          remainingCredits: 3, // TODO: Get from user data
-        });
+        if (data.success) {
+          setStats({
+            totalProjects: data.data.totalProjects,
+            totalBrands: data.data.totalBrands,
+            generatedPages: data.data.generatedPages,
+            remainingCredits: data.data.remainingCredits,
+            recentProjects: data.data.recentProjects || [],
+          });
+        }
       } catch (error) {
         console.error('Failed to fetch dashboard stats:', error);
       } finally {
@@ -172,19 +181,61 @@ export default function DashboardPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <FolderKanban className="h-12 w-12 text-muted-foreground/50" />
-            <h3 className="mt-4 text-lg font-medium">아직 프로젝트가 없습니다</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              첫 번째 프로젝트를 만들어 AI 콘텐츠 생성을 시작해 보세요.
-            </p>
-            <Link href="/dashboard/projects/new" className="mt-4">
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                프로젝트 만들기
-              </Button>
-            </Link>
-          </div>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : stats.recentProjects.length > 0 ? (
+            <div className="space-y-4">
+              {stats.recentProjects.map((project) => (
+                <Link
+                  key={project.id}
+                  href={`/dashboard/projects/${project.id}`}
+                  className="block"
+                >
+                  <div className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                        <FolderKanban className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium">{project.title}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {project.brandProfile?.name || '브랜드 미지정'} · 페이지 {project._count.detailPageVersions}개
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                        project.status === 'ACTIVE'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-gray-100 text-gray-700'
+                      }`}>
+                        {project.status === 'ACTIVE' ? '활성' : project.status === 'ARCHIVED' ? '보관됨' : project.status}
+                      </span>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {new Date(project.updatedAt).toLocaleDateString('ko-KR')}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <FolderKanban className="h-12 w-12 text-muted-foreground/50" />
+              <h3 className="mt-4 text-lg font-medium">아직 프로젝트가 없습니다</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                첫 번째 프로젝트를 만들어 AI 콘텐츠 생성을 시작해 보세요.
+              </p>
+              <Link href="/dashboard/projects/new" className="mt-4">
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  프로젝트 만들기
+                </Button>
+              </Link>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
