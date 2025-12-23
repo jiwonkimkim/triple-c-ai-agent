@@ -184,10 +184,11 @@ export async function POST(request: NextRequest) {
       try {
         const updatedTextElements = JSON.parse(result);
         // 원본 요소와 병합 (이미지 요소는 그대로, 텍스트 요소는 AI 결과로 교체)
-        const updatedMap = new Map(updatedTextElements.map((el: EditableElement) => [el.id, el]));
+        const updatedMap = new Map<string, EditableElement>(updatedTextElements.map((el: EditableElement) => [el.id, el]));
         const mergedElements = allElements.map((el) => {
-          if (updatedMap.has(el.id)) {
-            return { ...el, ...updatedMap.get(el.id) };
+          const updated = updatedMap.get(el.id);
+          if (updated) {
+            return { ...el, ...updated };
           }
           return el;
         });

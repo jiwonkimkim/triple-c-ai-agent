@@ -185,6 +185,7 @@ export default function ProjectDetailPage() {
         copyLength: project.copyLength || 'medium',
         productUrl: project.productUrl || '',
         productImages: project.productImages || [],
+        imageModel: 'gemini-2.5-flash-image',
       });
     }
   }, [project]);

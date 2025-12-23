@@ -280,9 +280,9 @@ export function MyTemplatesTab() {
       {publishTemplate && (
         <TemplatePublishModal
           template={publishTemplate}
-          isOpen={!!publishTemplate}
+          open={!!publishTemplate}
           onClose={() => setPublishTemplate(null)}
-          onSuccess={() => {
+          onPublish={async () => {
             setPublishTemplate(null);
             fetchMyTemplates();
           }}
