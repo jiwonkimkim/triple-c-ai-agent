@@ -25,6 +25,7 @@ interface MarketplaceGalleryProps {
 
 const categories = [
   { value: 'all', label: '전체' },
+  { value: 'FREE', label: '무료' },
   { value: 'GENERIC', label: '일반' },
   { value: 'FASHION', label: '패션' },
   { value: 'FOOD', label: '음식' },
@@ -69,7 +70,9 @@ export function MarketplaceGallery({
         sortBy,
       });
 
-      if (category !== 'all') {
+      if (category === 'FREE') {
+        params.set('maxPrice', '0');
+      } else if (category !== 'all') {
         params.set('category', category);
       }
 
