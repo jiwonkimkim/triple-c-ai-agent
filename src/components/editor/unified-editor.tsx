@@ -24,8 +24,10 @@ import {
   Sparkles,
   Loader2,
   History,
+  Layout,
 } from 'lucide-react';
 import { HistoryPanel } from '@/components/history/history-panel';
+import { TemplateImportModal } from './template-import-modal';
 
 // 편집 가능한 요소 타입
 interface EditableElement {
@@ -37,11 +39,21 @@ interface EditableElement {
   alt?: string; // image alt
 }
 
+// 제품 정보 타입
+interface ProductInfo {
+  productName?: string;
+  category?: string;
+  keyFeatures?: string[];
+  targetAudience?: string;
+  description?: string;
+}
+
 interface UnifiedEditorProps {
   projectId: string;
   versionId?: string;
   initialHtml?: string;
   initialElements?: EditableElement[];
+  productInfo?: ProductInfo;
   onSaveSuccess?: () => void;
 }
 
@@ -58,6 +70,7 @@ export function UnifiedEditor({
   versionId,
   initialHtml,
   initialElements,
+  productInfo,
   onSaveSuccess,
 }: UnifiedEditorProps) {
   const { toast } = useToast();
@@ -66,6 +79,7 @@ export function UnifiedEditor({
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [chatMessage, setChatMessage] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
@@ -334,6 +348,15 @@ export function UnifiedEditor({
     }
   }, [chatHistory, isAiLoading]);
 
+  // 템플릿 적용 핸들러
+  const handleTemplateImport = useCallback((newElements: EditableElement[]) => {
+    setElements(newElements);
+    setHistory((h) => [...h.slice(0, historyIndex + 1), newElements]);
+    setHistoryIndex((i) => i + 1);
+    setIsDirty(true);
+    setSelectedElementId(null);
+  }, [historyIndex]);
+
   // 키보드 단축키
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -432,6 +455,17 @@ export function UnifiedEditor({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Template import */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsTemplateModalOpen(true)}
+            className="gap-2"
+          >
+            <Layout className="h-4 w-4" />
+            템플릿
+          </Button>
+
           {/* History toggle */}
           <Button
             variant={isHistoryOpen ? 'secondary' : 'outline'}
@@ -608,6 +642,15 @@ export function UnifiedEditor({
             description: `v${version.versionNumber} 버전으로 복원되었습니다.`,
           });
         }}
+      />
+
+      {/* Template Import Modal */}
+      <TemplateImportModal
+        isOpen={isTemplateModalOpen}
+        onClose={() => setIsTemplateModalOpen(false)}
+        onImport={handleTemplateImport}
+        projectId={projectId}
+        productInfo={productInfo}
       />
     </div>
   );

@@ -539,6 +539,13 @@ export default function ProjectDetailPage() {
             key={editorKey}
             projectId={projectId}
             versionId={latestVersion?.id}
+            productInfo={project ? {
+              productName: project.productName,
+              category: project.category,
+              keyFeatures: project.keyFeatures,
+              targetAudience: project.targetAudience,
+              description: project.description,
+            } : undefined}
             onSaveSuccess={() => {
               toast({
                 title: '저장됨',
