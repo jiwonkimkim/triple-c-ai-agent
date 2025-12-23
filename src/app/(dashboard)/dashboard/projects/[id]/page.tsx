@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Loader2, Settings, History, RefreshCw, Eye, RotateCcw, GitCompare, Pencil, X, Save } from 'lucide-react';
+import { ArrowLeft, Loader2, Settings, History, RefreshCw, Eye, RotateCcw, GitCompare, Pencil, X, Save, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -36,6 +36,14 @@ interface ProjectData {
     id: string;
     name: string;
   };
+  // 제품 정보 (재생성 시 사용)
+  productName?: string;
+  category?: string;
+  keyFeatures?: string[];
+  targetAudience?: string;
+  copyLength?: 'short' | 'medium' | 'long';
+  productUrl?: string;
+  productImages?: string[];
   detailPageVersions: Array<{
     id: string;
     versionNumber: number;
@@ -74,6 +82,10 @@ export default function ProjectDetailPage() {
   const [isRestoring, setIsRestoring] = useState(false);
   const [editorKey, setEditorKey] = useState(0); // 에디터 리마운트용 key
 
+  // 재생성 state
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [regenerateDialogOpen, setRegenerateDialogOpen] = useState(false);
+
   // 버전 이름 수정 state
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [versionToRename, setVersionToRename] = useState<VersionSnapshot | null>(null);
@@ -91,6 +103,9 @@ export default function ProjectDetailPage() {
     keyFeatures: [''] as string[],
     targetAudience: '',
     copyLength: 'medium' as 'short' | 'medium' | 'long',
+    productUrl: '',
+    productImages: [] as string[],
+    imageModel: 'gemini-2.5-flash-image' as 'gemini-2.5-flash-image' | 'gemini-3-pro-image-preview',
   });
 
   const categories = [
@@ -107,6 +122,11 @@ export default function ProjectDetailPage() {
     { value: 'short', label: '짧게', description: '간결하고 임팩트 있게' },
     { value: 'medium', label: '보통', description: '균형 잡힌 정보 전달' },
     { value: 'long', label: '길게', description: '상세하고 포괄적으로' },
+  ];
+
+  const imageModelOptions = [
+    { value: 'gemini-2.5-flash-image', label: '기본 (Flash)', description: '빠른 이미지 생성' },
+    { value: 'gemini-3-pro-image-preview', label: '프로 (Pro)', description: '고품질 이미지 생성' },
   ];
 
   const { data: project, isLoading, error } = useQuery({
@@ -158,11 +178,13 @@ export default function ProjectDetailPage() {
         title: project.title || '',
         description: project.description || '',
         brandProfileId: project.brandProfile?.id || null,
-        productName: '',
-        category: '',
-        keyFeatures: [''],
-        targetAudience: '',
-        copyLength: 'medium',
+        productName: project.productName || '',
+        category: project.category || '',
+        keyFeatures: project.keyFeatures?.length ? project.keyFeatures : [''],
+        targetAudience: project.targetAudience || '',
+        copyLength: project.copyLength || 'medium',
+        productUrl: project.productUrl || '',
+        productImages: project.productImages || [],
       });
     }
   }, [project]);
@@ -211,6 +233,14 @@ export default function ProjectDetailPage() {
           title: settingsForm.title,
           description: settingsForm.description,
           brandProfileId: settingsForm.brandProfileId,
+          // 제품 정보도 함께 저장
+          productName: settingsForm.productName,
+          category: settingsForm.category,
+          keyFeatures: settingsForm.keyFeatures.filter((f) => f.trim()),
+          targetAudience: settingsForm.targetAudience,
+          copyLength: settingsForm.copyLength,
+          productUrl: settingsForm.productUrl,
+          productImages: settingsForm.productImages,
         }),
       });
 
@@ -232,6 +262,69 @@ export default function ProjectDetailPage() {
       });
     } finally {
       setIsSavingSettings(false);
+    }
+  };
+
+  // 재생성 핸들러
+  const handleRegenerate = async () => {
+    if (!project) return;
+
+    // 제품 정보가 없으면 설정 탭으로 이동
+    if (!project.productName || !project.category || !project.keyFeatures?.length) {
+      toast({
+        variant: 'destructive',
+        title: '제품 정보 필요',
+        description: '재생성을 위해 Settings 탭에서 제품 정보를 먼저 입력해주세요.',
+      });
+      setActiveTab('settings');
+      return;
+    }
+
+    setIsRegenerating(true);
+    setRegenerateDialogOpen(false);
+
+    try {
+      const response = await fetch('/api/generate/detail-page', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: project.id,
+          productImages: project.productImages || [],
+          productName: project.productName,
+          category: project.category,
+          keyFeatures: project.keyFeatures,
+          targetAudience: project.targetAudience || '일반 소비자',
+          copyLength: project.copyLength || 'medium',
+          productUrl: project.productUrl || '',
+          generateImages: true,
+          imageModel: settingsForm.imageModel,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to regenerate');
+      }
+
+      // 성공 시 프로젝트 데이터 새로고침
+      queryClient.invalidateQueries({ queryKey: ['project', projectId] });
+
+      // 에디터 리마운트
+      setEditorKey((prev) => prev + 1);
+
+      toast({
+        title: '재생성 완료',
+        description: '새로운 상세페이지가 생성되었습니다.',
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류';
+      toast({
+        variant: 'destructive',
+        title: '재생성 실패',
+        description: errorMessage,
+      });
+    } finally {
+      setIsRegenerating(false);
     }
   };
 
@@ -386,6 +479,27 @@ export default function ProjectDetailPage() {
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
+          {/* 재생성 버튼 */}
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => setRegenerateDialogOpen(true)}
+            disabled={isRegenerating}
+            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+          >
+            {isRegenerating ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                생성 중...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4 mr-1" />
+                재생성
+              </>
+            )}
+          </Button>
+
           <div className="flex rounded-md border">
             <Button
               variant={activeTab === 'editor' ? 'secondary' : 'ghost'}
@@ -911,6 +1025,41 @@ export default function ProjectDetailPage() {
                   </div>
 
                   <div className="space-y-2">
+                    <Label>상품 URL</Label>
+                    <Input
+                      placeholder="예: https://www.coupang.com/... 또는 https://smartstore.naver.com/..."
+                      value={settingsForm.productUrl}
+                      onChange={(e) =>
+                        setSettingsForm((prev) => ({ ...prev, productUrl: e.target.value }))
+                      }
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      쿠팡, 네이버 스마트스토어 등의 상품 URL을 입력하면 상품 정보를 참고하여 콘텐츠를 생성합니다.
+                    </p>
+                  </div>
+
+                  {/* 제품 이미지 표시 */}
+                  {settingsForm.productImages.length > 0 && (
+                    <div className="space-y-2">
+                      <Label>등록된 제품 이미지</Label>
+                      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                        {settingsForm.productImages.map((img, index) => (
+                          <div key={index} className="relative aspect-square rounded-lg overflow-hidden border bg-muted">
+                            <img
+                              src={img}
+                              alt={`제품 이미지 ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        제품 이미지는 새 프로젝트 생성 시에만 업로드할 수 있습니다.
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
                     <Label>카피 길이</Label>
                     <div className="grid gap-2 sm:grid-cols-3">
                       {copyLengthOptions.map((option) => (
@@ -942,6 +1091,43 @@ export default function ProjectDetailPage() {
                         </label>
                       ))}
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>이미지 생성 모델</Label>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {imageModelOptions.map((option) => (
+                        <label
+                          key={option.value}
+                          className={`cursor-pointer rounded-lg border p-3 transition-colors ${
+                            settingsForm.imageModel === option.value
+                              ? 'border-primary bg-primary/5'
+                              : 'hover:border-muted-foreground/50'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="imageModel"
+                            value={option.value}
+                            checked={settingsForm.imageModel === option.value}
+                            onChange={(e) =>
+                              setSettingsForm((prev) => ({
+                                ...prev,
+                                imageModel: e.target.value as 'gemini-2.5-flash-image' | 'gemini-3-pro-image-preview',
+                              }))
+                            }
+                            className="sr-only"
+                          />
+                          <div className="font-medium">{option.label}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {option.description}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      재생성 시 사용할 이미지 생성 모델을 선택합니다.
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -979,6 +1165,57 @@ export default function ProjectDetailPage() {
           </ScrollArea>
         )}
       </div>
+
+      {/* 재생성 확인 다이얼로그 */}
+      <Dialog open={regenerateDialogOpen} onOpenChange={setRegenerateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>상세페이지 재생성</DialogTitle>
+            <DialogDescription>
+              기존에 입력한 제품 정보를 바탕으로 새로운 상세페이지를 생성합니다.
+              <br /><br />
+              {project?.productName ? (
+                <div className="text-left space-y-1 mt-2 p-3 bg-muted rounded-lg">
+                  <p><strong>제품명:</strong> {project.productName}</p>
+                  <p><strong>카테고리:</strong> {project.category}</p>
+                  <p><strong>주요 특징:</strong> {project.keyFeatures?.join(', ')}</p>
+                  <p><strong>타겟 고객:</strong> {project.targetAudience || '일반 소비자'}</p>
+                </div>
+              ) : (
+                <div className="text-destructive mt-2">
+                  제품 정보가 없습니다. Settings 탭에서 먼저 입력해주세요.
+                </div>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setRegenerateDialogOpen(false)}
+              disabled={isRegenerating}
+            >
+              취소
+            </Button>
+            <Button
+              onClick={handleRegenerate}
+              disabled={isRegenerating || !project?.productName}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+            >
+              {isRegenerating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  생성 중...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  재생성하기
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

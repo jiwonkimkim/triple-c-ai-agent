@@ -230,6 +230,14 @@ export async function POST(request: NextRequest) {
         workspaceId: validatedData.workspaceId,
         brandProfileId: validatedData.brandProfileId,
         status: 'ACTIVE',
+        // 제품 정보 저장 (재생성 시 사용)
+        productName: validatedData.productName,
+        category: validatedData.category,
+        keyFeatures: validatedData.keyFeatures || [],
+        targetAudience: validatedData.targetAudience,
+        copyLength: validatedData.copyLength || 'medium',
+        productUrl: validatedData.productUrl || null,
+        productImages: validatedData.productImages || [],
       },
       include: {
         brandProfile: {

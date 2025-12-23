@@ -33,6 +33,11 @@ const copyLengthOptions = [
   { value: 'long', label: '길게', description: '상세하고 포괄적으로' },
 ];
 
+const imageModelOptions = [
+  { value: 'gemini-2.5-flash-image', label: '기본 (Flash)', description: '빠른 이미지 생성' },
+  { value: 'gemini-3-pro-image-preview', label: '프로 (Pro)', description: '고품질 이미지 생성' },
+];
+
 export default function NewProjectPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -50,6 +55,7 @@ export default function NewProjectPage() {
     targetAudience: string;
     copyLength: 'short' | 'medium' | 'long';
     productUrl: string;
+    imageModel: 'gemini-2.5-flash-image' | 'gemini-3-pro-image-preview';
   }>({
     productName: '',
     category: '',
@@ -57,6 +63,7 @@ export default function NewProjectPage() {
     targetAudience: '',
     copyLength: 'medium',
     productUrl: '',
+    imageModel: 'gemini-2.5-flash-image',
   });
 
   const {
@@ -260,12 +267,36 @@ export default function NewProjectPage() {
         setUploadedImageUrls(imageUrls);
       }
 
+      // 2. 프로젝트에 제품 정보 저장 (재생성 시 사용)
+      toast({
+        title: '제품 정보 저장 중...',
+        description: '입력한 제품 정보를 저장하고 있습니다.',
+      });
+
+      const updateRes = await fetch(`/api/projects/${projectId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productName: productInfo.productName,
+          category: productInfo.category,
+          keyFeatures: filteredFeatures,
+          targetAudience: productInfo.targetAudience || '일반 소비자',
+          copyLength: productInfo.copyLength,
+          productUrl: productInfo.productUrl || '',
+          productImages: imageUrls,
+        }),
+      });
+
+      if (!updateRes.ok) {
+        console.error('Failed to save product info to project');
+      }
+
       toast({
         title: '생성 중...',
         description: 'AI가 상품 상세페이지를 생성하고 있습니다. 잠시만 기다려 주세요.',
       });
 
-      // 2. 상세페이지 생성 API 호출
+      // 3. 상세페이지 생성 API 호출
       const generateRes = await fetch('/api/generate/detail-page', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -278,6 +309,7 @@ export default function NewProjectPage() {
           targetAudience: productInfo.targetAudience || '일반 소비자',
           copyLength: productInfo.copyLength,
           productUrl: productInfo.productUrl || undefined,
+          imageModel: productInfo.imageModel,
         }),
       });
 
@@ -557,6 +589,40 @@ export default function NewProjectPage() {
                           setProductInfo((prev) => ({
                             ...prev,
                             copyLength: e.target.value as 'short' | 'medium' | 'long',
+                          }))
+                        }
+                        className="sr-only"
+                      />
+                      <div className="font-medium">{option.label}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {option.description}
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>이미지 생성 모델</Label>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {imageModelOptions.map((option) => (
+                    <label
+                      key={option.value}
+                      className={`cursor-pointer rounded-lg border p-3 transition-colors ${
+                        productInfo.imageModel === option.value
+                          ? 'border-primary bg-primary/5'
+                          : 'hover:border-muted-foreground/50'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="imageModel"
+                        value={option.value}
+                        checked={productInfo.imageModel === option.value}
+                        onChange={(e) =>
+                          setProductInfo((prev) => ({
+                            ...prev,
+                            imageModel: e.target.value as 'gemini-2.5-flash-image' | 'gemini-3-pro-image-preview',
                           }))
                         }
                         className="sr-only"

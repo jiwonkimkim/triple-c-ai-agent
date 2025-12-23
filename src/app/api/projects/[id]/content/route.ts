@@ -60,7 +60,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       where: { id: projectId },
       include: {
         detailPageVersions: {
-          where: { status: 'DRAFT' },
+          // Get the most recent version regardless of status
           orderBy: { updatedAt: 'desc' },
           take: 1,
         },
@@ -117,10 +117,102 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       }>;
     };
 
+    // If contentJson.elements exists, use it
+    if (contentJson?.elements && contentJson.elements.length > 0) {
+      return NextResponse.json({
+        success: true,
+        data: {
+          elements: contentJson.elements,
+          versionId: latestVersion.id,
+          versionNumber: latestVersion.versionNumber,
+          updatedAt: latestVersion.updatedAt,
+        },
+      });
+    }
+
+    // Otherwise, convert sections to elements format
+    const sections = latestVersion.sections as Array<{
+      id: string;
+      type: string;
+      title?: string;
+      body: string;
+      order: number;
+      imageUrl?: string;
+    }>;
+
+    if (sections && sections.length > 0) {
+      // Convert sections to elements format for the editor
+      const elements: Array<{
+        id: string;
+        type: 'text' | 'image' | 'heading';
+        content: string;
+        styles?: Record<string, string>;
+        level?: number;
+        alt?: string;
+      }> = [];
+
+      // Add hook message as first heading if exists
+      if (latestVersion.hookMessage) {
+        elements.push({
+          id: 'hook-message',
+          type: 'heading',
+          content: latestVersion.hookMessage,
+          level: 1,
+          styles: { textAlign: 'center', fontSize: '2rem', fontWeight: 'bold', marginBottom: '1.5rem' },
+        });
+      }
+
+      // Convert each section
+      for (const section of sections) {
+        // Add section title as heading
+        if (section.title) {
+          elements.push({
+            id: `${section.id}-title`,
+            type: 'heading',
+            content: section.title,
+            level: 2,
+            styles: { fontSize: '1.5rem', fontWeight: '600', marginTop: '2rem', marginBottom: '1rem' },
+          });
+        }
+
+        // Add section image if exists
+        if (section.imageUrl) {
+          elements.push({
+            id: `${section.id}-image`,
+            type: 'image',
+            content: section.imageUrl,
+            alt: section.title || 'Section image',
+            styles: { width: '100%', maxHeight: '400px', objectFit: 'cover', marginBottom: '1rem', borderRadius: '8px' },
+          });
+        }
+
+        // Add section body
+        if (section.body) {
+          elements.push({
+            id: `${section.id}-body`,
+            type: 'text',
+            content: section.body,
+            styles: { fontSize: '1rem', lineHeight: '1.8', color: '#333', whiteSpace: 'pre-wrap' },
+          });
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          elements,
+          versionId: latestVersion.id,
+          versionNumber: latestVersion.versionNumber,
+          updatedAt: latestVersion.updatedAt,
+        },
+      });
+    }
+
+    // Fallback: empty elements
     return NextResponse.json({
       success: true,
       data: {
-        elements: contentJson?.elements || [],
+        elements: [],
         versionId: latestVersion.id,
         versionNumber: latestVersion.versionNumber,
         updatedAt: latestVersion.updatedAt,

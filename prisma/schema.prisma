@@ -246,6 +246,15 @@ model Project {
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime      @updatedAt @map("updated_at")
 
+  // 제품 정보 (재생성 시 사용)
+  productName    String?       @map("product_name")
+  category       String?
+  keyFeatures    String[]      @default([]) @map("key_features")
+  targetAudience String?       @map("target_audience")
+  copyLength     String?       @default("medium") @map("copy_length")
+  productUrl     String?       @map("product_url")
+  productImages  String[]      @default([]) @map("product_images")
+
   // Relations
   owner              User                @relation(fields: [ownerId], references: [id])
   workspace          Workspace?          @relation(fields: [workspaceId], references: [id], onDelete: SetNull)

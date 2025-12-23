@@ -37,6 +37,14 @@ export const createProjectSchema = z.object({
   description: z.string().max(500, 'Description is too long').optional(),
   workspaceId: z.string().nullable().optional(),
   brandProfileId: z.string().nullable().optional(),
+  // 제품 정보 (재생성 시 사용)
+  productName: z.string().max(100).optional(),
+  category: z.string().optional(),
+  keyFeatures: z.array(z.string()).optional(),
+  targetAudience: z.string().optional(),
+  copyLength: z.enum(['short', 'medium', 'long']).optional(),
+  productUrl: z.string().url().optional().or(z.literal('')),
+  productImages: z.array(z.string()).optional(),
 });
 
 export const updateProjectSchema = z.object({
@@ -44,6 +52,14 @@ export const updateProjectSchema = z.object({
   description: z.string().max(500, 'Description is too long').optional(),
   brandProfileId: z.string().nullable().optional(),
   status: z.enum(['ACTIVE', 'ARCHIVED']).optional(),
+  // 제품 정보 (재생성 시 사용)
+  productName: z.string().max(100).optional(),
+  category: z.string().optional(),
+  keyFeatures: z.array(z.string()).optional(),
+  targetAudience: z.string().optional(),
+  copyLength: z.enum(['short', 'medium', 'long']).optional(),
+  productUrl: z.string().url().optional().or(z.literal('')),
+  productImages: z.array(z.string()).optional(),
 });
 
 // ============================================
@@ -78,6 +94,8 @@ export const generateDetailPageSchema = z.object({
   targetAudience: z.string().optional().default('일반 소비자'),
   copyLength: z.enum(['short', 'medium', 'long']),
   productUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
+  generateImages: z.boolean().optional().default(true),
+  imageModel: z.enum(['gemini-2.0-flash-exp', 'gemini-2.5-flash-preview-05-20', 'gemini-2.5-flash-image', 'gemini-3-pro-image-preview']).optional(),
 });
 
 export const generateHookMessageSchema = z.object({

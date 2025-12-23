@@ -3,6 +3,13 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
+import { GoogleGenAI } from '@google/genai';
+
+// Groq client (OpenAI-compatible API)
+const groq = new OpenAI({
+  apiKey: process.env.GROQ_API_KEY || '',
+  baseURL: 'https://api.groq.com/openai/v1',
+});
 
 // 편집 가능한 요소 타입
 interface EditableElement {
@@ -30,18 +37,31 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+// Helper to check placeholder keys
+const isPlaceholder = (key: string | undefined) =>
+  !key || key.includes('your-') || key.includes('placeholder') || key.length < 20;
+
+// Get available AI provider (Groq first for text generation)
+function getAvailableProvider(): 'groq' | 'anthropic' | 'openai' | 'gemini' | null {
+  if (!isPlaceholder(process.env.GROQ_API_KEY)) return 'groq';
+  if (!isPlaceholder(process.env.ANTHROPIC_API_KEY)) return 'anthropic';
+  if (!isPlaceholder(process.env.OPENAI_API_KEY)) return 'openai';
+  if (!isPlaceholder(process.env.GOOGLE_AI_API_KEY)) return 'gemini';
+  return null;
+}
+
 // Mock 모드 확인
 function shouldUseMock(): boolean {
-  if (process.env.USE_MOCK_AI === 'true') return true;
-
-  const anthropicKey = process.env.ANTHROPIC_API_KEY;
-  const openaiKey = process.env.OPENAI_API_KEY;
-
-  const isPlaceholder = (key: string | undefined) =>
-    !key || key.includes('your-') || key.includes('placeholder') || key.length < 20;
-
-  const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
-  return isDev && isPlaceholder(anthropicKey) && isPlaceholder(openaiKey);
+  if (process.env.USE_MOCK_AI === 'true') {
+    console.log('[AI Edit] USE_MOCK_AI is true');
+    return true;
+  }
+  const provider = getAvailableProvider();
+  const googleKey = process.env.GOOGLE_AI_API_KEY;
+  console.log('[AI Edit] Available provider:', provider);
+  console.log('[AI Edit] GOOGLE_AI_API_KEY:', googleKey ? `${googleKey.substring(0, 10)}...` : 'not set');
+  console.log('[AI Edit] isPlaceholder check:', isPlaceholder(googleKey));
+  return provider === null;
 }
 
 // Mock 편집 응답 생성
@@ -84,32 +104,51 @@ function generateMockFullEdit(message: string, elements: EditableElement[]): Edi
 }
 
 export async function POST(request: NextRequest) {
+  console.log('[AI Edit] ====== POST /api/ai/edit received ======');
   try {
     const session = await getServerSession(authOptions);
+    console.log('[AI Edit] Session:', session?.user?.email || 'no session');
 
     if (!session?.user) {
+      console.log('[AI Edit] Unauthorized - no session');
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     const body: EditRequest = await request.json();
     const { message, targetElement, allElements } = body;
+    console.log('[AI Edit] Request body:', {
+      message: message?.substring(0, 50),
+      hasTargetElement: !!targetElement,
+      allElementsCount: allElements?.length
+    });
 
     if (!message?.trim()) {
+      console.log('[AI Edit] Empty message');
       return NextResponse.json({ success: false, error: '수정 요청을 입력해주세요' }, { status: 400 });
     }
 
     // Mock 모드
     if (shouldUseMock()) {
       console.log('[DEV] Using mock AI edit');
+      console.log('[DEV] targetElement:', targetElement ? 'exists' : 'null');
+      console.log('[DEV] allElements:', allElements ? `${allElements.length} items` : 'null');
 
       if (targetElement) {
         const mockUpdate = generateMockEdit(message, targetElement);
+        console.log('[DEV] mockUpdate:', mockUpdate);
+        if (!mockUpdate) {
+          return NextResponse.json({
+            success: true,
+            updatedElement: { content: `[수정됨] ${targetElement.content}` },
+          });
+        }
         return NextResponse.json({
           success: true,
           updatedElement: mockUpdate,
         });
-      } else if (allElements) {
+      } else if (allElements && allElements.length > 0) {
         const updatedElements = generateMockFullEdit(message, allElements);
+        console.log('[DEV] updatedElements count:', updatedElements.length);
         return NextResponse.json({
           success: true,
           updatedElements,
@@ -120,27 +159,41 @@ export async function POST(request: NextRequest) {
     }
 
     // 실제 AI 편집
-    const useAnthropic = !!(process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_API_KEY.includes('your-'));
+    const provider = getAvailableProvider();
+    console.log('[AI Edit] Using provider:', provider);
 
     if (targetElement) {
       // 선택된 요소만 수정
       const prompt = buildElementEditPrompt(message, targetElement);
-      const result = await callAI(prompt, useAnthropic);
+      console.log('[AI Edit] Single element prompt length:', prompt.length, 'chars');
+      const result = await callAI(prompt, provider!);
 
       return NextResponse.json({
         success: true,
         updatedElement: { content: result },
       });
     } else if (allElements) {
-      // 전체 페이지 수정
-      const prompt = buildFullPageEditPrompt(message, allElements);
-      const result = await callAI(prompt, useAnthropic);
+      // 전체 페이지 수정 - 이미지 요소 제외하고 텍스트 요소만 전송
+      const textElements = allElements.filter(el => el.type === 'text' || el.type === 'heading');
+      console.log('[AI Edit] Filtering elements: total', allElements.length, '-> text only', textElements.length);
+
+      const prompt = buildFullPageEditPrompt(message, textElements);
+      console.log('[AI Edit] Full page prompt length:', prompt.length, 'chars');
+      const result = await callAI(prompt, provider!);
 
       try {
-        const updatedElements = JSON.parse(result);
+        const updatedTextElements = JSON.parse(result);
+        // 원본 요소와 병합 (이미지 요소는 그대로, 텍스트 요소는 AI 결과로 교체)
+        const updatedMap = new Map(updatedTextElements.map((el: EditableElement) => [el.id, el]));
+        const mergedElements = allElements.map((el) => {
+          if (updatedMap.has(el.id)) {
+            return { ...el, ...updatedMap.get(el.id) };
+          }
+          return el;
+        });
         return NextResponse.json({
           success: true,
-          updatedElements,
+          updatedElements: mergedElements,
         });
       } catch {
         // JSON 파싱 실패 시 텍스트 요소들만 수정
@@ -203,8 +256,23 @@ ${elementsJson}
 JSON 배열만 반환하고 다른 설명은 포함하지 마세요.`;
 }
 
-async function callAI(prompt: string, useAnthropic: boolean = true): Promise<string> {
-  if (useAnthropic) {
+async function callAI(prompt: string, provider: 'groq' | 'anthropic' | 'openai' | 'gemini'): Promise<string> {
+  if (provider === 'groq') {
+    try {
+      // llama-3.3-70b-versatile has larger context window (128k) for longer prompts
+      console.log('[AI Edit] Calling Groq API with model: llama-3.3-70b-versatile');
+      const response = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: prompt }],
+      });
+      console.log('[AI Edit] Groq response received');
+      return response.choices[0]?.message?.content || '';
+    } catch (groqError) {
+      console.error('[AI Edit] Groq API error:', groqError);
+      throw groqError;
+    }
+  } else if (provider === 'anthropic') {
     const response = await anthropic.messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 2000,
@@ -213,7 +281,7 @@ async function callAI(prompt: string, useAnthropic: boolean = true): Promise<str
 
     const textContent = response.content.find((c) => c.type === 'text');
     return textContent?.text || '';
-  } else {
+  } else if (provider === 'openai') {
     const response = await openai.chat.completions.create({
       model: 'gpt-4-turbo-preview',
       max_tokens: 2000,
@@ -221,5 +289,20 @@ async function callAI(prompt: string, useAnthropic: boolean = true): Promise<str
     });
 
     return response.choices[0]?.message?.content || '';
+  } else {
+    // Gemini
+    try {
+      console.log('[AI Edit] Calling Gemini API...');
+      const gemini = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY! });
+      const response = await gemini.models.generateContent({
+        model: 'gemini-2.0-flash-exp',
+        contents: prompt,
+      });
+      console.log('[AI Edit] Gemini response received');
+      return response.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    } catch (geminiError) {
+      console.error('[AI Edit] Gemini API error:', geminiError);
+      throw geminiError;
+    }
   }
 }

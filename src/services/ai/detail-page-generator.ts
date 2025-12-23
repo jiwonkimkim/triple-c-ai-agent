@@ -1,6 +1,19 @@
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
+import { GoogleGenAI } from '@google/genai';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  generateDetailPageImagesWithGemini,
+  base64ToDataUrl,
+  isGeminiConfigured,
+  GeminiImageModel,
+} from '@/services/image/gemini-image-generator';
+
+// Groq client (OpenAI-compatible API)
+const groq = new OpenAI({
+  apiKey: process.env.GROQ_API_KEY || '',
+  baseURL: 'https://api.groq.com/openai/v1',
+});
 
 // Types
 interface BrandContext {
@@ -19,6 +32,8 @@ interface GenerateDetailPageInput {
   targetAudience: string;
   copyLength: 'short' | 'medium' | 'long';
   brandContext?: BrandContext | null;
+  generateImages?: boolean;
+  imageModel?: GeminiImageModel;
 }
 
 interface DetailPageSection {
@@ -27,6 +42,7 @@ interface DetailPageSection {
   title?: string;
   body: string;
   order: number;
+  imageUrl?: string;
 }
 
 interface DetailPageVersion {
@@ -53,19 +69,36 @@ const COPY_LENGTH_CONFIG = {
   },
 };
 
+// Check if keys are placeholder values or actual keys
+const isPlaceholder = (key: string | undefined) =>
+  !key ||
+  key.includes('your-') ||
+  key.includes('placeholder') ||
+  key.length < 20;
+
 // Check if valid API keys are configured
 function hasValidApiKey(): boolean {
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   const openaiKey = process.env.OPENAI_API_KEY;
+  const googleKey = process.env.GOOGLE_AI_API_KEY;
+  const groqKey = process.env.GROQ_API_KEY;
 
-  // Check if keys are placeholder values or actual keys
-  const isPlaceholder = (key: string | undefined) =>
-    !key ||
-    key.includes('your-') ||
-    key.includes('placeholder') ||
-    key.length < 20;
+  return !isPlaceholder(anthropicKey) || !isPlaceholder(openaiKey) || !isPlaceholder(googleKey) || !isPlaceholder(groqKey);
+}
 
-  return !isPlaceholder(anthropicKey) || !isPlaceholder(openaiKey);
+// Check which provider to use (Groq first for text generation)
+function getAvailableProvider(): 'groq' | 'anthropic' | 'openai' | 'gemini' | null {
+  const groqKey = process.env.GROQ_API_KEY;
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  const openaiKey = process.env.OPENAI_API_KEY;
+  const googleKey = process.env.GOOGLE_AI_API_KEY;
+
+  // Groq first for text generation
+  if (!isPlaceholder(groqKey)) return 'groq';
+  if (!isPlaceholder(anthropicKey)) return 'anthropic';
+  if (!isPlaceholder(openaiKey)) return 'openai';
+  if (!isPlaceholder(googleKey)) return 'gemini';
+  return null;
 }
 
 // Generate mock detail page for development
@@ -151,7 +184,11 @@ Writing Style Guidelines:
 - Use persuasive language that drives action
 - Focus on benefits, not just features
 - Include emotional triggers where appropriate
-- Write in a professional yet engaging tone`;
+- Write in a professional yet engaging tone
+
+NOTE
+- You should write in Korean
+`;
 
   if (brandContext) {
     systemPrompt += `
@@ -309,11 +346,10 @@ export async function generateDetailPage(
   const systemPrompt = buildSystemPrompt(input.copyLength, input.brandContext);
   const userPrompt = buildUserPrompt(input);
 
-  // Generate 2 versions concurrently
-  const useAnthropic = process.env.ANTHROPIC_API_KEY;
-  const useOpenAI = process.env.OPENAI_API_KEY;
+  // Get available provider
+  const provider = getAvailableProvider();
 
-  if (!useAnthropic && !useOpenAI) {
+  if (!provider) {
     // Fall back to mock generation instead of throwing error
     console.log('[DEV] No API keys configured, using mock generation');
     return [
@@ -322,24 +358,29 @@ export async function generateDetailPage(
     ];
   }
 
-  const generateVersion = async (versionIndex: number): Promise<DetailPageVersion> => {
-    // Alternate between providers or use available one
-    const useProvider =
-      versionIndex === 0
-        ? useAnthropic
-          ? 'anthropic'
-          : 'openai'
-        : useOpenAI
-          ? 'openai'
-          : 'anthropic';
+  console.log(`[AI] Using provider: ${provider}`);
 
+  const generateVersion = async (versionIndex: number): Promise<DetailPageVersion> => {
     // Add variation instruction for second version
     const variationPrompt =
       versionIndex === 1
         ? '\n\nIMPORTANT: Create a distinctly different version with alternative messaging approach, different tone, or unique angle.'
         : '';
 
-    if (useProvider === 'anthropic') {
+    if (provider === 'groq') {
+      // Use Groq with OpenAI-compatible API
+      console.log('[AI] Using Groq with model: openai/gpt-oss-120b');
+      const response = await groq.chat.completions.create({
+        model: 'openai/gpt-oss-120b',
+        max_tokens: 2000,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt + variationPrompt + '\n\nReturn only the JSON object, no additional text or markdown.' },
+        ],
+      });
+
+      return parseResponse(response.choices[0]?.message?.content || '', versionIndex);
+    } else if (provider === 'anthropic') {
       const response = await anthropic.messages.create({
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 2000,
@@ -354,7 +395,7 @@ export async function generateDetailPage(
 
       const textContent = response.content.find((c) => c.type === 'text');
       return parseResponse(textContent?.text || '', versionIndex);
-    } else {
+    } else if (provider === 'openai') {
       const response = await openai.chat.completions.create({
         model: 'gpt-4-turbo-preview',
         max_tokens: 2000,
@@ -366,6 +407,16 @@ export async function generateDetailPage(
       });
 
       return parseResponse(response.choices[0]?.message?.content || '', versionIndex);
+    } else {
+      // Use Gemini for text generation
+      const gemini = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY! });
+      const response = await gemini.models.generateContent({
+        model: 'gemini-2.0-flash-exp',
+        contents: `${systemPrompt}\n\n${userPrompt}${variationPrompt}\n\nReturn only the JSON object, no additional text or markdown.`,
+      });
+
+      const textContent = response.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      return parseResponse(textContent, versionIndex);
     }
   };
 
@@ -376,7 +427,64 @@ export async function generateDetailPage(
       generateVersion(1),
     ]);
 
-    return [version1, version2];
+    let versions = [version1, version2];
+
+    // Generate images with Gemini if enabled and configured
+    if (input.generateImages && isGeminiConfigured()) {
+      console.log('[AI] Generating images with Gemini...');
+      try {
+        const imageModel = input.imageModel || 'gemini-2.0-flash-exp';
+        const brandStyle = input.brandContext?.imageKeywords?.join(', ');
+
+        const generatedImages = await generateDetailPageImagesWithGemini(
+          input.productName,
+          input.category,
+          input.keyFeatures,
+          brandStyle,
+          imageModel
+        );
+
+        // Add images to sections for both versions
+        versions = versions.map((version) => {
+          const updatedSections = version.sections.map((section, index) => {
+            if (section.type === 'HERO' && generatedImages.heroImage) {
+              return {
+                ...section,
+                imageUrl: base64ToDataUrl(
+                  generatedImages.heroImage.base64Data,
+                  generatedImages.heroImage.mimeType
+                ),
+              };
+            }
+            if (section.type === 'FEATURES' && generatedImages.featureImages[0]) {
+              const featureIndex = Math.min(index - 1, generatedImages.featureImages.length - 1);
+              if (featureIndex >= 0 && generatedImages.featureImages[featureIndex]) {
+                return {
+                  ...section,
+                  imageUrl: base64ToDataUrl(
+                    generatedImages.featureImages[featureIndex].base64Data,
+                    generatedImages.featureImages[featureIndex].mimeType
+                  ),
+                };
+              }
+            }
+            return section;
+          });
+
+          return {
+            ...version,
+            sections: updatedSections,
+          };
+        });
+
+        console.log('[AI] Gemini images generated successfully');
+      } catch (imageError) {
+        console.error('[AI] Failed to generate images with Gemini:', imageError);
+        // Continue without images - don't fail the entire generation
+      }
+    }
+
+    return versions;
   } catch (error) {
     // Log the error for debugging
     console.error('[AI] Failed to generate content from AI API:', error);
@@ -421,7 +529,17 @@ ${brandTone ? `Brand Tone: ${brandTone}` : ''}
 The hook should be approximately ${lengthConfig.hookLength} characters and be ${lengthConfig.description}.
 Return only the hook message text, nothing else.`;
 
-  if (process.env.ANTHROPIC_API_KEY) {
+  const provider = getAvailableProvider();
+
+  if (provider === 'groq') {
+    const response = await groq.chat.completions.create({
+      model: 'openai/gpt-oss-120b',
+      max_tokens: 200,
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    return response.choices[0]?.message?.content?.trim() || 'Discover Something Amazing';
+  } else if (provider === 'anthropic') {
     const response = await anthropic.messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 200,
@@ -430,7 +548,7 @@ Return only the hook message text, nothing else.`;
 
     const textContent = response.content.find((c) => c.type === 'text');
     return textContent?.text?.trim() || 'Discover Something Amazing';
-  } else if (process.env.OPENAI_API_KEY) {
+  } else if (provider === 'openai') {
     const response = await openai.chat.completions.create({
       model: 'gpt-4-turbo-preview',
       max_tokens: 200,
@@ -488,9 +606,18 @@ The body should be approximately ${lengthConfig.sectionBodyLength} characters an
 
 Return in JSON format: {"title": "Section Title", "body": "Section content"}`;
 
+  const provider = getAvailableProvider();
   let responseText = '';
 
-  if (process.env.ANTHROPIC_API_KEY) {
+  if (provider === 'groq') {
+    const response = await groq.chat.completions.create({
+      model: 'openai/gpt-oss-120b',
+      max_tokens: 500,
+      messages: [{ role: 'user', content: prompt }],
+    });
+
+    responseText = response.choices[0]?.message?.content || '';
+  } else if (provider === 'anthropic') {
     const response = await anthropic.messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 500,
@@ -499,7 +626,7 @@ Return in JSON format: {"title": "Section Title", "body": "Section content"}`;
 
     const textContent = response.content.find((c) => c.type === 'text');
     responseText = textContent?.text || '';
-  } else if (process.env.OPENAI_API_KEY) {
+  } else if (provider === 'openai') {
     const response = await openai.chat.completions.create({
       model: 'gpt-4-turbo-preview',
       max_tokens: 500,

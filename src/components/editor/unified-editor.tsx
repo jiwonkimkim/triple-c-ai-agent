@@ -71,6 +71,16 @@ export function UnifiedEditor({
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Chat history
+  interface ChatMessage {
+    id: string;
+    role: 'user' | 'assistant';
+    content: string;
+    timestamp: Date;
+  }
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
   // History for undo/redo
   const [history, setHistory] = useState<EditableElement[][]>([initialElements || []]);
   const [historyIndex, setHistoryIndex] = useState(0);
@@ -221,7 +231,25 @@ export function UnifiedEditor({
 
   // AI 채팅으로 수정
   const handleAiEdit = useCallback(async () => {
-    if (!chatMessage.trim()) return;
+    console.log('[AI Edit Frontend] handleAiEdit called');
+    console.log('[AI Edit Frontend] chatMessage:', chatMessage);
+    if (!chatMessage.trim()) {
+      console.log('[AI Edit Frontend] Empty message, returning');
+      return;
+    }
+
+    const userMessage = chatMessage.trim();
+    console.log('[AI Edit Frontend] Sending request with message:', userMessage);
+
+    // Add user message to chat history
+    const userChatMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      content: userMessage,
+      timestamp: new Date(),
+    };
+    setChatHistory((prev) => [...prev, userChatMessage]);
+    setChatMessage('');
 
     setIsAiLoading(true);
     try {
@@ -229,42 +257,82 @@ export function UnifiedEditor({
         ? elements.find((el) => el.id === selectedElementId)
         : null;
 
+      console.log('[AI Edit Frontend] Making fetch request to /api/ai/edit');
       const response = await fetch('/api/ai/edit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           projectId,
-          message: chatMessage,
+          message: userMessage,
           targetElement,
           allElements: selectedElementId ? undefined : elements,
         }),
       });
 
-      if (!response.ok) throw new Error('AI 수정 실패');
+      console.log('[AI Edit Frontend] Response status:', response.status, response.statusText);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[AI Edit Frontend] Error response:', errorText);
+        throw new Error(`AI 수정 실패: ${response.status}`);
+      }
 
       const data = await response.json();
+      console.log('AI Edit Response:', data);
 
+      if (!data.success) {
+        throw new Error(data.error || 'AI 수정 실패');
+      }
+
+      let aiResponseContent = '';
       if (data.updatedElement && selectedElementId) {
         updateElement(selectedElementId, data.updatedElement);
+        aiResponseContent = '선택한 요소를 수정했습니다.';
       } else if (data.updatedElements) {
         setElements(data.updatedElements);
         setHistory((h) => [...h.slice(0, historyIndex + 1), data.updatedElements]);
         setHistoryIndex((i) => i + 1);
         setIsDirty(true);
+        aiResponseContent = '페이지 전체를 수정했습니다.';
       }
 
-      setChatMessage('');
+      // Add AI response to chat history
+      const aiChatMessage: ChatMessage = {
+        id: `assistant-${Date.now()}`,
+        role: 'assistant',
+        content: aiResponseContent || '수정을 완료했습니다.',
+        timestamp: new Date(),
+      };
+      setChatHistory((prev) => [...prev, aiChatMessage]);
+
       toast({ title: '수정 완료', description: 'AI가 콘텐츠를 수정했습니다.' });
     } catch (error) {
+      console.error('AI Edit Error:', error);
+      // Add error message to chat history
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+      const errorChatMessage: ChatMessage = {
+        id: `assistant-${Date.now()}`,
+        role: 'assistant',
+        content: `수정 중 오류가 발생했습니다: ${errorMessage}`,
+        timestamp: new Date(),
+      };
+      setChatHistory((prev) => [...prev, errorChatMessage]);
+
       toast({
         variant: 'destructive',
         title: 'AI 수정 실패',
-        description: '다시 시도해 주세요.',
+        description: errorMessage,
       });
     } finally {
       setIsAiLoading(false);
     }
   }, [chatMessage, selectedElementId, elements, projectId, updateElement, historyIndex, toast]);
+
+  // Auto-scroll chat to bottom when new messages arrive
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatHistory, isAiLoading]);
 
   // 키보드 단축키
   useEffect(() => {
@@ -444,12 +512,44 @@ export function UnifiedEditor({
             )}
 
             {/* Chat messages area */}
-            <div className="flex-1 overflow-y-auto p-4">
-              <div className="text-sm text-muted-foreground text-center py-8">
-                {selectedElement
-                  ? '선택한 요소를 어떻게 수정할까요?'
-                  : '전체 페이지에 대해 수정 요청을 입력하세요.'}
-              </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {chatHistory.length === 0 ? (
+                <div className="text-sm text-muted-foreground text-center py-8">
+                  {selectedElement
+                    ? '선택한 요소를 어떻게 수정할까요?'
+                    : '전체 페이지에 대해 수정 요청을 입력하세요.'}
+                </div>
+              ) : (
+                chatHistory.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={cn(
+                      'flex',
+                      msg.role === 'user' ? 'justify-end' : 'justify-start'
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        'max-w-[85%] rounded-lg px-3 py-2 text-sm',
+                        msg.role === 'user'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted text-foreground'
+                      )}
+                    >
+                      {msg.content}
+                    </div>
+                  </div>
+                ))
+              )}
+              {isAiLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-muted rounded-lg px-3 py-2 text-sm flex items-center gap-2">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <span>수정 중...</span>
+                  </div>
+                </div>
+              )}
+              <div ref={chatEndRef} />
             </div>
 
             {/* Chat input */}
