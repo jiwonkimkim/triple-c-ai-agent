@@ -6,7 +6,6 @@ import { useTheme } from 'next-themes';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   User,
-  Bell,
   Shield,
   CreditCard,
   Palette,
@@ -105,7 +104,7 @@ import {
 import { cn, getInitials, formatDate, formatRelativeTime } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
-type SettingsTab = 'profile' | 'appearance' | 'notifications' | 'security' | 'workspace' | 'billing' | 'data' | 'shortcuts';
+type SettingsTab = 'profile' | 'appearance' | 'security' | 'workspace' | 'billing' | 'data' | 'shortcuts';
 
 interface Workspace {
   id: string;
@@ -166,7 +165,6 @@ interface ShortcutKey {
 const settingsTabs = [
   { id: 'profile' as const, label: '프로필', icon: User, description: '개인 정보 관리' },
   { id: 'appearance' as const, label: '테마 및 언어', icon: Palette, description: '화면 설정' },
-  { id: 'notifications' as const, label: '알림', icon: Bell, description: '알림 설정' },
   { id: 'security' as const, label: '보안', icon: Shield, description: '비밀번호 및 보안' },
   { id: 'workspace' as const, label: '워크스페이스', icon: Users, description: '팀 관리' },
   { id: 'billing' as const, label: '결제', icon: CreditCard, description: '구독 및 결제' },
@@ -277,13 +275,6 @@ export default function SettingsPage() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-  // Notification settings
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [projectUpdates, setProjectUpdates] = useState(true);
-  const [marketingEmails, setMarketingEmails] = useState(false);
-  const [weeklyDigest, setWeeklyDigest] = useState(true);
-  const [pushNotifications, setPushNotifications] = useState(true);
-  const [soundEnabled, setSoundEnabled] = useState(false);
 
   // Language
   const [language, setLanguage] = useState('ko');
@@ -411,10 +402,6 @@ export default function SettingsPage() {
       switch (section) {
         case 'profile':
           body = { name, bio, timezone };
-          break;
-        case 'notifications':
-          endpoint = '/api/settings/notifications';
-          body = { emailNotifications, projectUpdates, marketingEmails, weeklyDigest, pushNotifications, soundEnabled };
           break;
         case 'password':
           endpoint = '/api/settings/password';
@@ -941,54 +928,6 @@ export default function SettingsPage() {
                           <SelectItem value="zh">🇨🇳 中文</SelectItem>
                         </SelectContent>
                       </Select>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
-
-              {/* Notifications Tab */}
-              {activeTab === 'notifications' && (
-                <motion.div
-                  key="notifications"
-                  variants={fadeInUp}
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
-                  className="space-y-6"
-                >
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Bell className="h-5 w-5 text-primary" />
-                        알림 설정
-                      </CardTitle>
-                      <CardDescription>알림 수신 방법을 설정합니다.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      {[
-                        { key: 'emailNotifications', label: '이메일 알림', desc: '중요한 업데이트를 이메일로 받습니다.', value: emailNotifications, onChange: setEmailNotifications },
-                        { key: 'pushNotifications', label: '푸시 알림', desc: '브라우저 푸시 알림을 받습니다.', value: pushNotifications, onChange: setPushNotifications },
-                        { key: 'projectUpdates', label: '프로젝트 업데이트', desc: '프로젝트 생성 완료, 내보내기 완료 시 알림을 받습니다.', value: projectUpdates, onChange: setProjectUpdates },
-                        { key: 'weeklyDigest', label: '주간 요약', desc: '매주 프로젝트 활동 요약을 이메일로 받습니다.', value: weeklyDigest, onChange: setWeeklyDigest },
-                        { key: 'soundEnabled', label: '알림 소리', desc: '알림 시 소리를 재생합니다.', value: soundEnabled, onChange: setSoundEnabled },
-                        { key: 'marketingEmails', label: '마케팅 이메일', desc: '새로운 기능, 팁, 프로모션 정보를 받습니다.', value: marketingEmails, onChange: setMarketingEmails },
-                      ].map((item, index) => (
-                        <div key={item.key}>
-                          {index > 0 && <Separator className="mb-6" />}
-                          <div className="flex items-center justify-between">
-                            <div className="space-y-0.5">
-                              <Label className="text-base">{item.label}</Label>
-                              <p className="text-sm text-muted-foreground">{item.desc}</p>
-                            </div>
-                            <Switch checked={item.value} onCheckedChange={item.onChange} />
-                          </div>
-                        </div>
-                      ))}
-
-                      <Button onClick={() => handleSave('notifications')} disabled={isLoading} className="gap-2">
-                        {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                        변경사항 저장
-                      </Button>
                     </CardContent>
                   </Card>
                 </motion.div>
