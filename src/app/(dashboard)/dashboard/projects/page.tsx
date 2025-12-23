@@ -17,7 +17,10 @@ import {
   Check,
   X,
   RotateCcw,
+  Eye,
+  FileText,
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -46,10 +49,16 @@ interface Project {
   title: string;
   description?: string;
   status: 'ACTIVE' | 'ARCHIVED' | 'DELETED';
+  category?: string;
+  productImages?: string[];
   brandProfile?: {
     id: string;
     name: string;
   };
+  detailPageVersions?: {
+    id: string;
+    sections: unknown;
+  }[];
   _count: {
     detailPageVersions: number;
     histories: number;
@@ -454,6 +463,26 @@ interface ProjectCardProps {
   onToggleSelect: () => void;
 }
 
+const categoryLabels: Record<string, string> = {
+  Fashion: '패션',
+  Food: '음식',
+  Beauty: '뷰티',
+  Digital: '디지털',
+  Living: '리빙',
+  Sports: '스포츠',
+  Other: '기타',
+};
+
+const categoryColors: Record<string, string> = {
+  Fashion: 'bg-pink-500',
+  Food: 'bg-orange-500',
+  Beauty: 'bg-purple-500',
+  Digital: 'bg-blue-500',
+  Living: 'bg-green-500',
+  Sports: 'bg-red-500',
+  Other: 'bg-gray-500',
+};
+
 function ProjectCard({ project, isSelected, onToggleSelect }: ProjectCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -504,93 +533,174 @@ function ProjectCard({ project, isSelected, onToggleSelect }: ProjectCardProps) 
   const isArchived = project.status === 'ARCHIVED';
   const isDeleted = project.status === 'DELETED';
 
+  // 썸네일 이미지 결정: 상세페이지 섹션의 이미지 > productImages > 기본 아이콘
+  const getFirstImageFromSections = (): string | undefined => {
+    const sections = project.detailPageVersions?.[0]?.sections;
+    if (!sections || !Array.isArray(sections)) return undefined;
+
+    for (const section of sections) {
+      // Section 타입 (blocks 배열 포함)
+      if (section.blocks && Array.isArray(section.blocks)) {
+        for (const block of section.blocks) {
+          if (block.type === 'image' && block.src) {
+            return block.src;
+          }
+        }
+      }
+      // DetailPageSection 타입 (imageUrl 필드)
+      if (section.imageUrl) {
+        return section.imageUrl;
+      }
+    }
+    return undefined;
+  };
+
+  const thumbnailUrl = getFirstImageFromSections() || project.productImages?.[0];
+  const hasVersions = project._count.detailPageVersions > 0;
+
   return (
     <>
       <Card
-        className={`group hover:shadow-md transition-shadow relative ${
+        className={`group overflow-hidden transition-all hover:shadow-lg ${
           isArchived ? 'opacity-60' : ''
         } ${isDeleted ? 'opacity-50 border-dashed' : ''} ${isSelected ? 'ring-2 ring-primary' : ''}`}
       >
-        {/* Checkbox */}
-        <div className="absolute top-3 left-3 z-10">
-          <Checkbox checked={isSelected} onCheckedChange={onToggleSelect} />
+        {/* Thumbnail */}
+        <div className="relative aspect-[4/3] bg-muted overflow-hidden">
+          {thumbnailUrl ? (
+            <img
+              src={thumbnailUrl}
+              alt={project.title}
+              className="w-full h-full object-cover transition-transform group-hover:scale-105"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted-foreground/10">
+              <FolderKanban className="h-12 w-12 text-muted-foreground/50" />
+            </div>
+          )}
+
+          {/* Overlay on hover */}
+          {!isDeleted && (
+            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+              <Link href={`/dashboard/projects/${project.id}`}>
+                <Button size="sm" variant="secondary">
+                  <Eye className="h-4 w-4 mr-1" />
+                  보기
+                </Button>
+              </Link>
+            </div>
+          )}
+
+          {/* Checkbox */}
+          <div className="absolute top-2 left-2 z-10">
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={onToggleSelect}
+              className="bg-white/80 border-white"
+            />
+          </div>
+
+          {/* Category badge */}
+          {project.category && (
+            <Badge
+              className={`absolute top-2 right-2 text-white ${categoryColors[project.category] || 'bg-gray-500'}`}
+            >
+              {categoryLabels[project.category] || project.category}
+            </Badge>
+          )}
+
+          {/* Status badges */}
+          <div className="absolute bottom-2 left-2 flex gap-1">
+            {isArchived && (
+              <Badge variant="secondary" className="bg-yellow-500/90 text-white border-0">
+                보관됨
+              </Badge>
+            )}
+            {isDeleted && (
+              <Badge variant="destructive">
+                삭제됨
+              </Badge>
+            )}
+          </div>
+
+          {/* Version count badge */}
+          {hasVersions && (
+            <Badge variant="outline" className="absolute bottom-2 right-2 bg-white/90 text-foreground">
+              <FileText className="h-3 w-3 mr-1" />
+              {project._count.detailPageVersions}
+            </Badge>
+          )}
         </div>
 
-        <CardHeader className="flex flex-row items-start justify-between space-y-0 pl-10">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
+        <CardHeader className="p-4 pb-2">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
               {!isDeleted ? (
                 <Link href={`/dashboard/projects/${project.id}`}>
-                  <CardTitle className="hover:text-primary transition-colors cursor-pointer">{project.title}</CardTitle>
+                  <CardTitle className="text-base hover:text-primary transition-colors cursor-pointer line-clamp-1">
+                    {project.title}
+                  </CardTitle>
                 </Link>
               ) : (
-                <CardTitle className="text-muted-foreground">{project.title}</CardTitle>
+                <CardTitle className="text-base text-muted-foreground line-clamp-1">{project.title}</CardTitle>
               )}
-              {isArchived && (
-                <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                  보관됨
-                </span>
-              )}
-              {isDeleted && (
-                <span className="inline-flex items-center rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
-                  삭제됨
-                </span>
-              )}
+              <CardDescription className="text-xs mt-1 line-clamp-1">
+                {project.brandProfile?.name || '브랜드 미지정'}
+              </CardDescription>
             </div>
-            <CardDescription>{project.brandProfile?.name || '브랜드 프로필 없음'}</CardDescription>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {isDeleted ? (
+                  <DropdownMenuItem onClick={() => handleStatusChange('ACTIVE')} disabled={statusMutation.isPending}>
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    {statusMutation.isPending ? '복원 중...' : '복원'}
+                  </DropdownMenuItem>
+                ) : (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link href={`/dashboard/projects/${project.id}`}>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        편집
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleStatusChange(isArchived ? 'ACTIVE' : 'ARCHIVED')}
+                      disabled={statusMutation.isPending}
+                    >
+                      {isArchived ? (
+                        <>
+                          <ArchiveRestore className="mr-2 h-4 w-4" />
+                          {statusMutation.isPending ? '복원 중...' : '보관 해제'}
+                        </>
+                      ) : (
+                        <>
+                          <Archive className="mr-2 h-4 w-4" />
+                          {statusMutation.isPending ? '보관 중...' : '보관'}
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => setIsDeleteDialogOpen(true)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      삭제
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {isDeleted ? (
-                <DropdownMenuItem onClick={() => handleStatusChange('ACTIVE')} disabled={statusMutation.isPending}>
-                  <RotateCcw className="mr-2 h-4 w-4" />
-                  {statusMutation.isPending ? '복원 중...' : '복원'}
-                </DropdownMenuItem>
-              ) : (
-                <>
-                  <DropdownMenuItem asChild>
-                    <Link href={`/dashboard/projects/${project.id}`}>
-                      <Pencil className="mr-2 h-4 w-4" />
-                      편집
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => handleStatusChange(isArchived ? 'ACTIVE' : 'ARCHIVED')}
-                    disabled={statusMutation.isPending}
-                  >
-                    {isArchived ? (
-                      <>
-                        <ArchiveRestore className="mr-2 h-4 w-4" />
-                        {statusMutation.isPending ? '복원 중...' : '보관 해제'}
-                      </>
-                    ) : (
-                      <>
-                        <Archive className="mr-2 h-4 w-4" />
-                        {statusMutation.isPending ? '보관 중...' : '보관'}
-                      </>
-                    )}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="text-destructive focus:text-destructive"
-                    onClick={() => setIsDeleteDialogOpen(true)}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    삭제
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
         </CardHeader>
-        <CardContent className="pl-10">
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <span>{project._count.detailPageVersions}개 버전</span>
+
+        <CardContent className="px-4 pb-4 pt-0">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>{formatRelativeTime(project.updatedAt)}</span>
           </div>
         </CardContent>
