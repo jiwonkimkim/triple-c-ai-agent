@@ -16,18 +16,28 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '12');
     const sortBy = searchParams.get('sortBy') || 'createdAt';
     const sortOrder = searchParams.get('sortOrder') || 'desc';
+    const mine = searchParams.get('mine') === 'true';
 
     // Build filter conditions
     const where: any = {};
 
-    // Public templates (SYSTEM) or user's own templates
-    if (session?.user?.id) {
-      where.OR = [
-        { createdBy: 'SYSTEM' },
-        { userId: session.user.id },
-      ];
+    // If mine=true, only get user's own templates
+    if (mine) {
+      if (!session?.user?.id) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      where.userId = session.user.id;
+      where.createdBy = 'USER';
     } else {
-      where.createdBy = 'SYSTEM';
+      // Public templates (SYSTEM) or user's own templates
+      if (session?.user?.id) {
+        where.OR = [
+          { createdBy: 'SYSTEM' },
+          { userId: session.user.id },
+        ];
+      } else {
+        where.createdBy = 'SYSTEM';
+      }
     }
 
     if (category && category !== 'all') {
@@ -58,6 +68,10 @@ export async function GET(request: NextRequest) {
           isReference: true,
           createdBy: true,
           createdAt: true,
+          // Additional fields for user's own templates
+          isPublished: true,
+          price: true,
+          downloadCount: true,
         },
       }),
       prisma.template.count({ where }),

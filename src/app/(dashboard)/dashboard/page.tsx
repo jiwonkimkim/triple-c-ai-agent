@@ -159,7 +159,7 @@ export default function DashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/dashboard/templates">
+            <Link href="/dashboard/marketplace">
               <Button variant="outline" className="w-full">
                 템플릿 보기
               </Button>

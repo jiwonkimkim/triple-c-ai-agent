@@ -8,13 +8,13 @@ import {
   LayoutDashboard,
   FolderKanban,
   Palette,
-  FileText,
   Settings,
   LogOut,
   Menu,
   X,
   ChevronDown,
   User,
+  Store,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -33,7 +33,7 @@ const navigation = [
   { name: '대시보드', href: '/dashboard', icon: LayoutDashboard },
   { name: '프로젝트', href: '/dashboard/projects', icon: FolderKanban },
   { name: '브랜드 프로필', href: '/dashboard/brands', icon: Palette },
-  { name: '템플릿', href: '/dashboard/templates', icon: FileText },
+  { name: '템플릿 마켓플레이스', href: '/dashboard/marketplace', icon: Store },
   { name: '설정', href: '/dashboard/settings', icon: Settings },
 ];
 

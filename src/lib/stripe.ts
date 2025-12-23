@@ -123,6 +123,22 @@ export const CREDIT_COSTS = {
   RAG_INDEXING: 1,
 } as const;
 
+// Marketplace configuration
+export const MARKETPLACE_CONFIG = {
+  PLATFORM_COMMISSION_RATE: 0.30, // 30% platform fee
+  SELLER_RATE: 0.70, // 70% seller earnings
+  MIN_TEMPLATE_PRICE: 1, // Minimum price in credits (0 = free)
+  MAX_TEMPLATE_PRICE: 100, // Maximum price in credits
+  WITHDRAWAL_MIN_AMOUNT: 10, // Minimum withdrawal amount
+} as const;
+
+// Helper function to calculate marketplace earnings
+export function calculateMarketplaceEarnings(price: number) {
+  const sellerEarning = Math.floor(price * MARKETPLACE_CONFIG.SELLER_RATE);
+  const platformFee = price - sellerEarning; // Ensures no rounding issues
+  return { sellerEarning, platformFee };
+}
+
 // Helper function to get plan by Stripe price ID
 export function getPlanByPriceId(priceId: string): PlanId | null {
   for (const [key, plan] of Object.entries(PLANS)) {

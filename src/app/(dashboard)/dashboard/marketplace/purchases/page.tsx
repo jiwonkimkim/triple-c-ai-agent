@@ -4,12 +4,12 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
-// Redirect to marketplace - templates are now part of marketplace
-export default function TemplatesPage() {
+// Redirect to marketplace purchased tab
+export default function PurchasesPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/dashboard/marketplace');
+    router.replace('/dashboard/marketplace?tab=purchased');
   }, [router]);
 
   return (

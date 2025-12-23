@@ -34,6 +34,11 @@ export default withAuth(
           return true;
         }
 
+        // Marketplace browsing is public (GET only)
+        if (pathname === '/api/marketplace/templates') {
+          return true;
+        }
+
         // All other routes require authentication
         return !!token;
       },

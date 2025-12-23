@@ -103,6 +103,13 @@ model User {
   payments             Payment[]
   creditTransactions   CreditTransaction[]
 
+  // Marketplace relations
+  templates         Template[]
+  sellerBalance     SellerBalance?
+  templatePurchases TemplatePurchase[] @relation("TemplateBuyer")
+  templateSales     TemplatePurchase[] @relation("TemplateSeller")
+  templateReviews   TemplateReview[]
+
   @@map("users")
 }
 
@@ -356,8 +363,109 @@ model Template {
   userId       String?          @map("user_id") // null for SYSTEM templates
   createdAt    DateTime         @default(now()) @map("created_at")
 
+  // Marketplace fields
+  isPublished   Boolean   @default(false) @map("is_published")
+  publishedAt   DateTime? @map("published_at")
+  price         Int       @default(0) // 0 = FREE, in credits
+  description   String?   @db.Text
+  previewImages String[]  @map("preview_images")
+  tags          String[]
+  downloadCount Int       @default(0) @map("download_count")
+  rating        Float?
+  ratingCount   Int       @default(0) @map("rating_count")
+
+  // Relations
+  user      User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  purchases TemplatePurchase[]
+  reviews   TemplateReview[]
+
   @@index([category])
+  @@index([isPublished])
   @@map("templates")
+}
+
+// ============================================
+// Marketplace Models
+// ============================================
+
+model TemplatePurchase {
+  id            String   @id @default(cuid())
+  templateId    String   @map("template_id")
+  buyerId       String   @map("buyer_id")
+  sellerId      String   @map("seller_id")
+  pricePaid     Int      @map("price_paid") // Credits spent
+  sellerEarning Int      @map("seller_earning") // 70% of price
+  platformFee   Int      @map("platform_fee") // 30% of price
+  purchasedAt   DateTime @default(now()) @map("purchased_at")
+
+  // Relations
+  template Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  buyer    User     @relation("TemplateBuyer", fields: [buyerId], references: [id])
+  seller   User     @relation("TemplateSeller", fields: [sellerId], references: [id])
+
+  @@unique([templateId, buyerId]) // User can only purchase once
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([purchasedAt])
+  @@map("template_purchases")
+}
+
+model SellerBalance {
+  id               String   @id @default(cuid())
+  userId           String   @unique @map("user_id")
+  availableCredits Int      @default(0) @map("available_credits")
+  totalEarned      Int      @default(0) @map("total_earned")
+  totalWithdrawn   Int      @default(0) @map("total_withdrawn")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions SellerTransaction[]
+
+  @@map("seller_balances")
+}
+
+enum SellerTransactionType {
+  SALE
+  WITHDRAWAL
+  REFUND
+}
+
+model SellerTransaction {
+  id          String                @id @default(cuid())
+  sellerId    String                @map("seller_id")
+  type        SellerTransactionType
+  amount      Int
+  balance     Int // Balance after transaction
+  description String?
+  templateId  String?               @map("template_id")
+  purchaseId  String?               @map("purchase_id")
+  createdAt   DateTime              @default(now()) @map("created_at")
+
+  // Relations
+  sellerBalance SellerBalance @relation(fields: [sellerId], references: [userId])
+
+  @@index([sellerId])
+  @@index([createdAt])
+  @@map("seller_transactions")
+}
+
+model TemplateReview {
+  id         String   @id @default(cuid())
+  templateId String   @map("template_id")
+  userId     String   @map("user_id")
+  rating     Int // 1-5
+  comment    String?  @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  template Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([templateId, userId]) // One review per user per template
+  @@index([templateId])
+  @@map("template_reviews")
 }
 
 // ============================================
@@ -558,6 +666,8 @@ enum CreditTransactionType {
   REFUND
   BONUS
   ADMIN_ADJUSTMENT
+  TEMPLATE_PURCHASE   // Buy template from marketplace
+  SELLER_WITHDRAWAL   // Seller converts earnings to credits
 }
 
 model CreditTransaction {

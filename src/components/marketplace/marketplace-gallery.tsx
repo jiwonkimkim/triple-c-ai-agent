@@ -1,0 +1,305 @@
+'use client';
+
+import { useState, useCallback, useEffect } from 'react';
+import { Search, SlidersHorizontal, Loader2, Layout } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  MarketplaceTemplateCard,
+  MarketplaceTemplateData,
+} from './marketplace-template-card';
+import { PurchaseConfirmDialog } from './purchase-confirm-dialog';
+import { useDebounce } from '@/hooks/use-debounce';
+
+interface MarketplaceGalleryProps {
+  projectId?: string;
+  onApplyTemplate?: (templateId: string) => void;
+}
+
+const categories = [
+  { value: 'all', label: '전체' },
+  { value: 'GENERIC', label: '일반' },
+  { value: 'FASHION', label: '패션' },
+  { value: 'FOOD', label: '음식' },
+  { value: 'BEAUTY', label: '뷰티' },
+  { value: 'DIGITAL', label: '디지털' },
+];
+
+const sortOptions = [
+  { value: 'newest', label: '최신순' },
+  { value: 'popular', label: '인기순' },
+  { value: 'rating', label: '평점순' },
+  { value: 'price_low', label: '가격 낮은순' },
+  { value: 'price_high', label: '가격 높은순' },
+];
+
+export function MarketplaceGallery({
+  projectId,
+  onApplyTemplate,
+}: MarketplaceGalleryProps) {
+  const [templates, setTemplates] = useState<MarketplaceTemplateData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('all');
+  const [sortBy, setSortBy] = useState('newest');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [purchaseTemplate, setPurchaseTemplate] =
+    useState<MarketplaceTemplateData | null>(null);
+  const [userCredits, setUserCredits] = useState<number | null>(null);
+
+  const debouncedSearch = useDebounce(search, 300);
+
+  const fetchTemplates = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: '12',
+        sortBy,
+      });
+
+      if (category !== 'all') {
+        params.set('category', category);
+      }
+
+      if (debouncedSearch) {
+        params.set('search', debouncedSearch);
+      }
+
+      const response = await fetch(`/api/marketplace/templates?${params}`);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch templates');
+      }
+
+      const data = await response.json();
+      setTemplates(data.templates);
+      setTotalPages(data.pagination.totalPages);
+    } catch (err) {
+      setError('템플릿을 불러오는데 실패했습니다.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, category, sortBy, debouncedSearch]);
+
+  const fetchUserCredits = useCallback(async () => {
+    try {
+      const response = await fetch('/api/billing/credits');
+      if (response.ok) {
+        const data = await response.json();
+        setUserCredits(data.totalCredits);
+      }
+    } catch (err) {
+      console.error('Failed to fetch credits:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTemplates();
+  }, [fetchTemplates]);
+
+  useEffect(() => {
+    fetchUserCredits();
+  }, [fetchUserCredits]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [category, debouncedSearch, sortBy]);
+
+  const handlePurchase = async (template: MarketplaceTemplateData) => {
+    setPurchaseTemplate(template);
+  };
+
+  const handleConfirmPurchase = async () => {
+    if (!purchaseTemplate) return;
+
+    try {
+      const response = await fetch(
+        `/api/marketplace/templates/${purchaseTemplate.id}/purchase`,
+        {
+          method: 'POST',
+        }
+      );
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Purchase failed');
+      }
+
+      // Refresh templates and credits
+      await fetchTemplates();
+      await fetchUserCredits();
+      setPurchaseTemplate(null);
+
+      // If applying to project
+      if (projectId && onApplyTemplate) {
+        onApplyTemplate(purchaseTemplate.id);
+      }
+    } catch (err: any) {
+      alert(err.message || '구매에 실패했습니다.');
+    }
+  };
+
+  const handlePreview = (template: MarketplaceTemplateData) => {
+    // TODO: Implement preview modal
+    console.log('Preview:', template);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Search and Filters */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="템플릿 검색..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger className="w-[120px]">
+              <SlidersHorizontal className="h-4 w-4 mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((cat) => (
+                <SelectItem key={cat.value} value={cat.value}>
+                  {cat.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {sortOptions.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Category Pills */}
+      <div className="flex flex-wrap gap-2">
+        {categories.map((cat) => (
+          <Button
+            key={cat.value}
+            variant={category === cat.value ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setCategory(cat.value)}
+          >
+            {cat.label}
+          </Button>
+        ))}
+      </div>
+
+      {/* Content */}
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : error ? (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">{error}</p>
+          <Button onClick={fetchTemplates} variant="outline" className="mt-4">
+            다시 시도
+          </Button>
+        </div>
+      ) : templates.length === 0 ? (
+        <div className="text-center py-12">
+          <Layout className="h-12 w-12 mx-auto text-muted-foreground/50" />
+          <p className="mt-4 text-muted-foreground">템플릿을 찾을 수 없습니다</p>
+        </div>
+      ) : (
+        <>
+          {/* Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {templates.map((template) => (
+              <MarketplaceTemplateCard
+                key={template.id}
+                template={template}
+                onPreview={handlePreview}
+                onPurchase={handlePurchase}
+              />
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center gap-2 mt-6">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+              >
+                이전
+              </Button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum: number;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (page <= 3) {
+                    pageNum = i + 1;
+                  } else if (page >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = page - 2 + i;
+                  }
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={page === pageNum ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setPage(pageNum)}
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+              >
+                다음
+              </Button>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Purchase Confirm Dialog */}
+      <PurchaseConfirmDialog
+        template={purchaseTemplate}
+        userCredits={userCredits}
+        onConfirm={handleConfirmPurchase}
+        onCancel={() => setPurchaseTemplate(null)}
+      />
+    </div>
+  );
+}

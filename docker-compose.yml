@@ -50,6 +50,21 @@ services:
     networks:
       - triple_c_network
 
+  # pgAdmin - Web UI for PostgreSQL
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: triple_c_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: ADMIN_PASSWORD_REMOVED
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - triple_c_network
+
 volumes:
   postgres_data:
 
