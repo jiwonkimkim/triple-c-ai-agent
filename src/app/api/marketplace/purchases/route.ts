@@ -20,39 +20,39 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '12');
 
-    // Get total count
-    const total = await prisma.templatePurchase.count({
-      where: { buyerId: userId },
-    });
-
-    // Get purchases with template details
-    const purchases = await prisma.templatePurchase.findMany({
-      where: { buyerId: userId },
-      orderBy: { purchasedAt: 'desc' },
-      skip: (page - 1) * limit,
-      take: limit,
-      include: {
-        template: {
-          select: {
-            id: true,
-            name: true,
-            category: true,
-            thumbnailUrl: true,
-            description: true,
-            sections: true,
-            isReference: true,
-            user: {
-              select: {
-                id: true,
-                name: true,
-                nickname: true,
-                image: true,
+    // Run count and findMany in parallel
+    const [total, purchases] = await Promise.all([
+      prisma.templatePurchase.count({
+        where: { buyerId: userId },
+      }),
+      prisma.templatePurchase.findMany({
+        where: { buyerId: userId },
+        orderBy: { purchasedAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          template: {
+            select: {
+              id: true,
+              name: true,
+              category: true,
+              thumbnailUrl: true,
+              description: true,
+              sections: true,
+              isReference: true,
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  nickname: true,
+                  image: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      }),
+    ]);
 
     // Format response
     const formattedPurchases = purchases.map((purchase) => ({

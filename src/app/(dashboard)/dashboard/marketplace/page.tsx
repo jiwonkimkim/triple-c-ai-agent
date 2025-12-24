@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Store, Wallet, Upload } from 'lucide-react';
+import { Store, Wallet, Upload, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MarketplaceGallery } from '@/components/marketplace';
@@ -11,7 +11,7 @@ import { MyTemplatesTab } from '@/components/marketplace/my-templates-tab';
 import { PurchasedTemplatesTab } from '@/components/marketplace/purchased-templates-tab';
 import { QuickUploadModal } from '@/components/marketplace/quick-upload-modal';
 
-export default function MarketplacePage() {
+function MarketplaceContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('all');
@@ -83,5 +83,17 @@ export default function MarketplacePage() {
         onClose={() => setShowUploadModal(false)}
       />
     </div>
+  );
+}
+
+export default function MarketplacePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    }>
+      <MarketplaceContent />
+    </Suspense>
   );
 }

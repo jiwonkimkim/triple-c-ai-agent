@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
+import useSWR from 'swr';
 import {
   Loader2,
   Plus,
@@ -57,30 +58,14 @@ const categoryColors: Record<string, string> = {
   DIGITAL: 'bg-blue-500',
 };
 
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
 export function MyTemplatesTab() {
-  const [templates, setTemplates] = useState<MyTemplate[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [publishTemplate, setPublishTemplate] = useState<MyTemplate | null>(null);
 
-  const fetchMyTemplates = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/templates?mine=true');
-      if (response.ok) {
-        const data = await response.json();
-        setTemplates(data.data?.templates || []);
-      }
-    } catch (error) {
-      console.error('Error fetching templates:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchMyTemplates();
-  }, [fetchMyTemplates]);
+  const { data, isLoading, mutate } = useSWR('/api/templates?mine=true', fetcher);
+  const templates: MyTemplate[] = data?.data?.templates || [];
 
   const handleUnpublish = async (templateId: string) => {
     if (!confirm('마켓플레이스에서 내리시겠습니까?')) return;
@@ -92,7 +77,7 @@ export function MyTemplatesTab() {
       );
 
       if (response.ok) {
-        fetchMyTemplates();
+        mutate();
       } else {
         const data = await response.json();
         alert(data.error || '등록 취소에 실패했습니다.');
@@ -111,7 +96,7 @@ export function MyTemplatesTab() {
       });
 
       if (response.ok) {
-        fetchMyTemplates();
+        mutate();
       } else {
         const data = await response.json();
         alert(data.error || '삭제에 실패했습니다.');
@@ -121,7 +106,7 @@ export function MyTemplatesTab() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -273,7 +258,7 @@ export function MyTemplatesTab() {
       <CreateTemplateModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        onSuccess={fetchMyTemplates}
+        onSuccess={() => mutate()}
       />
 
       {/* Publish Template Modal */}
@@ -284,7 +269,7 @@ export function MyTemplatesTab() {
           onClose={() => setPublishTemplate(null)}
           onPublish={async () => {
             setPublishTemplate(null);
-            fetchMyTemplates();
+            mutate();
           }}
         />
       )}

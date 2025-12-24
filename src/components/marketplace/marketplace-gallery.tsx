@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import useSWR from 'swr';
 import { Search, SlidersHorizontal, Loader2, Layout } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -41,81 +42,55 @@ const sortOptions = [
   { value: 'price_high', label: '가격 높은순' },
 ];
 
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
 export function MarketplaceGallery({
   projectId,
   onApplyTemplate,
 }: MarketplaceGalleryProps) {
-  const [templates, setTemplates] = useState<MarketplaceTemplateData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [purchaseTemplate, setPurchaseTemplate] =
     useState<MarketplaceTemplateData | null>(null);
-  const [userCredits, setUserCredits] = useState<number | null>(null);
 
   const debouncedSearch = useDebounce(search, 300);
 
-  const fetchTemplates = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  // Build URL with query params
+  const buildTemplatesUrl = () => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: '12',
+      sortBy,
+    });
 
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: '12',
-        sortBy,
-      });
-
-      if (category === 'FREE') {
-        params.set('maxPrice', '0');
-      } else if (category !== 'all') {
-        params.set('category', category);
-      }
-
-      if (debouncedSearch) {
-        params.set('search', debouncedSearch);
-      }
-
-      const response = await fetch(`/api/marketplace/templates?${params}`);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch templates');
-      }
-
-      const data = await response.json();
-      setTemplates(data.templates);
-      setTotalPages(data.pagination.totalPages);
-    } catch (err) {
-      setError('템플릿을 불러오는데 실패했습니다.');
-      console.error(err);
-    } finally {
-      setLoading(false);
+    if (category === 'FREE') {
+      params.set('maxPrice', '0');
+    } else if (category !== 'all') {
+      params.set('category', category);
     }
-  }, [page, category, sortBy, debouncedSearch]);
 
-  const fetchUserCredits = useCallback(async () => {
-    try {
-      const response = await fetch('/api/billing/credits');
-      if (response.ok) {
-        const data = await response.json();
-        setUserCredits(data.totalCredits);
-      }
-    } catch (err) {
-      console.error('Failed to fetch credits:', err);
+    if (debouncedSearch) {
+      params.set('search', debouncedSearch);
     }
-  }, []);
 
-  useEffect(() => {
-    fetchTemplates();
-  }, [fetchTemplates]);
+    return `/api/marketplace/templates?${params}`;
+  };
 
-  useEffect(() => {
-    fetchUserCredits();
-  }, [fetchUserCredits]);
+  const { data: templatesData, error, isLoading, mutate } = useSWR(
+    buildTemplatesUrl(),
+    fetcher
+  );
+
+  const { data: creditsData, mutate: mutateCredits } = useSWR(
+    '/api/billing/credits',
+    fetcher
+  );
+
+  const templates: MarketplaceTemplateData[] = templatesData?.templates || [];
+  const totalPages = templatesData?.pagination?.totalPages || 1;
+  const userCredits = creditsData?.totalCredits ?? null;
 
   // Reset page when filters change
   useEffect(() => {
@@ -143,8 +118,8 @@ export function MarketplaceGallery({
       }
 
       // Refresh templates and credits
-      await fetchTemplates();
-      await fetchUserCredits();
+      mutate();
+      mutateCredits();
       setPurchaseTemplate(null);
 
       // If applying to project
@@ -218,14 +193,14 @@ export function MarketplaceGallery({
       </div>
 
       {/* Content */}
-      {loading ? (
+      {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : error ? (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">{error}</p>
-          <Button onClick={fetchTemplates} variant="outline" className="mt-4">
+          <p className="text-muted-foreground">템플릿을 불러오는데 실패했습니다.</p>
+          <Button onClick={() => mutate()} variant="outline" className="mt-4">
             다시 시도
           </Button>
         </div>

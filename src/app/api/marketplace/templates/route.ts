@@ -72,43 +72,43 @@ export async function GET(request: NextRequest) {
         break;
     }
 
-    // Get total count
-    const total = await prisma.template.count({ where });
-
-    // Get templates with seller info
-    const templates = await prisma.template.findMany({
-      where,
-      orderBy,
-      skip: (page - 1) * limit,
-      take: limit,
-      select: {
-        id: true,
-        name: true,
-        category: true,
-        thumbnailUrl: true,
-        description: true,
-        price: true,
-        tags: true,
-        downloadCount: true,
-        rating: true,
-        ratingCount: true,
-        isReference: true,
-        createdBy: true,
-        publishedAt: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            nickname: true,
-            image: true,
+    // Run count and findMany in parallel
+    const [total, templates] = await Promise.all([
+      prisma.template.count({ where }),
+      prisma.template.findMany({
+        where,
+        orderBy,
+        skip: (page - 1) * limit,
+        take: limit,
+        select: {
+          id: true,
+          name: true,
+          category: true,
+          thumbnailUrl: true,
+          description: true,
+          price: true,
+          tags: true,
+          downloadCount: true,
+          rating: true,
+          ratingCount: true,
+          isReference: true,
+          createdBy: true,
+          publishedAt: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              nickname: true,
+              image: true,
+            },
           },
         },
-      },
-    });
+      }),
+    ]);
 
     // If user is logged in, check which templates they've purchased
     let purchasedTemplateIds: string[] = [];
-    if (userId) {
+    if (userId && templates.length > 0) {
       const purchases = await prisma.templatePurchase.findMany({
         where: {
           buyerId: userId,

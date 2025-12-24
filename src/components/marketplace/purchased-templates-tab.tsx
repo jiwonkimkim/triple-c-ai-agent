@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
+import useSWR from 'swr';
 import { Loader2, ShoppingBag, Layout, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -48,33 +49,18 @@ const categoryColors: Record<string, string> = {
   DIGITAL: 'bg-blue-500',
 };
 
+const fetcher = (url: string) => fetch(url).then(res => res.json());
+
 export function PurchasedTemplatesTab() {
-  const [purchases, setPurchases] = useState<PurchasedTemplate[]>([]);
-  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchPurchases = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(
-        `/api/marketplace/purchases?page=${page}&limit=12`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setPurchases(data.purchases);
-        setTotalPages(data.pagination.totalPages);
-      }
-    } catch (error) {
-      console.error('Error fetching purchases:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [page]);
+  const { data, isLoading } = useSWR(
+    `/api/marketplace/purchases?page=${page}&limit=12`,
+    fetcher
+  );
 
-  useEffect(() => {
-    fetchPurchases();
-  }, [fetchPurchases]);
+  const purchases: PurchasedTemplate[] = data?.purchases || [];
+  const totalPages = data?.pagination?.totalPages || 1;
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('ko-KR', {
@@ -84,7 +70,7 @@ export function PurchasedTemplatesTab() {
     });
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
