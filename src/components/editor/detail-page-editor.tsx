@@ -871,7 +871,7 @@ export function DetailPageEditor({
             variant="outline"
             size="sm"
             onClick={() => setIsTemplateModalOpen(true)}
-            className="gap-2"
+            className="w-24 justify-center gap-2"
           >
             <Layout className="h-4 w-4" />
             템플릿
@@ -880,7 +880,7 @@ export function DetailPageEditor({
             variant={isChatOpen ? 'secondary' : 'outline'}
             size="sm"
             onClick={() => setIsChatOpen(!isChatOpen)}
-            className="gap-2"
+            className="w-24 justify-center gap-2"
           >
             <Sparkles className="h-4 w-4" />
             AI 편집
@@ -890,7 +890,7 @@ export function DetailPageEditor({
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button variant="outline" size="sm" className="w-24 justify-center gap-2">
                 <Download className="h-4 w-4" />
                 내보내기
               </Button>
@@ -905,7 +905,7 @@ export function DetailPageEditor({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button size="sm" onClick={save} disabled={isSaving || !isDirty} className="gap-2">
+          <Button size="sm" onClick={save} disabled={isSaving || !isDirty} className="w-24 justify-center gap-2">
             {isSaving ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
