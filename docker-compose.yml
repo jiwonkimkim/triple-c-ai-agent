@@ -36,7 +36,6 @@ services:
       - .:/app
       - /app/node_modules
       - /app/.next
-      - /dev/null:/app/.env:ro
     environment:
       - NODE_ENV=development
       - DATABASE_URL=postgresql://postgres:YOUR_PASSWORD_HERE@postgres:5432/triple_c?schema=public
