@@ -105,20 +105,64 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       });
     }
 
-    // Parse contentJson to elements format
-    const contentJson = latestVersion.contentJson as {
-      elements?: Array<{
-        id: string;
-        type: string;
-        content: string;
-        styles?: Record<string, string>;
-        level?: number;
-        alt?: string;
-      }>;
-    };
+    // Parse contentJson - can be sections array (new format) or { elements: [...] } (legacy)
+    const contentJson = latestVersion.contentJson as
+      | Array<{
+          id: string;
+          name: string;
+          blocks: Array<{
+            id: string;
+            type: string;
+            src?: string;
+            alt?: string;
+            overlayTexts?: Array<{
+              id: string;
+              type: string;
+              content: string;
+              style: {
+                x: number;
+                y: number;
+                fontSize: number;
+                fontWeight: string;
+                fontFamily: string;
+                color: string;
+                textShadow: boolean;
+                textAlign: string;
+                opacity: number;
+                rotation: number;
+              };
+              zIndex: number;
+            }>;
+            overlayGradient?: string;
+          }>;
+        }>
+      | {
+          elements?: Array<{
+            id: string;
+            type: string;
+            content: string;
+            styles?: Record<string, string>;
+            level?: number;
+            alt?: string;
+          }>;
+        }
+      | null;
 
-    // If contentJson.elements exists, use it
-    if (contentJson?.elements && contentJson.elements.length > 0) {
+    // Check if contentJson is an array (new editor sections format - saved by auto-save)
+    if (Array.isArray(contentJson) && contentJson.length > 0) {
+      return NextResponse.json({
+        success: true,
+        data: {
+          editorSections: contentJson,
+          versionId: latestVersion.id,
+          versionNumber: latestVersion.versionNumber,
+          updatedAt: latestVersion.updatedAt,
+        },
+      });
+    }
+
+    // If contentJson.elements exists, use it (legacy format)
+    if (contentJson && !Array.isArray(contentJson) && contentJson.elements && contentJson.elements.length > 0) {
       return NextResponse.json({
         success: true,
         data: {
@@ -130,7 +174,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       });
     }
 
-    // Convert sections to editor sections format (each AI section becomes an editor section)
+    // Convert sections to editor sections format (each AI section becomes an editor section) - fallback for first load
     const aiSections = latestVersion.sections as Array<{
       id: string;
       type: string;
