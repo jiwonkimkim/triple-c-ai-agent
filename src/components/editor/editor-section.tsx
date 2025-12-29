@@ -18,7 +18,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { BlockRenderer } from './block-renderer';
@@ -43,15 +42,9 @@ interface EditorSectionProps {
 }
 
 const blockTypes: { type: BlockType; label: string; description: string }[] = [
-  { type: 'heading', label: 'Heading', description: 'Large title text' },
-  { type: 'text', label: 'Text', description: 'Paragraph text' },
-  { type: 'image', label: 'Image', description: 'Upload or embed image' },
-  { type: 'image-overlay', label: 'Image + Text', description: '이미지 위에 텍스트 오버레이' },
-  { type: 'button', label: 'Button', description: 'Call-to-action button' },
-  { type: 'list', label: 'List', description: 'Bullet or numbered list' },
-  { type: 'quote', label: 'Quote', description: 'Blockquote with author' },
-  { type: 'divider', label: 'Divider', description: 'Horizontal line' },
-  { type: 'spacer', label: 'Spacer', description: 'Empty space' },
+  { type: 'image-overlay', label: '이미지 + 텍스트', description: '이미지 위에 텍스트를 자유롭게 배치' },
+  { type: 'spacer', label: '여백', description: '섹션 간 여백 추가' },
+  { type: 'divider', label: '구분선', description: '가로 구분선' },
 ];
 
 const defaultBlockContent: Record<BlockType, Omit<EditorBlock, 'id'>> = {
@@ -68,12 +61,18 @@ const defaultBlockContent: Record<BlockType, Omit<EditorBlock, 'id'>> = {
         type: 'headline',
         content: '헤드라인을 입력하세요',
         style: {
-          position: 'center',
-          fontSize: '3xl',
+          x: 50,
+          y: 40,
+          fontSize: 48,
           fontWeight: 'bold',
+          fontFamily: 'Pretendard, sans-serif',
           color: '#ffffff',
           textShadow: true,
+          textAlign: 'center',
+          opacity: 100,
+          rotation: 0,
         },
+        zIndex: 1,
       },
     ],
     overlayGradient: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.5))',
@@ -343,20 +342,17 @@ function AddBlockDropdown({ onAddBlock }: { onAddBlock: (type: BlockType) => voi
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2">
           <Plus className="h-4 w-4" />
-          Add Block
+          블록 추가
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="center" className="w-56">
-        {blockTypes.map((item, index) => (
-          <div key={item.type}>
-            {index === 4 && <DropdownMenuSeparator />}
-            <DropdownMenuItem onClick={() => onAddBlock(item.type)}>
-              <div>
-                <div className="font-medium">{item.label}</div>
-                <div className="text-xs text-muted-foreground">{item.description}</div>
-              </div>
-            </DropdownMenuItem>
-          </div>
+        {blockTypes.map((item) => (
+          <DropdownMenuItem key={item.type} onClick={() => onAddBlock(item.type)}>
+            <div>
+              <div className="font-medium">{item.label}</div>
+              <div className="text-xs text-muted-foreground">{item.description}</div>
+            </div>
+          </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
     </DropdownMenu>

@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import Image from 'next/image';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
 import {
   Select,
   SelectContent,
@@ -27,7 +27,21 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Plus, Trash2, Settings, Type, Move } from 'lucide-react';
+import {
+  Plus,
+  Trash2,
+  Settings,
+  Type,
+  Layers,
+  ChevronUp,
+  ChevronDown,
+  Copy,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Bold,
+  Upload,
+} from 'lucide-react';
 import type { ImageOverlayBlock, OverlayText, OverlayTextStyle } from '@/stores/editor-store';
 
 interface ImageOverlayBlockRendererProps {
@@ -37,75 +51,68 @@ interface ImageOverlayBlockRendererProps {
   onUpdate: (updates: Partial<ImageOverlayBlock>) => void;
 }
 
-// 위치별 CSS 클래스 매핑
-const positionClasses: Record<OverlayTextStyle['position'], string> = {
-  'top-left': 'top-4 left-4',
-  'top-center': 'top-4 left-1/2 -translate-x-1/2',
-  'top-right': 'top-4 right-4',
-  'center-left': 'top-1/2 left-4 -translate-y-1/2',
-  'center': 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
-  'center-right': 'top-1/2 right-4 -translate-y-1/2',
-  'bottom-left': 'bottom-4 left-4',
-  'bottom-center': 'bottom-4 left-1/2 -translate-x-1/2',
-  'bottom-right': 'bottom-4 right-4',
-};
-
-// 폰트 크기 클래스 매핑
-const fontSizeClasses: Record<NonNullable<OverlayTextStyle['fontSize']>, string> = {
-  'sm': 'text-sm',
-  'base': 'text-base',
-  'lg': 'text-lg',
-  'xl': 'text-xl',
-  '2xl': 'text-2xl',
-  '3xl': 'text-3xl',
-  '4xl': 'text-4xl',
-};
-
-// 폰트 굵기 클래스 매핑
-const fontWeightClasses: Record<NonNullable<OverlayTextStyle['fontWeight']>, string> = {
-  'normal': 'font-normal',
-  'medium': 'font-medium',
-  'semibold': 'font-semibold',
-  'bold': 'font-bold',
-};
+// 폰트 옵션
+const fontOptions = [
+  { value: 'Pretendard, sans-serif', label: 'Pretendard' },
+  { value: 'Noto Sans KR, sans-serif', label: 'Noto Sans KR' },
+  { value: 'Nanum Gothic, sans-serif', label: '나눔고딕' },
+  { value: 'Nanum Myeongjo, serif', label: '나눔명조' },
+  { value: 'Black Han Sans, sans-serif', label: '검은고딕' },
+  { value: 'Jua, sans-serif', label: '주아' },
+  { value: 'Do Hyeon, sans-serif', label: '도현' },
+  { value: 'Gaegu, cursive', label: '개구' },
+  { value: 'Arial, sans-serif', label: 'Arial' },
+  { value: 'Georgia, serif', label: 'Georgia' },
+  { value: 'Impact, sans-serif', label: 'Impact' },
+];
 
 // 텍스트 타입별 기본 스타일
 const defaultStylesByType: Record<OverlayText['type'], Partial<OverlayTextStyle>> = {
   headline: {
-    position: 'top-center',
-    fontSize: '3xl',
+    x: 50,
+    y: 30,
+    fontSize: 48,
     fontWeight: 'bold',
     color: '#ffffff',
     textShadow: true,
+    textAlign: 'center',
   },
   subheadline: {
-    position: 'top-center',
-    fontSize: 'xl',
+    x: 50,
+    y: 45,
+    fontSize: 24,
     fontWeight: 'medium',
     color: '#ffffff',
     textShadow: true,
+    textAlign: 'center',
   },
   body: {
-    position: 'center',
-    fontSize: 'base',
+    x: 50,
+    y: 60,
+    fontSize: 16,
     fontWeight: 'normal',
     color: '#ffffff',
     textShadow: true,
+    textAlign: 'center',
   },
   statistic: {
-    position: 'center',
-    fontSize: '4xl',
+    x: 50,
+    y: 50,
+    fontSize: 64,
     fontWeight: 'bold',
     color: '#ffffff',
     textShadow: true,
+    textAlign: 'center',
   },
   cta: {
-    position: 'bottom-center',
-    fontSize: 'lg',
+    x: 50,
+    y: 80,
+    fontSize: 18,
     fontWeight: 'semibold',
     color: '#ffffff',
     backgroundColor: 'rgba(0,0,0,0.7)',
-    padding: '0.5rem 1.5rem',
+    padding: '12px 24px',
+    textAlign: 'center',
   },
 };
 
@@ -117,33 +124,92 @@ export function ImageOverlayBlockRenderer({
   onSelect,
   onUpdate,
 }: ImageOverlayBlockRendererProps) {
-  const [editingTextId, setEditingTextId] = useState<string | null>(null);
+  const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
   const [showImageSettings, setShowImageSettings] = useState(false);
+  const [showLayerPanel, setShowLayerPanel] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 드래그 시작
+  const handleDragStart = useCallback((e: React.MouseEvent, textId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedTextId(textId);
+    setIsDragging(true);
+  }, []);
+
+  // 드래그 중
+  const handleDrag = useCallback((e: MouseEvent) => {
+    if (!isDragging || !selectedTextId || !containerRef.current) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    // 범위 제한 (0-100)
+    const clampedX = Math.max(0, Math.min(100, x));
+    const clampedY = Math.max(0, Math.min(100, y));
+
+    onUpdate({
+      overlayTexts: block.overlayTexts.map((text) =>
+        text.id === selectedTextId
+          ? { ...text, style: { ...text.style, x: clampedX, y: clampedY } }
+          : text
+      ),
+    });
+  }, [isDragging, selectedTextId, block.overlayTexts, onUpdate]);
+
+  // 드래그 종료
+  const handleDragEnd = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  // 마우스 이벤트 리스너
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleDrag);
+      window.addEventListener('mouseup', handleDragEnd);
+      return () => {
+        window.removeEventListener('mousemove', handleDrag);
+        window.removeEventListener('mouseup', handleDragEnd);
+      };
+    }
+  }, [isDragging, handleDrag, handleDragEnd]);
 
   // 오버레이 텍스트 추가
   const handleAddOverlayText = (type: OverlayText['type']) => {
     const defaultStyle = defaultStylesByType[type];
+    const maxZIndex = Math.max(...block.overlayTexts.map((t) => t.zIndex || 0), 0);
     const newText: OverlayText = {
       id: generateId(),
       type,
-      content: type === 'headline' ? '헤드라인' :
+      content: type === 'headline' ? '헤드라인을 입력하세요' :
                type === 'subheadline' ? '서브헤드라인' :
                type === 'statistic' ? '92%' :
-               type === 'cta' ? '지금 만나보세요' : '본문 텍스트',
+               type === 'cta' ? '지금 만나보세요' : '본문 텍스트를 입력하세요',
       style: {
-        position: defaultStyle.position || 'center',
-        fontSize: defaultStyle.fontSize || 'base',
+        x: defaultStyle.x || 50,
+        y: defaultStyle.y || 50,
+        fontSize: defaultStyle.fontSize || 16,
         fontWeight: defaultStyle.fontWeight || 'normal',
+        fontFamily: 'Pretendard, sans-serif',
         color: defaultStyle.color || '#ffffff',
         backgroundColor: defaultStyle.backgroundColor,
         padding: defaultStyle.padding,
         textShadow: defaultStyle.textShadow,
+        textAlign: defaultStyle.textAlign || 'center',
+        opacity: 100,
+        rotation: 0,
       },
+      zIndex: maxZIndex + 1,
     };
 
     onUpdate({
       overlayTexts: [...block.overlayTexts, newText],
     });
+    setSelectedTextId(newText.id);
   };
 
   // 오버레이 텍스트 업데이트
@@ -156,7 +222,7 @@ export function ImageOverlayBlockRenderer({
   };
 
   // 오버레이 텍스트 스타일 업데이트
-  const handleUpdateOverlayTextStyle = (textId: string, styleUpdates: Partial<OverlayTextStyle>) => {
+  const handleUpdateStyle = (textId: string, styleUpdates: Partial<OverlayTextStyle>) => {
     onUpdate({
       overlayTexts: block.overlayTexts.map((text) =>
         text.id === textId ? { ...text, style: { ...text.style, ...styleUpdates } } : text
@@ -169,36 +235,103 @@ export function ImageOverlayBlockRenderer({
     onUpdate({
       overlayTexts: block.overlayTexts.filter((text) => text.id !== textId),
     });
-    setEditingTextId(null);
+    setSelectedTextId(null);
   };
+
+  // 레이어 순서 변경
+  const handleMoveLayer = (textId: string, direction: 'up' | 'down') => {
+    const sortedTexts = [...block.overlayTexts].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+    const index = sortedTexts.findIndex((t) => t.id === textId);
+
+    if (direction === 'up' && index < sortedTexts.length - 1) {
+      const temp = sortedTexts[index].zIndex;
+      sortedTexts[index].zIndex = sortedTexts[index + 1].zIndex;
+      sortedTexts[index + 1].zIndex = temp;
+    } else if (direction === 'down' && index > 0) {
+      const temp = sortedTexts[index].zIndex;
+      sortedTexts[index].zIndex = sortedTexts[index - 1].zIndex;
+      sortedTexts[index - 1].zIndex = temp;
+    }
+
+    onUpdate({ overlayTexts: sortedTexts });
+  };
+
+  // 레이어 복제
+  const handleDuplicateLayer = (textId: string) => {
+    const text = block.overlayTexts.find((t) => t.id === textId);
+    if (!text) return;
+
+    const maxZIndex = Math.max(...block.overlayTexts.map((t) => t.zIndex || 0), 0);
+    const newText: OverlayText = {
+      ...text,
+      id: generateId(),
+      style: {
+        ...text.style,
+        x: text.style.x + 5,
+        y: text.style.y + 5,
+      },
+      zIndex: maxZIndex + 1,
+    };
+
+    onUpdate({ overlayTexts: [...block.overlayTexts, newText] });
+    setSelectedTextId(newText.id);
+  };
+
+  // 이미지 업로드
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      onUpdate({ src: event.target?.result as string });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const selectedText = block.overlayTexts.find((t) => t.id === selectedTextId);
 
   return (
     <div
       className={cn(
-        'relative rounded-lg overflow-hidden cursor-pointer transition-all',
+        'relative rounded-lg overflow-hidden transition-all',
         isSelected && 'ring-2 ring-primary'
       )}
       onClick={onSelect}
     >
-      {/* 이미지 */}
-      <div className="relative aspect-[3/4] bg-muted">
+      {/* 이미지 캔버스 */}
+      <div
+        ref={containerRef}
+        className="relative bg-muted"
+        style={{ aspectRatio: '3/4' }}
+      >
         {block.src ? (
-          <Image
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
             src={block.src}
             alt={block.alt || '상세페이지 이미지'}
-            fill
-            className="object-cover"
+            className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-muted">
-            <div className="text-center text-muted-foreground">
-              <Type className="h-12 w-12 mx-auto mb-2 opacity-50" />
-              <p>이미지를 추가하세요</p>
+          <div
+            className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900 cursor-pointer"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <div className="text-center text-white/70">
+              <Upload className="h-12 w-12 mx-auto mb-2" />
+              <p>클릭하여 이미지 업로드</p>
             </div>
           </div>
         )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleImageUpload}
+        />
 
-        {/* 오버레이 그라데이션 (텍스트 가독성용) */}
+        {/* 오버레이 그라데이션 */}
         {block.overlayGradient && (
           <div
             className="absolute inset-0 pointer-events-none"
@@ -206,62 +339,97 @@ export function ImageOverlayBlockRenderer({
           />
         )}
 
-        {/* 오버레이 텍스트들 */}
-        {block.overlayTexts.map((overlayText) => (
-          <div
-            key={overlayText.id}
-            className={cn(
-              'absolute max-w-[80%] transition-all',
-              positionClasses[overlayText.style.position],
-              editingTextId === overlayText.id && 'ring-2 ring-yellow-400'
-            )}
-            style={{
-              color: overlayText.style.color || '#ffffff',
-              backgroundColor: overlayText.style.backgroundColor,
-              padding: overlayText.style.padding,
-              textShadow: overlayText.style.textShadow ? '0 2px 4px rgba(0,0,0,0.5)' : undefined,
-              borderRadius: overlayText.style.padding ? '0.25rem' : undefined,
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              setEditingTextId(overlayText.id);
-            }}
-          >
-            {editingTextId === overlayText.id ? (
-              <input
-                type="text"
-                value={overlayText.content}
-                onChange={(e) => handleUpdateOverlayText(overlayText.id, { content: e.target.value })}
-                className={cn(
-                  'bg-transparent border-none outline-none w-full min-w-[100px]',
-                  fontSizeClasses[overlayText.style.fontSize || 'base'],
-                  fontWeightClasses[overlayText.style.fontWeight || 'normal']
-                )}
-                style={{ color: 'inherit' }}
-                autoFocus
-                onBlur={() => setEditingTextId(null)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') setEditingTextId(null);
-                }}
-              />
-            ) : (
-              <span
-                className={cn(
-                  fontSizeClasses[overlayText.style.fontSize || 'base'],
-                  fontWeightClasses[overlayText.style.fontWeight || 'normal']
-                )}
-              >
-                {overlayText.content}
-              </span>
-            )}
-          </div>
-        ))}
+        {/* 오버레이 텍스트들 (레이어) */}
+        {block.overlayTexts
+          .sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0))
+          .map((overlayText) => (
+            <div
+              key={overlayText.id}
+              className={cn(
+                'absolute cursor-move select-none transition-shadow',
+                selectedTextId === overlayText.id && 'ring-2 ring-yellow-400 ring-offset-2',
+                isDragging && selectedTextId === overlayText.id && 'cursor-grabbing'
+              )}
+              style={{
+                left: `${overlayText.style.x}%`,
+                top: `${overlayText.style.y}%`,
+                transform: `translate(-50%, -50%) rotate(${overlayText.style.rotation || 0}deg)`,
+                zIndex: overlayText.zIndex || 0,
+                opacity: (overlayText.style.opacity || 100) / 100,
+              }}
+              onMouseDown={(e) => handleDragStart(e, overlayText.id)}
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                setSelectedTextId(overlayText.id);
+                setIsEditing(true);
+              }}
+            >
+              {isEditing && selectedTextId === overlayText.id ? (
+                <textarea
+                  value={overlayText.content}
+                  onChange={(e) => handleUpdateOverlayText(overlayText.id, { content: e.target.value })}
+                  onBlur={() => setIsEditing(false)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') setIsEditing(false);
+                  }}
+                  autoFocus
+                  className="bg-transparent border-none outline-none resize-none text-center min-w-[100px]"
+                  style={{
+                    color: overlayText.style.color || '#ffffff',
+                    fontSize: `${overlayText.style.fontSize || 16}px`,
+                    fontWeight: overlayText.style.fontWeight === 'bold' ? 700 :
+                               overlayText.style.fontWeight === 'semibold' ? 600 :
+                               overlayText.style.fontWeight === 'medium' ? 500 : 400,
+                    fontFamily: overlayText.style.fontFamily || 'Pretendard, sans-serif',
+                    textShadow: overlayText.style.textShadow ? '0 2px 8px rgba(0,0,0,0.8)' : undefined,
+                    textAlign: overlayText.style.textAlign || 'center',
+                    letterSpacing: overlayText.style.letterSpacing ? `${overlayText.style.letterSpacing}px` : undefined,
+                    lineHeight: overlayText.style.lineHeight || 1.4,
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    color: overlayText.style.color || '#ffffff',
+                    backgroundColor: overlayText.style.backgroundColor,
+                    padding: overlayText.style.padding,
+                    fontSize: `${overlayText.style.fontSize || 16}px`,
+                    fontWeight: overlayText.style.fontWeight === 'bold' ? 700 :
+                               overlayText.style.fontWeight === 'semibold' ? 600 :
+                               overlayText.style.fontWeight === 'medium' ? 500 : 400,
+                    fontFamily: overlayText.style.fontFamily || 'Pretendard, sans-serif',
+                    textShadow: overlayText.style.textShadow ? '0 2px 8px rgba(0,0,0,0.8)' : undefined,
+                    textAlign: overlayText.style.textAlign || 'center',
+                    letterSpacing: overlayText.style.letterSpacing ? `${overlayText.style.letterSpacing}px` : undefined,
+                    lineHeight: overlayText.style.lineHeight || 1.4,
+                    borderRadius: overlayText.style.padding ? '4px' : undefined,
+                    whiteSpace: 'pre-wrap',
+                  }}
+                >
+                  {overlayText.content}
+                </div>
+              )}
+            </div>
+          ))}
       </div>
 
-      {/* 편집 도구 패널 (선택 시) */}
+      {/* 상단 도구 버튼 */}
       {isSelected && (
-        <div className="absolute top-2 right-2 flex flex-col gap-1">
-          {/* 이미지 설정 버튼 */}
+        <div className="absolute top-2 right-2 flex gap-1">
+          {/* 레이어 패널 토글 */}
+          <Button
+            variant={showLayerPanel ? 'default' : 'secondary'}
+            size="icon"
+            className="h-8 w-8"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowLayerPanel(!showLayerPanel);
+            }}
+          >
+            <Layers className="h-4 w-4" />
+          </Button>
+
+          {/* 이미지 설정 */}
           <Dialog open={showImageSettings} onOpenChange={setShowImageSettings}>
             <DialogTrigger asChild>
               <Button variant="secondary" size="icon" className="h-8 w-8">
@@ -282,13 +450,24 @@ export function ImageOverlayBlockRenderer({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>오버레이 그라데이션</Label>
+                  <Label>이미지 업로드</Label>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    파일 선택
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  <Label>오버레이 효과</Label>
                   <Select
                     value={block.overlayGradient || 'none'}
                     onValueChange={(value) => onUpdate({ overlayGradient: value === 'none' ? undefined : value })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="그라데이션 선택" />
+                      <SelectValue placeholder="효과 선택" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">없음</SelectItem>
@@ -303,7 +482,7 @@ export function ImageOverlayBlockRenderer({
             </DialogContent>
           </Dialog>
 
-          {/* 텍스트 추가 드롭다운 */}
+          {/* 텍스트 추가 */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="h-8 w-8">
@@ -312,19 +491,24 @@ export function ImageOverlayBlockRenderer({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem onClick={() => handleAddOverlayText('headline')}>
+                <Type className="h-4 w-4 mr-2" />
                 헤드라인 (대제목)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleAddOverlayText('subheadline')}>
+                <Type className="h-4 w-4 mr-2" />
                 서브헤드라인
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleAddOverlayText('body')}>
+                <Type className="h-4 w-4 mr-2" />
                 본문
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => handleAddOverlayText('statistic')}>
+                <Type className="h-4 w-4 mr-2" />
                 통계 (수치)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleAddOverlayText('cta')}>
+                <Type className="h-4 w-4 mr-2" />
                 CTA (버튼)
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -332,101 +516,204 @@ export function ImageOverlayBlockRenderer({
         </div>
       )}
 
+      {/* 레이어 패널 */}
+      {isSelected && showLayerPanel && (
+        <div className="absolute top-12 right-2 w-56 bg-background/95 backdrop-blur border rounded-lg shadow-lg p-2 max-h-64 overflow-y-auto">
+          <div className="text-xs font-medium text-muted-foreground mb-2 px-1">레이어</div>
+          {block.overlayTexts.length === 0 ? (
+            <div className="text-xs text-muted-foreground text-center py-4">
+              텍스트가 없습니다
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {[...block.overlayTexts]
+                .sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0))
+                .map((text) => (
+                  <div
+                    key={text.id}
+                    className={cn(
+                      'flex items-center gap-1 px-2 py-1.5 rounded text-xs cursor-pointer hover:bg-muted',
+                      selectedTextId === text.id && 'bg-primary/10 ring-1 ring-primary'
+                    )}
+                    onClick={() => setSelectedTextId(text.id)}
+                  >
+                    <Type className="h-3 w-3 flex-shrink-0" />
+                    <span className="flex-1 truncate">{text.content}</span>
+                    <div className="flex gap-0.5">
+                      <button
+                        className="p-0.5 hover:bg-muted-foreground/20 rounded"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMoveLayer(text.id, 'up');
+                        }}
+                      >
+                        <ChevronUp className="h-3 w-3" />
+                      </button>
+                      <button
+                        className="p-0.5 hover:bg-muted-foreground/20 rounded"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMoveLayer(text.id, 'down');
+                        }}
+                      >
+                        <ChevronDown className="h-3 w-3" />
+                      </button>
+                      <button
+                        className="p-0.5 hover:bg-muted-foreground/20 rounded"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDuplicateLayer(text.id);
+                        }}
+                      >
+                        <Copy className="h-3 w-3" />
+                      </button>
+                      <button
+                        className="p-0.5 hover:bg-destructive/20 rounded text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteOverlayText(text.id);
+                        }}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* 선택된 텍스트 편집 패널 */}
-      {isSelected && editingTextId && (
-        <div className="absolute bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t p-3">
-          {(() => {
-            const selectedText = block.overlayTexts.find((t) => t.id === editingTextId);
-            if (!selectedText) return null;
+      {isSelected && selectedText && (
+        <div className="absolute bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t p-3 space-y-3">
+          {/* 첫 번째 줄: 폰트 & 크기 */}
+          <div className="flex gap-2 items-center">
+            {/* 폰트 선택 */}
+            <Select
+              value={selectedText.style.fontFamily || 'Pretendard, sans-serif'}
+              onValueChange={(value) => handleUpdateStyle(selectedTextId!, { fontFamily: value })}
+            >
+              <SelectTrigger className="w-36 h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {fontOptions.map((font) => (
+                  <SelectItem key={font.value} value={font.value} style={{ fontFamily: font.value }}>
+                    {font.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-            return (
-              <div className="flex flex-wrap gap-2 items-center">
-                {/* 위치 선택 */}
-                <Select
-                  value={selectedText.style.position}
-                  onValueChange={(value) =>
-                    handleUpdateOverlayTextStyle(editingTextId, { position: value as OverlayTextStyle['position'] })
-                  }
+            {/* 폰트 크기 */}
+            <div className="flex items-center gap-1">
+              <Input
+                type="number"
+                value={selectedText.style.fontSize || 16}
+                onChange={(e) => handleUpdateStyle(selectedTextId!, { fontSize: Number(e.target.value) })}
+                className="w-16 h-8 text-xs"
+                min={8}
+                max={200}
+              />
+              <span className="text-xs text-muted-foreground">px</span>
+            </div>
+
+            {/* 굵기 */}
+            <div className="flex border rounded">
+              {(['normal', 'medium', 'semibold', 'bold'] as const).map((weight) => (
+                <button
+                  key={weight}
+                  className={cn(
+                    'px-2 py-1 text-xs',
+                    selectedText.style.fontWeight === weight && 'bg-primary text-primary-foreground'
+                  )}
+                  style={{ fontWeight: weight === 'bold' ? 700 : weight === 'semibold' ? 600 : weight === 'medium' ? 500 : 400 }}
+                  onClick={() => handleUpdateStyle(selectedTextId!, { fontWeight: weight })}
                 >
-                  <SelectTrigger className="w-32">
-                    <Move className="h-4 w-4 mr-1" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="top-left">좌상단</SelectItem>
-                    <SelectItem value="top-center">상단 중앙</SelectItem>
-                    <SelectItem value="top-right">우상단</SelectItem>
-                    <SelectItem value="center-left">좌측 중앙</SelectItem>
-                    <SelectItem value="center">중앙</SelectItem>
-                    <SelectItem value="center-right">우측 중앙</SelectItem>
-                    <SelectItem value="bottom-left">좌하단</SelectItem>
-                    <SelectItem value="bottom-center">하단 중앙</SelectItem>
-                    <SelectItem value="bottom-right">우하단</SelectItem>
-                  </SelectContent>
-                </Select>
+                  {weight === 'bold' ? 'B' : weight === 'semibold' ? 'SB' : weight === 'medium' ? 'M' : 'N'}
+                </button>
+              ))}
+            </div>
 
-                {/* 폰트 크기 */}
-                <Select
-                  value={selectedText.style.fontSize || 'base'}
-                  onValueChange={(value) =>
-                    handleUpdateOverlayTextStyle(editingTextId, { fontSize: value as OverlayTextStyle['fontSize'] })
-                  }
-                >
-                  <SelectTrigger className="w-24">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="sm">작게</SelectItem>
-                    <SelectItem value="base">보통</SelectItem>
-                    <SelectItem value="lg">크게</SelectItem>
-                    <SelectItem value="xl">XL</SelectItem>
-                    <SelectItem value="2xl">2XL</SelectItem>
-                    <SelectItem value="3xl">3XL</SelectItem>
-                    <SelectItem value="4xl">4XL</SelectItem>
-                  </SelectContent>
-                </Select>
+            {/* 색상 */}
+            <input
+              type="color"
+              value={selectedText.style.color || '#ffffff'}
+              onChange={(e) => handleUpdateStyle(selectedTextId!, { color: e.target.value })}
+              className="w-8 h-8 rounded cursor-pointer border"
+              title="텍스트 색상"
+            />
+          </div>
 
-                {/* 폰트 굵기 */}
-                <Select
-                  value={selectedText.style.fontWeight || 'normal'}
-                  onValueChange={(value) =>
-                    handleUpdateOverlayTextStyle(editingTextId, { fontWeight: value as OverlayTextStyle['fontWeight'] })
-                  }
-                >
-                  <SelectTrigger className="w-24">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="normal">보통</SelectItem>
-                    <SelectItem value="medium">중간</SelectItem>
-                    <SelectItem value="semibold">굵게</SelectItem>
-                    <SelectItem value="bold">더굵게</SelectItem>
-                  </SelectContent>
-                </Select>
+          {/* 두 번째 줄: 정렬 & 기타 */}
+          <div className="flex gap-2 items-center">
+            {/* 정렬 */}
+            <div className="flex border rounded">
+              <button
+                className={cn(
+                  'p-1.5',
+                  selectedText.style.textAlign === 'left' && 'bg-primary text-primary-foreground'
+                )}
+                onClick={() => handleUpdateStyle(selectedTextId!, { textAlign: 'left' })}
+              >
+                <AlignLeft className="h-4 w-4" />
+              </button>
+              <button
+                className={cn(
+                  'p-1.5',
+                  selectedText.style.textAlign === 'center' && 'bg-primary text-primary-foreground'
+                )}
+                onClick={() => handleUpdateStyle(selectedTextId!, { textAlign: 'center' })}
+              >
+                <AlignCenter className="h-4 w-4" />
+              </button>
+              <button
+                className={cn(
+                  'p-1.5',
+                  selectedText.style.textAlign === 'right' && 'bg-primary text-primary-foreground'
+                )}
+                onClick={() => handleUpdateStyle(selectedTextId!, { textAlign: 'right' })}
+              >
+                <AlignRight className="h-4 w-4" />
+              </button>
+            </div>
 
-                {/* 색상 */}
-                <input
-                  type="color"
-                  value={selectedText.style.color || '#ffffff'}
-                  onChange={(e) =>
-                    handleUpdateOverlayTextStyle(editingTextId, { color: e.target.value })
-                  }
-                  className="w-8 h-8 rounded cursor-pointer"
-                  title="텍스트 색상"
-                />
+            {/* 텍스트 그림자 */}
+            <button
+              className={cn(
+                'px-2 py-1 text-xs border rounded',
+                selectedText.style.textShadow && 'bg-primary text-primary-foreground'
+              )}
+              onClick={() => handleUpdateStyle(selectedTextId!, { textShadow: !selectedText.style.textShadow })}
+            >
+              그림자
+            </button>
 
-                {/* 삭제 버튼 */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-destructive hover:text-destructive"
-                  onClick={() => handleDeleteOverlayText(editingTextId)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            );
-          })()}
+            {/* 투명도 */}
+            <div className="flex items-center gap-2 flex-1">
+              <span className="text-xs text-muted-foreground">투명도</span>
+              <Slider
+                value={[selectedText.style.opacity || 100]}
+                onValueChange={([value]) => handleUpdateStyle(selectedTextId!, { opacity: value })}
+                min={0}
+                max={100}
+                step={1}
+                className="flex-1"
+              />
+              <span className="text-xs w-8">{selectedText.style.opacity || 100}%</span>
+            </div>
+
+            {/* 삭제 */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive hover:text-destructive"
+              onClick={() => handleDeleteOverlayText(selectedTextId!)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       )}
     </div>
@@ -440,19 +727,18 @@ export function ImageOverlayBlockPreview({
   block: ImageOverlayBlock & { id: string };
 }) {
   return (
-    <div className="relative aspect-[3/4] rounded-lg overflow-hidden">
+    <div className="relative rounded-lg overflow-hidden" style={{ aspectRatio: '3/4' }}>
       {block.src ? (
-        <Image
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
           src={block.src}
           alt={block.alt || '상세페이지 이미지'}
-          fill
-          className="object-cover"
+          className="absolute inset-0 w-full h-full object-cover"
         />
       ) : (
         <div className="absolute inset-0 bg-muted" />
       )}
 
-      {/* 오버레이 그라데이션 */}
       {block.overlayGradient && (
         <div
           className="absolute inset-0 pointer-events-none"
@@ -460,32 +746,37 @@ export function ImageOverlayBlockPreview({
         />
       )}
 
-      {/* 오버레이 텍스트들 */}
-      {block.overlayTexts.map((overlayText) => (
-        <div
-          key={overlayText.id}
-          className={cn(
-            'absolute max-w-[80%]',
-            positionClasses[overlayText.style.position]
-          )}
-          style={{
-            color: overlayText.style.color || '#ffffff',
-            backgroundColor: overlayText.style.backgroundColor,
-            padding: overlayText.style.padding,
-            textShadow: overlayText.style.textShadow ? '0 2px 4px rgba(0,0,0,0.5)' : undefined,
-            borderRadius: overlayText.style.padding ? '0.25rem' : undefined,
-          }}
-        >
-          <span
-            className={cn(
-              fontSizeClasses[overlayText.style.fontSize || 'base'],
-              fontWeightClasses[overlayText.style.fontWeight || 'normal']
-            )}
+      {block.overlayTexts
+        .sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0))
+        .map((overlayText) => (
+          <div
+            key={overlayText.id}
+            className="absolute"
+            style={{
+              left: `${overlayText.style.x}%`,
+              top: `${overlayText.style.y}%`,
+              transform: `translate(-50%, -50%) rotate(${overlayText.style.rotation || 0}deg)`,
+              zIndex: overlayText.zIndex || 0,
+              opacity: (overlayText.style.opacity || 100) / 100,
+              color: overlayText.style.color || '#ffffff',
+              backgroundColor: overlayText.style.backgroundColor,
+              padding: overlayText.style.padding,
+              fontSize: `${overlayText.style.fontSize || 16}px`,
+              fontWeight: overlayText.style.fontWeight === 'bold' ? 700 :
+                         overlayText.style.fontWeight === 'semibold' ? 600 :
+                         overlayText.style.fontWeight === 'medium' ? 500 : 400,
+              fontFamily: overlayText.style.fontFamily || 'Pretendard, sans-serif',
+              textShadow: overlayText.style.textShadow ? '0 2px 8px rgba(0,0,0,0.8)' : undefined,
+              textAlign: overlayText.style.textAlign || 'center',
+              letterSpacing: overlayText.style.letterSpacing ? `${overlayText.style.letterSpacing}px` : undefined,
+              lineHeight: overlayText.style.lineHeight || 1.4,
+              borderRadius: overlayText.style.padding ? '4px' : undefined,
+              whiteSpace: 'pre-wrap',
+            }}
           >
             {overlayText.content}
-          </span>
-        </div>
-      ))}
+          </div>
+        ))}
     </div>
   );
 }

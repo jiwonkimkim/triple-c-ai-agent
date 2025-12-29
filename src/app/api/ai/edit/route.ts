@@ -14,11 +14,21 @@ const groq = new OpenAI({
 // 편집 가능한 요소 타입
 interface EditableElement {
   id: string;
-  type: 'text' | 'image' | 'heading';
-  content: string;
+  type: 'text' | 'image' | 'heading' | 'image-overlay';
+  content?: string;
   styles?: Record<string, string>;
   level?: number;
   alt?: string;
+  // image-overlay 블록용
+  overlayTexts?: Array<{
+    id: string;
+    type: string;
+    content: string;
+    style: Record<string, unknown>;
+    zIndex?: number;
+  }>;
+  src?: string;
+  overlayGradient?: string;
 }
 
 interface EditRequest {
@@ -68,6 +78,33 @@ function shouldUseMock(): boolean {
 function generateMockEdit(message: string, element?: EditableElement): Partial<EditableElement> | null {
   if (!element) return null;
 
+  // image-overlay 블록 처리
+  if (element.type === 'image-overlay' && element.overlayTexts) {
+    const updatedOverlayTexts = element.overlayTexts.map(text => {
+      let newContent = text.content;
+
+      if (message.includes('짧게') || message.includes('줄여')) {
+        const words = text.content.split(' ');
+        newContent = words.slice(0, Math.ceil(words.length / 2)).join(' ');
+      } else if (message.includes('길게') || message.includes('자세')) {
+        newContent = text.content + ' - 더 자세한 내용';
+      } else if (message.includes('밝게') || message.includes('친근')) {
+        newContent = text.content.replace(/\./g, '!');
+      } else if (message.includes('전문') || message.includes('격식')) {
+        newContent = text.content.replace(/!/g, '.').replace(/😊/g, '');
+      } else {
+        newContent = text.content + ' (수정됨)';
+      }
+
+      return { ...text, content: newContent };
+    });
+
+    return { overlayTexts: updatedOverlayTexts };
+  }
+
+  // 일반 텍스트/헤딩 요소 처리
+  if (!element.content) return null;
+
   // 간단한 Mock 응답
   if (message.includes('짧게') || message.includes('줄여')) {
     const words = element.content.split(' ');
@@ -93,7 +130,7 @@ function generateMockEdit(message: string, element?: EditableElement): Partial<E
 // Mock 전체 페이지 편집
 function generateMockFullEdit(message: string, elements: EditableElement[]): EditableElement[] {
   return elements.map((el) => {
-    if (el.type === 'text' || el.type === 'heading') {
+    if (el.type === 'text' || el.type === 'heading' || el.type === 'image-overlay') {
       const mockUpdate = generateMockEdit(message, el);
       if (mockUpdate) {
         return { ...el, ...mockUpdate };

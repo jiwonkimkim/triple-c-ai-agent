@@ -40,13 +40,22 @@ export interface ImageBlock {
 
 // 이미지 위에 텍스트 오버레이 블록 (상세페이지용)
 export interface OverlayTextStyle {
-  position: 'top-left' | 'top-center' | 'top-right' | 'center-left' | 'center' | 'center-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
+  // 자유 위치 (퍼센트 기준, 0-100)
+  x: number;
+  y: number;
+  // 스타일
   color?: string;
   backgroundColor?: string;
   padding?: string;
-  fontSize?: 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl';
+  fontSize?: number; // px 단위
   fontWeight?: 'normal' | 'medium' | 'semibold' | 'bold';
+  fontFamily?: string;
   textShadow?: boolean;
+  textAlign?: 'left' | 'center' | 'right';
+  letterSpacing?: number;
+  lineHeight?: number;
+  opacity?: number;
+  rotation?: number; // 회전 각도
 }
 
 export interface OverlayText {
@@ -54,6 +63,7 @@ export interface OverlayText {
   type: 'headline' | 'subheadline' | 'body' | 'statistic' | 'cta';
   content: string;
   style: OverlayTextStyle;
+  zIndex?: number; // 레이어 순서
 }
 
 export interface ImageOverlayBlock {

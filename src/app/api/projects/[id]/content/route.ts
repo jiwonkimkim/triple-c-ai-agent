@@ -130,7 +130,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       });
     }
 
-    // Otherwise, convert sections to elements format
+    // Convert sections to image-overlay blocks format
     const sections = latestVersion.sections as Array<{
       id: string;
       type: string;
@@ -141,66 +141,174 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }>;
 
     if (sections && sections.length > 0) {
-      // Convert sections to elements format for the editor
-      const elements: Array<{
+      // Convert sections to image-overlay blocks format
+      const imageOverlayBlocks: Array<{
         id: string;
-        type: 'text' | 'image' | 'heading';
-        content: string;
-        styles?: Record<string, string>;
-        level?: number;
-        alt?: string;
+        type: 'image-overlay';
+        src: string;
+        alt: string;
+        overlayTexts: Array<{
+          id: string;
+          type: 'headline' | 'subheadline' | 'body' | 'statistic' | 'cta';
+          content: string;
+          style: {
+            x: number;
+            y: number;
+            fontSize: number;
+            fontWeight: 'normal' | 'medium' | 'semibold' | 'bold';
+            fontFamily: string;
+            color: string;
+            textShadow: boolean;
+            textAlign: 'left' | 'center' | 'right';
+            opacity: number;
+            rotation: number;
+          };
+          zIndex: number;
+        }>;
+        overlayGradient?: string;
       }> = [];
 
-      // Add hook message as first heading if exists
+      // Add hook message as first block if exists
       if (latestVersion.hookMessage) {
-        elements.push({
-          id: 'hook-message',
-          type: 'heading',
-          content: latestVersion.hookMessage,
-          level: 1,
-          styles: { textAlign: 'center', fontSize: '2rem', fontWeight: 'bold', marginBottom: '1.5rem' },
+        imageOverlayBlocks.push({
+          id: 'hook-block',
+          type: 'image-overlay',
+          src: sections[0]?.imageUrl || '',
+          alt: 'Hook message',
+          overlayTexts: [
+            {
+              id: 'hook-text',
+              type: 'headline',
+              content: latestVersion.hookMessage,
+              style: {
+                x: 50,
+                y: 50,
+                fontSize: 48,
+                fontWeight: 'bold',
+                fontFamily: 'Pretendard, sans-serif',
+                color: '#ffffff',
+                textShadow: true,
+                textAlign: 'center',
+                opacity: 100,
+                rotation: 0,
+              },
+              zIndex: 1,
+            },
+          ],
+          overlayGradient: 'linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.5))',
         });
       }
 
-      // Convert each section
+      // Convert each section to image-overlay block
       for (const section of sections) {
-        // Add section title as heading
+        const overlayTexts: Array<{
+          id: string;
+          type: 'headline' | 'subheadline' | 'body' | 'statistic' | 'cta';
+          content: string;
+          style: {
+            x: number;
+            y: number;
+            fontSize: number;
+            fontWeight: 'normal' | 'medium' | 'semibold' | 'bold';
+            fontFamily: string;
+            color: string;
+            textShadow: boolean;
+            textAlign: 'left' | 'center' | 'right';
+            opacity: number;
+            rotation: number;
+          };
+          zIndex: number;
+        }> = [];
+
+        let zIndex = 1;
+
+        // Add title as headline
         if (section.title) {
-          elements.push({
+          overlayTexts.push({
             id: `${section.id}-title`,
-            type: 'heading',
+            type: 'headline',
             content: section.title,
-            level: 2,
-            styles: { fontSize: '1.5rem', fontWeight: '600', marginTop: '2rem', marginBottom: '1rem' },
+            style: {
+              x: 50,
+              y: 30,
+              fontSize: 36,
+              fontWeight: 'bold',
+              fontFamily: 'Pretendard, sans-serif',
+              color: '#ffffff',
+              textShadow: true,
+              textAlign: 'center',
+              opacity: 100,
+              rotation: 0,
+            },
+            zIndex: zIndex++,
           });
         }
 
-        // Add section image if exists
-        if (section.imageUrl) {
-          elements.push({
-            id: `${section.id}-image`,
-            type: 'image',
-            content: section.imageUrl,
-            alt: section.title || 'Section image',
-            styles: { width: '100%', maxHeight: '400px', objectFit: 'cover', marginBottom: '1rem', borderRadius: '8px' },
-          });
-        }
-
-        // Add section body
+        // Add body as subheadline or body text
         if (section.body) {
-          elements.push({
-            id: `${section.id}-body`,
-            type: 'text',
-            content: section.body,
-            styles: { fontSize: '1rem', lineHeight: '1.8', color: '#333', whiteSpace: 'pre-wrap' },
-          });
+          // Split body into multiple lines if too long
+          const bodyLines = section.body.split('\n').filter(line => line.trim());
+
+          if (bodyLines.length === 1 && bodyLines[0].length < 50) {
+            // Short text - single subheadline
+            overlayTexts.push({
+              id: `${section.id}-body`,
+              type: 'subheadline',
+              content: section.body,
+              style: {
+                x: 50,
+                y: 55,
+                fontSize: 20,
+                fontWeight: 'medium',
+                fontFamily: 'Pretendard, sans-serif',
+                color: '#ffffff',
+                textShadow: true,
+                textAlign: 'center',
+                opacity: 100,
+                rotation: 0,
+              },
+              zIndex: zIndex++,
+            });
+          } else {
+            // Longer text - body type
+            overlayTexts.push({
+              id: `${section.id}-body`,
+              type: 'body',
+              content: section.body,
+              style: {
+                x: 50,
+                y: 60,
+                fontSize: 16,
+                fontWeight: 'normal',
+                fontFamily: 'Pretendard, sans-serif',
+                color: '#ffffff',
+                textShadow: true,
+                textAlign: 'center',
+                opacity: 100,
+                rotation: 0,
+              },
+              zIndex: zIndex++,
+            });
+          }
         }
+
+        // Skip if no overlay texts (shouldn't happen, but just in case)
+        if (overlayTexts.length === 0) continue;
+
+        imageOverlayBlocks.push({
+          id: section.id,
+          type: 'image-overlay',
+          src: section.imageUrl || '',
+          alt: section.title || 'Section image',
+          overlayTexts,
+          overlayGradient: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.5))',
+        });
       }
 
       return NextResponse.json({
         success: true,
         data: {
-          elements,
+          imageOverlayBlocks,
           versionId: latestVersion.id,
           versionNumber: latestVersion.versionNumber,
           updatedAt: latestVersion.updatedAt,
