@@ -13,6 +13,13 @@ import {
   buildEnhancedUserPrompt,
   ENHANCED_COPY_LENGTH_CONFIG,
 } from './enhanced-prompts';
+import {
+  orchestrateDetailPageGeneration,
+  generateSectionImagePrompt,
+  regenerateSectionImagePrompt,
+  SectionImagePrompt,
+  OrchestrationResult,
+} from './orchestration-service';
 
 // Groq client (OpenAI-compatible API)
 const groq = new OpenAI({
@@ -48,6 +55,7 @@ interface DetailPageSection {
   body: string;
   order: number;
   imageUrl?: string;
+  imagePrompt?: SectionImagePrompt; // 섹션별 이미지 생성 프롬프트
 }
 
 interface DetailPageVersion {
@@ -258,7 +266,7 @@ function shouldUseMockGeneration(): boolean {
   return false;
 }
 
-// Main generation function
+// Main generation function - 오케스트레이션 기반
 export async function generateDetailPage(
   input: GenerateDetailPageInput
 ): Promise<DetailPageVersion[]> {
@@ -271,15 +279,10 @@ export async function generateDetailPage(
     ];
   }
 
-  // 고도화된 프롬프트 사용 (올리브영 패턴 분석 기반)
-  const systemPrompt = buildEnhancedSystemPrompt(input.copyLength, input.brandContext, input.category);
-  const userPrompt = buildEnhancedUserPrompt(input);
-
   // Get available provider
   const provider = getAvailableProvider();
 
   if (!provider) {
-    // Fall back to mock generation instead of throwing error
     console.log('[DEV] No API keys configured, using mock generation');
     return [
       generateMockDetailPage(input, 0),
@@ -289,16 +292,125 @@ export async function generateDetailPage(
 
   console.log(`[AI] Using provider: ${provider}`);
 
+  try {
+    // 오케스트레이션 서비스를 사용하여 상세페이지 생성
+    // - 패턴 분석 + 사용자 입력 + OCR 참조 데이터 통합
+    // - 각 섹션별 개별 이미지 프롬프트 생성
+    console.log('[AI] Starting orchestrated generation with pattern analysis...');
+
+    const orchestrationResults = await orchestrateDetailPageGeneration({
+      productImages: input.productImages,
+      productName: input.productName,
+      category: input.category,
+      keyFeatures: input.keyFeatures,
+      targetAudience: input.targetAudience,
+      copyLength: input.copyLength,
+      brandContext: input.brandContext,
+      generateImages: input.generateImages,
+    });
+
+    // OrchestrationResult를 DetailPageVersion으로 변환
+    let versions: DetailPageVersion[] = orchestrationResults.map((result) => ({
+      hookMessage: result.hookMessage,
+      sections: result.sections.map((section) => ({
+        id: section.id,
+        type: section.type as DetailPageSection['type'],
+        title: section.title,
+        body: section.body,
+        order: section.order,
+        imagePrompt: section.imagePrompt,
+      })),
+    }));
+
+    // 이미지 생성이 활성화된 경우 Gemini로 이미지 생성
+    if (input.generateImages && isGeminiConfigured()) {
+      console.log('[AI] Generating images with Gemini using section-specific prompts...');
+
+      try {
+        const imageModel = input.imageModel || 'gemini-2.0-flash-exp';
+
+        // 각 섹션별 이미지 생성 (각 섹션의 imagePrompt 사용)
+        versions = await Promise.all(
+          versions.map(async (version) => {
+            const updatedSections = await Promise.all(
+              version.sections.map(async (section) => {
+                // 이미지 프롬프트가 있는 섹션만 이미지 생성
+                if (section.imagePrompt && ['HERO', 'FEATURES', 'SOCIAL_PROOF'].includes(section.type)) {
+                  try {
+                    // 섹션별 맞춤 프롬프트로 이미지 생성
+                    const sectionImages = await generateDetailPageImagesWithGemini(
+                      input.productName,
+                      input.category,
+                      input.keyFeatures,
+                      section.imagePrompt.imagePrompt, // 섹션별 커스텀 프롬프트 사용
+                      imageModel
+                    );
+
+                    if (sectionImages.heroImage) {
+                      return {
+                        ...section,
+                        imageUrl: base64ToDataUrl(
+                          sectionImages.heroImage.base64Data,
+                          sectionImages.heroImage.mimeType
+                        ),
+                      };
+                    }
+                  } catch (sectionImageError) {
+                    console.error(`[AI] Failed to generate image for ${section.type}:`, sectionImageError);
+                  }
+                }
+                return section;
+              })
+            );
+
+            return {
+              ...version,
+              sections: updatedSections,
+            };
+          })
+        );
+
+        console.log('[AI] Section-specific images generated successfully');
+      } catch (imageError) {
+        console.error('[AI] Failed to generate images with Gemini:', imageError);
+        // Continue without images - don't fail the entire generation
+      }
+    }
+
+    console.log('[AI] Orchestrated generation completed successfully');
+    return versions;
+
+  } catch (error) {
+    console.error('[AI] Failed to generate content from AI API:', error);
+
+    // 폴백: 기존 방식으로 생성 시도
+    console.log('[AI] Falling back to legacy generation method...');
+    return generateDetailPageLegacy(input);
+  }
+}
+
+// 레거시 생성 함수 (폴백용)
+async function generateDetailPageLegacy(
+  input: GenerateDetailPageInput
+): Promise<DetailPageVersion[]> {
+  const systemPrompt = buildEnhancedSystemPrompt(input.copyLength, input.brandContext, input.category);
+  const userPrompt = buildEnhancedUserPrompt(input);
+  const provider = getAvailableProvider();
+
+  if (!provider) {
+    return [
+      generateMockDetailPage(input, 0),
+      generateMockDetailPage(input, 1),
+    ];
+  }
+
   const generateVersion = async (versionIndex: number): Promise<DetailPageVersion> => {
-    // Add variation instruction for second version
     const variationPrompt =
       versionIndex === 1
         ? '\n\nIMPORTANT: Create a distinctly different version with alternative messaging approach, different tone, or unique angle.'
         : '';
 
     if (provider === 'groq') {
-      // Use Groq with OpenAI-compatible API
-      console.log('[AI] Using Groq with model: openai/gpt-oss-120b');
       const response = await groq.chat.completions.create({
         model: 'openai/gpt-oss-120b',
         max_tokens: 2000,
@@ -307,21 +419,14 @@ export async function generateDetailPage(
           { role: 'user', content: userPrompt + variationPrompt + '\n\nReturn only the JSON object, no additional text or markdown.' },
         ],
       });
-
       return parseResponse(response.choices[0]?.message?.content || '', versionIndex);
     } else if (provider === 'anthropic') {
       const response = await anthropic.messages.create({
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 2000,
         system: systemPrompt,
-        messages: [
-          {
-            role: 'user',
-            content: userPrompt + variationPrompt,
-          },
-        ],
+        messages: [{ role: 'user', content: userPrompt + variationPrompt }],
       });
-
       const textContent = response.content.find((c) => c.type === 'text');
       return parseResponse(textContent?.text || '', versionIndex);
     } else if (provider === 'openai') {
@@ -334,22 +439,18 @@ export async function generateDetailPage(
         ],
         response_format: { type: 'json_object' },
       });
-
       return parseResponse(response.choices[0]?.message?.content || '', versionIndex);
     } else {
-      // Use Gemini for text generation
       const gemini = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY! });
       const response = await gemini.models.generateContent({
         model: 'gemini-2.0-flash-exp',
         contents: `${systemPrompt}\n\n${userPrompt}${variationPrompt}\n\nReturn only the JSON object, no additional text or markdown.`,
       });
-
       const textContent = response.candidates?.[0]?.content?.parts?.[0]?.text || '';
       return parseResponse(textContent, versionIndex);
     }
   };
 
-  // Generate both versions concurrently with fallback to mock on failure
   try {
     const [version1, version2] = await Promise.all([
       generateVersion(0),
@@ -358,9 +459,7 @@ export async function generateDetailPage(
 
     let versions = [version1, version2];
 
-    // Generate images with Gemini if enabled and configured
     if (input.generateImages && isGeminiConfigured()) {
-      console.log('[AI] Generating images with Gemini...');
       try {
         const imageModel = input.imageModel || 'gemini-2.0-flash-exp';
         const brandStyle = input.brandContext?.imageKeywords?.join(', ');
@@ -373,7 +472,6 @@ export async function generateDetailPage(
           imageModel
         );
 
-        // Add images to sections for both versions
         versions = versions.map((version) => {
           const updatedSections = version.sections.map((section, index) => {
             if (section.type === 'HERO' && generatedImages.heroImage) {
@@ -400,35 +498,23 @@ export async function generateDetailPage(
             return section;
           });
 
-          return {
-            ...version,
-            sections: updatedSections,
-          };
+          return { ...version, sections: updatedSections };
         });
-
-        console.log('[AI] Gemini images generated successfully');
       } catch (imageError) {
-        console.error('[AI] Failed to generate images with Gemini:', imageError);
-        // Continue without images - don't fail the entire generation
+        console.error('[AI] Failed to generate images:', imageError);
       }
     }
 
     return versions;
   } catch (error) {
-    // Log the error for debugging
-    console.error('[AI] Failed to generate content from AI API:', error);
-
-    // In development or if NODE_ENV is not set, fall back to mock generation
+    console.error('[AI] Legacy generation failed:', error);
     const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
     if (isDev) {
-      console.log('[DEV] Falling back to mock generation due to API error');
       return [
         generateMockDetailPage(input, 0),
         generateMockDetailPage(input, 1),
       ];
     }
-
-    // In production, re-throw the error
     throw error;
   }
 }
@@ -581,3 +667,15 @@ Return in JSON format: {"title": "Section Title", "body": "Section content"}`;
     };
   }
 }
+
+// ============================================
+// 오케스트레이션 서비스 함수 재내보내기
+// ============================================
+
+export {
+  generateSectionImagePrompt,
+  regenerateSectionImagePrompt,
+  orchestrateDetailPageGeneration,
+} from './orchestration-service';
+
+export type { SectionImagePrompt, OrchestrationResult } from './orchestration-service';
