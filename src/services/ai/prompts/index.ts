@@ -17,6 +17,13 @@ export type {
   CategoryPattern,
   SectionStoryGuide,
   SectionCompositionGuide,
+  // 새로 추가된 타입들
+  BrandToneType,
+  BrandTonePreset,
+  CategoryColorGuide,
+  ExtendedCategoryPattern,
+  QualityCheckItem,
+  RequiredFieldDefinition,
 } from './types';
 
 // ============================================
@@ -30,7 +37,26 @@ export {
   SECTION_COMPOSITION_GUIDE,
   getCategoryPattern,
   getSectionStoryGuide,
+  // 색상 가이드 관련
+  CATEGORY_COLOR_GUIDE,
+  CONCERN_COLORS,
+  getExtendedCategoryPattern,
+  buildColorGuidePrompt,
 } from './category-patterns';
+
+// ============================================
+// 브랜드 톤 프리셋
+// ============================================
+export {
+  BRAND_TONE_PRESETS,
+  QUALITY_CHECKLIST,
+  REQUIRED_FIELDS,
+  getBrandTonePreset,
+  buildBrandTonePrompt,
+  buildQualityChecklistPrompt,
+  buildRequiredFieldsPrompt,
+  checkMissingRequiredFields,
+} from './brand-presets';
 
 // ============================================
 // 시스템 프롬프트

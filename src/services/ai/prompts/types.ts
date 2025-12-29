@@ -118,3 +118,89 @@ export interface SectionCompositionGuide {
   lighting: string;
   mood: string;
 }
+
+// ============================================
+// 브랜드 톤 프리셋
+// ============================================
+
+export type BrandToneType = 'luxury' | 'clean' | 'natural' | 'trendy' | 'derma';
+
+export interface BrandTonePreset {
+  /** 프리셋 이름 (한글) */
+  name: string;
+  /** 프리셋 설명 */
+  description: string;
+  /** 폰트 스타일 가이드 */
+  font: {
+    primary: string;
+    style: string;
+    weight: string;
+  };
+  /** 색상 팔레트 */
+  colors: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+  };
+  /** 레이아웃 스타일 */
+  layout: {
+    spacing: string;
+    density: string;
+  };
+  /** 이미지 스타일 */
+  imageStyle: string[];
+  /** 카피 톤 가이드 */
+  copyTone: string;
+  /** 예시 브랜드 */
+  exampleBrands: string[];
+}
+
+// ============================================
+// 카테고리 색상 가이드
+// ============================================
+
+export interface CategoryColorGuide {
+  /** 메인 강조 색상 */
+  primary: string;
+  /** 보조 색상 */
+  secondary: string;
+  /** 배경 색상 계열 */
+  background: string;
+  /** 색상 선택 이유/연상 */
+  rationale: string;
+}
+
+// ============================================
+// 확장된 카테고리 패턴 (색상 가이드 포함)
+// ============================================
+
+export interface ExtendedCategoryPattern extends CategoryPattern {
+  /** 카테고리별 색상 가이드 */
+  colorGuide?: CategoryColorGuide;
+  /** 고민별 세부 색상 */
+  concernColors?: Record<string, string>;
+}
+
+// ============================================
+// 품질 체크리스트 항목
+// ============================================
+
+export interface QualityCheckItem {
+  id: string;
+  category: 'content' | 'brand' | 'ux' | 'accessibility';
+  description: string;
+  required: boolean;
+}
+
+// ============================================
+// 필수 입력 필드 정의
+// ============================================
+
+export interface RequiredFieldDefinition {
+  field: string;
+  label: string;
+  required: boolean;
+  description: string;
+  example?: string;
+}

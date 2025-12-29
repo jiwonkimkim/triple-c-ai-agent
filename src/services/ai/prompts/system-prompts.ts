@@ -9,7 +9,14 @@ import {
   POSITION_PATTERNS,
   SECTION_STORY_GUIDE,
   getCategoryPattern,
+  buildColorGuidePrompt,
 } from './category-patterns';
+import {
+  getBrandTonePreset,
+  buildBrandTonePrompt,
+  buildQualityChecklistPrompt,
+  buildRequiredFieldsPrompt,
+} from './brand-presets';
 
 // ============================================
 // 메인 시스템 프롬프트 빌더
@@ -111,9 +118,25 @@ ${categoryPattern.topStats.length > 0 ? `- 분석 기반 인사이트: ${categor
 - **이모지(😊, ✨, 💕 등) 절대 사용 금지** - 순수 텍스트만 작성
 `;
 
+  // 카테고리별 색상 가이드 추가
+  if (category) {
+    const colorGuide = buildColorGuidePrompt(category);
+    if (colorGuide) {
+      systemPrompt += colorGuide;
+    }
+  }
+
   // 브랜드 컨텍스트 추가
   if (brandContext) {
-    systemPrompt += `
+    // 브랜드 톤 프리셋 확인
+    const tonePreset = getBrandTonePreset(brandContext.toneAndManner);
+
+    if (tonePreset) {
+      // 프리셋이 있으면 상세 가이드 적용
+      systemPrompt += buildBrandTonePrompt(tonePreset);
+    } else {
+      // 프리셋이 없으면 기존 방식 사용
+      systemPrompt += `
 ### 5. 브랜드 가이드라인
 
 **브랜드명:** ${brandContext.name}
@@ -128,6 +151,7 @@ ${brandContext.toneAndManner}
 
 ※ 모든 카피는 위 브랜드 가이드라인을 철저히 준수해야 합니다.
 `;
+    }
 
     if (brandContext.ragContext) {
       systemPrompt += `
@@ -136,6 +160,12 @@ ${brandContext.ragContext}
 `;
     }
   }
+
+  // 필수 정보 검증 가이드 추가
+  systemPrompt += buildRequiredFieldsPrompt();
+
+  // 품질 체크리스트 추가
+  systemPrompt += buildQualityChecklistPrompt();
 
   return systemPrompt;
 }

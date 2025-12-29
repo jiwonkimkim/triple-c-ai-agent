@@ -3,7 +3,14 @@
  * 올리브영 상세페이지 패턴 분석 기반 (398개 제품, 12,470개 이미지)
  */
 
-import type { CategoryPattern, SectionPosition, SectionStoryGuide, SectionCompositionGuide } from './types';
+import type {
+  CategoryPattern,
+  SectionPosition,
+  SectionStoryGuide,
+  SectionCompositionGuide,
+  CategoryColorGuide,
+  ExtendedCategoryPattern,
+} from './types';
 
 // ============================================
 // 카피 길이 설정
@@ -497,4 +504,231 @@ export function getCategoryPattern(category: string): CategoryPattern {
 
 export function getSectionStoryGuide(sectionType: string): SectionStoryGuide | undefined {
   return SECTION_STORY_GUIDE[sectionType];
+}
+
+// ============================================
+// 카테고리별 색상 가이드
+// Zen Editor 스타일 참고
+// ============================================
+
+export const CATEGORY_COLOR_GUIDE: Record<string, CategoryColorGuide> = {
+  // 스킨케어 - 고민별 색상
+  '스킨케어': {
+    primary: '소프트 블루 (#4A90D9)',
+    secondary: '라이트 아쿠아 (#7EC8E3)',
+    background: '아이스 블루 (#F0F8FF)',
+    rationale: '수분/보습 연상, 신뢰감과 청량함',
+  },
+  '보습': {
+    primary: '딥 블루 (#2E86AB)',
+    secondary: '아쿠아 (#00CED1)',
+    background: '라이트 블루 (#E6F3FF)',
+    rationale: '물, 수분, 촉촉함 연상',
+  },
+  '진정': {
+    primary: '소프트 그린 (#7CB342)',
+    secondary: '민트 (#98D8C8)',
+    background: '페일 그린 (#F0FFF0)',
+    rationale: '자연, 안정감, 진정 효과 연상',
+  },
+  '안티에이징': {
+    primary: '로열 퍼플 (#7B1FA2)',
+    secondary: '라벤더 (#E1BEE7)',
+    background: '소프트 퍼플 (#F3E5F5)',
+    rationale: '고급스러움, 프리미엄, 시간 초월',
+  },
+  '미백': {
+    primary: '피치 (#FFAB91)',
+    secondary: '코랄 핑크 (#FF8A80)',
+    background: '크림 화이트 (#FFFAF0)',
+    rationale: '맑은 피부, 광채, 환한 이미지',
+  },
+  '브라이트닝': {
+    primary: '골든 옐로우 (#FFD54F)',
+    secondary: '피치 (#FFCC80)',
+    background: '아이보리 (#FFFEF2)',
+    rationale: '광채, 빛나는 피부, 환한 톤',
+  },
+
+  // 선케어 - 상황별 색상
+  '선케어': {
+    primary: '선샤인 옐로우 (#FFD700)',
+    secondary: '오렌지 (#FFA500)',
+    background: '라이트 옐로우 (#FFFACD)',
+    rationale: '태양, 자외선 차단, 활력',
+  },
+  '데일리선케어': {
+    primary: '소프트 옐로우 (#FFF59D)',
+    secondary: '피치 (#FFCC80)',
+    background: '크림 (#FFFDD0)',
+    rationale: '일상적 사용, 가볍고 편안함',
+  },
+  '톤업선크림': {
+    primary: '라벤더 (#E6E6FA)',
+    secondary: '소프트 핑크 (#FFB6C1)',
+    background: '페일 라벤더 (#F8F4FF)',
+    rationale: '피부 보정, 화사함, 여성스러움',
+  },
+  '스포츠선케어': {
+    primary: '오션 블루 (#0077B6)',
+    secondary: '터쿠아즈 (#40E0D0)',
+    background: '스카이 블루 (#E0F7FA)',
+    rationale: '아웃도어, 강한 차단력, 활동적',
+  },
+
+  // 클렌징
+  '클렌징': {
+    primary: '퓨어 화이트 (#FFFFFF)',
+    secondary: '소프트 블루 (#B3E5FC)',
+    background: '클린 화이트 (#FAFAFA)',
+    rationale: '깨끗함, 순수함, 세정',
+  },
+
+  // 마스크팩
+  '마스크팩': {
+    primary: '스카이 블루 (#87CEEB)',
+    secondary: '민트 (#98FF98)',
+    background: '아이스 블루 (#F0FFFF)',
+    rationale: '집중 케어, 시원함, 수분 충전',
+  },
+
+  // 메이크업 계열
+  '메이크업': {
+    primary: '로즈 골드 (#B76E79)',
+    secondary: '블러쉬 핑크 (#FFC0CB)',
+    background: '소프트 핑크 (#FFF0F5)',
+    rationale: '여성스러움, 세련됨, 아름다움',
+  },
+  '립메이크업': {
+    primary: '레드 (#E53935)',
+    secondary: '로즈 (#E91E63)',
+    background: '블러쉬 (#FFF5F5)',
+    rationale: '입술, 관능미, 생기',
+  },
+  '립틴트': {
+    primary: '체리 레드 (#C62828)',
+    secondary: '코랄 (#FF7043)',
+    background: '피치 블러쉬 (#FFF3E0)',
+    rationale: '선명한 발색, 생기, 지속력',
+  },
+  '아이메이크업': {
+    primary: '딥 브라운 (#5D4037)',
+    secondary: '골드 (#FFD700)',
+    background: '누드 베이지 (#FFF8E7)',
+    rationale: '깊이감, 다양한 연출, 세련됨',
+  },
+  '베이스메이크업': {
+    primary: '누드 베이지 (#D4A574)',
+    secondary: '아이보리 (#FFFFF0)',
+    background: '스킨 톤 (#FFF5EE)',
+    rationale: '자연스러운 피부, 커버력, 완성도',
+  },
+
+  // 헤어/바디
+  '헤어케어': {
+    primary: '카카오 브라운 (#6D4C41)',
+    secondary: '골든 브라운 (#C9A227)',
+    background: '웜 베이지 (#F5F0E1)',
+    rationale: '건강한 모발, 윤기, 영양',
+  },
+  '바디케어': {
+    primary: '소프트 코랄 (#FF8A65)',
+    secondary: '피치 (#FFDAB9)',
+    background: '크림 (#FFFAF0)',
+    rationale: '부드러운 피부, 향기, 편안함',
+  },
+
+  // 기본값
+  'default': {
+    primary: '프리미엄 블랙 (#1A1A1A)',
+    secondary: '실버 그레이 (#C0C0C0)',
+    background: '라이트 그레이 (#F5F5F5)',
+    rationale: '세련됨, 고급스러움, 범용성',
+  },
+};
+
+// ============================================
+// 고민별 세부 색상 매핑
+// ============================================
+
+export const CONCERN_COLORS: Record<string, string> = {
+  // 피부 고민
+  '보습': '#4A90D9 (블루)',
+  '수분': '#00CED1 (아쿠아)',
+  '진정': '#7CB342 (그린)',
+  '민감': '#98D8C8 (민트)',
+  '트러블': '#66BB6A (그린)',
+  '안티에이징': '#7B1FA2 (퍼플)',
+  '탄력': '#9C27B0 (바이올렛)',
+  '주름': '#8E24AA (딥 퍼플)',
+  '미백': '#FFD54F (골드)',
+  '브라이트닝': '#FFAB91 (피치)',
+  '광채': '#FFC107 (앰버)',
+  '모공': '#78909C (블루그레이)',
+  '각질': '#A1887F (토프)',
+  '피지': '#90A4AE (쿨그레이)',
+
+  // 선케어 관련
+  '자외선차단': '#FFD700 (옐로우)',
+  '톤업': '#E6E6FA (라벤더)',
+  '워터프루프': '#0077B6 (블루)',
+
+  // 메이크업 관련
+  '지속력': '#D4AF37 (골드)',
+  '발색': '#E53935 (레드)',
+  '커버력': '#D4A574 (베이지)',
+};
+
+// ============================================
+// 확장된 카테고리 패턴 조회 (색상 포함)
+// ============================================
+
+export function getExtendedCategoryPattern(category: string): ExtendedCategoryPattern {
+  const basePattern = getCategoryPattern(category);
+  const colorGuide = CATEGORY_COLOR_GUIDE[category] || CATEGORY_COLOR_GUIDE['default'];
+
+  // 카테고리에 맞는 고민별 색상 필터링
+  const concernColors: Record<string, string> = {};
+  const keywords = basePattern.keywords;
+
+  for (const concern of Object.keys(CONCERN_COLORS)) {
+    if (keywords.some(k => k.includes(concern) || concern.includes(k))) {
+      concernColors[concern] = CONCERN_COLORS[concern];
+    }
+  }
+
+  return {
+    ...basePattern,
+    colorGuide,
+    concernColors: Object.keys(concernColors).length > 0 ? concernColors : undefined,
+  };
+}
+
+/**
+ * 색상 가이드를 프롬프트 문자열로 변환
+ */
+export function buildColorGuidePrompt(category: string): string {
+  const extended = getExtendedCategoryPattern(category);
+
+  if (!extended.colorGuide) {
+    return '';
+  }
+
+  let prompt = `
+### 카테고리 색상 가이드: ${category}
+
+**메인 컬러:** ${extended.colorGuide.primary}
+**보조 컬러:** ${extended.colorGuide.secondary}
+**배경 컬러:** ${extended.colorGuide.background}
+**색상 컨셉:** ${extended.colorGuide.rationale}
+`;
+
+  if (extended.concernColors && Object.keys(extended.concernColors).length > 0) {
+    prompt += `
+**고민별 강조 색상:**
+${Object.entries(extended.concernColors).map(([concern, color]) => `- ${concern}: ${color}`).join('\n')}
+`;
+  }
+
+  return prompt;
 }
