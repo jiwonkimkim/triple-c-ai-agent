@@ -143,8 +143,9 @@ function buildSectionContent(
   categoryVisual: string
 ): string {
   const contents: Record<SectionType, string> = {
-    // MAIN: 올리브영 main.jpg 스타일 - 제품 중심, 수상 배지, 프로모션 강조
-    MAIN: `${productAppearance} main promotional image, ${category} product hero shot with large product packaging prominently displayed in center, award badges and certification marks on corners, premium promotional banner aesthetic, festive confetti or decorative elements, gift set composition with bonus items, vibrant gradient background matching brand colors, Korean beauty e-commerce main thumbnail style, eye-catching promotional layout, NO TEXT ON IMAGE, ${visualKeywords}, ${categoryVisual}`,
+    // MAIN: 올리브영 메인 썸네일 스타일 - 상세페이지 진입 전 제품 슬로건 이미지
+    // 특징: 제품 패키지 크게 중심, 올영PICK/어워즈 배지, 프로모션 슬로건, 컬러풀 배경, 증정품 표시
+    MAIN: `${productAppearance} Korean beauty e-commerce main product thumbnail, large ${category} product packaging prominently centered and floating, dynamic diagonal composition, vibrant colorful gradient background (blue-pink or green-yellow gradient), product appears larger than life with dramatic lighting and subtle glow effect, promotional badge elements in corners (award ribbon, ranking medal, pick badge), gift set bonus items arranged around main product, celebratory confetti or sparkle effects, clean modern Korean cosmetic advertising style, high contrast eye-catching product shot for online shopping thumbnail, professional product photography with studio lighting, sharp focus on product with soft dreamy background, NO TEXT NO LETTERS NO WORDS ON IMAGE, ${visualKeywords}, ${categoryVisual}`,
 
     HERO: `premium product photography of ${productAppearance}, elegant ${category} product hero shot, soft diffused studio lighting with subtle rim light, subtle reflection on surface, luxury beauty advertisement aesthetic, premium cosmetic branding, ${visualKeywords}, ${categoryVisual}`,
 
