@@ -126,8 +126,51 @@ export function DetailPageEditor({
 
         const data = await response.json();
 
-        // Handle new image-overlay blocks format
-        if (data.success && data.data?.imageOverlayBlocks?.length > 0) {
+        // Handle new editor sections format (each AI section as separate editor section)
+        if (data.success && data.data?.editorSections?.length > 0) {
+          const convertedSections: Section[] = data.data.editorSections.map((section: {
+            id: string;
+            name: string;
+            blocks: Array<{
+              id: string;
+              type: 'image-overlay';
+              src: string;
+              alt: string;
+              overlayTexts: Array<{
+                id: string;
+                type: string;
+                content: string;
+                style: {
+                  x: number;
+                  y: number;
+                  fontSize: number;
+                  fontWeight: string;
+                  fontFamily: string;
+                  color: string;
+                  textShadow: boolean;
+                  textAlign: string;
+                  opacity: number;
+                  rotation: number;
+                };
+                zIndex: number;
+              }>;
+              overlayGradient?: string;
+            }>;
+          }) => ({
+            id: section.id,
+            name: section.name,
+            blocks: section.blocks.map(block => ({
+              id: block.id,
+              type: 'image-overlay' as const,
+              src: block.src,
+              alt: block.alt,
+              overlayTexts: block.overlayTexts,
+              overlayGradient: block.overlayGradient,
+            })),
+          }));
+          setSections(convertedSections);
+        } else if (data.success && data.data?.imageOverlayBlocks?.length > 0) {
+          // Legacy: Handle old image-overlay blocks format (single section)
           const convertedSections: Section[] = [{
             id: `section-${Date.now()}`,
             name: '메인 섹션',

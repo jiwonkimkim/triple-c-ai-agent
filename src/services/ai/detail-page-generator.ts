@@ -384,57 +384,56 @@ export async function generateDetailPage(
       })),
     }));
 
-    // 이미지 생성이 활성화된 경우 Gemini로 이미지 생성
+    // 이미지 생성이 활성화된 경우 Gemini로 메인(HERO) 이미지만 생성
     if (input.generateImages && isGeminiConfigured()) {
-      console.log('[AI] Generating images with Gemini using section-specific prompts...');
+      console.log('[AI] Generating main (HERO) image only with Gemini...');
 
       try {
         const imageModel = input.imageModel || 'gemini-2.0-flash-exp';
 
-        // 각 섹션별 이미지 생성 (각 섹션의 imagePrompt 사용)
+        // HERO 섹션에만 이미지 생성 (메인 이미지)
         versions = await Promise.all(
           versions.map(async (version) => {
-            const updatedSections = await Promise.all(
-              version.sections.map(async (section) => {
-                // 이미지 프롬프트가 있는 모든 섹션에 이미지 생성
-                // 기존: HERO, FEATURES, SOCIAL_PROOF만 생성
-                // 개선: 모든 섹션 (HOW_TO_USE, FAQ 포함)에 이미지 생성
-                if (section.imagePrompt) {
-                  try {
-                    // 섹션별 맞춤 프롬프트로 이미지 생성
-                    const sectionImages = await generateDetailPageImagesWithGemini(
-                      input.productName,
-                      input.category,
-                      input.keyFeatures,
-                      section.imagePrompt.imagePrompt, // 섹션별 커스텀 프롬프트 사용
-                      imageModel
-                    );
+            // HERO 섹션 찾기
+            const heroSection = version.sections.find(s => s.type === 'HERO');
 
-                    if (sectionImages.heroImage) {
-                      return {
-                        ...section,
-                        imageUrl: base64ToDataUrl(
-                          sectionImages.heroImage.base64Data,
-                          sectionImages.heroImage.mimeType
-                        ),
-                      };
+            if (heroSection?.imagePrompt) {
+              try {
+                // 메인 이미지 프롬프트로 이미지 생성
+                const mainImage = await generateDetailPageImagesWithGemini(
+                  input.productName,
+                  input.category,
+                  input.keyFeatures,
+                  heroSection.imagePrompt.imagePrompt,
+                  imageModel
+                );
+
+                if (mainImage.heroImage) {
+                  const imageUrl = base64ToDataUrl(
+                    mainImage.heroImage.base64Data,
+                    mainImage.heroImage.mimeType
+                  );
+
+                  // HERO 섹션에만 이미지 적용
+                  const updatedSections = version.sections.map(section => {
+                    if (section.type === 'HERO') {
+                      return { ...section, imageUrl };
                     }
-                  } catch (sectionImageError) {
-                    console.error(`[AI] Failed to generate image for ${section.type}:`, sectionImageError);
-                  }
-                }
-                return section;
-              })
-            );
+                    return section;
+                  });
 
-            return {
-              ...version,
-              sections: updatedSections,
-            };
+                  return { ...version, sections: updatedSections };
+                }
+              } catch (imageError) {
+                console.error('[AI] Failed to generate main image:', imageError);
+              }
+            }
+
+            return version;
           })
         );
 
-        console.log('[AI] Section-specific images generated successfully');
+        console.log('[AI] Main (HERO) image generated successfully');
       } catch (imageError) {
         console.error('[AI] Failed to generate images with Gemini:', imageError);
         // Continue without images - don't fail the entire generation
@@ -445,15 +444,14 @@ export async function generateDetailPage(
     if (includeDevPrompts && versions.length > 0) {
       const sectionImagePrompts: DevPromptInfo['sectionImagePrompts'] = [];
 
-      // 첫 번째 버전의 섹션들에서 이미지 프롬프트 및 생성된 이미지 수집
-      for (const section of versions[0].sections) {
-        if (section.imagePrompt) {
-          sectionImagePrompts.push({
-            sectionType: section.type,
-            imagePrompt: section.imagePrompt.imagePrompt,
-            generatedImageUrl: section.imageUrl, // 생성된 이미지 URL 포함
-          });
-        }
+      // HERO 섹션의 이미지 프롬프트만 수집 (메인 이미지만 생성하므로)
+      const heroSection = versions[0].sections.find(s => s.type === 'HERO');
+      if (heroSection?.imagePrompt) {
+        sectionImagePrompts.push({
+          sectionType: heroSection.type,
+          imagePrompt: heroSection.imagePrompt.imagePrompt,
+          generatedImageUrl: heroSection.imageUrl, // 생성된 이미지 URL 포함
+        });
       }
 
       devPrompts = {

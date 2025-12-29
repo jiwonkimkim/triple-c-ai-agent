@@ -130,8 +130,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       });
     }
 
-    // Convert sections to image-overlay blocks format
-    const sections = latestVersion.sections as Array<{
+    // Convert sections to editor sections format (each AI section becomes an editor section)
+    const aiSections = latestVersion.sections as Array<{
       id: string;
       type: string;
       title?: string;
@@ -140,67 +140,86 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       imageUrl?: string;
     }>;
 
-    if (sections && sections.length > 0) {
-      // Convert sections to image-overlay blocks format
-      const imageOverlayBlocks: Array<{
+    if (aiSections && aiSections.length > 0) {
+      // Section type to Korean name mapping
+      const sectionTypeNames: Record<string, string> = {
+        HERO: '히어로',
+        FEATURES: '제품 특징',
+        SOCIAL_PROOF: '고객 후기',
+        HOW_TO_USE: '사용 방법',
+        FAQ: 'FAQ',
+        CUSTOM: '커스텀',
+      };
+
+      // Convert each AI section to an editor section with image-overlay block
+      const editorSections: Array<{
         id: string;
-        type: 'image-overlay';
-        src: string;
-        alt: string;
-        overlayTexts: Array<{
+        name: string;
+        blocks: Array<{
           id: string;
-          type: 'headline' | 'subheadline' | 'body' | 'statistic' | 'cta';
-          content: string;
-          style: {
-            x: number;
-            y: number;
-            fontSize: number;
-            fontWeight: 'normal' | 'medium' | 'semibold' | 'bold';
-            fontFamily: string;
-            color: string;
-            textShadow: boolean;
-            textAlign: 'left' | 'center' | 'right';
-            opacity: number;
-            rotation: number;
-          };
-          zIndex: number;
+          type: 'image-overlay';
+          src: string;
+          alt: string;
+          overlayTexts: Array<{
+            id: string;
+            type: 'headline' | 'subheadline' | 'body' | 'statistic' | 'cta';
+            content: string;
+            style: {
+              x: number;
+              y: number;
+              fontSize: number;
+              fontWeight: 'normal' | 'medium' | 'semibold' | 'bold';
+              fontFamily: string;
+              color: string;
+              textShadow: boolean;
+              textAlign: 'left' | 'center' | 'right';
+              opacity: number;
+              rotation: number;
+            };
+            zIndex: number;
+          }>;
+          overlayGradient?: string;
         }>;
-        overlayGradient?: string;
       }> = [];
 
-      // Add hook message as first block if exists
+      // Add hook message as first section if exists
       if (latestVersion.hookMessage) {
-        imageOverlayBlocks.push({
-          id: 'hook-block',
-          type: 'image-overlay',
-          src: sections[0]?.imageUrl || '',
-          alt: 'Hook message',
-          overlayTexts: [
-            {
-              id: 'hook-text',
-              type: 'headline',
-              content: latestVersion.hookMessage,
-              style: {
-                x: 50,
-                y: 50,
-                fontSize: 48,
-                fontWeight: 'bold',
-                fontFamily: 'Pretendard, sans-serif',
-                color: '#ffffff',
-                textShadow: true,
-                textAlign: 'center',
-                opacity: 100,
-                rotation: 0,
+        const heroSection = aiSections.find(s => s.type === 'HERO');
+        editorSections.push({
+          id: 'hook-section',
+          name: '메인 (훅 메시지)',
+          blocks: [{
+            id: 'hook-block',
+            type: 'image-overlay',
+            src: heroSection?.imageUrl || '',
+            alt: 'Hook message',
+            overlayTexts: [
+              {
+                id: 'hook-text',
+                type: 'headline',
+                content: latestVersion.hookMessage,
+                style: {
+                  x: 50,
+                  y: 50,
+                  fontSize: 48,
+                  fontWeight: 'bold',
+                  fontFamily: 'Pretendard, sans-serif',
+                  color: '#ffffff',
+                  textShadow: true,
+                  textAlign: 'center',
+                  opacity: 100,
+                  rotation: 0,
+                },
+                zIndex: 1,
               },
-              zIndex: 1,
-            },
-          ],
-          overlayGradient: 'linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.5))',
+            ],
+            overlayGradient: 'linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.5))',
+          }],
         });
       }
 
-      // Convert each section to image-overlay block
-      for (const section of sections) {
+      // Convert each AI section to an editor section
+      for (const section of aiSections) {
         const overlayTexts: Array<{
           id: string;
           type: 'headline' | 'subheadline' | 'body' | 'statistic' | 'cta';
@@ -295,20 +314,25 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         // Skip if no overlay texts (shouldn't happen, but just in case)
         if (overlayTexts.length === 0) continue;
 
-        imageOverlayBlocks.push({
-          id: section.id,
-          type: 'image-overlay',
-          src: section.imageUrl || '',
-          alt: section.title || 'Section image',
-          overlayTexts,
-          overlayGradient: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.5))',
+        // Create editor section with the block
+        editorSections.push({
+          id: `section-${section.id}`,
+          name: sectionTypeNames[section.type] || section.title || '섹션',
+          blocks: [{
+            id: section.id,
+            type: 'image-overlay',
+            src: section.imageUrl || '',
+            alt: section.title || 'Section image',
+            overlayTexts,
+            overlayGradient: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.5))',
+          }],
         });
       }
 
       return NextResponse.json({
         success: true,
         data: {
-          imageOverlayBlocks,
+          editorSections,
           versionId: latestVersion.id,
           versionNumber: latestVersion.versionNumber,
           updatedAt: latestVersion.updatedAt,

@@ -48,6 +48,15 @@ services:
         condition: service_healthy
     networks:
       - triple_c_network
+    # 리소스 할당 (컴파일 속도 향상)
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 5G
+        reservations:
+          cpus: '2'
+          memory: 3G
 
   # pgAdmin - Web UI for PostgreSQL
   pgadmin:

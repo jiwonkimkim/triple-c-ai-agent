@@ -23,6 +23,56 @@ import {
 import { BlockRenderer } from './block-renderer';
 import type { Section, EditorBlock, BlockType } from '@/stores/editor-store';
 
+// 블록 사이 인라인 추가 버튼 컴포넌트
+function BlockAddDivider({ onAdd }: { onAdd: (type: BlockType) => void }) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <div
+      className="relative h-4 flex items-center justify-center group cursor-pointer"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div
+        className={cn(
+          'absolute inset-x-2 flex items-center justify-center transition-all duration-200',
+          isHovered ? 'opacity-100' : 'opacity-0'
+        )}
+      >
+        <div className="flex-1 h-px bg-primary/30" />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="mx-2 px-2 py-0.5 text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-full border border-primary/30 flex items-center gap-1 transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Plus className="h-3 w-3" />
+              블록 추가
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="center" className="w-56">
+            {blockTypes.map((item) => (
+              <DropdownMenuItem
+                key={item.type}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAdd(item.type);
+                }}
+              >
+                <div>
+                  <div className="font-medium">{item.label}</div>
+                  <div className="text-xs text-muted-foreground">{item.description}</div>
+                </div>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <div className="flex-1 h-px bg-primary/30" />
+      </div>
+    </div>
+  );
+}
+
 interface EditorSectionProps {
   section: Section;
   sectionIndex: number;
@@ -267,68 +317,70 @@ export function EditorSection({
       )}
 
       {/* Section content - blocks */}
-      <div className="p-4 space-y-3">
+      <div className="p-4 space-y-0">
         {section.blocks.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            <p className="mb-4">This section is empty</p>
+            <p className="mb-4">이 섹션이 비어 있습니다</p>
             <AddBlockDropdown onAddBlock={(type) => onAddBlock(defaultBlockContent[type])} />
           </div>
         ) : (
           <>
+            {/* 맨 위 블록 추가 버튼 */}
+            <BlockAddDivider onAdd={(type) => onAddBlock(defaultBlockContent[type], 0)} />
+
             {section.blocks.map((block, index) => (
-              <div
-                key={block.id}
-                draggable
-                onDragStart={(e) => handleDragStart(e, index)}
-                onDragOver={(e) => handleDragOver(e, index)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, index)}
-                onDragEnd={handleDragEnd}
-                className={cn(
-                  'relative group/block',
-                  draggedBlockIndex === index && 'opacity-50',
-                  dragOverBlockIndex === index && 'border-t-2 border-primary'
-                )}
-              >
-                {/* Block controls */}
-                <div className="absolute -left-10 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover/block:opacity-100 transition-opacity">
-                  <button
-                    type="button"
-                    className="p-1 hover:bg-muted rounded cursor-grab"
-                    title="Drag to reorder"
-                  >
-                    <GripVertical className="h-4 w-4 text-muted-foreground" />
-                  </button>
+              <div key={block.id}>
+                <div
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, index)}
+                  onDragEnd={handleDragEnd}
+                  className={cn(
+                    'relative group/block',
+                    draggedBlockIndex === index && 'opacity-50',
+                    dragOverBlockIndex === index && 'border-t-2 border-primary'
+                  )}
+                >
+                  {/* Block controls */}
+                  <div className="absolute -left-10 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover/block:opacity-100 transition-opacity">
+                    <button
+                      type="button"
+                      className="p-1 hover:bg-muted rounded cursor-grab"
+                      title="드래그하여 순서 변경"
+                    >
+                      <GripVertical className="h-4 w-4 text-muted-foreground" />
+                    </button>
+                  </div>
+
+                  {/* Block delete button */}
+                  <div className="absolute -right-8 top-1/2 -translate-y-1/2 opacity-0 group-hover/block:opacity-100 transition-opacity">
+                    <button
+                      type="button"
+                      className="p-1 hover:bg-destructive/10 rounded"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteBlock(block.id);
+                      }}
+                      title="블록 삭제"
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </button>
+                  </div>
+
+                  <BlockRenderer
+                    block={block}
+                    isSelected={selectedBlockId === block.id}
+                    onSelect={() => onSelectBlock(block.id)}
+                    onUpdate={(updates) => onUpdateBlock(block.id, updates)}
+                  />
                 </div>
 
-                {/* Block delete button */}
-                <div className="absolute -right-8 top-1/2 -translate-y-1/2 opacity-0 group-hover/block:opacity-100 transition-opacity">
-                  <button
-                    type="button"
-                    className="p-1 hover:bg-destructive/10 rounded"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeleteBlock(block.id);
-                    }}
-                    title="Delete block"
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </button>
-                </div>
-
-                <BlockRenderer
-                  block={block}
-                  isSelected={selectedBlockId === block.id}
-                  onSelect={() => onSelectBlock(block.id)}
-                  onUpdate={(updates) => onUpdateBlock(block.id, updates)}
-                />
+                {/* 각 블록 아래 블록 추가 버튼 */}
+                <BlockAddDivider onAdd={(type) => onAddBlock(defaultBlockContent[type], index + 1)} />
               </div>
             ))}
-
-            {/* Add block button at the end */}
-            <div className="pt-4 flex justify-center">
-              <AddBlockDropdown onAddBlock={(type) => onAddBlock(defaultBlockContent[type])} />
-            </div>
           </>
         )}
       </div>
