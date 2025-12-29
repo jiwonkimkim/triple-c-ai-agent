@@ -4,6 +4,11 @@ import { authOptions } from '@/lib/auth';
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { GoogleGenAI } from '@google/genai';
+import {
+  generateImageWithGemini,
+  base64ToDataUrl,
+  isGeminiConfigured,
+} from '@/services/image/gemini-image-generator';
 
 // Groq client (OpenAI-compatible API)
 const groq = new OpenAI({
@@ -36,6 +41,7 @@ interface EditRequest {
   message: string;
   targetElement?: EditableElement;
   allElements?: EditableElement[];
+  editType?: 'text' | 'image' | 'both'; // 편집 유형
 }
 
 // AI 클라이언트 초기화
@@ -140,6 +146,76 @@ function generateMockFullEdit(message: string, elements: EditableElement[]): Edi
   });
 }
 
+// 이미지 편집 요청인지 확인
+function isImageEditRequest(message: string): boolean {
+  const imageKeywords = [
+    '이미지', '사진', '배경', '그림', '이미지로', '사진으로',
+    '이미지를', '사진을', '배경을', '그림을',
+    'image', 'photo', 'background', 'picture',
+    '바꿔', '변경', '수정', '생성', '만들어',
+    '밝게', '어둡게', '화려하게', '심플하게',
+  ];
+  const lowerMessage = message.toLowerCase();
+  return imageKeywords.some((keyword) => lowerMessage.includes(keyword));
+}
+
+// AI를 사용하여 이미지 프롬프트 생성
+async function generateImagePrompt(
+  message: string,
+  currentImageContext?: string,
+  provider?: 'groq' | 'anthropic' | 'openai' | 'gemini' | null
+): Promise<string> {
+  const systemPrompt = `You are an expert at creating image generation prompts.
+Based on the user's request, create a detailed image generation prompt for a product detail page.
+The image should be professional, high-quality, and suitable for e-commerce.
+Output ONLY the image prompt, no explanation.`;
+
+  const userPrompt = `User request: "${message}"
+${currentImageContext ? `Current image context: ${currentImageContext}` : ''}
+Create a detailed image generation prompt for this request.`;
+
+  if (provider && provider !== null) {
+    try {
+      const result = await callAI(`${systemPrompt}\n\n${userPrompt}`, provider);
+      return result.trim();
+    } catch (error) {
+      console.error('[AI Edit] Failed to generate image prompt:', error);
+    }
+  }
+
+  // Fallback: 간단한 프롬프트 생성
+  return `Professional product photography. ${message}.
+High-quality, commercial style, clean background, studio lighting.
+Create a stunning image suitable for an e-commerce detail page.`;
+}
+
+// Gemini로 이미지 생성
+async function generateEditedImage(prompt: string): Promise<string | null> {
+  if (!isGeminiConfigured()) {
+    console.log('[AI Edit] Gemini not configured for image generation');
+    return null;
+  }
+
+  try {
+    console.log('[AI Edit] Generating image with prompt:', prompt.substring(0, 100));
+    const images = await generateImageWithGemini({
+      prompt,
+      model: 'gemini-2.5-flash-image',
+      aspectRatio: '16:9',
+    });
+
+    if (images.length > 0) {
+      const dataUrl = base64ToDataUrl(images[0].base64Data, images[0].mimeType);
+      console.log('[AI Edit] Image generated successfully');
+      return dataUrl;
+    }
+  } catch (error) {
+    console.error('[AI Edit] Image generation failed:', error);
+  }
+
+  return null;
+}
+
 export async function POST(request: NextRequest) {
   console.log('[AI Edit] ====== POST /api/ai/edit received ======');
   try {
@@ -152,16 +228,83 @@ export async function POST(request: NextRequest) {
     }
 
     const body: EditRequest = await request.json();
-    const { message, targetElement, allElements } = body;
+    const { message, targetElement, allElements, editType = 'text' } = body;
     console.log('[AI Edit] Request body:', {
       message: message?.substring(0, 50),
       hasTargetElement: !!targetElement,
-      allElementsCount: allElements?.length
+      allElementsCount: allElements?.length,
+      editType,
     });
 
     if (!message?.trim()) {
       console.log('[AI Edit] Empty message');
       return NextResponse.json({ success: false, error: '수정 요청을 입력해주세요' }, { status: 400 });
+    }
+
+    // 이미지 편집 요청 처리 (editType이 image이거나 메시지에서 이미지 관련 키워드 감지)
+    const shouldEditImage = editType === 'image' || editType === 'both' || isImageEditRequest(message);
+
+    if (shouldEditImage && targetElement?.type === 'image-overlay') {
+      console.log('[AI Edit] Image edit requested for image-overlay block');
+
+      // AI로 이미지 프롬프트 생성
+      const provider = getAvailableProvider();
+      const imagePrompt = await generateImagePrompt(
+        message,
+        targetElement.alt || targetElement.overlayTexts?.[0]?.content,
+        provider
+      );
+
+      // 이미지 생성
+      const newImageSrc = await generateEditedImage(imagePrompt);
+
+      if (newImageSrc) {
+        // 텍스트도 같이 편집할지 결정
+        if (editType === 'both' || !isImageEditRequest(message)) {
+          // 텍스트도 편집
+          const textProvider = getAvailableProvider();
+          if (textProvider && targetElement.overlayTexts) {
+            try {
+              const textPrompt = buildElementEditPrompt(message, targetElement);
+              const textResult = await callAI(textPrompt, textProvider);
+
+              let cleanResult = textResult.trim();
+              if (cleanResult.startsWith('```json')) {
+                cleanResult = cleanResult.slice(7);
+              } else if (cleanResult.startsWith('```')) {
+                cleanResult = cleanResult.slice(3);
+              }
+              if (cleanResult.endsWith('```')) {
+                cleanResult = cleanResult.slice(0, -3);
+              }
+              cleanResult = cleanResult.trim();
+
+              const updatedTexts = JSON.parse(cleanResult);
+              const mergedOverlayTexts = targetElement.overlayTexts.map((original) => {
+                const updated = updatedTexts.find((u: { id: string }) => u.id === original.id);
+                return updated ? { ...original, content: updated.content } : original;
+              });
+
+              return NextResponse.json({
+                success: true,
+                updatedElement: { src: newImageSrc, overlayTexts: mergedOverlayTexts },
+                editedImage: true,
+              });
+            } catch (error) {
+              console.log('[AI Edit] Text edit failed, returning only image update');
+            }
+          }
+        }
+
+        // 이미지만 반환
+        return NextResponse.json({
+          success: true,
+          updatedElement: { src: newImageSrc },
+          editedImage: true,
+        });
+      } else {
+        console.log('[AI Edit] Image generation failed, falling back to text-only edit');
+      }
     }
 
     // Mock 모드
@@ -205,26 +348,100 @@ export async function POST(request: NextRequest) {
       console.log('[AI Edit] Single element prompt length:', prompt.length, 'chars');
       const result = await callAI(prompt, provider!);
 
+      // image-overlay 블록 처리
+      if (targetElement.type === 'image-overlay' && targetElement.overlayTexts) {
+        try {
+          // Clean up markdown code blocks if present
+          let cleanResult = result.trim();
+          if (cleanResult.startsWith('```json')) {
+            cleanResult = cleanResult.slice(7);
+          } else if (cleanResult.startsWith('```')) {
+            cleanResult = cleanResult.slice(3);
+          }
+          if (cleanResult.endsWith('```')) {
+            cleanResult = cleanResult.slice(0, -3);
+          }
+          cleanResult = cleanResult.trim();
+
+          const updatedTexts = JSON.parse(cleanResult);
+          // Merge updated content with original overlay texts (keep styles)
+          const mergedOverlayTexts = targetElement.overlayTexts.map((original) => {
+            const updated = updatedTexts.find((u: { id: string }) => u.id === original.id);
+            if (updated) {
+              return { ...original, content: updated.content };
+            }
+            return original;
+          });
+
+          return NextResponse.json({
+            success: true,
+            updatedElement: { overlayTexts: mergedOverlayTexts },
+          });
+        } catch (parseError) {
+          console.error('[AI Edit] Failed to parse image-overlay response:', parseError);
+          // Fallback: return original with slight modification indicator
+          return NextResponse.json({
+            success: true,
+            updatedElement: {
+              overlayTexts: targetElement.overlayTexts.map((t) => ({
+                ...t,
+                content: t.content + ' (수정됨)',
+              })),
+            },
+          });
+        }
+      }
+
+      // 일반 텍스트/헤딩 요소
       return NextResponse.json({
         success: true,
         updatedElement: { content: result },
       });
     } else if (allElements) {
-      // 전체 페이지 수정 - 이미지 요소 제외하고 텍스트 요소만 전송
-      const textElements = allElements.filter(el => el.type === 'text' || el.type === 'heading');
-      console.log('[AI Edit] Filtering elements: total', allElements.length, '-> text only', textElements.length);
+      // 전체 페이지 수정 - 텍스트 요소 및 image-overlay 블록 포함
+      const editableElements = allElements.filter(
+        (el) => el.type === 'text' || el.type === 'heading' || el.type === 'image-overlay'
+      );
+      console.log('[AI Edit] Filtering elements: total', allElements.length, '-> editable', editableElements.length);
 
-      const prompt = buildFullPageEditPrompt(message, textElements);
+      const prompt = buildFullPageEditPrompt(message, editableElements);
       console.log('[AI Edit] Full page prompt length:', prompt.length, 'chars');
       const result = await callAI(prompt, provider!);
 
       try {
-        const updatedTextElements = JSON.parse(result);
-        // 원본 요소와 병합 (이미지 요소는 그대로, 텍스트 요소는 AI 결과로 교체)
-        const updatedMap = new Map<string, EditableElement>(updatedTextElements.map((el: EditableElement) => [el.id, el]));
+        // Clean up markdown code blocks if present
+        let cleanResult = result.trim();
+        if (cleanResult.startsWith('```json')) {
+          cleanResult = cleanResult.slice(7);
+        } else if (cleanResult.startsWith('```')) {
+          cleanResult = cleanResult.slice(3);
+        }
+        if (cleanResult.endsWith('```')) {
+          cleanResult = cleanResult.slice(0, -3);
+        }
+        cleanResult = cleanResult.trim();
+
+        const updatedElements = JSON.parse(cleanResult);
+        // 원본 요소와 병합
+        const updatedMap = new Map<string, EditableElement>(
+          updatedElements.map((el: EditableElement) => [el.id, el])
+        );
         const mergedElements = allElements.map((el) => {
           const updated = updatedMap.get(el.id);
           if (updated) {
+            // image-overlay인 경우 overlayTexts만 업데이트
+            if (el.type === 'image-overlay' && updated.overlayTexts) {
+              const mergedOverlayTexts = el.overlayTexts?.map((original) => {
+                const updatedText = updated.overlayTexts?.find(
+                  (u: { id: string }) => u.id === original.id
+                );
+                if (updatedText) {
+                  return { ...original, content: updatedText.content };
+                }
+                return original;
+              });
+              return { ...el, overlayTexts: mergedOverlayTexts };
+            }
             return { ...el, ...updated };
           }
           return el;
@@ -238,6 +455,15 @@ export async function POST(request: NextRequest) {
         const updatedElements = allElements.map((el) => {
           if (el.type === 'text' || el.type === 'heading') {
             return { ...el, content: el.content + ' (수정됨)' };
+          }
+          if (el.type === 'image-overlay' && el.overlayTexts) {
+            return {
+              ...el,
+              overlayTexts: el.overlayTexts.map((t) => ({
+                ...t,
+                content: t.content + ' (수정됨)',
+              })),
+            };
           }
           return el;
         });
@@ -259,6 +485,31 @@ export async function POST(request: NextRequest) {
 }
 
 function buildElementEditPrompt(message: string, element: EditableElement): string {
+  // image-overlay 블록 처리
+  if (element.type === 'image-overlay' && element.overlayTexts) {
+    const textsJson = JSON.stringify(
+      element.overlayTexts.map((t) => ({
+        id: t.id,
+        type: t.type,
+        content: t.content,
+      })),
+      null,
+      2
+    );
+
+    return `다음 이미지 오버레이 블록의 텍스트들을 사용자의 요청에 맞게 수정해주세요.
+
+현재 텍스트들:
+${textsJson}
+
+사용자 요청: "${message}"
+
+수정된 텍스트들을 동일한 JSON 형식으로 반환해주세요.
+각 요소의 id와 type은 유지하고 content만 수정하세요.
+JSON 배열만 반환하고 다른 설명은 포함하지 마세요.`;
+  }
+
+  // 일반 텍스트/헤딩 요소 처리
   return `다음 텍스트를 사용자의 요청에 맞게 수정해주세요.
 
 현재 텍스트:
@@ -273,11 +524,24 @@ function buildElementEditPrompt(message: string, element: EditableElement): stri
 
 function buildFullPageEditPrompt(message: string, elements: EditableElement[]): string {
   const elementsJson = JSON.stringify(
-    elements.map((el) => ({
-      id: el.id,
-      type: el.type,
-      content: el.content,
-    })),
+    elements.map((el) => {
+      if (el.type === 'image-overlay' && el.overlayTexts) {
+        return {
+          id: el.id,
+          type: el.type,
+          overlayTexts: el.overlayTexts.map((t) => ({
+            id: t.id,
+            type: t.type,
+            content: t.content,
+          })),
+        };
+      }
+      return {
+        id: el.id,
+        type: el.type,
+        content: el.content,
+      };
+    }),
     null,
     2
   );
@@ -290,7 +554,9 @@ ${elementsJson}
 사용자 요청: "${message}"
 
 수정된 콘텐츠를 동일한 JSON 형식으로 반환해주세요.
-각 요소의 id와 type은 유지하고 content만 수정하세요.
+각 요소의 id와 type은 유지하세요.
+- text/heading 요소는 content만 수정하세요.
+- image-overlay 요소는 overlayTexts 배열 안의 각 텍스트 content만 수정하세요.
 JSON 배열만 반환하고 다른 설명은 포함하지 마세요.`;
 }
 

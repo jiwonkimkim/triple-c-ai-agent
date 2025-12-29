@@ -9,7 +9,7 @@ import { EditorToolbar } from './editor-toolbar';
 import { EditorSection } from './editor-section';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Sparkles, X, Send } from 'lucide-react';
+import { Loader2, Sparkles, X, Send, Type, ImageIcon, Layers } from 'lucide-react';
 
 interface ChatMessage {
   id: string;
@@ -47,6 +47,7 @@ export function DetailPageEditor({
   const [chatMessage, setChatMessage] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [editType, setEditType] = useState<'text' | 'image' | 'both'>('text');
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -528,6 +529,7 @@ export function DetailPageEditor({
           message: userMessage,
           targetElement: selectedBlock,
           allElements: selectedBlock ? undefined : sections.flatMap(s => s.blocks),
+          editType, // 편집 유형 전송
         }),
       });
 
@@ -544,7 +546,14 @@ export function DetailPageEditor({
         if (sectionWithBlock) {
           updateBlock(sectionWithBlock.id, selectedBlockId, data.updatedElement);
         }
-        aiResponseContent = '선택한 블록을 수정했습니다.';
+        // 이미지 편집 여부에 따른 응답 메시지
+        if (data.editedImage) {
+          aiResponseContent = data.updatedElement.overlayTexts
+            ? '선택한 블록의 이미지와 텍스트를 수정했습니다.'
+            : '선택한 블록의 이미지를 새로 생성했습니다.';
+        } else {
+          aiResponseContent = '선택한 블록의 텍스트를 수정했습니다.';
+        }
       } else if (data.updatedElements) {
         // Update all blocks - reconstruct sections
         const updatedSections = sections.map(section => ({
@@ -582,7 +591,7 @@ export function DetailPageEditor({
     } finally {
       setIsAiLoading(false);
     }
-  }, [chatMessage, selectedBlockId, sections, projectId, updateBlock, setSections, toast]);
+  }, [chatMessage, selectedBlockId, sections, projectId, updateBlock, setSections, toast, editType]);
 
   // Auto-scroll chat
   useEffect(() => {
@@ -700,13 +709,53 @@ export function DetailPageEditor({
               </div>
             )}
 
+            {/* Edit type selector - only show for image-overlay blocks */}
+            {selectedBlock?.type === 'image-overlay' && (
+              <div className="px-4 py-2 border-b">
+                <div className="text-xs text-muted-foreground mb-2">편집 대상:</div>
+                <div className="flex gap-1">
+                  <Button
+                    variant={editType === 'text' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    className="flex-1 h-8 text-xs gap-1"
+                    onClick={() => setEditType('text')}
+                  >
+                    <Type className="h-3 w-3" />
+                    텍스트
+                  </Button>
+                  <Button
+                    variant={editType === 'image' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    className="flex-1 h-8 text-xs gap-1"
+                    onClick={() => setEditType('image')}
+                  >
+                    <ImageIcon className="h-3 w-3" />
+                    이미지
+                  </Button>
+                  <Button
+                    variant={editType === 'both' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    className="flex-1 h-8 text-xs gap-1"
+                    onClick={() => setEditType('both')}
+                  >
+                    <Layers className="h-3 w-3" />
+                    둘 다
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Chat messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {chatHistory.length === 0 ? (
-                <div className="text-sm text-muted-foreground text-center py-8">
-                  {selectedBlock
-                    ? '선택한 블록을 어떻게 수정할까요?\n예: "텍스트를 더 짧게", "톤을 밝게"'
-                    : '페이지 전체에 대해 수정 요청을 입력하세요.\n예: "전체적으로 톤을 친근하게 바꿔줘"'}
+                <div className="text-sm text-muted-foreground text-center py-8 whitespace-pre-line">
+                  {!selectedBlock
+                    ? '페이지 전체에 대해 수정 요청을 입력하세요.\n예: "전체적으로 톤을 친근하게 바꿔줘"'
+                    : editType === 'image'
+                    ? '이미지를 어떻게 바꿀까요?\n예: "밝은 분위기로", "화려한 배경으로"'
+                    : editType === 'both'
+                    ? '이미지와 텍스트를 함께 수정합니다.\n예: "더 세련된 느낌으로"'
+                    : '텍스트를 어떻게 수정할까요?\n예: "더 짧게", "톤을 밝게"'}
                 </div>
               ) : (
                 chatHistory.map((msg) => (
@@ -744,9 +793,13 @@ export function DetailPageEditor({
                 value={chatMessage}
                 onChange={(e) => setChatMessage(e.target.value)}
                 placeholder={
-                  selectedBlock
-                    ? '예: "더 짧게 줄여줘", "톤을 밝게 바꿔줘"'
-                    : '예: "전체적으로 톤을 친근하게 바꿔줘"'
+                  !selectedBlock
+                    ? '예: "전체적으로 톤을 친근하게 바꿔줘"'
+                    : editType === 'image'
+                    ? '예: "밝은 분위기로 변경해줘"'
+                    : editType === 'both'
+                    ? '예: "더 세련되게 바꿔줘"'
+                    : '예: "더 짧게 줄여줘"'
                 }
                 className="min-h-[60px] resize-none"
                 onKeyDown={(e) => {
