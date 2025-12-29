@@ -14,7 +14,9 @@ export function buildUserPrompt(input: GenerateDetailPageInput): string {
   const categoryPattern = getCategoryPattern(input.category);
   const lengthConfig = COPY_LENGTH_CONFIG[input.copyLength];
 
-  return `다음 제품의 상세페이지 콘텐츠를 생성해주세요.
+  return `[필수 규칙] 이모지, 특수문자, 기호 사용 절대 금지. 순수 한글/영문 텍스트만 사용하세요.
+
+다음 제품의 상세페이지 콘텐츠를 생성해주세요.
 
 ## 제품 정보
 
@@ -108,10 +110,11 @@ ${categoryPattern.topStats.length > 0 ? `- 인사이트: ${categoryPattern.topSt
    - 구매 결정에 도움되는 정보
    - "지금 만나보세요" 같은 명확한 CTA로 마무리
 
-## ⚠️ 중요: 이모지 사용 금지
-- 이모지(😊, ✨, 💕, 🌟, ❤️ 등)를 절대 사용하지 마세요
-- 순수 텍스트만 작성해주세요
-- 특수문자나 기호로 꾸미지 마세요
+## 중요: 이모지/특수문자 사용 금지
+- 이모지 절대 금지 (하트, 별, 반짝이, 손가락 등 모든 이모지)
+- 특수 기호 금지 (*, #, ~, ^ 등으로 꾸미지 말 것)
+- 순수 한글/영문/숫자만 사용
+- 상세페이지에 어울리는 깔끔한 문체로 작성
 
 JSON 객체만 반환하고, 추가 설명은 포함하지 마세요.`;
 }

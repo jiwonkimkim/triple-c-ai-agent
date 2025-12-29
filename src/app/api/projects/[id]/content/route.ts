@@ -250,6 +250,24 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
         let zIndex = 1;
 
+        // 섹션 타입별 텍스트 위치 설정 (제품 이미지를 가리지 않도록)
+        // 제품은 보통 중앙에 있으므로 텍스트는 상단/하단 또는 좌측에 배치
+        const isMain = section.type === 'MAIN';
+        const textPosition = {
+          // MAIN: 왼쪽 상단 (제품이 중앙-오른쪽에 있음)
+          // 다른 섹션: 상단 중앙 또는 하단
+          headline: {
+            x: isMain ? 25 : 50,
+            y: isMain ? 20 : 12,
+            align: isMain ? 'left' as const : 'center' as const,
+          },
+          body: {
+            x: isMain ? 25 : 50,
+            y: isMain ? 35 : 88,
+            align: isMain ? 'left' as const : 'center' as const,
+          },
+        };
+
         // Add title as headline
         if (section.title) {
           overlayTexts.push({
@@ -257,14 +275,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             type: 'headline',
             content: section.title,
             style: {
-              x: 50,
-              y: 30,
-              fontSize: 36,
+              x: textPosition.headline.x,
+              y: textPosition.headline.y,
+              fontSize: isMain ? 32 : 28,
               fontWeight: 'bold',
               fontFamily: 'Pretendard, sans-serif',
               color: '#ffffff',
               textShadow: true,
-              textAlign: 'center',
+              textAlign: textPosition.headline.align,
               opacity: 100,
               rotation: 0,
             },
@@ -284,34 +302,34 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
               type: 'subheadline',
               content: section.body,
               style: {
-                x: 50,
-                y: 55,
-                fontSize: 20,
+                x: textPosition.body.x,
+                y: textPosition.body.y,
+                fontSize: isMain ? 18 : 16,
                 fontWeight: 'medium',
                 fontFamily: 'Pretendard, sans-serif',
                 color: '#ffffff',
                 textShadow: true,
-                textAlign: 'center',
+                textAlign: textPosition.body.align,
                 opacity: 100,
                 rotation: 0,
               },
               zIndex: zIndex++,
             });
           } else {
-            // Longer text - body type
+            // Longer text - body type, position at bottom
             overlayTexts.push({
               id: `${section.id}-body`,
               type: 'body',
               content: section.body,
               style: {
-                x: 50,
-                y: 60,
-                fontSize: 16,
+                x: textPosition.body.x,
+                y: isMain ? 40 : 85,
+                fontSize: 14,
                 fontWeight: 'normal',
                 fontFamily: 'Pretendard, sans-serif',
                 color: '#ffffff',
                 textShadow: true,
-                textAlign: 'center',
+                textAlign: textPosition.body.align,
                 opacity: 100,
                 rotation: 0,
               },
