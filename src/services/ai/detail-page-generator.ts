@@ -8,6 +8,11 @@ import {
   isGeminiConfigured,
   GeminiImageModel,
 } from '@/services/image/gemini-image-generator';
+import {
+  buildEnhancedSystemPrompt,
+  buildEnhancedUserPrompt,
+  ENHANCED_COPY_LENGTH_CONFIG,
+} from './enhanced-prompts';
 
 // Groq client (OpenAI-compatible API)
 const groq = new OpenAI({
@@ -343,8 +348,9 @@ export async function generateDetailPage(
     ];
   }
 
-  const systemPrompt = buildSystemPrompt(input.copyLength, input.brandContext);
-  const userPrompt = buildUserPrompt(input);
+  // 고도화된 프롬프트 사용 (올리브영 패턴 분석 기반)
+  const systemPrompt = buildEnhancedSystemPrompt(input.copyLength, input.brandContext, input.category);
+  const userPrompt = buildEnhancedUserPrompt(input);
 
   // Get available provider
   const provider = getAvailableProvider();
