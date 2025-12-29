@@ -204,3 +204,96 @@ export interface RequiredFieldDefinition {
   description: string;
   example?: string;
 }
+
+// ============================================
+// 이미지 레이아웃 프리셋
+// ============================================
+
+export type LayoutStyle =
+  | 'hero-centered'      // 제품 중앙, 상하 여백
+  | 'hero-bottom'        // 제품 하단, 상단 텍스트 영역
+  | 'split-left'         // 제품 좌측, 우측 텍스트 영역
+  | 'split-right'        // 제품 우측, 좌측 텍스트 영역
+  | 'floating'           // 제품 부유, 배경 전체 활용
+  | 'grid'               // 그리드 배치 (성분, 라인업)
+  | 'comparison'         // 비교 레이아웃 (Before/After)
+  | 'step-sequence'      // 단계별 시퀀스
+  | 'lifestyle';         // 라이프스타일 컨텍스트
+
+export interface DetailPageLayoutPreset {
+  /** 레이아웃 스타일 ID */
+  style: LayoutStyle;
+  /** 레이아웃 설명 */
+  description: string;
+  /** 제품 배치 지시 (영문 프롬프트) */
+  productPlacement: string;
+  /** 구도 지시 (영문 프롬프트) */
+  composition: string;
+  /** 권장 비율 */
+  aspectRatio: string;
+  /** 적합한 섹션 타입 */
+  suitableFor: SectionType[];
+}
+
+// ============================================
+// Text Safe Zone (텍스트 오버레이 영역)
+// ============================================
+
+export type SafeZonePosition =
+  | 'top-full'           // 상단 전체 (헤드라인용)
+  | 'top-left'           // 좌상단
+  | 'top-right'          // 우상단
+  | 'center-left'        // 좌측 중앙
+  | 'center-right'       // 우측 중앙
+  | 'bottom-full'        // 하단 전체 (CTA용)
+  | 'bottom-left'        // 좌하단
+  | 'bottom-right'       // 우하단
+  | 'overlay-center';    // 중앙 오버레이
+
+export interface TextSafeZone {
+  /** 영역 위치 */
+  position: SafeZonePosition;
+  /** 영역 설명 */
+  description: string;
+  /** 이미지 생성 시 해당 영역 비워두기 지시 (영문) */
+  clearanceInstruction: string;
+  /** 권장 텍스트 타입 */
+  recommendedContent: ('headline' | 'subheadline' | 'body' | 'statistics' | 'cta')[];
+  /** 권장 텍스트 정렬 */
+  textAlign: 'left' | 'center' | 'right';
+}
+
+// ============================================
+// 네거티브 프롬프트 설정
+// ============================================
+
+export type NegativePromptCategory =
+  | 'quality'            // 품질 관련
+  | 'style'              // 스타일 관련
+  | 'content'            // 콘텐츠 관련
+  | 'composition'        // 구도 관련
+  | 'brand';             // 브랜드 관련
+
+export interface NegativePromptConfig {
+  /** 카테고리 */
+  category: NegativePromptCategory;
+  /** 제외할 요소들 (영문) */
+  excludeTerms: string[];
+  /** 설명 */
+  description: string;
+}
+
+// ============================================
+// 이미지 구도 통합 설정
+// ============================================
+
+export interface ImageCompositionConfig {
+  /** 레이아웃 프리셋 */
+  layout: DetailPageLayoutPreset;
+  /** 텍스트 안전 영역 */
+  textSafeZones: TextSafeZone[];
+  /** 네거티브 프롬프트 */
+  negativePrompts: NegativePromptConfig[];
+  /** 추가 스타일 지시 */
+  additionalStyle?: string;
+}

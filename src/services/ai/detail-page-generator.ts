@@ -396,8 +396,10 @@ export async function generateDetailPage(
           versions.map(async (version) => {
             const updatedSections = await Promise.all(
               version.sections.map(async (section) => {
-                // 이미지 프롬프트가 있는 섹션만 이미지 생성
-                if (section.imagePrompt && ['HERO', 'FEATURES', 'SOCIAL_PROOF'].includes(section.type)) {
+                // 이미지 프롬프트가 있는 모든 섹션에 이미지 생성
+                // 기존: HERO, FEATURES, SOCIAL_PROOF만 생성
+                // 개선: 모든 섹션 (HOW_TO_USE, FAQ 포함)에 이미지 생성
+                if (section.imagePrompt) {
                   try {
                     // 섹션별 맞춤 프롬프트로 이미지 생성
                     const sectionImages = await generateDetailPageImagesWithGemini(

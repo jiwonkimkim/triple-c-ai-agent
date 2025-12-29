@@ -17,13 +17,21 @@ export type {
   CategoryPattern,
   SectionStoryGuide,
   SectionCompositionGuide,
-  // 새로 추가된 타입들
+  // 브랜드 톤 프리셋 타입
   BrandToneType,
   BrandTonePreset,
   CategoryColorGuide,
   ExtendedCategoryPattern,
   QualityCheckItem,
   RequiredFieldDefinition,
+  // 이미지 구도 타입
+  LayoutStyle,
+  DetailPageLayoutPreset,
+  SafeZonePosition,
+  TextSafeZone,
+  NegativePromptCategory,
+  NegativePromptConfig,
+  ImageCompositionConfig,
 } from './types';
 
 // ============================================
@@ -77,10 +85,37 @@ export {
 // ============================================
 // 이미지 프롬프트
 // ============================================
+export type { ImagePromptOptions } from './image-prompts';
 export {
   buildImagePrompt,
   buildEnhancedImagePrompt,
+  buildSimpleImagePrompt,
+  buildLayoutSpecificPrompt,
 } from './image-prompts';
+
+// ============================================
+// 이미지 구도 (레이아웃, 텍스트 영역, 네거티브)
+// ============================================
+export {
+  // 레이아웃 프리셋
+  LAYOUT_PRESETS,
+  SECTION_LAYOUT_RECOMMENDATIONS,
+  getLayoutPreset,
+  getRecommendedLayouts,
+  // 텍스트 안전 영역
+  TEXT_SAFE_ZONES,
+  LAYOUT_SAFE_ZONE_MAPPING,
+  getSafeZonesForLayout,
+  getTextSafeZone,
+  // 네거티브 프롬프트
+  NEGATIVE_PROMPTS,
+  CATEGORY_NEGATIVE_PROMPTS,
+  buildNegativePrompt,
+  // 통합 유틸리티
+  buildLayoutPrompt,
+  buildTextSafeZonePrompt,
+  getOptimalCompositionForSection,
+} from './image-composition';
 
 // ============================================
 // 오버레이 텍스트 프롬프트
@@ -101,3 +136,37 @@ export {
   getVisualStyleKeywords,
   mapSectionTypeToPosition,
 } from './reference-data';
+
+// ============================================
+// 비주얼 테마 시스템
+// ============================================
+export type { ThemeStyle, VisualTheme, SectionThemeGuide } from './visual-theme';
+export {
+  VISUAL_THEMES,
+  SECTION_THEME_GUIDES,
+  recommendThemeForCategory,
+  recommendThemeForBrandTone,
+  getVisualTheme,
+  buildThemePromptExtension,
+  buildFullPageThemePrompt,
+  autoSelectTheme,
+} from './visual-theme';
+
+// ============================================
+// 섹션 템플릿 시스템
+// ============================================
+export type {
+  ExtendedSectionType,
+  SectionTemplate,
+  CategorySectionConfig,
+} from './section-templates';
+export {
+  SECTION_TEMPLATES,
+  CATEGORY_SECTION_CONFIGS,
+  getSectionTemplate,
+  mapToExtendedSectionType,
+  getCategorySectionConfig,
+  buildSectionTemplatePrompt,
+  generateDetailPageStructure,
+  shouldGenerateImageForSection,
+} from './section-templates';

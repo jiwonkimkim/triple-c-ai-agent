@@ -1,10 +1,17 @@
 /**
  * 이미지 생성 프롬프트 빌더
  * 올리브영 패턴 분석 기반 이미지 프롬프트 생성
+ * 상세페이지 특화 레이아웃, 텍스트 영역, 네거티브 프롬프트 적용
  */
 
-import type { ProductVisualReference, SectionType } from './types';
+import type { ProductVisualReference, SectionType, LayoutStyle, SafeZonePosition } from './types';
 import { getCategoryPattern, SECTION_STORY_GUIDE } from './category-patterns';
+import {
+  getOptimalCompositionForSection,
+  buildNegativePrompt,
+  buildTextSafeZonePrompt,
+  LAYOUT_SAFE_ZONE_MAPPING,
+} from './image-composition';
 
 // ============================================
 // 제품 일관성 지시문 생성
@@ -40,6 +47,20 @@ function buildProductConsistencyInstruction(
 // ============================================
 
 /**
+ * 이미지 프롬프트 옵션
+ */
+export interface ImagePromptOptions {
+  /** 선호하는 레이아웃 스타일 */
+  preferredLayout?: LayoutStyle;
+  /** 텍스트 배치 위치 (해당 영역 비워두기) */
+  textPositions?: SafeZonePosition[];
+  /** 네거티브 프롬프트 포함 여부 */
+  includeNegative?: boolean;
+  /** 추가 스타일 키워드 */
+  additionalStyle?: string;
+}
+
+/**
  * 섹션별 이미지 생성 프롬프트 빌더
  * 중요: 이미지에는 텍스트를 포함하지 않음 (텍스트는 별도 오버레이)
  */
@@ -49,22 +70,23 @@ export function buildImagePrompt(
   category: string,
   keyFeatures: string[],
   brandStyle?: string,
-  visualReference?: ProductVisualReference
+  visualReference?: ProductVisualReference,
+  options?: ImagePromptOptions
 ): string {
   const categoryPattern = getCategoryPattern(category);
   const sectionGuide = SECTION_STORY_GUIDE[section as keyof typeof SECTION_STORY_GUIDE];
 
   if (!sectionGuide) {
     // CUSTOM 섹션이나 알 수 없는 섹션의 경우 FEATURES 가이드 사용
-    return buildImagePrompt('FEATURES', productName, category, keyFeatures, brandStyle, visualReference);
+    return buildImagePrompt('FEATURES', productName, category, keyFeatures, brandStyle, visualReference, options);
   }
+
+  // 최적 구도 설정 가져오기
+  const composition = getOptimalCompositionForSection(section, options?.preferredLayout);
 
   // 올리브영 분석 기반 비주얼 키워드
   const visualKeywords = sectionGuide.visualEmphasis.slice(0, 4).join(', ');
   const categoryVisual = categoryPattern.visualPatterns.slice(0, 3).join(', ');
-
-  // 텍스트 제외 지시 (이미지에는 제품만, 텍스트는 별도 오버레이)
-  const noTextInstruction = 'absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only';
 
   // 제품 일관성 지시문
   const consistencyInstruction = buildProductConsistencyInstruction(productName, category, visualReference);
@@ -74,22 +96,144 @@ export function buildImagePrompt(
     ? `${productName} (${visualReference.appearance})`
     : productName;
 
-  const basePrompts: Record<string, string> = {
-    HERO: `[${consistencyInstruction}] product photography of ${productAppearance}, elegant ${category} product, centered hero composition, gradient background, soft diffused studio lighting, subtle reflection, luxury beauty advertisement, premium cosmetic branding, high-end minimalist aesthetic, ${visualKeywords}, ${categoryVisual}, 8k resolution, ${noTextInstruction}`,
+  // 레이아웃 구도 프롬프트
+  const layoutPrompt = composition.layoutPrompt;
 
-    FEATURES: `[${consistencyInstruction}] ${productAppearance} with key ingredient visualization for ${category}, ${keyFeatures[0] || 'natural ingredients'}, the SAME product from HERO section displayed alongside fresh botanical elements with water droplets, detailed macro photography, clean background, natural soft lighting, scientific yet elegant aesthetic, ingredient showcase, ${visualKeywords}, ${categoryVisual}, high detail, ${noTextInstruction}`,
+  // 텍스트 안전 영역 프롬프트
+  const textZonePrompt = options?.textPositions
+    ? buildTextSafeZonePrompt(options.textPositions)
+    : composition.safeZonePrompt;
 
-    SOCIAL_PROOF: `[${consistencyInstruction}] ${productAppearance} shown with skin texture comparison for ${category}, the SAME product from previous sections, split screen composition showing skin improvement with product visible, even studio lighting, neutral background, clinical results visualization, professional dermatology style, ${visualKeywords}, ${categoryVisual}, trust-building imagery, ${noTextInstruction}`,
+  // 스타일 추가
+  const styleAddition = brandStyle
+    ? `brand style: ${brandStyle}`
+    : options?.additionalStyle || 'modern, clean, professional';
 
-    HOW_TO_USE: `[${consistencyInstruction}] beauty application tutorial featuring ${productAppearance}, the SAME product from previous sections, korean model applying the IDENTICAL ${category} product, clear instructional composition, bright lighting, clean minimal background, how-to tutorial style, easy to follow visual guide, ${visualKeywords}, ${categoryVisual}, aspirational lifestyle, ${noTextInstruction}`,
+  // 섹션별 핵심 콘텐츠
+  const sectionContent = buildSectionContent(
+    section,
+    productAppearance,
+    category,
+    keyFeatures,
+    visualKeywords,
+    categoryVisual
+  );
 
-    FAQ: `[${consistencyInstruction}] ${productAppearance} collection showcase, the SAME product from all previous sections as the hero item, complete lineup display with IDENTICAL main product, products arranged elegantly, gradient background, studio lighting, brand portfolio presentation, premium product range, ${visualKeywords}, ${categoryVisual}, ${noTextInstruction}`,
-  };
+  // 프롬프트 조합
+  let prompt = `[PRODUCT CONSISTENCY: ${consistencyInstruction}] [LAYOUT: ${layoutPrompt}] [TEXT SPACE: ${textZonePrompt}] ${sectionContent}, ${styleAddition}, professional e-commerce detail page photography, high-end product advertising, 8k resolution`;
 
-  const styleAddition = brandStyle ? `, brand style: ${brandStyle}` : ', modern, clean, professional';
+  // 네거티브 프롬프트 추가 (옵션)
+  if (options?.includeNegative !== false) {
+    const negativePrompt = buildNegativePrompt(['quality', 'style', 'content', 'composition'], category);
+    prompt += ` --negative ${negativePrompt}`;
+  }
 
-  return `${basePrompts[section] || basePrompts.FEATURES}${styleAddition}`;
+  return prompt;
 }
 
-// 하위 호환성을 위한 별칭
-export const buildEnhancedImagePrompt = buildImagePrompt;
+/**
+ * 섹션별 핵심 콘텐츠 빌더
+ */
+function buildSectionContent(
+  section: SectionType,
+  productAppearance: string,
+  category: string,
+  keyFeatures: string[],
+  visualKeywords: string,
+  categoryVisual: string
+): string {
+  const contents: Record<SectionType, string> = {
+    HERO: `premium product photography of ${productAppearance}, elegant ${category} product hero shot, soft diffused studio lighting with subtle rim light, subtle reflection on surface, luxury beauty advertisement aesthetic, premium cosmetic branding, ${visualKeywords}, ${categoryVisual}`,
+
+    FEATURES: `${productAppearance} showcasing key ingredient visualization for ${category}, featuring ${keyFeatures[0] || 'natural active ingredients'}, product displayed alongside fresh botanical elements with delicate water droplets, detailed macro photography style, scientific yet elegant presentation, ingredient highlight, ${visualKeywords}, ${categoryVisual}`,
+
+    SOCIAL_PROOF: `${productAppearance} in clinical results context for ${category}, skin texture improvement visualization, professional dermatology documentation style, before-after comparison layout implied, even clinical lighting, neutral medical-grade background, trust-building scientific imagery, ${visualKeywords}, ${categoryVisual}`,
+
+    HOW_TO_USE: `beauty application tutorial scene featuring ${productAppearance}, korean model demonstrating ${category} product application, clear step-by-step instructional composition, bright even lighting, clean minimal background, how-to guide aesthetic, easy-to-follow visual instruction, ${visualKeywords}, ${categoryVisual}`,
+
+    FAQ: `${productAppearance} product collection display, complete ${category} lineup showcase, elegant product arrangement, gradient background transitioning smoothly, studio lighting with soft shadows, brand portfolio presentation, premium product range display, ${visualKeywords}, ${categoryVisual}`,
+
+    CUSTOM: `${productAppearance} professional product photography, ${category} product showcase, clean composition, studio lighting, ${visualKeywords}, ${categoryVisual}`,
+  };
+
+  return contents[section] || contents.CUSTOM;
+}
+
+/**
+ * 향상된 이미지 프롬프트 빌더 (더 세밀한 컨트롤)
+ */
+export function buildEnhancedImagePrompt(
+  section: SectionType,
+  productName: string,
+  category: string,
+  keyFeatures: string[],
+  brandStyle?: string,
+  visualReference?: ProductVisualReference,
+  layoutStyle?: LayoutStyle,
+  textPositions?: SafeZonePosition[]
+): string {
+  return buildImagePrompt(
+    section,
+    productName,
+    category,
+    keyFeatures,
+    brandStyle,
+    visualReference,
+    {
+      preferredLayout: layoutStyle,
+      textPositions,
+      includeNegative: true,
+    }
+  );
+}
+
+/**
+ * 간단한 이미지 프롬프트 (네거티브 없이)
+ */
+export function buildSimpleImagePrompt(
+  section: SectionType,
+  productName: string,
+  category: string,
+  keyFeatures: string[],
+  brandStyle?: string
+): string {
+  return buildImagePrompt(
+    section,
+    productName,
+    category,
+    keyFeatures,
+    brandStyle,
+    undefined,
+    { includeNegative: false }
+  );
+}
+
+/**
+ * 레이아웃 지정 이미지 프롬프트
+ */
+export function buildLayoutSpecificPrompt(
+  section: SectionType,
+  productName: string,
+  category: string,
+  keyFeatures: string[],
+  layoutStyle: LayoutStyle,
+  brandStyle?: string,
+  visualReference?: ProductVisualReference
+): string {
+  // 해당 레이아웃의 기본 텍스트 영역 가져오기
+  const textPositions = LAYOUT_SAFE_ZONE_MAPPING[layoutStyle];
+
+  return buildImagePrompt(
+    section,
+    productName,
+    category,
+    keyFeatures,
+    brandStyle,
+    visualReference,
+    {
+      preferredLayout: layoutStyle,
+      textPositions,
+      includeNegative: true,
+    }
+  );
+}
