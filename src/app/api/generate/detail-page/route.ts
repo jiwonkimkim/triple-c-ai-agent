@@ -117,8 +117,12 @@ export async function POST(request: NextRequest) {
       };
     }
 
+    // 개발 모드에서 프롬프트 포함 여부
+    const isDev = process.env.NODE_ENV === 'development';
+    const includeDevPrompts = isDev && (body.includeDevPrompts ?? true);
+
     // Generate detail page versions with optional image generation
-    const versions = await generateDetailPage({
+    const generationResult = await generateDetailPage({
       productImages: validatedData.productImages,
       productName: validatedData.productName,
       category: validatedData.category,
@@ -128,7 +132,9 @@ export async function POST(request: NextRequest) {
       brandContext,
       generateImages: validatedData.generateImages ?? true, // 기본적으로 이미지 생성 활성화
       imageModel: validatedData.imageModel,
-    });
+    }, { includeDevPrompts });
+
+    const { versions, devPrompts } = generationResult;
 
     // Get the current max version number for this project
     const maxVersion = await prisma.detailPageVersion.findFirst({
@@ -163,6 +169,8 @@ export async function POST(request: NextRequest) {
       data: {
         versions: savedVersions,
         remainingCredits: totalCredits - 1,
+        // 개발 모드에서만 프롬프트 정보 포함
+        ...(devPrompts && { devPrompts }),
       },
     });
   } catch (error) {

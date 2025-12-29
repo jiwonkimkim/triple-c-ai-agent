@@ -26,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { DetailPageEditor } from '@/components/editor';
 import { VersionCompare } from '@/components/history/version-compare';
 import { VersionSnapshot, formatVersionDate, getActionLabel, getActionColor } from '@/stores/history-store';
+import { DevPromptViewer, type DevPromptInfo } from '@/components/dev/dev-prompt-viewer';
 
 interface ProjectData {
   id: string;
@@ -85,6 +86,7 @@ export default function ProjectDetailPage() {
   // 재생성 state
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [regenerateDialogOpen, setRegenerateDialogOpen] = useState(false);
+  const [lastDevPrompts, setLastDevPrompts] = useState<DevPromptInfo | null>(null);
 
   // 버전 이름 수정 state
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
@@ -302,9 +304,15 @@ export default function ProjectDetailPage() {
         }),
       });
 
+      const responseData = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to regenerate');
+        throw new Error(responseData.error || 'Failed to regenerate');
+      }
+
+      // 개발 모드에서 프롬프트 정보 저장
+      if (responseData.data?.devPrompts) {
+        setLastDevPrompts(responseData.data.devPrompts);
       }
 
       // 성공 시 프로젝트 데이터 새로고침
@@ -480,6 +488,9 @@ export default function ProjectDetailPage() {
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
+          {/* 개발자 모드: 프롬프트 뷰어 버튼 */}
+          <DevPromptViewer prompts={lastDevPrompts} />
+
           {/* 재생성 버튼 */}
           <Button
             variant="default"

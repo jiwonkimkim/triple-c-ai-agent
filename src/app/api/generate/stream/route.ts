@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Actually generate content
-      const generatedVersions = await generateDetailPage({
+      const generationResult = await generateDetailPage({
         productImages: options.productImages || [],
         productName: options.productName,
         category: options.category,
@@ -184,6 +184,7 @@ export async function POST(request: NextRequest) {
         copyLength: options.copyLength || 'medium',
         brandContext: brandContext || undefined,
       });
+      const generatedVersions = generationResult.versions;
 
       await sendEvent('progress', {
         jobId,

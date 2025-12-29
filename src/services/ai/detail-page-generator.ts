@@ -62,6 +62,25 @@ interface DetailPageVersion {
   sections: DetailPageSection[];
 }
 
+// 개발자 모드 프롬프트 정보 (DEV ONLY)
+export interface DevPromptInfo {
+  textGeneration: {
+    systemPrompt: string;
+    userPrompt: string;
+  };
+  sectionImagePrompts: Array<{
+    sectionType: string;
+    imagePrompt: string;
+    imagePromptMidjourney?: string;
+  }>;
+}
+
+// 개발자 모드용 확장 응답 타입
+export interface DetailPageGenerationResult {
+  versions: DetailPageVersion[];
+  devPrompts?: DevPromptInfo; // 개발 모드에서만 포함
+}
+
 // Copy length configurations
 const COPY_LENGTH_CONFIG = {
   short: {
@@ -267,15 +286,35 @@ function shouldUseMockGeneration(): boolean {
 
 // Main generation function - 오케스트레이션 기반
 export async function generateDetailPage(
-  input: GenerateDetailPageInput
-): Promise<DetailPageVersion[]> {
+  input: GenerateDetailPageInput,
+  options?: { includeDevPrompts?: boolean }
+): Promise<DetailPageGenerationResult> {
+  const isDev = process.env.NODE_ENV === 'development';
+  const includeDevPrompts = options?.includeDevPrompts ?? isDev;
+
+  // 개발자 프롬프트 정보 수집을 위한 변수
+  let devPrompts: DevPromptInfo | undefined;
+
   // Development mode fallback: return mock data if no valid API keys
   if (shouldUseMockGeneration()) {
     console.log('[DEV] Using mock detail page generation - mock mode enabled or no valid API keys');
-    return [
+    const mockVersions = [
       generateMockDetailPage(input, 0),
       generateMockDetailPage(input, 1),
     ];
+
+    // Mock 모드에서도 프롬프트 정보 포함 (개발자 참고용)
+    if (includeDevPrompts) {
+      devPrompts = {
+        textGeneration: {
+          systemPrompt: buildEnhancedSystemPrompt(input.copyLength, input.brandContext, input.category),
+          userPrompt: buildEnhancedUserPrompt(input),
+        },
+        sectionImagePrompts: [],
+      };
+    }
+
+    return { versions: mockVersions, devPrompts };
   }
 
   // Get available provider
@@ -283,10 +322,11 @@ export async function generateDetailPage(
 
   if (!provider) {
     console.log('[DEV] No API keys configured, using mock generation');
-    return [
+    const mockVersions = [
       generateMockDetailPage(input, 0),
       generateMockDetailPage(input, 1),
     ];
+    return { versions: mockVersions };
   }
 
   console.log(`[AI] Using provider: ${provider}`);
@@ -320,6 +360,30 @@ export async function generateDetailPage(
         imagePrompt: section.imagePrompt,
       })),
     }));
+
+    // 개발자 모드에서 프롬프트 정보 수집
+    if (includeDevPrompts && versions.length > 0) {
+      const sectionImagePrompts: DevPromptInfo['sectionImagePrompts'] = [];
+
+      // 첫 번째 버전의 섹션들에서 이미지 프롬프트 수집
+      for (const section of versions[0].sections) {
+        if (section.imagePrompt) {
+          sectionImagePrompts.push({
+            sectionType: section.type,
+            imagePrompt: section.imagePrompt.imagePrompt,
+            imagePromptMidjourney: section.imagePrompt.imagePromptMidjourney,
+          });
+        }
+      }
+
+      devPrompts = {
+        textGeneration: {
+          systemPrompt: buildEnhancedSystemPrompt(input.copyLength, input.brandContext, input.category),
+          userPrompt: buildEnhancedUserPrompt(input),
+        },
+        sectionImagePrompts,
+      };
+    }
 
     // 이미지 생성이 활성화된 경우 Gemini로 이미지 생성
     if (input.generateImages && isGeminiConfigured()) {
@@ -377,30 +441,43 @@ export async function generateDetailPage(
     }
 
     console.log('[AI] Orchestrated generation completed successfully');
-    return versions;
+    return { versions, devPrompts };
 
   } catch (error) {
     console.error('[AI] Failed to generate content from AI API:', error);
 
     // 폴백: 기존 방식으로 생성 시도
     console.log('[AI] Falling back to legacy generation method...');
-    return generateDetailPageLegacy(input);
+    return generateDetailPageLegacy(input, includeDevPrompts);
   }
 }
 
 // 레거시 생성 함수 (폴백용)
 async function generateDetailPageLegacy(
-  input: GenerateDetailPageInput
-): Promise<DetailPageVersion[]> {
+  input: GenerateDetailPageInput,
+  includeDevPrompts?: boolean
+): Promise<DetailPageGenerationResult> {
   const systemPrompt = buildEnhancedSystemPrompt(input.copyLength, input.brandContext, input.category);
   const userPrompt = buildEnhancedUserPrompt(input);
   const provider = getAvailableProvider();
 
+  // 개발자 프롬프트 정보
+  const devPrompts: DevPromptInfo | undefined = includeDevPrompts ? {
+    textGeneration: {
+      systemPrompt,
+      userPrompt,
+    },
+    sectionImagePrompts: [],
+  } : undefined;
+
   if (!provider) {
-    return [
-      generateMockDetailPage(input, 0),
-      generateMockDetailPage(input, 1),
-    ];
+    return {
+      versions: [
+        generateMockDetailPage(input, 0),
+        generateMockDetailPage(input, 1),
+      ],
+      devPrompts,
+    };
   }
 
   const generateVersion = async (versionIndex: number): Promise<DetailPageVersion> => {
@@ -504,15 +581,18 @@ async function generateDetailPageLegacy(
       }
     }
 
-    return versions;
+    return { versions, devPrompts };
   } catch (error) {
     console.error('[AI] Legacy generation failed:', error);
     const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
     if (isDev) {
-      return [
-        generateMockDetailPage(input, 0),
-        generateMockDetailPage(input, 1),
-      ];
+      return {
+        versions: [
+          generateMockDetailPage(input, 0),
+          generateMockDetailPage(input, 1),
+        ],
+        devPrompts,
+      };
     }
     throw error;
   }
