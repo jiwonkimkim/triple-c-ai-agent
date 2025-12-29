@@ -9,11 +9,7 @@ import {
   Loader2,
   Check,
   AlertCircle,
-  Smartphone,
-  Monitor,
-  Tablet,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -28,13 +24,11 @@ interface EditorToolbarProps {
   lastSavedAt: Date | null;
   canUndo: boolean;
   canRedo: boolean;
-  previewMode: 'desktop' | 'tablet' | 'mobile';
   onUndo: () => void;
   onRedo: () => void;
   onSave: () => void;
   onPreview: () => void;
   onExport: (format: 'html' | 'json') => void;
-  onSetPreviewMode: (mode: 'desktop' | 'tablet' | 'mobile') => void;
 }
 
 export function EditorToolbar({
@@ -43,13 +37,11 @@ export function EditorToolbar({
   lastSavedAt,
   canUndo,
   canRedo,
-  previewMode,
   onUndo,
   onRedo,
   onSave,
   onPreview,
   onExport,
-  onSetPreviewMode,
 }: EditorToolbarProps) {
   const formatLastSaved = (date: Date | null) => {
     if (!date) return '저장된 적 없음';
@@ -86,37 +78,6 @@ export function EditorToolbar({
             <Redo2 className="h-4 w-4" />
           </Button>
         </div>
-      </div>
-
-      {/* Center section - Preview mode */}
-      <div className="flex items-center gap-1 rounded-md border p-1">
-        <Button
-          variant={previewMode === 'desktop' ? 'secondary' : 'ghost'}
-          size="icon"
-          className="h-7 w-7"
-          onClick={() => onSetPreviewMode('desktop')}
-          title="데스크톱 보기"
-        >
-          <Monitor className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={previewMode === 'tablet' ? 'secondary' : 'ghost'}
-          size="icon"
-          className="h-7 w-7"
-          onClick={() => onSetPreviewMode('tablet')}
-          title="태블릿 보기"
-        >
-          <Tablet className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={previewMode === 'mobile' ? 'secondary' : 'ghost'}
-          size="icon"
-          className="h-7 w-7"
-          onClick={() => onSetPreviewMode('mobile')}
-          title="모바일 보기"
-        >
-          <Smartphone className="h-4 w-4" />
-        </Button>
       </div>
 
       {/* Right section - Save and export */}

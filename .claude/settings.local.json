@@ -10,7 +10,19 @@
       "Bash(docker-compose restart:*)",
       "Bash(timeout:*)",
       "Bash(curl:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(git push:*)",
+      "Bash(git checkout:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git pull:*)",
+      "Bash(git merge:*)",
+      "Bash(docker-compose:*)",
+      "Bash(docker inspect:*)",
+      "Bash(wsl --shutdown)",
+      "Bash(git branch:*)"
     ],
     "deny": [],
     "ask": []

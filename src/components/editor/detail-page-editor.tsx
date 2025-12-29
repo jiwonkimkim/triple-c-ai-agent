@@ -9,7 +9,7 @@ import { EditorToolbar } from './editor-toolbar';
 import { EditorSection } from './editor-section';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Sparkles, X, Send, Type, ImageIcon, Layers, Layout, Plus } from 'lucide-react';
+import { Loader2, Sparkles, X, Send, Type, ImageIcon, Layers, Layout, Plus, Monitor, Tablet, Smartphone } from 'lucide-react';
 import { TemplateImportModal } from './template-import-modal';
 
 interface ChatMessage {
@@ -855,13 +855,11 @@ export function DetailPageEditor({
           lastSavedAt={lastSavedAt}
           canUndo={historyIndex > 0}
           canRedo={historyIndex < history.length - 1}
-          previewMode={previewMode}
           onUndo={undo}
           onRedo={redo}
           onSave={save}
           onPreview={handlePreview}
           onExport={handleExport}
-          onSetPreviewMode={setPreviewMode}
         />
         {/* Template & AI Edit Buttons */}
         <div className="pr-4 flex gap-2">
@@ -890,12 +888,60 @@ export function DetailPageEditor({
       <div className="flex flex-1 overflow-hidden">
         {/* Editor canvas */}
         <div
-          className="flex-1 overflow-y-auto bg-muted/30 p-6"
+          className="relative flex-1 overflow-y-auto bg-muted/30 p-6"
           onClick={() => {
             selectBlock(null);
             selectSection(null);
           }}
         >
+          {/* Floating viewport toggle - bottom right */}
+          <div className="fixed bottom-6 right-6 z-30 flex items-center gap-1 rounded-lg border bg-background/95 backdrop-blur-sm p-1.5 shadow-lg">
+            <button
+              className={cn(
+                'h-8 w-8 rounded-md flex items-center justify-center transition-colors',
+                previewMode === 'desktop'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+              )}
+              onClick={(e) => {
+                e.stopPropagation();
+                setPreviewMode('desktop');
+              }}
+              title="데스크톱 보기"
+            >
+              <Monitor className="h-4 w-4" />
+            </button>
+            <button
+              className={cn(
+                'h-8 w-8 rounded-md flex items-center justify-center transition-colors',
+                previewMode === 'tablet'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+              )}
+              onClick={(e) => {
+                e.stopPropagation();
+                setPreviewMode('tablet');
+              }}
+              title="태블릿 보기"
+            >
+              <Tablet className="h-4 w-4" />
+            </button>
+            <button
+              className={cn(
+                'h-8 w-8 rounded-md flex items-center justify-center transition-colors',
+                previewMode === 'mobile'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+              )}
+              onClick={(e) => {
+                e.stopPropagation();
+                setPreviewMode('mobile');
+              }}
+              title="모바일 보기"
+            >
+              <Smartphone className="h-4 w-4" />
+            </button>
+          </div>
           <div className={cn('mx-auto transition-all duration-300', previewWidths[previewMode])}>
             <div className="space-y-0">
               {/* MAIN 섹션 판별: 첫 번째 섹션이 메인인지 확인 */}
