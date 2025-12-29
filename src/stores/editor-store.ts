@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { devtools, subscribeWithSelector } from 'zustand/middleware';
 
 // Block types
-export type BlockType = 'heading' | 'text' | 'image' | 'button' | 'divider' | 'spacer' | 'list' | 'quote';
+export type BlockType = 'heading' | 'text' | 'image' | 'image-overlay' | 'button' | 'divider' | 'spacer' | 'list' | 'quote';
 
 export interface BlockStyle {
   textAlign?: 'left' | 'center' | 'right';
@@ -35,6 +35,35 @@ export interface ImageBlock {
   caption?: string;
   width?: number;
   height?: number;
+  style?: BlockStyle;
+}
+
+// 이미지 위에 텍스트 오버레이 블록 (상세페이지용)
+export interface OverlayTextStyle {
+  position: 'top-left' | 'top-center' | 'top-right' | 'center-left' | 'center' | 'center-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
+  color?: string;
+  backgroundColor?: string;
+  padding?: string;
+  fontSize?: 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl';
+  fontWeight?: 'normal' | 'medium' | 'semibold' | 'bold';
+  textShadow?: boolean;
+}
+
+export interface OverlayText {
+  id: string;
+  type: 'headline' | 'subheadline' | 'body' | 'statistic' | 'cta';
+  content: string;
+  style: OverlayTextStyle;
+}
+
+export interface ImageOverlayBlock {
+  type: 'image-overlay';
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  overlayTexts: OverlayText[];
+  overlayGradient?: string; // 텍스트 가독성을 위한 그라데이션 (예: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.5))')
   style?: BlockStyle;
 }
 
@@ -74,6 +103,7 @@ export type EditorBlock = (
   | HeadingBlock
   | TextBlock
   | ImageBlock
+  | ImageOverlayBlock
   | ButtonBlock
   | DividerBlock
   | SpacerBlock

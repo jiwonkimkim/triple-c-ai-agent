@@ -10,7 +10,8 @@ import {
   ListBlock,
   QuoteBlock,
 } from './blocks';
-import type { EditorBlock } from '@/stores/editor-store';
+import { ImageOverlayBlockRenderer } from './image-overlay-block';
+import type { EditorBlock, ImageOverlayBlock as ImageOverlayBlockType } from '@/stores/editor-store';
 
 interface BlockRendererProps {
   block: EditorBlock;
@@ -45,6 +46,16 @@ export function BlockRenderer({ block, isSelected, onSelect, onUpdate }: BlockRe
       return (
         <ImageBlock
           block={block}
+          isSelected={isSelected}
+          onSelect={onSelect}
+          onUpdate={onUpdate}
+        />
+      );
+
+    case 'image-overlay':
+      return (
+        <ImageOverlayBlockRenderer
+          block={block as ImageOverlayBlockType & { id: string }}
           isSelected={isSelected}
           onSelect={onSelect}
           onUpdate={onUpdate}

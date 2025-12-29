@@ -7,6 +7,7 @@ import { useAutoSave } from '@/hooks/use-auto-save';
 import { useToast } from '@/hooks/use-toast';
 import { EditorToolbar } from './editor-toolbar';
 import { EditorSection } from './editor-section';
+import { Loader2 } from 'lucide-react';
 
 interface DetailPageEditorProps {
   projectId: string;
@@ -30,6 +31,7 @@ export function DetailPageEditor({
   const { toast } = useToast();
   const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const {
     sections,
@@ -56,20 +58,82 @@ export function DetailPageEditor({
     pushHistory,
   } = useEditorStore();
 
-  // Initialize editor with initial sections
+  // Initialize editor with initial sections or fetch from API
   useEffect(() => {
-    if (initialSections && initialSections.length > 0) {
-      setSections(initialSections);
+    const fetchContent = async () => {
+      try {
+        const response = await fetch(`/api/projects/${projectId}/content`);
+        if (!response.ok) throw new Error('Failed to fetch content');
+
+        const data = await response.json();
+
+        if (data.success && data.data?.elements?.length > 0) {
+          // Convert elements to sections format
+          const convertedSections: Section[] = [{
+            id: `section-${Date.now()}`,
+            name: '메인 섹션',
+            blocks: data.data.elements.map((el: {
+              id: string;
+              type: string;
+              content: string;
+              styles?: Record<string, string>;
+              level?: number;
+              alt?: string;
+            }) => {
+              const block: EditorBlock = {
+                id: el.id,
+                type: el.type === 'heading' ? 'heading' : el.type === 'image' ? 'image' : 'text',
+                ...(el.type === 'heading' && { level: (el.level || 2) as 1 | 2 | 3 | 4, content: el.content }),
+                ...(el.type === 'text' && { content: el.content }),
+                ...(el.type === 'image' && { src: el.content, alt: el.alt || '' }),
+              } as EditorBlock;
+              return block;
+            }),
+          }];
+          setSections(convertedSections);
+        } else if (initialSections && initialSections.length > 0) {
+          setSections(initialSections);
+        } else {
+          // Create default section if none provided
+          addSection({
+            name: '히어로 섹션',
+            blocks: [],
+          });
+        }
+        pushHistory();
+      } catch (error) {
+        console.error('Failed to load content:', error);
+        // Fallback to default section
+        if (initialSections && initialSections.length > 0) {
+          setSections(initialSections);
+        } else {
+          addSection({
+            name: '히어로 섹션',
+            blocks: [],
+          });
+        }
+        pushHistory();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (projectId) {
+      fetchContent();
     } else {
-      // Create default section if none provided
-      addSection({
-        name: '히어로 섹션',
-        blocks: [],
-      });
+      if (initialSections && initialSections.length > 0) {
+        setSections(initialSections);
+      } else {
+        addSection({
+          name: '히어로 섹션',
+          blocks: [],
+        });
+      }
+      pushHistory();
+      setIsLoading(false);
     }
-    pushHistory();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [projectId]);
 
   // Auto-save functionality
   const { save } = useAutoSave({
@@ -209,6 +273,18 @@ export function DetailPageEditor({
     // Open preview in new tab
     window.open(`/dashboard/projects/${projectId}/preview`, '_blank');
   }, [projectId]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+          <p className="mt-4 text-muted-foreground">에디터 로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full">

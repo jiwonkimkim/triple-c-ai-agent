@@ -23,7 +23,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { UnifiedEditor } from '@/components/editor';
+import { DetailPageEditor } from '@/components/editor';
 import { VersionCompare } from '@/components/history/version-compare';
 import { VersionSnapshot, formatVersionDate, getActionLabel, getActionColor } from '@/stores/history-store';
 
@@ -535,17 +535,10 @@ export default function ProjectDetailPage() {
       {/* Content */}
       <div className="flex-1 overflow-hidden">
         {activeTab === 'editor' && (
-          <UnifiedEditor
+          <DetailPageEditor
             key={editorKey}
             projectId={projectId}
             versionId={latestVersion?.id}
-            productInfo={project ? {
-              productName: project.productName,
-              category: project.category,
-              keyFeatures: project.keyFeatures,
-              targetAudience: project.targetAudience,
-              description: project.description,
-            } : undefined}
             onSaveSuccess={() => {
               toast({
                 title: '저장됨',
