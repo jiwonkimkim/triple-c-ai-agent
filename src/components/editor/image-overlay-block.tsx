@@ -373,9 +373,19 @@ export function ImageOverlayBlockRenderer({
               style={{
                 left: `${overlayText.style.x}%`,
                 top: `${overlayText.style.y}%`,
-                transform: `translate(-50%, -50%) rotate(${overlayText.style.rotation || 0}deg)`,
+                // 텍스트 정렬에 따라 transform 조정 (왼쪽/중앙/오른쪽 기준점)
+                transform: `translate(${
+                  overlayText.style.textAlign === 'left' ? '0' :
+                  overlayText.style.textAlign === 'right' ? '-100%' : '-50%'
+                }, -50%) rotate(${overlayText.style.rotation || 0}deg)`,
                 zIndex: overlayText.zIndex || 0,
                 opacity: (overlayText.style.opacity || 100) / 100,
+                // 최대 너비 제한 (위치에 따라 동적 조정)
+                maxWidth: overlayText.style.textAlign === 'left'
+                  ? `${100 - overlayText.style.x}%`  // 왼쪽 정렬: 오른쪽 여백만큼
+                  : overlayText.style.textAlign === 'right'
+                  ? `${overlayText.style.x}%`  // 오른쪽 정렬: 왼쪽 여백만큼
+                  : `${Math.min(overlayText.style.x, 100 - overlayText.style.x) * 2}%`,  // 중앙 정렬
               }}
               onMouseDown={(e) => handleDragStart(e, overlayText.id)}
               onDoubleClick={(e) => {
@@ -782,9 +792,19 @@ export function ImageOverlayBlockPreview({
             style={{
               left: `${overlayText.style.x}%`,
               top: `${overlayText.style.y}%`,
-              transform: `translate(-50%, -50%) rotate(${overlayText.style.rotation || 0}deg)`,
+              // 텍스트 정렬에 따라 transform 조정
+              transform: `translate(${
+                overlayText.style.textAlign === 'left' ? '0' :
+                overlayText.style.textAlign === 'right' ? '-100%' : '-50%'
+              }, -50%) rotate(${overlayText.style.rotation || 0}deg)`,
               zIndex: overlayText.zIndex || 0,
               opacity: (overlayText.style.opacity || 100) / 100,
+              // 최대 너비 제한
+              maxWidth: overlayText.style.textAlign === 'left'
+                ? `${100 - overlayText.style.x}%`
+                : overlayText.style.textAlign === 'right'
+                ? `${overlayText.style.x}%`
+                : `${Math.min(overlayText.style.x, 100 - overlayText.style.x) * 2}%`,
               color: overlayText.style.color || '#ffffff',
               backgroundColor: overlayText.style.backgroundColor,
               padding: overlayText.style.padding,
