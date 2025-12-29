@@ -921,7 +921,7 @@ export function DetailPageEditor({
                         section.name?.toLowerCase().includes('main');
 
                       return (
-                        <div key={section.id}>
+                        <div key={section.id} className={isMain ? 'mb-6' : ''}>
                           <EditorSection
                             section={section}
                             sectionIndex={index}
