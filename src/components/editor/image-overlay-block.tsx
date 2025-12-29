@@ -620,21 +620,28 @@ export function ImageOverlayBlockRenderer({
             </div>
 
             {/* 굵기 */}
-            <div className="flex border rounded">
-              {(['normal', 'medium', 'semibold', 'bold'] as const).map((weight) => (
-                <button
-                  key={weight}
-                  className={cn(
-                    'px-2 py-1 text-xs',
-                    selectedText.style.fontWeight === weight && 'bg-primary text-primary-foreground'
-                  )}
-                  style={{ fontWeight: weight === 'bold' ? 700 : weight === 'semibold' ? 600 : weight === 'medium' ? 500 : 400 }}
-                  onClick={() => handleUpdateStyle(selectedTextId!, { fontWeight: weight })}
-                >
-                  {weight === 'bold' ? 'B' : weight === 'semibold' ? 'SB' : weight === 'medium' ? 'M' : 'N'}
-                </button>
-              ))}
-            </div>
+            <Select
+              value={selectedText.style.fontWeight || 'normal'}
+              onValueChange={(value) => handleUpdateStyle(selectedTextId!, { fontWeight: value as 'normal' | 'medium' | 'semibold' | 'bold' })}
+            >
+              <SelectTrigger className="w-24 h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="normal">
+                  <span style={{ fontWeight: 400 }}>Regular</span>
+                </SelectItem>
+                <SelectItem value="medium">
+                  <span style={{ fontWeight: 500 }}>Medium</span>
+                </SelectItem>
+                <SelectItem value="semibold">
+                  <span style={{ fontWeight: 600 }}>Semibold</span>
+                </SelectItem>
+                <SelectItem value="bold">
+                  <span style={{ fontWeight: 700 }}>Bold</span>
+                </SelectItem>
+              </SelectContent>
+            </Select>
 
             {/* 색상 */}
             <input
