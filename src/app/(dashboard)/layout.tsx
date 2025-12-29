@@ -13,10 +13,9 @@ import {
   Menu,
   X,
   ChevronDown,
+  ChevronLeft,
   User,
   Store,
-  PanelLeftClose,
-  PanelLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -77,31 +76,29 @@ export default function DashboardLayout({
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-background border-r transition-all duration-300',
+          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-background border-r transition-all duration-300 overflow-hidden',
           // 모바일: sidebarOpen으로 제어
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
-          // 데스크톱: sidebarCollapsed로 제어
+          // 데스크톱: sidebarCollapsed로 제어 - 완전히 숨김
           sidebarCollapsed
-            ? 'lg:-translate-x-full lg:w-0 lg:border-r-0'
-            : 'lg:translate-x-0 lg:static lg:z-auto'
+            ? 'lg:w-0 lg:opacity-0 lg:invisible lg:border-r-0'
+            : 'lg:translate-x-0 lg:static lg:z-auto lg:opacity-100 lg:visible'
         )}
       >
         {/* Logo */}
-        <div className="flex h-16 items-center justify-between border-b px-4">
+        <div className="flex h-16 items-center justify-between border-b px-4 min-w-[256px]">
           <Link href="/dashboard" className="flex items-center space-x-2">
             <span className="text-xl font-bold text-primary">Triple C</span>
           </Link>
           <div className="flex items-center gap-1">
-            {/* 데스크톱: 사이드바 닫기 버튼 */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="hidden lg:flex"
+            {/* 데스크톱: 사이드바 닫기 버튼 - 모던 스타일 */}
+            <button
+              className="hidden lg:flex h-7 w-7 items-center justify-center rounded-md hover:bg-muted transition-colors"
               onClick={() => setSidebarCollapsed(true)}
               title="사이드바 닫기"
             >
-              <PanelLeftClose className="h-5 w-5" />
-            </Button>
+              <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+            </button>
             {/* 모바일: 사이드바 닫기 버튼 */}
             <Button
               variant="ghost"
@@ -175,17 +172,15 @@ export default function DashboardLayout({
             <Menu className="h-5 w-5" />
           </Button>
 
-          {/* 데스크톱: 사이드바 토글 버튼 (에디터 페이지에서만 표시) */}
+          {/* 데스크톱: 사이드바 열기 버튼 (닫혀있을 때만 표시) */}
           {sidebarCollapsed && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="hidden lg:flex"
+            <button
+              className="hidden lg:flex h-8 w-8 items-center justify-center rounded-md border bg-background hover:bg-muted transition-colors shadow-sm"
               onClick={() => setSidebarCollapsed(false)}
               title="사이드바 열기"
             >
-              <PanelLeft className="h-5 w-5" />
-            </Button>
+              <Menu className="h-4 w-4" />
+            </button>
           )}
 
           <div className="flex-1" />
