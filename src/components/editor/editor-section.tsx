@@ -201,11 +201,11 @@ export function EditorSection({
       className={cn(
         'relative group/section transition-all',
         isMain
-          ? 'border-2 border-amber-400 rounded-xl shadow-lg bg-gradient-to-br from-amber-50/50 to-orange-50/50 dark:from-amber-950/20 dark:to-orange-950/20'
+          ? 'border-2 border-blue-400 rounded-xl shadow-lg bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20'
           : 'border rounded-lg',
         isSelected
-          ? isMain ? 'ring-2 ring-amber-500' : 'ring-2 ring-primary'
-          : isMain ? 'hover:border-amber-500' : 'hover:border-primary/50'
+          ? isMain ? 'ring-2 ring-blue-500' : 'ring-2 ring-primary'
+          : isMain ? 'hover:border-blue-500' : 'hover:border-primary/50'
       )}
       style={sectionStyles}
       onClick={(e) => {
@@ -217,17 +217,17 @@ export function EditorSection({
       <div className={cn(
         'flex items-center justify-between px-4 py-2 border-b',
         isMain
-          ? 'bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 rounded-t-xl'
+          ? 'bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-t-xl'
           : 'bg-muted/50'
       )}>
         <div className="flex items-center gap-2">
           {!isMain && <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />}
           {isMain && (
-            <span className="px-2 py-0.5 text-xs font-bold bg-amber-500 text-white rounded-full">MAIN</span>
+            <span className="px-2 py-0.5 text-xs font-bold bg-blue-500 text-white rounded-full">MAIN</span>
           )}
           <span className={cn(
             'font-medium text-sm',
-            isMain && 'text-amber-700 dark:text-amber-300'
+            isMain && 'text-blue-700 dark:text-blue-300'
           )}>{section.name || `Section ${sectionIndex + 1}`}</span>
         </div>
 
