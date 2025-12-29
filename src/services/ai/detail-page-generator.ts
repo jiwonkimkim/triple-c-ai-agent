@@ -62,15 +62,30 @@ interface DetailPageVersion {
   sections: DetailPageSection[];
 }
 
-// 개발자 모드 프롬프트 정보 (DEV ONLY)
+// 생성된 섹션 결과 타입 (개발자 모드용)
+interface GeneratedSectionResult {
+  type: string;
+  title?: string;
+  body: string;
+  imageUrl?: string;
+}
+
+// 개발자 모드 프롬프트 정보 (DEV ONLY) - 생성 결과 포함
 export interface DevPromptInfo {
   textGeneration: {
     systemPrompt: string;
     userPrompt: string;
+    // 생성된 텍스트 결과
+    generatedResult?: {
+      hookMessage: string;
+      sections: GeneratedSectionResult[];
+    };
   };
   sectionImagePrompts: Array<{
     sectionType: string;
     imagePrompt: string;
+    // 생성된 이미지 URL
+    generatedImageUrl?: string;
   }>;
 }
 
@@ -302,12 +317,21 @@ export async function generateDetailPage(
       generateMockDetailPage(input, 1),
     ];
 
-    // Mock 모드에서도 프롬프트 정보 포함 (개발자 참고용)
-    if (includeDevPrompts) {
+    // Mock 모드에서도 프롬프트 정보 포함 (개발자 참고용) - 생성 결과 포함
+    if (includeDevPrompts && mockVersions.length > 0) {
       devPrompts = {
         textGeneration: {
           systemPrompt: buildEnhancedSystemPrompt(input.copyLength, input.brandContext, input.category),
           userPrompt: buildEnhancedUserPrompt(input),
+          generatedResult: {
+            hookMessage: mockVersions[0].hookMessage,
+            sections: mockVersions[0].sections.map((s) => ({
+              type: s.type,
+              title: s.title,
+              body: s.body,
+              imageUrl: s.imageUrl,
+            })),
+          },
         },
         sectionImagePrompts: [],
       };
@@ -359,29 +383,6 @@ export async function generateDetailPage(
         imagePrompt: section.imagePrompt,
       })),
     }));
-
-    // 개발자 모드에서 프롬프트 정보 수집
-    if (includeDevPrompts && versions.length > 0) {
-      const sectionImagePrompts: DevPromptInfo['sectionImagePrompts'] = [];
-
-      // 첫 번째 버전의 섹션들에서 이미지 프롬프트 수집
-      for (const section of versions[0].sections) {
-        if (section.imagePrompt) {
-          sectionImagePrompts.push({
-            sectionType: section.type,
-            imagePrompt: section.imagePrompt.imagePrompt,
-          });
-        }
-      }
-
-      devPrompts = {
-        textGeneration: {
-          systemPrompt: buildEnhancedSystemPrompt(input.copyLength, input.brandContext, input.category),
-          userPrompt: buildEnhancedUserPrompt(input),
-        },
-        sectionImagePrompts,
-      };
-    }
 
     // 이미지 생성이 활성화된 경우 Gemini로 이미지 생성
     if (input.generateImages && isGeminiConfigured()) {
@@ -438,6 +439,40 @@ export async function generateDetailPage(
       }
     }
 
+    // 개발자 모드에서 프롬프트 정보 수집 (이미지 생성 후 - 생성된 결과 포함)
+    if (includeDevPrompts && versions.length > 0) {
+      const sectionImagePrompts: DevPromptInfo['sectionImagePrompts'] = [];
+
+      // 첫 번째 버전의 섹션들에서 이미지 프롬프트 및 생성된 이미지 수집
+      for (const section of versions[0].sections) {
+        if (section.imagePrompt) {
+          sectionImagePrompts.push({
+            sectionType: section.type,
+            imagePrompt: section.imagePrompt.imagePrompt,
+            generatedImageUrl: section.imageUrl, // 생성된 이미지 URL 포함
+          });
+        }
+      }
+
+      devPrompts = {
+        textGeneration: {
+          systemPrompt: buildEnhancedSystemPrompt(input.copyLength, input.brandContext, input.category),
+          userPrompt: buildEnhancedUserPrompt(input),
+          // 생성된 텍스트 결과 포함
+          generatedResult: {
+            hookMessage: versions[0].hookMessage,
+            sections: versions[0].sections.map((s) => ({
+              type: s.type,
+              title: s.title,
+              body: s.body,
+              imageUrl: s.imageUrl,
+            })),
+          },
+        },
+        sectionImagePrompts,
+      };
+    }
+
     console.log('[AI] Orchestrated generation completed successfully');
     return { versions, devPrompts };
 
@@ -459,23 +494,31 @@ async function generateDetailPageLegacy(
   const userPrompt = buildEnhancedUserPrompt(input);
   const provider = getAvailableProvider();
 
-  // 개발자 프롬프트 정보
-  const devPrompts: DevPromptInfo | undefined = includeDevPrompts ? {
-    textGeneration: {
-      systemPrompt,
-      userPrompt,
-    },
-    sectionImagePrompts: [],
-  } : undefined;
-
   if (!provider) {
-    return {
-      versions: [
-        generateMockDetailPage(input, 0),
-        generateMockDetailPage(input, 1),
-      ],
-      devPrompts,
-    };
+    const mockVersions = [
+      generateMockDetailPage(input, 0),
+      generateMockDetailPage(input, 1),
+    ];
+
+    // 개발자 프롬프트 정보 (생성 결과 포함)
+    const devPrompts: DevPromptInfo | undefined = includeDevPrompts && mockVersions.length > 0 ? {
+      textGeneration: {
+        systemPrompt,
+        userPrompt,
+        generatedResult: {
+          hookMessage: mockVersions[0].hookMessage,
+          sections: mockVersions[0].sections.map((s) => ({
+            type: s.type,
+            title: s.title,
+            body: s.body,
+            imageUrl: s.imageUrl,
+          })),
+        },
+      },
+      sectionImagePrompts: [],
+    } : undefined;
+
+    return { versions: mockVersions, devPrompts };
   }
 
   const generateVersion = async (versionIndex: number): Promise<DetailPageVersion> => {
@@ -579,18 +622,52 @@ async function generateDetailPageLegacy(
       }
     }
 
+    // 개발자 프롬프트 정보 (생성 결과 포함)
+    const devPrompts: DevPromptInfo | undefined = includeDevPrompts && versions.length > 0 ? {
+      textGeneration: {
+        systemPrompt,
+        userPrompt,
+        generatedResult: {
+          hookMessage: versions[0].hookMessage,
+          sections: versions[0].sections.map((s) => ({
+            type: s.type,
+            title: s.title,
+            body: s.body,
+            imageUrl: s.imageUrl,
+          })),
+        },
+      },
+      sectionImagePrompts: [],
+    } : undefined;
+
     return { versions, devPrompts };
   } catch (error) {
     console.error('[AI] Legacy generation failed:', error);
     const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
     if (isDev) {
-      return {
-        versions: [
-          generateMockDetailPage(input, 0),
-          generateMockDetailPage(input, 1),
-        ],
-        devPrompts,
-      };
+      const fallbackVersions = [
+        generateMockDetailPage(input, 0),
+        generateMockDetailPage(input, 1),
+      ];
+
+      const fallbackDevPrompts: DevPromptInfo | undefined = includeDevPrompts && fallbackVersions.length > 0 ? {
+        textGeneration: {
+          systemPrompt,
+          userPrompt,
+          generatedResult: {
+            hookMessage: fallbackVersions[0].hookMessage,
+            sections: fallbackVersions[0].sections.map((s) => ({
+              type: s.type,
+              title: s.title,
+              body: s.body,
+              imageUrl: s.imageUrl,
+            })),
+          },
+        },
+        sectionImagePrompts: [],
+      } : undefined;
+
+      return { versions: fallbackVersions, devPrompts: fallbackDevPrompts };
     }
     throw error;
   }

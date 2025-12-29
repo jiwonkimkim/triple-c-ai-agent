@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -17,17 +18,32 @@ import {
 } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Code, Copy, Check, Terminal } from 'lucide-react';
+import { Code, Copy, Check, Terminal, ImageIcon, FileText } from 'lucide-react';
 
-// 개발자 프롬프트 정보 타입
+// 생성된 섹션 결과 타입
+interface GeneratedSection {
+  type: string;
+  title?: string;
+  body: string;
+  imageUrl?: string;
+}
+
+// 개발자 프롬프트 정보 타입 (생성 결과 포함)
 export interface DevPromptInfo {
   textGeneration: {
     systemPrompt: string;
     userPrompt: string;
+    // 생성된 텍스트 결과
+    generatedResult?: {
+      hookMessage: string;
+      sections: GeneratedSection[];
+    };
   };
   sectionImagePrompts: Array<{
     sectionType: string;
     imagePrompt: string;
+    // 생성된 이미지 URL
+    generatedImageUrl?: string;
   }>;
 }
 
@@ -63,15 +79,15 @@ function CopyButton({ text }: { text: string }) {
 }
 
 // 프롬프트 내용 표시 컴포넌트
-function PromptContent({ title, content }: { title: string; content: string }) {
+function PromptContent({ title, content, height = "h-[220px]" }: { title: string; content: string; height?: string }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-medium text-muted-foreground">{title}</h4>
         <CopyButton text={content} />
       </div>
-      <ScrollArea className="h-[300px] rounded-md border bg-muted/50 p-4">
-        <pre className="text-xs whitespace-pre-wrap font-mono">{content}</pre>
+      <ScrollArea className={`${height} rounded-md border bg-muted/50 p-3`}>
+        <pre className="text-[10px] whitespace-pre-wrap font-mono leading-relaxed">{content}</pre>
       </ScrollArea>
     </div>
   );
@@ -118,7 +134,7 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
           </Badge>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Code className="h-5 w-5" />
@@ -142,18 +158,70 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="text" className="space-y-4 mt-4">
-            <PromptContent
-              title="System Prompt"
-              content={prompts.textGeneration.systemPrompt}
-            />
-            <PromptContent
-              title="User Prompt"
-              content={prompts.textGeneration.userPrompt}
-            />
+          <TabsContent value="text" className="mt-4">
+            <div className="grid grid-cols-2 gap-4">
+              {/* 왼쪽: 생성된 결과 */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <FileText className="h-4 w-4 text-green-600" />
+                  <h3 className="text-sm font-semibold text-green-600">생성된 결과</h3>
+                </div>
+                {prompts.textGeneration.generatedResult ? (
+                  <ScrollArea className="h-[500px] rounded-md border bg-green-50 dark:bg-green-950/20 p-4">
+                    <div className="space-y-4">
+                      {/* Hook Message */}
+                      <div className="p-3 bg-white dark:bg-gray-900 rounded-lg border">
+                        <Badge className="mb-2 bg-green-600">Hook Message</Badge>
+                        <p className="text-sm font-medium">
+                          {prompts.textGeneration.generatedResult.hookMessage}
+                        </p>
+                      </div>
+                      {/* Sections */}
+                      {prompts.textGeneration.generatedResult.sections.map((section, idx) => (
+                        <div key={idx} className="p-3 bg-white dark:bg-gray-900 rounded-lg border">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="outline">{section.type}</Badge>
+                            {section.title && (
+                              <span className="text-xs text-muted-foreground">{section.title}</span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                            {section.body}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                ) : (
+                  <div className="h-[500px] rounded-md border bg-muted/30 flex items-center justify-center">
+                    <p className="text-sm text-muted-foreground">생성된 결과 없음</p>
+                  </div>
+                )}
+              </div>
+
+              {/* 오른쪽: 프롬프트 */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Code className="h-4 w-4 text-blue-600" />
+                  <h3 className="text-sm font-semibold text-blue-600">사용된 프롬프트</h3>
+                </div>
+                <ScrollArea className="h-[500px]">
+                  <div className="space-y-4 pr-2">
+                    <PromptContent
+                      title="System Prompt"
+                      content={prompts.textGeneration.systemPrompt}
+                    />
+                    <PromptContent
+                      title="User Prompt"
+                      content={prompts.textGeneration.userPrompt}
+                    />
+                  </div>
+                </ScrollArea>
+              </div>
+            </div>
           </TabsContent>
 
-          <TabsContent value="image" className="space-y-4 mt-4">
+          <TabsContent value="image" className="mt-4">
             {prompts.sectionImagePrompts.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 이미지 생성 프롬프트가 없습니다.
@@ -162,17 +230,54 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
               <ScrollArea className="h-[500px]">
                 <div className="space-y-6 pr-4">
                   {prompts.sectionImagePrompts.map((section, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-center gap-2">
+                    <div key={index} className="rounded-lg border p-4 bg-muted/20">
+                      <div className="flex items-center gap-2 mb-3">
                         <Badge>{section.sectionType}</Badge>
                         <span className="text-sm text-muted-foreground">
-                          섹션 이미지 프롬프트
+                          섹션 이미지
                         </span>
                       </div>
-                      <PromptContent
-                        title="Gemini Image Prompt"
-                        content={section.imagePrompt}
-                      />
+
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* 왼쪽: 생성된 이미지 */}
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <ImageIcon className="h-4 w-4 text-green-600" />
+                            <span className="text-xs font-medium text-green-600">생성된 이미지</span>
+                          </div>
+                          {section.generatedImageUrl ? (
+                            <div className="relative aspect-[3/4] rounded-md border overflow-hidden bg-white">
+                              <Image
+                                src={section.generatedImageUrl}
+                                alt={`${section.sectionType} 생성 이미지`}
+                                fill
+                                className="object-contain"
+                              />
+                            </div>
+                          ) : (
+                            <div className="aspect-[3/4] rounded-md border bg-muted/30 flex items-center justify-center">
+                              <div className="text-center">
+                                <ImageIcon className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+                                <p className="text-xs text-muted-foreground">이미지 없음</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* 오른쪽: 프롬프트 */}
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Code className="h-4 w-4 text-blue-600" />
+                            <span className="text-xs font-medium text-blue-600">사용된 프롬프트</span>
+                            <CopyButton text={section.imagePrompt} />
+                          </div>
+                          <ScrollArea className="h-[280px] rounded-md border bg-muted/50 p-3">
+                            <pre className="text-[10px] whitespace-pre-wrap font-mono">
+                              {section.imagePrompt}
+                            </pre>
+                          </ScrollArea>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
