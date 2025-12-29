@@ -172,98 +172,21 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// Generate system prompt
+// Generate system prompt - 고도화된 버전 사용
+// 기존 함수는 enhanced-prompts.ts의 buildEnhancedSystemPrompt로 대체됨
+// 하위 호환성을 위해 래퍼 함수 유지
 function buildSystemPrompt(
   copyLength: 'short' | 'medium' | 'long',
-  brandContext?: BrandContext | null
+  brandContext?: BrandContext | null,
+  category?: string
 ): string {
-  const lengthConfig = COPY_LENGTH_CONFIG[copyLength];
-
-  let systemPrompt = `You are an expert marketing copywriter specializing in product detail pages and e-commerce content.
-Your task is to create compelling, conversion-focused product detail page content.
-
-Writing Style Guidelines:
-- Write ${lengthConfig.description} copy
-- Hook messages should be around ${lengthConfig.hookLength} characters
-- Section body text should be around ${lengthConfig.sectionBodyLength} characters
-- Use persuasive language that drives action
-- Focus on benefits, not just features
-- Include emotional triggers where appropriate
-- Write in a professional yet engaging tone
-
-NOTE
-- You should write in Korean
-`;
-
-  if (brandContext) {
-    systemPrompt += `
-
-Brand Guidelines:
-- Brand Name: ${brandContext.name}
-- Brand Identity: ${brandContext.identity}
-- Tone & Manner: ${brandContext.toneAndManner}
-- Visual Keywords: ${brandContext.imageKeywords.join(', ')}`;
-
-    if (brandContext.ragContext) {
-      systemPrompt += `
-
-Brand Context (from previous materials):
-${brandContext.ragContext}`;
-    }
-  }
-
-  return systemPrompt;
+  return buildEnhancedSystemPrompt(copyLength, brandContext, category);
 }
 
-// Generate user prompt
+// Generate user prompt - 고도화된 버전 사용
+// 기존 함수는 enhanced-prompts.ts의 buildEnhancedUserPrompt로 대체됨
 function buildUserPrompt(input: GenerateDetailPageInput): string {
-  return `Create a product detail page for the following product:
-
-Product Name: ${input.productName}
-Category: ${input.category}
-Target Audience: ${input.targetAudience}
-Key Features:
-${input.keyFeatures.map((f, i) => `${i + 1}. ${f}`).join('\n')}
-
-Please generate the content in the following JSON format:
-{
-  "hookMessage": "A compelling headline that grabs attention",
-  "sections": [
-    {
-      "type": "HERO",
-      "title": "Hero section title",
-      "body": "Hero section description"
-    },
-    {
-      "type": "FEATURES",
-      "title": "Features section title",
-      "body": "Detailed features description"
-    },
-    {
-      "type": "SOCIAL_PROOF",
-      "title": "Social proof section title",
-      "body": "Customer testimonials or trust signals"
-    },
-    {
-      "type": "HOW_TO_USE",
-      "title": "How to use section title",
-      "body": "Usage instructions or benefits"
-    },
-    {
-      "type": "FAQ",
-      "title": "FAQ section title",
-      "body": "Common questions and answers"
-    }
-  ]
-}
-
-Important:
-- Create content that resonates with ${input.targetAudience}
-- Highlight the unique selling points
-- Make the copy scannable and easy to read
-- Include a call-to-action where appropriate
-
-Return only the JSON object, no additional text.`;
+  return buildEnhancedUserPrompt(input);
 }
 
 // Parse AI response to DetailPageVersion
