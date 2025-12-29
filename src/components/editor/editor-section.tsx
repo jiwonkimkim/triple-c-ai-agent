@@ -79,6 +79,8 @@ interface EditorSectionProps {
   totalSections: number;
   selectedBlockId: string | null;
   isSelected: boolean;
+  /** MAIN 섹션인지 여부 - 블록 추가 버튼 숨김, 특별 디자인 적용 */
+  isMain?: boolean;
   onSelectSection: () => void;
   onSelectBlock: (blockId: string | null) => void;
   onUpdateSection: (updates: Partial<Omit<Section, 'id'>>) => void;
@@ -140,6 +142,7 @@ export function EditorSection({
   totalSections,
   selectedBlockId,
   isSelected,
+  isMain = false,
   onSelectSection,
   onSelectBlock,
   onUpdateSection,
@@ -196,8 +199,13 @@ export function EditorSection({
   return (
     <div
       className={cn(
-        'relative group/section border rounded-lg transition-all',
-        isSelected ? 'ring-2 ring-primary' : 'hover:border-primary/50'
+        'relative group/section transition-all',
+        isMain
+          ? 'border-2 border-amber-400 rounded-xl shadow-lg bg-gradient-to-br from-amber-50/50 to-orange-50/50 dark:from-amber-950/20 dark:to-orange-950/20'
+          : 'border rounded-lg',
+        isSelected
+          ? isMain ? 'ring-2 ring-amber-500' : 'ring-2 ring-primary'
+          : isMain ? 'hover:border-amber-500' : 'hover:border-primary/50'
       )}
       style={sectionStyles}
       onClick={(e) => {
@@ -206,37 +214,53 @@ export function EditorSection({
       }}
     >
       {/* Section header */}
-      <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/50">
+      <div className={cn(
+        'flex items-center justify-between px-4 py-2 border-b',
+        isMain
+          ? 'bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 rounded-t-xl'
+          : 'bg-muted/50'
+      )}>
         <div className="flex items-center gap-2">
-          <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />
-          <span className="font-medium text-sm">{section.name || `Section ${sectionIndex + 1}`}</span>
+          {!isMain && <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />}
+          {isMain && (
+            <span className="px-2 py-0.5 text-xs font-bold bg-amber-500 text-white rounded-full">MAIN</span>
+          )}
+          <span className={cn(
+            'font-medium text-sm',
+            isMain && 'text-amber-700 dark:text-amber-300'
+          )}>{section.name || `Section ${sectionIndex + 1}`}</span>
         </div>
 
         <div className="flex items-center gap-1 opacity-0 group-hover/section:opacity-100 transition-opacity">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={(e) => {
-              e.stopPropagation();
-              onMoveSection('up');
-            }}
-            disabled={sectionIndex === 0}
-          >
-            <ChevronUp className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={(e) => {
-              e.stopPropagation();
-              onMoveSection('down');
-            }}
-            disabled={sectionIndex === totalSections - 1}
-          >
-            <ChevronDown className="h-4 w-4" />
-          </Button>
+          {/* MAIN 섹션은 이동 불가 */}
+          {!isMain && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMoveSection('up');
+                }}
+                disabled={sectionIndex === 0}
+              >
+                <ChevronUp className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMoveSection('down');
+                }}
+                disabled={sectionIndex === totalSections - 1}
+              >
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -248,29 +272,34 @@ export function EditorSection({
           >
             <Settings className="h-4 w-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDuplicateSection();
-            }}
-          >
-            <Copy className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-destructive hover:text-destructive"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDeleteSection();
-            }}
-            disabled={totalSections === 1}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          {/* MAIN 섹션은 복제/삭제 불가 */}
+          {!isMain && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDuplicateSection();
+                }}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-destructive hover:text-destructive"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteSection();
+                }}
+                disabled={totalSections === 1}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -317,57 +346,62 @@ export function EditorSection({
       )}
 
       {/* Section content - blocks */}
-      <div className="p-4 space-y-0">
+      <div className={cn('p-4 space-y-0', isMain && 'pb-6')}>
         {section.blocks.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            <p className="mb-4">이 섹션이 비어 있습니다</p>
-            <AddBlockDropdown onAddBlock={(type) => onAddBlock(defaultBlockContent[type])} />
+            <p className="mb-4">{isMain ? 'MAIN 이미지가 아직 없습니다' : '이 섹션이 비어 있습니다'}</p>
+            {/* MAIN 섹션은 블록 추가 버튼 숨김 */}
+            {!isMain && <AddBlockDropdown onAddBlock={(type) => onAddBlock(defaultBlockContent[type])} />}
           </div>
         ) : (
           <>
-            {/* 맨 위 블록 추가 버튼 */}
-            <BlockAddDivider onAdd={(type) => onAddBlock(defaultBlockContent[type], 0)} />
+            {/* 맨 위 블록 추가 버튼 - MAIN 섹션은 숨김 */}
+            {!isMain && <BlockAddDivider onAdd={(type) => onAddBlock(defaultBlockContent[type], 0)} />}
 
             {section.blocks.map((block, index) => (
               <div key={block.id}>
                 <div
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, index)}
-                  onDragOver={(e) => handleDragOver(e, index)}
-                  onDragLeave={handleDragLeave}
-                  onDrop={(e) => handleDrop(e, index)}
-                  onDragEnd={handleDragEnd}
+                  draggable={!isMain}
+                  onDragStart={(e) => !isMain && handleDragStart(e, index)}
+                  onDragOver={(e) => !isMain && handleDragOver(e, index)}
+                  onDragLeave={!isMain ? handleDragLeave : undefined}
+                  onDrop={(e) => !isMain && handleDrop(e, index)}
+                  onDragEnd={!isMain ? handleDragEnd : undefined}
                   className={cn(
                     'relative group/block',
-                    draggedBlockIndex === index && 'opacity-50',
-                    dragOverBlockIndex === index && 'border-t-2 border-primary'
+                    !isMain && draggedBlockIndex === index && 'opacity-50',
+                    !isMain && dragOverBlockIndex === index && 'border-t-2 border-primary'
                   )}
                 >
-                  {/* Block controls */}
-                  <div className="absolute -left-10 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover/block:opacity-100 transition-opacity">
-                    <button
-                      type="button"
-                      className="p-1 hover:bg-muted rounded cursor-grab"
-                      title="드래그하여 순서 변경"
-                    >
-                      <GripVertical className="h-4 w-4 text-muted-foreground" />
-                    </button>
-                  </div>
+                  {/* Block controls - MAIN 섹션은 드래그 핸들 숨김 */}
+                  {!isMain && (
+                    <div className="absolute -left-10 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover/block:opacity-100 transition-opacity">
+                      <button
+                        type="button"
+                        className="p-1 hover:bg-muted rounded cursor-grab"
+                        title="드래그하여 순서 변경"
+                      >
+                        <GripVertical className="h-4 w-4 text-muted-foreground" />
+                      </button>
+                    </div>
+                  )}
 
-                  {/* Block delete button */}
-                  <div className="absolute -right-8 top-1/2 -translate-y-1/2 opacity-0 group-hover/block:opacity-100 transition-opacity">
-                    <button
-                      type="button"
-                      className="p-1 hover:bg-destructive/10 rounded"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteBlock(block.id);
-                      }}
-                      title="블록 삭제"
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </button>
-                  </div>
+                  {/* Block delete button - MAIN 섹션은 블록 삭제 숨김 */}
+                  {!isMain && (
+                    <div className="absolute -right-8 top-1/2 -translate-y-1/2 opacity-0 group-hover/block:opacity-100 transition-opacity">
+                      <button
+                        type="button"
+                        className="p-1 hover:bg-destructive/10 rounded"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteBlock(block.id);
+                        }}
+                        title="블록 삭제"
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </button>
+                    </div>
+                  )}
 
                   <BlockRenderer
                     block={block}
@@ -377,8 +411,8 @@ export function EditorSection({
                   />
                 </div>
 
-                {/* 각 블록 아래 블록 추가 버튼 */}
-                <BlockAddDivider onAdd={(type) => onAddBlock(defaultBlockContent[type], index + 1)} />
+                {/* 각 블록 아래 블록 추가 버튼 - MAIN 섹션은 숨김 */}
+                {!isMain && <BlockAddDivider onAdd={(type) => onAddBlock(defaultBlockContent[type], index + 1)} />}
               </div>
             ))}
           </>

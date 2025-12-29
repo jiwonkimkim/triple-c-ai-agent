@@ -898,32 +898,58 @@ export function DetailPageEditor({
         >
           <div className={cn('mx-auto transition-all duration-300', previewWidths[previewMode])}>
             <div className="space-y-0">
-              {/* 맨 위 섹션 추가 버튼 */}
-              <SectionAddDivider onAdd={() => handleInsertSectionAt(0)} />
+              {/* MAIN 섹션 판별: 첫 번째 섹션이 메인인지 확인 */}
+              {(() => {
+                const firstSection = sections[0];
+                const isFirstSectionMain = firstSection && (
+                  firstSection.name === '메인' ||
+                  firstSection.id.includes('MAIN') ||
+                  firstSection.name?.toLowerCase().includes('main')
+                );
 
-              {sections.map((section, index) => (
-                <div key={section.id}>
-                  <EditorSection
-                    section={section}
-                    sectionIndex={index}
-                    totalSections={sections.length}
-                    selectedBlockId={selectedBlockId}
-                    isSelected={selectedSectionId === section.id}
-                    onSelectSection={() => selectSection(section.id)}
-                    onSelectBlock={selectBlock}
-                    onUpdateSection={(updates) => updateSection(section.id, updates)}
-                    onDeleteSection={() => deleteSection(section.id)}
-                    onMoveSection={(direction) => handleMoveSection(index, direction)}
-                    onDuplicateSection={() => handleDuplicateSection(section.id)}
-                    onAddBlock={(block, blockIndex) => addBlock(section.id, block, blockIndex)}
-                    onUpdateBlock={(blockId, updates) => updateBlock(section.id, blockId, updates)}
-                    onDeleteBlock={(blockId) => deleteBlock(section.id, blockId)}
-                    onReorderBlocks={(start, end) => reorderBlocks(section.id, start, end)}
-                  />
-                  {/* 각 섹션 아래 섹션 추가 버튼 */}
-                  <SectionAddDivider onAdd={() => handleInsertSectionAt(index + 1)} />
-                </div>
-              ))}
+                return (
+                  <>
+                    {/* 맨 위 섹션 추가 버튼 - MAIN 섹션이 있으면 숨김 */}
+                    {!isFirstSectionMain && (
+                      <SectionAddDivider onAdd={() => handleInsertSectionAt(0)} />
+                    )}
+
+                    {sections.map((section, index) => {
+                      // 해당 섹션이 MAIN인지 확인
+                      const isMain = section.name === '메인' ||
+                        section.id.includes('MAIN') ||
+                        section.name?.toLowerCase().includes('main');
+
+                      return (
+                        <div key={section.id}>
+                          <EditorSection
+                            section={section}
+                            sectionIndex={index}
+                            totalSections={sections.length}
+                            selectedBlockId={selectedBlockId}
+                            isSelected={selectedSectionId === section.id}
+                            isMain={isMain}
+                            onSelectSection={() => selectSection(section.id)}
+                            onSelectBlock={selectBlock}
+                            onUpdateSection={(updates) => updateSection(section.id, updates)}
+                            onDeleteSection={() => deleteSection(section.id)}
+                            onMoveSection={(direction) => handleMoveSection(index, direction)}
+                            onDuplicateSection={() => handleDuplicateSection(section.id)}
+                            onAddBlock={(block, blockIndex) => addBlock(section.id, block, blockIndex)}
+                            onUpdateBlock={(blockId, updates) => updateBlock(section.id, blockId, updates)}
+                            onDeleteBlock={(blockId) => deleteBlock(section.id, blockId)}
+                            onReorderBlocks={(start, end) => reorderBlocks(section.id, start, end)}
+                          />
+                          {/* 각 섹션 아래 섹션 추가 버튼 - MAIN 섹션 바로 아래는 숨김 */}
+                          {!isMain && (
+                            <SectionAddDivider onAdd={() => handleInsertSectionAt(index + 1)} />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </>
+                );
+              })()}
             </div>
           </div>
         </div>
