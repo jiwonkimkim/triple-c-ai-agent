@@ -51,19 +51,39 @@ interface ImageOverlayBlockRendererProps {
   onUpdate: (updates: Partial<ImageOverlayBlock>) => void;
 }
 
-// 폰트 옵션
+// 폰트 옵션 (카테고리별 분류)
 const fontOptions = [
-  { value: 'Pretendard, sans-serif', label: 'Pretendard' },
-  { value: 'Noto Sans KR, sans-serif', label: 'Noto Sans KR' },
-  { value: 'Nanum Gothic, sans-serif', label: '나눔고딕' },
-  { value: 'Nanum Myeongjo, serif', label: '나눔명조' },
-  { value: 'Black Han Sans, sans-serif', label: '검은고딕' },
-  { value: 'Jua, sans-serif', label: '주아' },
-  { value: 'Do Hyeon, sans-serif', label: '도현' },
-  { value: 'Gaegu, cursive', label: '개구' },
-  { value: 'Arial, sans-serif', label: 'Arial' },
-  { value: 'Georgia, serif', label: 'Georgia' },
-  { value: 'Impact, sans-serif', label: 'Impact' },
+  // 고딕 계열 (Sans-serif)
+  { value: 'Pretendard, sans-serif', label: 'Pretendard', category: '고딕' },
+  { value: 'Noto Sans KR, sans-serif', label: 'Noto Sans KR', category: '고딕' },
+  { value: 'Nanum Gothic, sans-serif', label: '나눔고딕', category: '고딕' },
+  { value: 'Spoqa Han Sans Neo, sans-serif', label: '스포카 한 산스', category: '고딕' },
+  { value: 'IBM Plex Sans KR, sans-serif', label: 'IBM Plex Sans', category: '고딕' },
+
+  // 명조 계열 (Serif)
+  { value: 'Nanum Myeongjo, serif', label: '나눔명조', category: '명조' },
+  { value: 'Noto Serif KR, serif', label: 'Noto Serif KR', category: '명조' },
+  { value: 'KoPub Batang, serif', label: '코퍼브 바탕', category: '명조' },
+
+  // 디스플레이/타이틀 (Display)
+  { value: 'Black Han Sans, sans-serif', label: '검은고딕', category: '타이틀' },
+  { value: 'Jua, sans-serif', label: '주아', category: '타이틀' },
+  { value: 'Do Hyeon, sans-serif', label: '도현', category: '타이틀' },
+  { value: 'Gugi, sans-serif', label: '구기', category: '타이틀' },
+  { value: 'Sunflower, sans-serif', label: '해바라기', category: '타이틀' },
+
+  // 손글씨/캘리 (Handwriting)
+  { value: 'Gaegu, cursive', label: '개구', category: '손글씨' },
+  { value: 'Hi Melody, cursive', label: '하이멜로디', category: '손글씨' },
+  { value: 'Gamja Flower, cursive', label: '감자꽃', category: '손글씨' },
+  { value: 'Cute Font, cursive', label: '귀여운 폰트', category: '손글씨' },
+
+  // 영문 (English)
+  { value: 'Arial, sans-serif', label: 'Arial', category: '영문' },
+  { value: 'Georgia, serif', label: 'Georgia', category: '영문' },
+  { value: 'Impact, sans-serif', label: 'Impact', category: '영문' },
+  { value: 'Montserrat, sans-serif', label: 'Montserrat', category: '영문' },
+  { value: 'Playfair Display, serif', label: 'Playfair Display', category: '영문' },
 ];
 
 // 텍스트 타입별 기본 스타일
