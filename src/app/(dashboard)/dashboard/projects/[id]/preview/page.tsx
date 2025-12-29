@@ -16,7 +16,14 @@ async function fetchLatestVersion(projectId: string): Promise<VersionData | null
   if (contentResponse.ok) {
     const contentData = await contentResponse.json();
     if (contentData.success && contentData.data) {
-      // imageOverlayBlocks 형식 처리
+      // editorSections 형식 처리 (최신: 각 섹션 분리)
+      if (contentData.data.editorSections?.length > 0) {
+        return {
+          id: contentData.data.versionId || 'preview',
+          content: contentData.data.editorSections,
+        };
+      }
+      // imageOverlayBlocks 형식 처리 (레거시)
       if (contentData.data.imageOverlayBlocks?.length > 0) {
         return {
           id: contentData.data.versionId || 'preview',
@@ -27,7 +34,7 @@ async function fetchLatestVersion(projectId: string): Promise<VersionData | null
           }],
         };
       }
-      // elements 형식 처리
+      // elements 형식 처리 (레거시)
       if (contentData.data.elements?.length > 0) {
         return {
           id: contentData.data.versionId || 'preview',
@@ -90,11 +97,27 @@ export default function ProjectPreviewPage() {
     return [];
   })();
 
+  // MAIN 섹션과 나머지 섹션 분리
+  const mainSection = sections.find((s) => s.name === '메인' || s.id.includes('MAIN'));
+  const otherSections = sections.filter((s) => s.name !== '메인' && !s.id.includes('MAIN'));
+
   return (
     <div className="min-h-screen bg-white">
-      {sections.map((section) => (
-        <PreviewSection key={section.id} section={section} />
-      ))}
+      {/* MAIN 섹션 - 따로 표시 */}
+      {mainSection && (
+        <div className="mb-8">
+          <PreviewSection section={mainSection} isMain />
+        </div>
+      )}
+
+      {/* 나머지 섹션들 - 여백 없이 합쳐서 표시 */}
+      {otherSections.length > 0 && (
+        <div className="detail-sections">
+          {otherSections.map((section) => (
+            <PreviewSection key={section.id} section={section} isMain={false} />
+          ))}
+        </div>
+      )}
 
       {sections.length === 0 && (
         <div className="flex items-center justify-center min-h-screen text-muted-foreground">
@@ -105,7 +128,7 @@ export default function ProjectPreviewPage() {
   );
 }
 
-function PreviewSection({ section }: { section: Section }) {
+function PreviewSection({ section, isMain = false }: { section: Section; isMain?: boolean }) {
   const sectionStyles: React.CSSProperties = {};
   if (section.backgroundColor) {
     sectionStyles.backgroundColor = section.backgroundColor;
@@ -114,18 +137,32 @@ function PreviewSection({ section }: { section: Section }) {
     sectionStyles.padding = section.padding;
   }
 
+  // MAIN 섹션은 패딩 있게, 나머지는 여백 없이
+  if (isMain) {
+    return (
+      <section style={sectionStyles} className="py-8">
+        <div className="container mx-auto px-4 max-w-4xl">
+          {section.blocks.map((block) => (
+            <PreviewBlock key={block.id} block={block} isMain />
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  // 나머지 섹션들은 여백 없이 연결
   return (
-    <section style={sectionStyles} className="py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
+    <section style={sectionStyles}>
+      <div className="max-w-4xl mx-auto">
         {section.blocks.map((block) => (
-          <PreviewBlock key={block.id} block={block} />
+          <PreviewBlock key={block.id} block={block} isMain={false} />
         ))}
       </div>
     </section>
   );
 }
 
-function PreviewBlock({ block }: { block: EditorBlock }) {
+function PreviewBlock({ block, isMain = false }: { block: EditorBlock; isMain?: boolean }) {
   switch (block.type) {
     case 'heading': {
       const HeadingTag = `h${block.level}` as keyof JSX.IntrinsicElements;
@@ -213,7 +250,7 @@ function PreviewBlock({ block }: { block: EditorBlock }) {
       return <div style={{ height: block.height }} />;
 
     case 'image-overlay':
-      return <PreviewImageOverlay block={block} />;
+      return <PreviewImageOverlay block={block} isMain={isMain} />;
 
     case 'list': {
       const ListTag = block.listType === 'bullet' ? 'ul' : 'ol';
@@ -245,24 +282,24 @@ function PreviewBlock({ block }: { block: EditorBlock }) {
 }
 
 // Image Overlay 블록 미리보기 컴포넌트
-function PreviewImageOverlay({ block }: { block: EditorBlock }) {
+function PreviewImageOverlay({ block, isMain = false }: { block: EditorBlock; isMain?: boolean }) {
   if (block.type !== 'image-overlay') return null;
 
   const overlayTexts = block.overlayTexts || [];
 
   return (
-    <div className="relative w-full mb-6" style={{ minHeight: '400px' }}>
+    <div className={`relative w-full ${isMain ? 'mb-6' : ''}`} style={{ minHeight: '400px' }}>
       {/* 배경 이미지 */}
       {block.src ? (
         <img
           src={block.src}
           alt={block.alt || '상세페이지 이미지'}
-          className="w-full h-auto object-cover rounded-lg"
+          className={`w-full h-auto object-cover ${isMain ? 'rounded-lg' : ''}`}
           style={{ minHeight: '400px' }}
         />
       ) : (
         <div
-          className="w-full bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center"
+          className={`w-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center ${isMain ? 'rounded-lg' : ''}`}
           style={{ minHeight: '400px' }}
         >
           <span className="text-gray-500">이미지 없음</span>
@@ -272,7 +309,7 @@ function PreviewImageOverlay({ block }: { block: EditorBlock }) {
       {/* 그라데이션 오버레이 */}
       {block.overlayGradient && (
         <div
-          className="absolute inset-0 rounded-lg"
+          className={`absolute inset-0 ${isMain ? 'rounded-lg' : ''}`}
           style={{ background: block.overlayGradient }}
         />
       )}
