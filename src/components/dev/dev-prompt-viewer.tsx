@@ -84,9 +84,24 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
     return null;
   }
 
-  // 프롬프트가 없으면 렌더링하지 않음
-  if (!prompts) {
-    return null;
+  const hasPrompts = !!prompts;
+
+  // 프롬프트가 없으면 비활성화된 버튼만 표시
+  if (!hasPrompts) {
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        className={`gap-2 ${className}`}
+        disabled
+      >
+        <Terminal className="h-4 w-4" />
+        <span>DEV: 프롬프트 보기</span>
+        <Badge variant="secondary" className="ml-1 text-[10px]">
+          생성 필요
+        </Badge>
+      </Button>
+    );
   }
 
   return (

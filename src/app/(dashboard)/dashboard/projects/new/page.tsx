@@ -313,12 +313,23 @@ export default function NewProjectPage() {
         }),
       });
 
+      const result = await generateRes.json();
+
       if (!generateRes.ok) {
-        const errorData = await generateRes.json();
-        throw new Error(errorData.error || '상세페이지 생성에 실패했습니다.');
+        throw new Error(result.error || '상세페이지 생성에 실패했습니다.');
       }
 
-      const result = await generateRes.json();
+      // 개발 모드에서 프롬프트 정보를 sessionStorage에 저장
+      if (result.data?.devPrompts) {
+        try {
+          sessionStorage.setItem(
+            `devPrompts_${projectId}`,
+            JSON.stringify(result.data.devPrompts)
+          );
+        } catch (e) {
+          console.warn('Failed to save devPrompts to sessionStorage:', e);
+        }
+      }
 
       toast({
         title: '완료!',

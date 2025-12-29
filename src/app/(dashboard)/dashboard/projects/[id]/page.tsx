@@ -173,6 +173,23 @@ export default function ProjectDetailPage() {
     }
   }, [error, toast]);
 
+  // 개발 모드: sessionStorage에서 프롬프트 정보 불러오기
+  useEffect(() => {
+    if (projectId && process.env.NODE_ENV === 'development') {
+      try {
+        const stored = sessionStorage.getItem(`devPrompts_${projectId}`);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          setLastDevPrompts(parsed);
+          // 한 번 읽은 후 삭제 (선택적)
+          // sessionStorage.removeItem(`devPrompts_${projectId}`);
+        }
+      } catch (e) {
+        console.warn('Failed to load devPrompts from sessionStorage:', e);
+      }
+    }
+  }, [projectId]);
+
   // Initialize settings form when project loads
   useEffect(() => {
     if (project) {
