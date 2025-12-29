@@ -11,8 +11,7 @@ import {
 import {
   buildEnhancedSystemPrompt,
   buildEnhancedUserPrompt,
-  ENHANCED_COPY_LENGTH_CONFIG,
-} from './enhanced-prompts';
+} from './prompts';
 import {
   orchestrateDetailPageGeneration,
   generateSectionImagePrompt,

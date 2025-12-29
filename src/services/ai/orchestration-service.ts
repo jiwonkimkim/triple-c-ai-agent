@@ -19,15 +19,13 @@ import {
   mapSectionTypeToPosition,
   SECTION_COMPOSITION_GUIDE,
   addMidjourneyParams,
-  SectionPosition,
-} from './ocr-reference-data';
-import {
   buildEnhancedSystemPrompt,
   buildEnhancedUserPrompt,
   buildOverlayTextPrompt,
-  OverlayTextContent,
-  ProductVisualReference,
-} from './enhanced-prompts';
+  type SectionPosition,
+  type OverlayTextContent,
+  type ProductVisualReference,
+} from './prompts';
 
 // ============================================
 // 타입 정의
@@ -199,7 +197,7 @@ ${visualKeywords.join(', ')}
 // 제품 일관성 지시문 생성 헬퍼
 function buildProductConsistencyText(
   productName: string,
-  category: string,
+  _category: string,
   visualReference?: ProductVisualReference
 ): string {
   let instruction = `모든 섹션 이미지에서 "${productName}" 제품이 동일하게 표시되어야 합니다.
@@ -228,7 +226,7 @@ function buildFallbackImagePrompt(
   category: string,
   keyFeatures: string[],
   brandStyle: string | undefined,
-  position: SectionPosition,
+  _position: SectionPosition,
   visualKeywords: string[],
   visualReference?: ProductVisualReference
 ): string {
