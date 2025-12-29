@@ -604,6 +604,7 @@ ${categoryPattern.topStats.length > 0 ? `- 분석 기반 인사이트: ${categor
 - 타겟 고객의 언어로 작성
 - 감성적 어필과 기능적 정보의 균형 유지
 - 통계 수치는 구체적으로 (예: "많은 사람들" → "92% 사용자")
+- **이모지(😊, ✨, 💕 등) 절대 사용 금지** - 순수 텍스트만 작성
 `;
 
   // 브랜드 컨텍스트 추가
@@ -724,6 +725,11 @@ ${categoryPattern.topStats.length > 0 ? `- 인사이트: ${categoryPattern.topSt
    - 구매 결정에 도움되는 정보
    - "지금 만나보세요" 같은 명확한 CTA로 마무리
 
+## ⚠️ 중요: 이모지 사용 금지
+- 이모지(😊, ✨, 💕, 🌟, ❤️ 등)를 절대 사용하지 마세요
+- 순수 텍스트만 작성해주세요
+- 특수문자나 기호로 꾸미지 마세요
+
 JSON 객체만 반환하고, 추가 설명은 포함하지 마세요.`;
 }
 
@@ -732,12 +738,53 @@ JSON 객체만 반환하고, 추가 설명은 포함하지 마세요.`;
 // 중요: 이미지에는 텍스트를 포함하지 않음 (텍스트는 별도 오버레이)
 // ============================================
 
+/**
+ * 제품 일관성을 위한 참조 인터페이스
+ * 모든 섹션에서 동일한 제품 외형을 유지하기 위해 사용
+ */
+export interface ProductVisualReference {
+  // 제품 외형 상세 설명 (예: "원형 블랙 케이스의 쿠션 파운데이션, 금색 로고 각인")
+  appearance?: string;
+  // 제품 색상 (예: "black case with gold accents")
+  colorScheme?: string;
+  // 패키지 형태 (예: "circular compact case")
+  packageShape?: string;
+  // 브랜드 시각 요소 (예: "minimalist luxury")
+  brandVisual?: string;
+}
+
+/**
+ * 제품 일관성 지시문 생성
+ * 모든 섹션 이미지에서 동일한 제품이 표시되도록 강제
+ */
+function buildProductConsistencyInstruction(
+  productName: string,
+  _category: string,
+  visualReference?: ProductVisualReference
+): string {
+  const baseInstruction = `CRITICAL - PRODUCT CONSISTENCY: The exact same "${productName}" product must appear identically across all images. Maintain consistent product design, shape, color, packaging, and branding elements throughout all sections.`;
+
+  if (visualReference) {
+    const details = [
+      visualReference.appearance && `Product appearance: ${visualReference.appearance}`,
+      visualReference.colorScheme && `Color scheme: ${visualReference.colorScheme}`,
+      visualReference.packageShape && `Package shape: ${visualReference.packageShape}`,
+      visualReference.brandVisual && `Brand visual style: ${visualReference.brandVisual}`,
+    ].filter(Boolean).join('. ');
+
+    return `${baseInstruction} ${details}`;
+  }
+
+  return `${baseInstruction} Use identical product rendering in every shot - same angles show same details, consistent lighting on product surface, uniform product proportions.`;
+}
+
 export function buildEnhancedImagePrompt(
   section: 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ',
   productName: string,
   category: string,
   keyFeatures: string[],
-  brandStyle?: string
+  brandStyle?: string,
+  visualReference?: ProductVisualReference
 ): string {
   const categoryPattern = getCategoryPattern(category);
   const sectionGuide = SECTION_STORY_GUIDE[section];
@@ -749,16 +796,24 @@ export function buildEnhancedImagePrompt(
   // 텍스트 제외 지시 (이미지에는 제품만, 텍스트는 별도 오버레이)
   const noTextInstruction = 'absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only';
 
+  // 제품 일관성 지시문
+  const consistencyInstruction = buildProductConsistencyInstruction(productName, category, visualReference);
+
+  // 제품 외형 참조 (있으면 사용)
+  const productAppearance = visualReference?.appearance
+    ? `${productName} (${visualReference.appearance})`
+    : productName;
+
   const basePrompts: Record<string, string> = {
-    HERO: `product photography of ${productName}, elegant ${category} product, centered hero composition, gradient background, soft diffused studio lighting, subtle reflection, luxury beauty advertisement, premium cosmetic branding, high-end minimalist aesthetic, ${visualKeywords}, ${categoryVisual}, 8k resolution, ${noTextInstruction}`,
+    HERO: `[${consistencyInstruction}] product photography of ${productAppearance}, elegant ${category} product, centered hero composition, gradient background, soft diffused studio lighting, subtle reflection, luxury beauty advertisement, premium cosmetic branding, high-end minimalist aesthetic, ${visualKeywords}, ${categoryVisual}, 8k resolution, ${noTextInstruction}`,
 
-    FEATURES: `key ingredient visualization for ${category}, ${keyFeatures[0] || 'natural ingredients'}, fresh botanical elements with water droplets, detailed macro photography, clean background, natural soft lighting, scientific yet elegant aesthetic, ingredient showcase, ${visualKeywords}, ${categoryVisual}, high detail, ${noTextInstruction}`,
+    FEATURES: `[${consistencyInstruction}] ${productAppearance} with key ingredient visualization for ${category}, ${keyFeatures[0] || 'natural ingredients'}, the SAME product from HERO section displayed alongside fresh botanical elements with water droplets, detailed macro photography, clean background, natural soft lighting, scientific yet elegant aesthetic, ingredient showcase, ${visualKeywords}, ${categoryVisual}, high detail, ${noTextInstruction}`,
 
-    SOCIAL_PROOF: `skin texture comparison for ${category}, split screen composition showing skin improvement, even studio lighting, neutral background, clinical results visualization, professional dermatology style, ${visualKeywords}, ${categoryVisual}, trust-building imagery, ${noTextInstruction}`,
+    SOCIAL_PROOF: `[${consistencyInstruction}] ${productAppearance} shown with skin texture comparison for ${category}, the SAME product from previous sections, split screen composition showing skin improvement with product visible, even studio lighting, neutral background, clinical results visualization, professional dermatology style, ${visualKeywords}, ${categoryVisual}, trust-building imagery, ${noTextInstruction}`,
 
-    HOW_TO_USE: `beauty application tutorial, korean model applying ${category} product, clear instructional composition, bright lighting, clean minimal background, how-to tutorial style, easy to follow visual guide, ${visualKeywords}, ${categoryVisual}, aspirational lifestyle, ${noTextInstruction}`,
+    HOW_TO_USE: `[${consistencyInstruction}] beauty application tutorial featuring ${productAppearance}, the SAME product from previous sections, korean model applying the IDENTICAL ${category} product, clear instructional composition, bright lighting, clean minimal background, how-to tutorial style, easy to follow visual guide, ${visualKeywords}, ${categoryVisual}, aspirational lifestyle, ${noTextInstruction}`,
 
-    FAQ: `${category} product collection showcase, complete lineup display, products arranged elegantly, gradient background, studio lighting, brand portfolio presentation, premium product range, ${visualKeywords}, ${categoryVisual}, ${noTextInstruction}`,
+    FAQ: `[${consistencyInstruction}] ${productAppearance} collection showcase, the SAME product from all previous sections as the hero item, complete lineup display with IDENTICAL main product, products arranged elegantly, gradient background, studio lighting, brand portfolio presentation, premium product range, ${visualKeywords}, ${categoryVisual}, ${noTextInstruction}`,
   };
 
   const styleAddition = brandStyle ? `, brand style: ${brandStyle}` : ', modern, clean, professional';
@@ -837,6 +892,10 @@ export function buildOverlayTextPrompt(
 - 역할: 구매/행동 유도
 - 예시: "지금 만나보세요", "나만의 루틴 시작"
 
+## ⚠️ 중요: 이모지 사용 금지
+- 이모지(😊, ✨, 💕, 🌟, ❤️ 등)를 절대 사용하지 마세요
+- 순수 텍스트만 작성해주세요
+
 ## 요청
 ${section} 섹션에 적합한 오버레이 텍스트를 JSON 형식으로 생성해주세요:
 
@@ -848,7 +907,7 @@ ${section} 섹션에 적합한 오버레이 텍스트를 JSON 형식으로 생�
   "cta": "행동 유도 문구 (필요시)"
 }
 
-JSON만 반환하세요.`;
+JSON만 반환하세요. 이모지 없이 순수 텍스트만 포함해야 합니다.`;
 }
 
 // ============================================
