@@ -3,7 +3,9 @@
     "allow": [
       "Bash(cat:*)",
       "Bash(head:*)",
-      "Bash(docker-compose logs:*)"
+      "Bash(docker-compose logs:*)",
+      "Bash(docker-compose down:*)",
+      "Bash(docker-compose up:*)"
     ],
     "deny": [],
     "ask": []
