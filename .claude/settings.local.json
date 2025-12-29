@@ -5,7 +5,8 @@
       "Bash(head:*)",
       "Bash(docker-compose logs:*)",
       "Bash(docker-compose down:*)",
-      "Bash(docker-compose up:*)"
+      "Bash(docker-compose up:*)",
+      "Bash(docker exec:*)"
     ],
     "deny": [],
     "ask": []

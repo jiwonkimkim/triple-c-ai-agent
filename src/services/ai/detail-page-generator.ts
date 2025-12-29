@@ -91,18 +91,18 @@ function hasValidApiKey(): boolean {
   return !isPlaceholder(anthropicKey) || !isPlaceholder(openaiKey) || !isPlaceholder(googleKey) || !isPlaceholder(groqKey);
 }
 
-// Check which provider to use (Groq first for text generation)
-function getAvailableProvider(): 'groq' | 'anthropic' | 'openai' | 'gemini' | null {
-  const groqKey = process.env.GROQ_API_KEY;
+// Check which provider to use (Gemini first for Korean marketing content)
+function getAvailableProvider(): 'gemini' | 'anthropic' | 'openai' | 'groq' | null {
+  const googleKey = process.env.GOOGLE_AI_API_KEY;
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   const openaiKey = process.env.OPENAI_API_KEY;
-  const googleKey = process.env.GOOGLE_AI_API_KEY;
+  const groqKey = process.env.GROQ_API_KEY;
 
-  // Groq first for text generation
-  if (!isPlaceholder(groqKey)) return 'groq';
+  // Gemini first for Korean marketing content (better Korean quality)
+  if (!isPlaceholder(googleKey)) return 'gemini';
   if (!isPlaceholder(anthropicKey)) return 'anthropic';
   if (!isPlaceholder(openaiKey)) return 'openai';
-  if (!isPlaceholder(googleKey)) return 'gemini';
+  if (!isPlaceholder(groqKey)) return 'groq';
   return null;
 }
 
