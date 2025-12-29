@@ -145,6 +145,7 @@ export interface EditorState {
   // Actions
   setSections: (sections: Section[]) => void;
   addSection: (section: Omit<Section, 'id'>) => void;
+  insertSectionAt: (section: Omit<Section, 'id'>, index: number) => void;
   updateSection: (sectionId: string, updates: Partial<Omit<Section, 'id'>>) => void;
   deleteSection: (sectionId: string) => void;
   reorderSections: (startIndex: number, endIndex: number) => void;
@@ -201,6 +202,22 @@ export const useEditorStore = create<EditorState>()(
           sections: [...state.sections, newSection],
           isDirty: true,
         }));
+        get().pushHistory();
+      },
+
+      insertSectionAt: (section, index) => {
+        const newSection: Section = {
+          ...section,
+          id: generateId(),
+        };
+        set((state) => {
+          const newSections = [...state.sections];
+          newSections.splice(index, 0, newSection);
+          return {
+            sections: newSections,
+            isDirty: true,
+          };
+        });
         get().pushHistory();
       },
 

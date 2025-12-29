@@ -9,7 +9,7 @@ import { EditorToolbar } from './editor-toolbar';
 import { EditorSection } from './editor-section';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Sparkles, X, Send, Type, ImageIcon, Layers, Layout } from 'lucide-react';
+import { Loader2, Sparkles, X, Send, Type, ImageIcon, Layers, Layout, Plus } from 'lucide-react';
 import { TemplateImportModal } from './template-import-modal';
 
 interface ChatMessage {
@@ -17,6 +17,43 @@ interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+}
+
+// 섹션 사이 인라인 추가 버튼 컴포넌트
+function SectionAddDivider({ onAdd }: { onAdd: () => void }) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <div
+      className="relative h-6 flex items-center justify-center group cursor-pointer"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={(e) => {
+        e.stopPropagation();
+        onAdd();
+      }}
+    >
+      <div
+        className={cn(
+          'absolute inset-x-4 flex items-center justify-center transition-all duration-200',
+          isHovered ? 'opacity-100' : 'opacity-0'
+        )}
+      >
+        <div className="flex-1 h-px bg-primary/40" />
+        <button
+          className="mx-2 px-3 py-1 text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-full border border-primary/30 flex items-center gap-1 transition-colors"
+          onClick={(e) => {
+            e.stopPropagation();
+            onAdd();
+          }}
+        >
+          <Plus className="h-3 w-3" />
+          섹션 추가
+        </button>
+        <div className="flex-1 h-px bg-primary/40" />
+      </div>
+    </div>
+  );
 }
 
 interface DetailPageEditorProps {
@@ -65,6 +102,7 @@ export function DetailPageEditor({
     history,
     setSections,
     addSection,
+    insertSectionAt,
     updateSection,
     deleteSection,
     reorderSections,
@@ -416,12 +454,36 @@ export function DetailPageEditor({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [undo, redo, selectedBlockId, selectedSectionId, deleteBlock, selectBlock, selectSection]);
 
-  const handleAddSection = useCallback(() => {
-    addSection({
+  const handleInsertSectionAt = useCallback((index: number) => {
+    insertSectionAt({
       name: `섹션 ${sections.length + 1}`,
-      blocks: [],
-    });
-  }, [addSection, sections.length]);
+      blocks: [{
+        id: `block-${Date.now()}`,
+        type: 'image-overlay',
+        src: '',
+        alt: '',
+        overlayTexts: [{
+          id: `text-${Date.now()}`,
+          type: 'headline',
+          content: '헤드라인을 입력하세요',
+          style: {
+            x: 50,
+            y: 40,
+            fontSize: 48,
+            fontWeight: 'bold',
+            fontFamily: 'Pretendard, sans-serif',
+            color: '#ffffff',
+            textShadow: true,
+            textAlign: 'center',
+            opacity: 100,
+            rotation: 0,
+          },
+          zIndex: 1,
+        }],
+        overlayGradient: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.5))',
+      }] as EditorBlock[],
+    }, index);
+  }, [insertSectionAt, sections.length]);
 
   const handleDuplicateSection = useCallback(
     (sectionId: string) => {
@@ -756,7 +818,6 @@ export function DetailPageEditor({
           onSave={save}
           onPreview={handlePreview}
           onExport={handleExport}
-          onAddSection={handleAddSection}
           onSetPreviewMode={setPreviewMode}
         />
         {/* Template & AI Edit Buttons */}
@@ -793,26 +854,32 @@ export function DetailPageEditor({
           }}
         >
           <div className={cn('mx-auto transition-all duration-300', previewWidths[previewMode])}>
-            <div className="space-y-6">
+            <div className="space-y-0">
+              {/* 맨 위 섹션 추가 버튼 */}
+              <SectionAddDivider onAdd={() => handleInsertSectionAt(0)} />
+
               {sections.map((section, index) => (
-                <EditorSection
-                  key={section.id}
-                  section={section}
-                  sectionIndex={index}
-                  totalSections={sections.length}
-                  selectedBlockId={selectedBlockId}
-                  isSelected={selectedSectionId === section.id}
-                  onSelectSection={() => selectSection(section.id)}
-                  onSelectBlock={selectBlock}
-                  onUpdateSection={(updates) => updateSection(section.id, updates)}
-                  onDeleteSection={() => deleteSection(section.id)}
-                  onMoveSection={(direction) => handleMoveSection(index, direction)}
-                  onDuplicateSection={() => handleDuplicateSection(section.id)}
-                  onAddBlock={(block, blockIndex) => addBlock(section.id, block, blockIndex)}
-                  onUpdateBlock={(blockId, updates) => updateBlock(section.id, blockId, updates)}
-                  onDeleteBlock={(blockId) => deleteBlock(section.id, blockId)}
-                  onReorderBlocks={(start, end) => reorderBlocks(section.id, start, end)}
-                />
+                <div key={section.id}>
+                  <EditorSection
+                    section={section}
+                    sectionIndex={index}
+                    totalSections={sections.length}
+                    selectedBlockId={selectedBlockId}
+                    isSelected={selectedSectionId === section.id}
+                    onSelectSection={() => selectSection(section.id)}
+                    onSelectBlock={selectBlock}
+                    onUpdateSection={(updates) => updateSection(section.id, updates)}
+                    onDeleteSection={() => deleteSection(section.id)}
+                    onMoveSection={(direction) => handleMoveSection(index, direction)}
+                    onDuplicateSection={() => handleDuplicateSection(section.id)}
+                    onAddBlock={(block, blockIndex) => addBlock(section.id, block, blockIndex)}
+                    onUpdateBlock={(blockId, updates) => updateBlock(section.id, blockId, updates)}
+                    onDeleteBlock={(blockId) => deleteBlock(section.id, blockId)}
+                    onReorderBlocks={(start, end) => reorderBlocks(section.id, start, end)}
+                  />
+                  {/* 각 섹션 아래 섹션 추가 버튼 */}
+                  <SectionAddDivider onAdd={() => handleInsertSectionAt(index + 1)} />
+                </div>
               ))}
             </div>
           </div>

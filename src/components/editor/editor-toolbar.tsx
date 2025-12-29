@@ -9,7 +9,6 @@ import {
   Loader2,
   Check,
   AlertCircle,
-  Plus,
   Smartphone,
   Monitor,
   Tablet,
@@ -35,7 +34,6 @@ interface EditorToolbarProps {
   onSave: () => void;
   onPreview: () => void;
   onExport: (format: 'html' | 'json') => void;
-  onAddSection: () => void;
   onSetPreviewMode: (mode: 'desktop' | 'tablet' | 'mobile') => void;
 }
 
@@ -51,7 +49,6 @@ export function EditorToolbar({
   onSave,
   onPreview,
   onExport,
-  onAddSection,
   onSetPreviewMode,
 }: EditorToolbarProps) {
   const formatLastSaved = (date: Date | null) => {
@@ -69,7 +66,7 @@ export function EditorToolbar({
     <div className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b bg-background px-4 py-2">
       {/* Left section - History controls */}
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1 border-r pr-2">
+        <div className="flex items-center gap-1">
           <Button
             variant="ghost"
             size="icon"
@@ -89,11 +86,6 @@ export function EditorToolbar({
             <Redo2 className="h-4 w-4" />
           </Button>
         </div>
-
-        <Button variant="outline" size="sm" className="gap-2" onClick={onAddSection}>
-          <Plus className="h-4 w-4" />
-          섹션 추가
-        </Button>
       </div>
 
       {/* Center section - Preview mode */}
