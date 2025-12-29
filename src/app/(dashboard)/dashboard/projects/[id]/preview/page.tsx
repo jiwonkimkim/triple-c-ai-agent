@@ -3,18 +3,66 @@
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
-import type { Section, EditorBlock } from '@/stores/editor-store';
+import type { Section, EditorBlock, OverlayText } from '@/stores/editor-store';
 
 interface VersionData {
   id: string;
-  content: Section[];
+  content: Section[] | { sections?: Section[]; elements?: EditorBlock[] };
 }
 
 async function fetchLatestVersion(projectId: string): Promise<VersionData | null> {
+  // 먼저 content API 시도 (최신 형식)
+  const contentResponse = await fetch(`/api/projects/${projectId}/content`);
+  if (contentResponse.ok) {
+    const contentData = await contentResponse.json();
+    if (contentData.success && contentData.data) {
+      // imageOverlayBlocks 형식 처리
+      if (contentData.data.imageOverlayBlocks?.length > 0) {
+        return {
+          id: contentData.data.versionId || 'preview',
+          content: [{
+            id: 'main-section',
+            name: '메인 섹션',
+            blocks: contentData.data.imageOverlayBlocks,
+          }],
+        };
+      }
+      // elements 형식 처리
+      if (contentData.data.elements?.length > 0) {
+        return {
+          id: contentData.data.versionId || 'preview',
+          content: [{
+            id: 'main-section',
+            name: '메인 섹션',
+            blocks: contentData.data.elements,
+          }],
+        };
+      }
+    }
+  }
+
+  // Fallback: drafts API 시도
   const response = await fetch(`/api/projects/${projectId}/drafts`);
   if (!response.ok) return null;
   const data = await response.json();
-  return data.data;
+
+  if (!data.data) return null;
+
+  // contentJson 형식 처리
+  const content = data.data.content || data.data.contentJson;
+  if (!content) return null;
+
+  // sections 배열인지 확인
+  if (Array.isArray(content)) {
+    return { id: data.data.id, content };
+  }
+
+  // { sections: [...] } 형식
+  if (content.sections) {
+    return { id: data.data.id, content: content.sections };
+  }
+
+  return null;
 }
 
 export default function ProjectPreviewPage() {
@@ -35,7 +83,12 @@ export default function ProjectPreviewPage() {
     );
   }
 
-  const sections = data?.content || [];
+  // content를 Section[] 형식으로 변환
+  const sections: Section[] = (() => {
+    if (!data?.content) return [];
+    if (Array.isArray(data.content)) return data.content;
+    return [];
+  })();
 
   return (
     <div className="min-h-screen bg-white">
@@ -45,7 +98,7 @@ export default function ProjectPreviewPage() {
 
       {sections.length === 0 && (
         <div className="flex items-center justify-center min-h-screen text-muted-foreground">
-          No content to preview
+          미리보기할 콘텐츠가 없습니다
         </div>
       )}
     </div>
@@ -159,6 +212,9 @@ function PreviewBlock({ block }: { block: EditorBlock }) {
     case 'spacer':
       return <div style={{ height: block.height }} />;
 
+    case 'image-overlay':
+      return <PreviewImageOverlay block={block} />;
+
     case 'list': {
       const ListTag = block.listType === 'bullet' ? 'ul' : 'ol';
       const listClass = block.listType === 'bullet' ? 'list-disc' : 'list-decimal';
@@ -186,4 +242,67 @@ function PreviewBlock({ block }: { block: EditorBlock }) {
     default:
       return null;
   }
+}
+
+// Image Overlay 블록 미리보기 컴포넌트
+function PreviewImageOverlay({ block }: { block: EditorBlock }) {
+  if (block.type !== 'image-overlay') return null;
+
+  const overlayTexts = block.overlayTexts || [];
+
+  return (
+    <div className="relative w-full mb-6" style={{ minHeight: '400px' }}>
+      {/* 배경 이미지 */}
+      {block.src ? (
+        <img
+          src={block.src}
+          alt={block.alt || '상세페이지 이미지'}
+          className="w-full h-auto object-cover rounded-lg"
+          style={{ minHeight: '400px' }}
+        />
+      ) : (
+        <div
+          className="w-full bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center"
+          style={{ minHeight: '400px' }}
+        >
+          <span className="text-gray-500">이미지 없음</span>
+        </div>
+      )}
+
+      {/* 그라데이션 오버레이 */}
+      {block.overlayGradient && (
+        <div
+          className="absolute inset-0 rounded-lg"
+          style={{ background: block.overlayGradient }}
+        />
+      )}
+
+      {/* 오버레이 텍스트들 */}
+      {overlayTexts.map((text: OverlayText) => {
+        const style = text.style || {};
+        const textStyle: React.CSSProperties = {
+          position: 'absolute',
+          left: `${style.x || 50}%`,
+          top: `${style.y || 50}%`,
+          transform: `translate(-50%, -50%) rotate(${style.rotation || 0}deg)`,
+          fontSize: `${style.fontSize || 24}px`,
+          fontWeight: style.fontWeight || 'normal',
+          fontFamily: style.fontFamily || 'inherit',
+          color: style.color || '#ffffff',
+          textAlign: (style.textAlign as 'left' | 'center' | 'right') || 'center',
+          opacity: (style.opacity ?? 100) / 100,
+          textShadow: style.textShadow ? '2px 2px 4px rgba(0,0,0,0.5)' : 'none',
+          zIndex: text.zIndex || 1,
+          whiteSpace: 'pre-wrap',
+          maxWidth: '90%',
+        };
+
+        return (
+          <div key={text.id} style={textStyle}>
+            {text.content}
+          </div>
+        );
+      })}
+    </div>
+  );
 }

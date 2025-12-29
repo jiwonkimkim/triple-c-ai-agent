@@ -9,7 +9,8 @@ import { EditorToolbar } from './editor-toolbar';
 import { EditorSection } from './editor-section';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Sparkles, X, Send, Type, ImageIcon, Layers } from 'lucide-react';
+import { Loader2, Sparkles, X, Send, Type, ImageIcon, Layers, Layout } from 'lucide-react';
+import { TemplateImportModal } from './template-import-modal';
 
 interface ChatMessage {
   id: string;
@@ -49,6 +50,9 @@ export function DetailPageEditor({
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [editType, setEditType] = useState<'text' | 'image' | 'both'>('text');
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Template modal state
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
 
   const {
     sections,
@@ -593,6 +597,125 @@ export function DetailPageEditor({
     }
   }, [chatMessage, selectedBlockId, sections, projectId, updateBlock, setSections, toast, editType]);
 
+  // Template import handler - convert old elements to image-overlay blocks
+  const handleTemplateImport = useCallback((elements: Array<{
+    id: string;
+    type: 'text' | 'image' | 'heading';
+    content: string;
+    styles?: Record<string, string>;
+    level?: number;
+    alt?: string;
+  }>) => {
+    // Group elements into image-overlay blocks
+    const imageOverlayBlocks: EditorBlock[] = [];
+    let currentTexts: Array<{
+      id: string;
+      type: 'headline' | 'subheadline' | 'body';
+      content: string;
+      style: {
+        x: number;
+        y: number;
+        fontSize: number;
+        fontWeight: 'normal' | 'medium' | 'semibold' | 'bold';
+        fontFamily: string;
+        color: string;
+        textShadow: boolean;
+        textAlign: 'left' | 'center' | 'right';
+        opacity: number;
+        rotation: number;
+      };
+      zIndex: number;
+    }> = [];
+    let currentImage = '';
+    let zIndex = 1;
+
+    const createBlock = () => {
+      if (currentTexts.length > 0 || currentImage) {
+        imageOverlayBlocks.push({
+          id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          type: 'image-overlay',
+          src: currentImage,
+          alt: '',
+          overlayTexts: currentTexts.length > 0 ? currentTexts : [{
+            id: `text-${Date.now()}`,
+            type: 'headline',
+            content: '텍스트를 입력하세요',
+            style: {
+              x: 50, y: 50, fontSize: 32, fontWeight: 'bold',
+              fontFamily: 'Pretendard, sans-serif', color: '#ffffff',
+              textShadow: true, textAlign: 'center', opacity: 100, rotation: 0,
+            },
+            zIndex: 1,
+          }],
+          overlayGradient: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.5))',
+        } as EditorBlock);
+        currentTexts = [];
+        currentImage = '';
+        zIndex = 1;
+      }
+    };
+
+    for (const el of elements) {
+      if (el.type === 'image') {
+        createBlock();
+        currentImage = el.content;
+      } else if (el.type === 'heading') {
+        currentTexts.push({
+          id: el.id,
+          type: 'headline',
+          content: el.content,
+          style: {
+            x: 50,
+            y: 15 + (zIndex * 12),
+            fontSize: el.level === 1 ? 48 : 36,
+            fontWeight: 'bold',
+            fontFamily: 'Pretendard, sans-serif',
+            color: '#ffffff',
+            textShadow: true,
+            textAlign: 'center',
+            opacity: 100,
+            rotation: 0,
+          },
+          zIndex: zIndex++,
+        });
+      } else if (el.type === 'text') {
+        currentTexts.push({
+          id: el.id,
+          type: 'body',
+          content: el.content,
+          style: {
+            x: 50,
+            y: 15 + (zIndex * 12),
+            fontSize: 18,
+            fontWeight: 'normal',
+            fontFamily: 'Pretendard, sans-serif',
+            color: '#ffffff',
+            textShadow: true,
+            textAlign: 'center',
+            opacity: 100,
+            rotation: 0,
+          },
+          zIndex: zIndex++,
+        });
+      }
+    }
+    createBlock();
+
+    // Update sections
+    const newSection: Section = {
+      id: `section-${Date.now()}`,
+      name: '템플릿 섹션',
+      blocks: imageOverlayBlocks,
+    };
+    setSections([newSection]);
+    pushHistory();
+
+    toast({
+      title: '템플릿 적용 완료',
+      description: `${imageOverlayBlocks.length}개 블록이 생성되었습니다.`,
+    });
+  }, [setSections, pushHistory, toast]);
+
   // Auto-scroll chat
   useEffect(() => {
     if (chatEndRef.current) {
@@ -636,8 +759,17 @@ export function DetailPageEditor({
           onAddSection={handleAddSection}
           onSetPreviewMode={setPreviewMode}
         />
-        {/* AI Edit Button */}
-        <div className="pr-4">
+        {/* Template & AI Edit Buttons */}
+        <div className="pr-4 flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsTemplateModalOpen(true)}
+            className="gap-2"
+          >
+            <Layout className="h-4 w-4" />
+            템플릿
+          </Button>
           <Button
             variant={isChatOpen ? 'secondary' : 'outline'}
             size="sm"
@@ -825,6 +957,14 @@ export function DetailPageEditor({
           </div>
         )}
       </div>
+
+      {/* Template Import Modal */}
+      <TemplateImportModal
+        isOpen={isTemplateModalOpen}
+        onClose={() => setIsTemplateModalOpen(false)}
+        onImport={handleTemplateImport}
+        projectId={projectId}
+      />
     </div>
   );
 }
