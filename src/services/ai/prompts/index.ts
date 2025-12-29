@@ -74,6 +74,4 @@ export {
   getReferencePrompts,
   getVisualStyleKeywords,
   mapSectionTypeToPosition,
-  MIDJOURNEY_PARAMS,
-  addMidjourneyParams,
 } from './reference-data';

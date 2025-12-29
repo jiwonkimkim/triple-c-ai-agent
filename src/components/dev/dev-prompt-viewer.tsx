@@ -28,7 +28,6 @@ export interface DevPromptInfo {
   sectionImagePrompts: Array<{
     sectionType: string;
     imagePrompt: string;
-    imagePromptMidjourney?: string;
   }>;
 }
 
@@ -171,15 +170,9 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                         </span>
                       </div>
                       <PromptContent
-                        title="Gemini / DALL-E Prompt"
+                        title="Gemini Image Prompt"
                         content={section.imagePrompt}
                       />
-                      {section.imagePromptMidjourney && (
-                        <PromptContent
-                          title="Midjourney Prompt"
-                          content={section.imagePromptMidjourney}
-                        />
-                      )}
                     </div>
                   ))}
                 </div>

@@ -18,7 +18,6 @@ import {
   getVisualStyleKeywords,
   mapSectionTypeToPosition,
   SECTION_COMPOSITION_GUIDE,
-  addMidjourneyParams,
   buildEnhancedSystemPrompt,
   buildEnhancedUserPrompt,
   buildOverlayTextPrompt,
@@ -54,7 +53,6 @@ export interface SectionImagePrompt {
   sectionType: 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
   position: SectionPosition;
   imagePrompt: string;
-  imagePromptMidjourney: string;
   overlayText?: OverlayTextContent;
   compositionGuide: typeof SECTION_COMPOSITION_GUIDE[SectionPosition];
 }
@@ -116,25 +114,24 @@ export async function generateSectionImagePrompt(
   if (gemini) {
     // AI를 사용하여 맞춤형 프롬프트 생성
     const promptGenerationRequest = `
-당신은 상세페이지 이미지 프롬프트 전문가입니다.
-다음 정보를 바탕으로 이미지 생성 프롬프트를 만들어주세요.
+당신은 AI 이미지 생성(Gemini Imagen, DALL-E) 전문 프롬프트 엔지니어입니다.
+상업용 제품 상세페이지에 사용될 고품질 이미지 생성 프롬프트를 작성해주세요.
 
 ## 제품 정보
 - 제품명: ${productName}
 - 카테고리: ${category}
 - 핵심 특징: ${keyFeatures.join(', ')}
-- 타겟: ${targetAudience}
+- 타겟 고객: ${targetAudience}
 ${brandStyle ? `- 브랜드 스타일: ${brandStyle}` : ''}
-${visualReference?.appearance ? `- 제품 외형: ${visualReference.appearance}` : ''}
+${visualReference?.appearance ? `- 제품 외형 상세: ${visualReference.appearance}` : ''}
 ${visualReference?.colorScheme ? `- 색상 구성: ${visualReference.colorScheme}` : ''}
-${visualReference?.packageShape ? `- 패키지 형태: ${visualReference.packageShape}` : ''}
+${visualReference?.packageShape ? `- 패키지/용기 형태: ${visualReference.packageShape}` : ''}
 
 ## ⚠️ 중요: 제품 일관성 (CRITICAL)
 ${productConsistencyInstruction}
 
-## 섹션 정보
-- 섹션 타입: ${sectionType}
-- 위치: ${position}
+## 섹션 정보 (${sectionType})
+- 위치/역할: ${position}
 - 레이아웃 가이드: ${compositionGuide.layout}
 - 제품 배치: ${compositionGuide.productPlacement}
 - 라이팅: ${compositionGuide.lighting}
@@ -146,17 +143,25 @@ ${referencePrompts.map((p, i) => `${i + 1}. ${p}`).join('\n')}
 ## 비주얼 스타일 키워드
 ${visualKeywords.join(', ')}
 
-## 중요 규칙
-1. 이미지에 텍스트가 절대 포함되면 안 됩니다
-2. 제품과 비주얼 요소만 포함해야 합니다
-3. 영어로 작성해주세요
-4. Midjourney/Stable Diffusion 스타일로 작성해주세요
-5. **모든 섹션에서 동일한 제품이 일관되게 표시되어야 합니다** - 제품의 디자인, 색상, 형태가 변하면 안 됩니다
+## Gemini Imagen 최적화 프롬프트 작성 가이드라인
+1. **구체적인 시각적 묘사**: 제품의 외형, 질감, 재질, 광택을 상세히 기술
+2. **조명과 그림자**: 스튜디오 조명, 자연광, 림 라이팅, 소프트박스 등 구체적 조명 설정
+3. **구도와 앵글**: 카메라 앵글(eye-level, bird's eye, low angle), 구도(rule of thirds, centered) 명시
+4. **배경과 환경**: 그라데이션 배경, 스튜디오 세팅, 미니멀 배경 등 상세 설명
+5. **분위기와 스타일**: luxury, premium, minimalist, clean, elegant 등 스타일 키워드
+6. **기술적 품질**: 8K, photorealistic, professional photography, commercial quality 등 품질 키워드
+7. **색상 팔레트**: 제품과 조화로운 배경 색상, 보색 또는 유사색 활용
 
-## 요청
-위 정보를 종합하여 ${sectionType} 섹션에 적합한 이미지 프롬프트를 생성해주세요.
-반드시 프롬프트 시작 부분에 제품 일관성 지시문을 포함해주세요.
-프롬프트만 반환하고, 다른 설명은 포함하지 마세요.
+## 필수 규칙
+1. 이미지에 텍스트, 글자, 로고, 워터마크가 절대 포함되면 안 됩니다
+2. 영어로 작성해주세요 (Gemini Imagen 최적화)
+3. 150-300 단어 사이의 상세한 프롬프트를 작성해주세요
+4. 모든 섹션에서 동일한 제품이 일관되게 표시되어야 합니다
+
+## 출력 형식
+- 프롬프트만 반환 (설명이나 마크다운 없이)
+- 프롬프트 시작 부분에 제품 일관성 지시문 포함
+- 콤마로 구분된 키워드/구문 형식
 `;
 
     try {
@@ -189,7 +194,6 @@ ${visualKeywords.join(', ')}
     sectionType,
     position,
     imagePrompt,
-    imagePromptMidjourney: addMidjourneyParams(imagePrompt),
     compositionGuide,
   };
 }
@@ -219,7 +223,7 @@ function buildProductConsistencyText(
   return instruction;
 }
 
-// 폴백 이미지 프롬프트 생성 (AI 없을 때)
+// 폴백 이미지 프롬프트 생성 (AI 없을 때) - Gemini Imagen 최적화
 function buildFallbackImagePrompt(
   sectionType: string,
   productName: string,
@@ -230,12 +234,13 @@ function buildFallbackImagePrompt(
   visualKeywords: string[],
   visualReference?: ProductVisualReference
 ): string {
-  const noTextInstruction = 'absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only';
+  const noTextInstruction = 'absolutely no text, no typography, no letters, no words, no labels, no watermarks, no logos, text-free commercial photography only';
+  const qualityKeywords = '8K resolution, photorealistic, professional commercial photography, high-end advertising quality, sharp focus, premium product visualization';
   const styleKeywords = visualKeywords.slice(0, 4).join(', ');
-  const brandAddition = brandStyle ? `, brand style: ${brandStyle}` : '';
+  const brandAddition = brandStyle ? `, brand aesthetic: ${brandStyle}` : '';
 
   // 제품 일관성 지시문
-  const consistencyPrefix = `[CRITICAL - PRODUCT CONSISTENCY: The exact same "${productName}" must appear identically in all images with consistent design, shape, color and packaging]`;
+  const consistencyPrefix = `[CRITICAL - PRODUCT CONSISTENCY: The exact same "${productName}" must appear identically in all images with consistent design, shape, color, texture and packaging throughout the entire product detail page]`;
 
   // 제품 외형 참조 (있으면 사용)
   const productDesc = visualReference?.appearance
@@ -243,19 +248,23 @@ function buildFallbackImagePrompt(
     : productName;
 
   const colorNote = visualReference?.colorScheme
-    ? `, product color: ${visualReference.colorScheme}`
+    ? `, product color scheme: ${visualReference.colorScheme}`
+    : '';
+
+  const packageNote = visualReference?.packageShape
+    ? `, package design: ${visualReference.packageShape}`
     : '';
 
   const basePrompts: Record<string, string> = {
-    HERO: `${consistencyPrefix} product photography of ${productDesc}, elegant ${category} product, centered hero composition, gradient background, soft diffused studio lighting, subtle reflection, luxury beauty advertisement, premium cosmetic branding, high-end minimalist aesthetic${colorNote}, ${styleKeywords}${brandAddition}, ${noTextInstruction}`,
+    HERO: `${consistencyPrefix} Ultra-premium product photography of ${productDesc}, elegant ${category} product hero shot, perfectly centered composition with rule of thirds, sophisticated gradient background transitioning from soft white to subtle warm tones, professional studio softbox lighting with gentle rim light creating elegant product silhouette, subtle surface reflection on glossy base, luxury beauty advertisement aesthetic, premium cosmetic brand campaign quality, high-end minimalist design${colorNote}${packageNote}, ${styleKeywords}${brandAddition}, ${qualityKeywords}, ${noTextInstruction}`,
 
-    FEATURES: `${consistencyPrefix} the SAME ${productDesc} from HERO section with key ingredient visualization for ${category}, ${keyFeatures[0] || 'natural ingredients'}, identical product displayed alongside fresh botanical elements with water droplets, detailed macro photography, clean background, natural soft lighting, scientific yet elegant aesthetic${colorNote}, ${styleKeywords}${brandAddition}, ${noTextInstruction}`,
+    FEATURES: `${consistencyPrefix} The IDENTICAL ${productDesc} from HERO section showcased with key ingredient visualization for ${category}, featuring ${keyFeatures[0] || 'natural premium ingredients'}, same exact product displayed at slight angle alongside fresh botanical elements with crystal-clear water droplets, detailed macro photography with shallow depth of field, clean minimalist background with soft gradient, natural window-style soft lighting with catchlights, scientific yet elegant aesthetic conveying innovation and quality${colorNote}${packageNote}, ${styleKeywords}${brandAddition}, ${qualityKeywords}, ${noTextInstruction}`,
 
-    SOCIAL_PROOF: `${consistencyPrefix} the SAME ${productDesc} from previous sections shown with skin texture comparison for ${category}, split screen composition showing improvement with identical product visible, even studio lighting, neutral background, clinical results visualization, professional dermatology style${colorNote}, ${styleKeywords}${brandAddition}, ${noTextInstruction}`,
+    SOCIAL_PROOF: `${consistencyPrefix} The SAME ${productDesc} from previous sections presented with before-after skin texture comparison for ${category}, professional split-screen composition showing clear improvement, identical product prominently visible in frame, even diffused studio lighting for accurate skin tone representation, neutral soft gray background, clinical dermatology results visualization, medical-grade professional photography style${colorNote}${packageNote}, ${styleKeywords}${brandAddition}, ${qualityKeywords}, ${noTextInstruction}`,
 
-    HOW_TO_USE: `${consistencyPrefix} beauty application tutorial featuring the SAME ${productDesc} from previous sections, model applying the IDENTICAL ${category} product, clear instructional composition, bright lighting, clean minimal background, how-to tutorial style${colorNote}, ${styleKeywords}${brandAddition}, ${noTextInstruction}`,
+    HOW_TO_USE: `${consistencyPrefix} Step-by-step beauty application tutorial featuring the EXACT SAME ${productDesc} from previous sections, elegant model hand gently applying the IDENTICAL ${category} product with proper technique demonstration, clear instructional composition with clean negative space, bright even lighting with soft shadows, pristine minimal white background, professional how-to tutorial photography style${colorNote}${packageNote}, ${styleKeywords}${brandAddition}, ${qualityKeywords}, ${noTextInstruction}`,
 
-    FAQ: `${consistencyPrefix} the SAME ${productDesc} as hero item in ${category} product collection showcase, complete lineup display with IDENTICAL main product, products arranged elegantly, gradient background, studio lighting, brand portfolio presentation${colorNote}, ${styleKeywords}${brandAddition}, ${noTextInstruction}`,
+    FAQ: `${consistencyPrefix} The SAME ${productDesc} as hero item elegantly displayed in ${category} product collection showcase, complete brand lineup arranged in harmonious composition with IDENTICAL main product as focal point, products arranged with precise symmetry on premium surface, sophisticated gradient background, professional studio lighting with accent highlights, luxury brand portfolio presentation${colorNote}${packageNote}, ${styleKeywords}${brandAddition}, ${qualityKeywords}, ${noTextInstruction}`,
   };
 
   return basePrompts[sectionType] || basePrompts['FEATURES'];
@@ -565,7 +574,6 @@ export async function regenerateSectionImagePrompt(
       sectionType,
       position,
       imagePrompt: buildFallbackImagePrompt(sectionType, productName, category, keyFeatures, brandStyle, position, visualKeywords),
-      imagePromptMidjourney: addMidjourneyParams(buildFallbackImagePrompt(sectionType, productName, category, keyFeatures, brandStyle, position, visualKeywords)),
       compositionGuide,
     };
   }
@@ -614,7 +622,6 @@ ${userFeedback ? `## 사용자 피드백\n${userFeedback}` : ''}
       sectionType,
       position,
       imagePrompt,
-      imagePromptMidjourney: addMidjourneyParams(imagePrompt),
       compositionGuide,
     };
   } catch (error) {
@@ -624,7 +631,6 @@ ${userFeedback ? `## 사용자 피드백\n${userFeedback}` : ''}
       sectionType,
       position,
       imagePrompt: fallback,
-      imagePromptMidjourney: addMidjourneyParams(fallback),
       compositionGuide,
     };
   }
