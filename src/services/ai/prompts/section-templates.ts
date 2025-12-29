@@ -998,11 +998,29 @@ STEP 4: 목과 귀 뒤도 잊지 말고 발라주세요`,
   LIFESTYLE: {
     type: 'LIFESTYLE',
     name: '라이프스타일 무드샷',
-    purpose: '제품이 있는 일상의 모습, 감성적 연결',
+    purpose: '제품이 일상에서 자연스럽게 사용되는 모습, 감성적 연결과 사용 상황 시각화',
     recommendedLayout: 'lifestyle',
-    imagePromptTemplate: `lifestyle mood shot featuring {product}, product naturally placed in {context} environment, warm inviting atmosphere, {background} color tones, aspirational lifestyle photography, soft natural lighting, product integrated into beautiful living space, editorial style composition, detail page lifestyle section`,
-    requiredVisuals: ['environmental-context', 'lifestyle-props', 'mood-lighting'],
-    optionalVisuals: ['human-element', 'complementary-items'],
+    imagePromptTemplate: `Premium LIFESTYLE photography for Korean beauty e-commerce detail page.
+
+[COMPOSITION]
+- Product "{product}" naturally integrated into realistic daily life setting
+- {context} environment with complementary props and accessories
+- Warm, inviting atmosphere with {background} color tones
+- Editorial/magazine style composition
+- Soft natural lighting creating cozy mood
+
+[STYLE]
+- Korean beauty lifestyle aesthetic (Olive Young style)
+- Aspirational yet relatable daily life scene
+- Product as natural part of routine, not forced placement
+- Clean, aesthetic, Instagram-worthy composition
+
+[QUALITY]
+- 8K photorealistic
+- Soft, flattering lighting
+- No text in image`,
+    requiredVisuals: ['environmental-context', 'lifestyle-props', 'mood-lighting', 'natural-placement'],
+    optionalVisuals: ['human-element', 'complementary-items', 'routine-context'],
     textOverlay: {
       headline: true,
       subheadline: true,
@@ -1015,28 +1033,274 @@ STEP 4: 목과 귀 뒤도 잊지 말고 발라주세요`,
     defaultOrder: 6,
     multiImage: false,
     maxImageCount: 1,
+    categorySpecificPrompts: [
+      {
+        categoryKeywords: ['스킨케어', '세럼', '에센스', '크림', '토너'],
+        imagePrompt: `Skincare LIFESTYLE photography for Korean beauty detail page.
+
+[SCENE]
+- Morning or evening skincare routine setting
+- Bathroom vanity or bedroom dresser with mirror
+- Product placed among other skincare items (cotton pads, tray, candle)
+- Soft morning light through window or warm evening lamp light
+- Clean, minimal, aesthetic Korean interior style
+
+[PROPS]
+- White marble or wood tray
+- Fresh flowers or plant
+- Soft towel
+- Mirror reflection
+- Other skincare bottles (blurred background)
+
+[MOOD]
+- Self-care moment, relaxing routine
+- Clean, fresh, peaceful atmosphere
+- Aspirational Korean skincare ritual
+
+[QUALITY]
+- 8K, editorial photography style
+- Warm, soft lighting
+- No text in image`,
+        suggestedImageCount: 1,
+        overlayTextGuide: '나만의 스킨케어 루틴, 매일 밤 꾸준히, 피부가 달라지는 시간 등 감성 카피',
+      },
+      {
+        categoryKeywords: ['립', '틴트', '립스틱', '메이크업', '쿠션'],
+        imagePrompt: `Makeup LIFESTYLE photography for Korean beauty detail page.
+
+[SCENE]
+- Getting ready / makeup routine setting
+- Vanity table with mirror and makeup items
+- Or: Cafe table with compact mirror (touch-up moment)
+- Or: Bright bathroom with good lighting
+- Stylish, feminine interior setting
+
+[PROPS]
+- Makeup pouch or organizer
+- Other makeup items (blurred)
+- Mirror (vanity or compact)
+- Coffee cup or accessories (if cafe setting)
+- Fresh flowers
+
+[MOOD]
+- Confident, feminine, ready-to-go feeling
+- Daily beauty routine moment
+- Stylish Korean woman's lifestyle
+
+[QUALITY]
+- 8K, lifestyle photography
+- Bright, flattering lighting
+- No text in image`,
+        suggestedImageCount: 1,
+        overlayTextGuide: '매일 아침 설레는 메이크업, 어디서든 완벽하게, 나를 빛나게 하는 순간 등',
+      },
+      {
+        categoryKeywords: ['선케어', '선크림'],
+        imagePrompt: `Suncare LIFESTYLE photography for Korean beauty detail page.
+
+[SCENE]
+- Outdoor or travel setting suggesting sun protection need
+- Beach bag with suncare essentials
+- Or: Morning routine before going out
+- Or: Outdoor cafe/park setting
+- Bright, sunny, fresh atmosphere
+
+[PROPS]
+- Sunglasses
+- Hat or cap
+- Beach/travel bag
+- Bright outdoor background
+- Summer accessories
+
+[MOOD]
+- Active, outdoor lifestyle
+- Sun-protected confidence
+- Fresh, energetic feeling
+
+[QUALITY]
+- 8K, bright lifestyle photography
+- Sunny, vibrant lighting
+- No text in image`,
+        suggestedImageCount: 1,
+        overlayTextGuide: '어디서든 자외선으로부터, 매일의 필수 루틴, 건강한 피부를 위한 첫 걸음 등',
+      },
+    ],
   },
 
   FAQ: {
     type: 'FAQ',
-    name: '자주 묻는 질문',
-    purpose: '구매 전 의문 해소, 추가 정보 제공',
+    name: 'Q&A 섹션',
+    purpose: '자주 묻는 질문을 Q&A 카드/말풍선 형식으로 시각화, 제품과 함께 배치하여 구매 의문 해소',
     recommendedLayout: 'split-right',
-    imagePromptTemplate: `product Q&A context shot of {product}, product displayed elegantly on side, clean {background} background, large text-friendly area for questions and answers, professional customer service aesthetic, organized information layout style, detail page FAQ section`,
-    requiredVisuals: ['product-side', 'text-dominant-area'],
-    optionalVisuals: ['question-icons', 'info-graphics'],
+    imagePromptTemplate: `Q&A visual layout photography for Korean beauty e-commerce detail page.
+
+[COMPOSITION - Q&A Card Style]
+- Product "{product}" elegantly placed in scene
+- Clean {background} background (beige, cream, or soft neutral)
+- Large empty spaces for Q&A text card overlays
+- Speech bubble / card layout friendly composition
+- Product occupies 30-40% of frame, rest for text areas
+
+[LAYOUT STYLE]
+- Magazine editorial Q&A layout aesthetic
+- Space for 3-4 Q&A cards around product
+- Question cards with "Q" icon styling
+- Clean, organized information design
+
+[PROPS - Related to product use]
+- Props that relate to common questions
+- Usage context items
+- Complementary products
+
+[STYLE]
+- Korean beauty detail page Q&A aesthetic
+- Clean, trustworthy, informative
+- Soft, warm color palette
+
+[QUALITY]
+- 8K, clean product photography
+- Even, soft lighting
+- No text burned in - space for overlay`,
+    requiredVisuals: ['product-placement', 'qa-card-space', 'clean-background', 'organized-layout'],
+    optionalVisuals: ['speech-bubble-areas', 'related-props', 'info-card-zones'],
     textOverlay: {
-      headline: true,
+      headline: true,      // "Q&A" 또는 "자주 묻는 질문" 타이틀
       subheadline: false,
-      body: true,
-      bullets: true,
+      body: true,          // Q&A 내용
+      bullets: true,       // 질문 리스트
       numbers: false,
-      icons: true,
+      icons: true,         // Q 아이콘
     },
     generateImage: true,
     defaultOrder: 7,
     multiImage: false,
     maxImageCount: 1,
+    categorySpecificPrompts: [
+      {
+        categoryKeywords: ['스킨케어', '세럼', '에센스', '크림', '토너', '앰플'],
+        imagePrompt: `Skincare Q&A layout photography for Korean beauty detail page.
+
+[SCENE]
+- Product bottle/jar elegantly placed
+- Soft beige or cream gradient background
+- Clean, minimal setting with skincare context
+- Large empty areas for Q&A text cards (left and right of product)
+
+[LAYOUT FOR Q&A OVERLAY]
+- Top area: "Q&A" title space
+- Left side: 2 question card spaces
+- Right side: 2 question card spaces
+- Product in center-bottom area
+
+[COMMON SKINCARE Q&A TOPICS TO VISUALIZE]
+- Skin type suitability (dry/oily/sensitive)
+- Usage order in routine
+- Usage amount and frequency
+- Ingredient safety concerns
+- Expected results timeline
+
+[PROPS]
+- Cotton pads nearby
+- Other skincare items (subtle, background)
+- Clean tray or surface
+
+[STYLE]
+- Clean, trustworthy, scientific feel
+- Korean skincare Q&A aesthetic
+- Soft, approachable color palette
+
+[QUALITY]
+- 8K, clean composition
+- Soft, even lighting
+- No text in image`,
+        suggestedImageCount: 1,
+        overlayTextGuide: `Q&A 타이틀 + 질문-답변 카드:
+Q. 어떤 피부 타입에 적합한가요?
+A. 모든 피부 타입에 사용 가능하며, 특히 건성/민감성 피부에 추천드립니다.
+
+Q. 사용 순서가 어떻게 되나요?
+A. 토너 → 에센스 → 본 제품 → 크림 순서로 사용해주세요.
+
+Q. 하루에 몇 번 사용하나요?
+A. 아침, 저녁 세안 후 2회 사용을 권장합니다.`,
+      },
+      {
+        categoryKeywords: ['쿠션', '파운데이션', '베이스메이크업'],
+        imagePrompt: `Foundation/Cushion Q&A layout photography for Korean beauty detail page.
+
+[SCENE]
+- Cushion compact or foundation displayed elegantly
+- Soft pink-beige gradient background
+- Puff or sponge nearby as related prop
+- Large empty areas for Q&A cards
+
+[LAYOUT FOR Q&A OVERLAY]
+- Space for shade selection questions
+- Space for skin type questions
+- Space for usage/longevity questions
+
+[COMMON BASE MAKEUP Q&A TOPICS]
+- How to choose the right shade
+- Coverage level (light/medium/full)
+- Finish type (dewy/matte/natural)
+- Longevity and touch-up needs
+- Suitable for oily/dry skin
+
+[STYLE]
+- Feminine, clean beauty aesthetic
+- Korean makeup Q&A style
+- Soft, flattering colors
+
+[QUALITY]
+- 8K, beauty photography
+- Soft lighting
+- No text in image`,
+        suggestedImageCount: 1,
+        overlayTextGuide: `Q. 제 피부톤에 맞는 호수는 어떻게 선택하나요?
+A. 턱 라인에 발라보시고 자연스럽게 스며드는 호수를 선택해주세요. 21호가 가장 인기있는 호수입니다.
+
+Q. 지성 피부도 사용 가능한가요?
+A. 네, 피지 컨트롤 기능이 있어 지성 피부에도 적합합니다.
+
+Q. 리필은 따로 구매 가능한가요?
+A. 네, 리필 제품을 별도로 구매하실 수 있습니다.`,
+      },
+      {
+        categoryKeywords: ['립', '틴트', '립스틱'],
+        imagePrompt: `Lip product Q&A layout photography for Korean beauty detail page.
+
+[SCENE]
+- Lip product standing or laid elegantly
+- Soft rose-pink or nude gradient background
+- Lip-related props (mirror, blotting paper)
+- Space for Q&A cards around product
+
+[COMMON LIP Q&A TOPICS]
+- Color payoff and lasting power
+- Transfer-proof properties
+- Moisturizing vs drying
+- How to achieve gradient lip
+- Suitable for dry/chapped lips
+
+[STYLE]
+- Feminine, romantic aesthetic
+- Korean lip product Q&A style
+
+[QUALITY]
+- 8K, beauty photography
+- Soft, flattering lighting
+- No text in image`,
+        suggestedImageCount: 1,
+        overlayTextGuide: `Q. 착색이 심한가요?
+A. 자연스러운 착색으로 클렌징 후 깔끔하게 지워집니다.
+
+Q. 입술이 건조해지지 않나요?
+A. 보습 성분이 함유되어 촉촉하게 유지됩니다.
+
+Q. 마스크에 묻어나지 않나요?
+A. 밀착력이 좋아 묻어남이 적습니다.`,
+      },
+    ],
   },
 
   INFO_TABLE: {
@@ -1063,24 +1327,151 @@ STEP 4: 목과 귀 뒤도 잊지 말고 발라주세요`,
 
   CTA: {
     type: 'CTA',
-    name: 'CTA/고객센터',
-    purpose: '구매 유도, 고객센터 연락처, 마무리',
+    name: 'CTA/브랜드 마무리',
+    purpose: '구매 유도, 브랜드 신뢰 강조, 고객센터 정보, 상세페이지 마무리',
     recommendedLayout: 'hero-centered',
-    imagePromptTemplate: `call-to-action product shot of {product}, product elegantly displayed, clean {background} background, warm inviting atmosphere, space for customer service information and contact details, purchase motivation composition, final impression aesthetic, detail page closing section`,
-    requiredVisuals: ['product-final', 'cta-space', 'contact-area'],
-    optionalVisuals: ['brand-elements', 'trust-badges'],
+    imagePromptTemplate: `Premium CLOSING/CTA photography for Korean beauty e-commerce detail page.
+
+[COMPOSITION - Final Impression]
+- Product "{product}" as hero, elegant final shot
+- Clean {background} gradient background
+- Premium, trustworthy, purchase-ready aesthetic
+- Space for brand message and CTA text
+- Warm, inviting atmosphere encouraging purchase
+
+[LAYOUT FOR CTA OVERLAY]
+- Top: Brand slogan or final message space
+- Center: Product hero shot
+- Bottom: CTA button space, customer service info area
+
+[VISUAL ELEMENTS]
+- Product in best angle, most appealing presentation
+- Subtle brand color accents
+- Trust-building elements (subtle badge areas)
+- Clean, confident, final impression
+
+[STYLE]
+- Korean beauty detail page closing aesthetic
+- Premium, trustworthy, desirable
+- Warm yet professional atmosphere
+
+[QUALITY]
+- 8K, hero product photography
+- Beautiful, flattering lighting
+- No text in image - space for overlay`,
+    requiredVisuals: ['product-hero', 'cta-space', 'brand-message-area', 'trust-elements'],
+    optionalVisuals: ['brand-color-accent', 'badge-areas', 'contact-info-space'],
     textOverlay: {
-      headline: true,
-      subheadline: true,
+      headline: true,      // 브랜드 메시지, CTA 문구
+      subheadline: true,   // 부가 설명
       body: false,
       bullets: false,
-      numbers: true,
-      icons: true,
+      numbers: true,       // 고객센터 번호 등
+      icons: true,         // 전화, 카카오톡 아이콘 등
     },
     generateImage: true,
     defaultOrder: 9,
     multiImage: false,
     maxImageCount: 1,
+    categorySpecificPrompts: [
+      {
+        categoryKeywords: ['스킨케어', '세럼', '에센스', '크림', '토너'],
+        imagePrompt: `Skincare CLOSING/CTA photography for Korean beauty detail page.
+
+[SCENE]
+- Product as final hero shot, most beautiful presentation
+- Soft, luxurious gradient background (cream to soft pink or blue)
+- Product with subtle glow/highlight effect
+- Premium skincare final impression
+
+[COMPOSITION]
+- Product centered, 50-60% of frame
+- Top space for headline: "지금 시작하세요" type message
+- Bottom space for CTA: "구매하기" button area
+- Side space for trust badges or customer service info
+
+[MOOD]
+- Trustworthy, premium, ready to purchase
+- "Your skin transformation starts here" feeling
+- Confident, inviting final impression
+
+[QUALITY]
+- 8K, premium product photography
+- Soft, luxurious lighting
+- No text in image`,
+        suggestedImageCount: 1,
+        overlayTextGuide: `상단: 지금, 당신의 피부를 위한 선택
+중앙: 제품 이미지
+하단:
+- 구매하기 버튼
+- 고객센터 1588-XXXX
+- 카카오톡 상담 가능
+- 평일 09:00-18:00`,
+      },
+      {
+        categoryKeywords: ['립', '틴트', '립스틱', '메이크업', '쿠션'],
+        imagePrompt: `Makeup CLOSING/CTA photography for Korean beauty detail page.
+
+[SCENE]
+- Product in most glamorous presentation
+- Soft pink or rose gradient background
+- Feminine, confident final impression
+- Premium makeup closing aesthetic
+
+[COMPOSITION]
+- Product hero shot with beautiful angle
+- Space for empowering message
+- CTA and contact area at bottom
+
+[MOOD]
+- Confident, beautiful, ready to shine
+- "Be your most beautiful self" feeling
+- Feminine empowerment
+
+[QUALITY]
+- 8K, glamour product photography
+- Flattering, soft lighting
+- No text in image`,
+        suggestedImageCount: 1,
+        overlayTextGuide: `상단: 오늘부터 더 빛나는 나
+중앙: 제품 이미지
+하단:
+- 지금 만나보기
+- 고객센터 정보
+- SNS 링크`,
+      },
+      {
+        categoryKeywords: ['선케어', '선크림'],
+        imagePrompt: `Suncare CLOSING/CTA photography for Korean beauty detail page.
+
+[SCENE]
+- Product with fresh, protective final impression
+- Bright, sunny gradient background (yellow to white)
+- Healthy, protected skin feeling
+- Ready for outdoor confidence
+
+[COMPOSITION]
+- Product hero with sun-protection confidence
+- Space for protection message
+- CTA area at bottom
+
+[MOOD]
+- Protected, confident, ready for sun
+- "Step out with confidence" feeling
+- Fresh, healthy energy
+
+[QUALITY]
+- 8K, fresh product photography
+- Bright, clean lighting
+- No text in image`,
+        suggestedImageCount: 1,
+        overlayTextGuide: `상단: 자외선 걱정 없는 하루
+중앙: 제품 이미지
+하단:
+- 구매하기
+- 고객센터 정보`,
+      },
+    ],
   },
 };
 
@@ -1148,6 +1539,7 @@ export function getSectionTemplate(sectionType: ExtendedSectionType): SectionTem
  */
 export function mapToExtendedSectionType(sectionType: SectionType): ExtendedSectionType {
   const mapping: Record<SectionType, ExtendedSectionType> = {
+    'MAIN': 'HERO',       // MAIN은 HERO로 매핑
     'HERO': 'HERO',
     'FEATURES': 'FEATURES',
     'SOCIAL_PROOF': 'SOCIAL_PROOF',
