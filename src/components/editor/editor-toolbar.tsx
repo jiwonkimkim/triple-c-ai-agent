@@ -3,20 +3,12 @@
 import {
   Undo2,
   Redo2,
-  Save,
   Eye,
-  Download,
   Loader2,
   Check,
   AlertCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 interface EditorToolbarProps {
   isDirty: boolean;
@@ -26,9 +18,7 @@ interface EditorToolbarProps {
   canRedo: boolean;
   onUndo: () => void;
   onRedo: () => void;
-  onSave: () => void;
   onPreview: () => void;
-  onExport: (format: 'html' | 'json') => void;
 }
 
 export function EditorToolbar({
@@ -39,9 +29,7 @@ export function EditorToolbar({
   canRedo,
   onUndo,
   onRedo,
-  onSave,
   onPreview,
-  onExport,
 }: EditorToolbarProps) {
   const formatLastSaved = (date: Date | null) => {
     if (!date) return '저장된 적 없음';
@@ -80,7 +68,7 @@ export function EditorToolbar({
         </div>
       </div>
 
-      {/* Right section - Save and export */}
+      {/* Right section - Save status and preview */}
       <div className="flex items-center gap-2">
         {/* Save status */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -107,32 +95,6 @@ export function EditorToolbar({
         <Button variant="ghost" size="sm" onClick={onPreview}>
           <Eye className="h-4 w-4 mr-2" />
           미리보기
-        </Button>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              내보내기
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onExport('html')}>
-              HTML로 내보내기
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onExport('json')}>
-              JSON으로 내보내기
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <Button size="sm" onClick={onSave} disabled={isSaving || !isDirty}>
-          {isSaving ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <Save className="h-4 w-4 mr-2" />
-          )}
-          저장
         </Button>
       </div>
     </div>

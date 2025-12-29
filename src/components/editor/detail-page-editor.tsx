@@ -9,7 +9,13 @@ import { EditorToolbar } from './editor-toolbar';
 import { EditorSection } from './editor-section';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Sparkles, X, Send, Type, ImageIcon, Layers, Layout, Plus, Monitor, Tablet, Smartphone } from 'lucide-react';
+import { Loader2, Sparkles, X, Send, Type, ImageIcon, Layers, Layout, Plus, Monitor, Tablet, Smartphone, Download, Save } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { TemplateImportModal } from './template-import-modal';
 
 interface ChatMessage {
@@ -857,12 +863,10 @@ export function DetailPageEditor({
           canRedo={historyIndex < history.length - 1}
           onUndo={undo}
           onRedo={redo}
-          onSave={save}
           onPreview={handlePreview}
-          onExport={handleExport}
         />
-        {/* Template & AI Edit Buttons */}
-        <div className="pr-4 flex gap-2">
+        {/* Template, AI Edit, Export, Save Buttons */}
+        <div className="pr-4 flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -880,6 +884,34 @@ export function DetailPageEditor({
           >
             <Sparkles className="h-4 w-4" />
             AI 편집
+          </Button>
+
+          <div className="h-6 w-px bg-border mx-1" />
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Download className="h-4 w-4" />
+                내보내기
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExport('html')}>
+                HTML로 내보내기
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport('json')}>
+                JSON으로 내보내기
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Button size="sm" onClick={save} disabled={isSaving || !isDirty} className="gap-2">
+            {isSaving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            저장
           </Button>
         </div>
       </div>
