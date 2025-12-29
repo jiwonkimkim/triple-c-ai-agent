@@ -250,21 +250,61 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
         let zIndex = 1;
 
-        // 섹션 타입별 텍스트 위치 설정 (제품 이미지를 가리지 않도록)
-        // 제품은 보통 중앙에 있으므로 텍스트는 상단/하단 또는 좌측에 배치
-        const isMain = section.type === 'MAIN';
-        const textPosition = {
-          // MAIN: 왼쪽 상단 (제품이 중앙-오른쪽에 있음)
-          // 다른 섹션: 상단 중앙 또는 하단
+        // 섹션 타입별 제품 위치 및 텍스트 안전 영역 정의
+        // 제품 영역을 피해서 텍스트 배치
+        const sectionType = section.type;
+
+        // 제품 영역 정의 (이 영역을 피해서 텍스트 배치)
+        // productZone: { x: [시작%, 끝%], y: [시작%, 끝%] }
+        const productZones: Record<string, { x: [number, number]; y: [number, number] }> = {
+          // MAIN: 제품이 중앙-오른쪽에 크게 배치됨 (40~95%, 15~85%)
+          MAIN: { x: [40, 95], y: [15, 85] },
+          // HERO: 제품이 중앙에 배치됨 (25~75%, 25~75%)
+          HERO: { x: [25, 75], y: [25, 75] },
+          // FEATURES: 제품/아이콘이 중앙에 배치됨 (20~80%, 30~70%)
+          FEATURES: { x: [20, 80], y: [30, 70] },
+          // SOCIAL_PROOF: 리뷰/후기 중앙 배치 (15~85%, 25~75%)
+          SOCIAL_PROOF: { x: [15, 85], y: [25, 75] },
+          // HOW_TO_USE: 사용법 이미지 중앙 (20~80%, 25~75%)
+          HOW_TO_USE: { x: [20, 80], y: [25, 75] },
+          // FAQ: 텍스트 중심이므로 제품 영역 작음 (30~70%, 35~65%)
+          FAQ: { x: [30, 70], y: [35, 65] },
+          // LIFESTYLE: 라이프스타일 이미지 전체 활용 (20~80%, 20~80%)
+          LIFESTYLE: { x: [20, 80], y: [20, 80] },
+          // CTA: 버튼/CTA 중앙 (25~75%, 35~65%)
+          CTA: { x: [25, 75], y: [35, 65] },
+        };
+
+        const productZone = productZones[sectionType] || productZones.HERO;
+
+        // 텍스트 안전 영역 계산 (제품 영역 밖)
+        // MAIN: 왼쪽 영역 사용 (제품이 오른쪽에 있으므로)
+        // 다른 섹션: 상단/하단 영역 사용 (제품이 중앙에 있으므로)
+        const isMain = sectionType === 'MAIN';
+
+        const textPosition = isMain ? {
+          // MAIN 섹션: 왼쪽 상단 영역에 텍스트 배치 (제품 왼쪽)
           headline: {
-            x: isMain ? 25 : 50,
-            y: isMain ? 20 : 12,
-            align: isMain ? 'left' as const : 'center' as const,
+            x: 5,  // 왼쪽 가장자리
+            y: 8,  // 상단
+            align: 'left' as const,
           },
           body: {
-            x: isMain ? 25 : 50,
-            y: isMain ? 35 : 88,
-            align: isMain ? 'left' as const : 'center' as const,
+            x: 5,  // 왼쪽 가장자리
+            y: 22, // headline 아래
+            align: 'left' as const,
+          },
+        } : {
+          // 다른 섹션: 상단/하단 가장자리에 텍스트 배치
+          headline: {
+            x: 50, // 중앙 정렬
+            y: 5,  // 최상단 (제품 영역 위)
+            align: 'center' as const,
+          },
+          body: {
+            x: 50, // 중앙 정렬
+            y: 92, // 최하단 (제품 영역 아래)
+            align: 'center' as const,
           },
         };
 
