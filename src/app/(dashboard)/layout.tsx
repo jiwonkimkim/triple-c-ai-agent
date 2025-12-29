@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
@@ -15,6 +15,8 @@ import {
   ChevronDown,
   User,
   Store,
+  PanelLeftClose,
+  PanelLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -37,6 +39,12 @@ const navigation = [
   { name: '설정', href: '/dashboard/settings', icon: Settings },
 ];
 
+// 에디터 페이지 경로 패턴 (사이드바 자동 숨김)
+const isEditorPage = (pathname: string) => {
+  // /dashboard/projects/[id] 형식 (new 제외)
+  return /^\/dashboard\/projects\/(?!new)[^/]+$/.test(pathname);
+};
+
 export default function DashboardLayout({
   children,
 }: {
@@ -45,6 +53,16 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const { data: session } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // 에디터 페이지 진입 시 사이드바 자동 닫기
+  useEffect(() => {
+    if (isEditorPage(pathname)) {
+      setSidebarCollapsed(true);
+    } else {
+      setSidebarCollapsed(false);
+    }
+  }, [pathname]);
 
   return (
     <div className="flex min-h-screen">
@@ -59,8 +77,13 @@ export default function DashboardLayout({
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-background border-r transition-transform lg:translate-x-0 lg:static lg:z-auto',
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-background border-r transition-all duration-300',
+          // 모바일: sidebarOpen으로 제어
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+          // 데스크톱: sidebarCollapsed로 제어
+          sidebarCollapsed
+            ? 'lg:-translate-x-full lg:w-0 lg:border-r-0'
+            : 'lg:translate-x-0 lg:static lg:z-auto'
         )}
       >
         {/* Logo */}
@@ -68,14 +91,27 @@ export default function DashboardLayout({
           <Link href="/dashboard" className="flex items-center space-x-2">
             <span className="text-xl font-bold text-primary">Triple C</span>
           </Link>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          >
-            <X className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-1">
+            {/* 데스크톱: 사이드바 닫기 버튼 */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hidden lg:flex"
+              onClick={() => setSidebarCollapsed(true)}
+              title="사이드바 닫기"
+            >
+              <PanelLeftClose className="h-5 w-5" />
+            </Button>
+            {/* 모바일: 사이드바 닫기 버튼 */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
 
         {/* Navigation */}
@@ -129,6 +165,7 @@ export default function DashboardLayout({
       <div className="flex flex-1 flex-col">
         {/* Top header */}
         <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
+          {/* 모바일: 사이드바 열기 버튼 */}
           <Button
             variant="ghost"
             size="icon"
@@ -137,6 +174,19 @@ export default function DashboardLayout({
           >
             <Menu className="h-5 w-5" />
           </Button>
+
+          {/* 데스크톱: 사이드바 토글 버튼 (에디터 페이지에서만 표시) */}
+          {sidebarCollapsed && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hidden lg:flex"
+              onClick={() => setSidebarCollapsed(false)}
+              title="사이드바 열기"
+            >
+              <PanelLeft className="h-5 w-5" />
+            </Button>
+          )}
 
           <div className="flex-1" />
 
