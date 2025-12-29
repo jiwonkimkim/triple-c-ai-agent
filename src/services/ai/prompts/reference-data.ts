@@ -320,19 +320,3 @@ export function mapSectionTypeToPosition(sectionType: string): SectionPosition {
   return mapping[sectionType] || 'features';
 }
 
-// ============================================
-// Midjourney 스타일 파라미터
-// ============================================
-
-export const MIDJOURNEY_PARAMS = {
-  aspectRatio: '--ar 3:4',
-  version: '--v 5',
-  stylize: '--stylize 300',
-};
-
-/**
- * 프롬프트에 Midjourney 파라미터 추가
- */
-export function addMidjourneyParams(prompt: string): string {
-  return `${prompt} ${MIDJOURNEY_PARAMS.aspectRatio} ${MIDJOURNEY_PARAMS.version} ${MIDJOURNEY_PARAMS.stylize}`;
-}

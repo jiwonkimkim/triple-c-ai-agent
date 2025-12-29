@@ -71,7 +71,6 @@ export interface DevPromptInfo {
   sectionImagePrompts: Array<{
     sectionType: string;
     imagePrompt: string;
-    imagePromptMidjourney?: string;
   }>;
 }
 
@@ -371,7 +370,6 @@ export async function generateDetailPage(
           sectionImagePrompts.push({
             sectionType: section.type,
             imagePrompt: section.imagePrompt.imagePrompt,
-            imagePromptMidjourney: section.imagePrompt.imagePromptMidjourney,
           });
         }
       }
