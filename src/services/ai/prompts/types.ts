@@ -77,7 +77,7 @@ export interface CopyLengthConfig {
 // 섹션 타입
 // ============================================
 
-export type SectionType = 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ' | 'CUSTOM';
+export type SectionType = 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ' | 'CUSTOM';
 
 export type SectionPosition = 'intro' | 'features' | 'proof' | 'usage' | 'closing';
 

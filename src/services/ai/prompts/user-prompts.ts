@@ -41,6 +41,11 @@ ${categoryPattern.topStats.length > 0 ? `- 인사이트: ${categoryPattern.topSt
   "hookMessage": "고객의 시선을 사로잡는 핵심 메시지 (${lengthConfig.hookLength}자 내외)",
   "sections": [
     {
+      "type": "MAIN",
+      "title": "제품명 또는 핵심 키워드 (예: 국민세안제, No.1 선크림)",
+      "body": "수상 이력, 프로모션 정보, 핵심 셀링포인트를 짧게. 예: '5년 연속 수상', '1+1 기획', 'NEW 출시'"
+    },
+    {
       "type": "HERO",
       "title": "감성적이고 임팩트 있는 제목 (5-10자)",
       "body": "브랜드 아이덴티티와 제품의 핵심 가치를 전달하는 도입부. 고객의 고민에 공감하며 시작."
@@ -70,27 +75,33 @@ ${categoryPattern.topStats.length > 0 ? `- 인사이트: ${categoryPattern.topSt
 
 ## 작성 지침 (올리브영 베스트셀러 패턴 기반)
 
-1. **HERO 섹션**
+1. **MAIN 섹션** (메인 이미지용 - 올리브영 main.jpg 스타일)
+   - title: 제품의 대표 키워드 또는 별명 (예: "국민세안제", "No.1 선크림", "데미지 리페어")
+   - body: 수상 이력, 프로모션, 핵심 셀링포인트를 2-3개 짧은 문구로
+   - 예시: "올리브영 어워즈 5년 연속 수상 | 1+1 기획 | 민감성 피부 전용"
+   - 텍스트는 최소화하고 임팩트 있게
+
+2. **HERO 섹션**
    - 타겟 고객(${input.targetAudience})의 고민에 공감하는 문장으로 시작
    - 제품이 해결해주는 핵심 가치 1가지에 집중
    - before-after, moisturizing 패턴 활용
 
-2. **FEATURES 섹션**
+3. **FEATURES 섹션**
    - 주요 특징 ${input.keyFeatures.length}가지를 각각 구체적으로 설명
    - statistics, ingredients 패턴 활용
    - "~하여 ~합니다" 형식의 효과 중심 문장
 
-3. **SOCIAL_PROOF 섹션**
+4. **SOCIAL_PROOF 섹션**
    - 구체적인 수치 필수 사용 (예: 92% 만족도, 3.5배 수분 증가)
    - 실제 사용자 톤의 후기 (예: "민감한 제 피부에도 자극 없이 촉촉해요!")
    - before-after, statistics, clinical 패턴 활용
 
-4. **HOW_TO_USE 섹션**
+5. **HOW_TO_USE 섹션**
    - 3-4단계로 간결하게 정리
    - 적정 사용량 필수 언급 (예: 콩알 크기, 500원 동전)
    - how-to, tips 패턴 활용
 
-5. **FAQ 섹션**
+6. **FAQ 섹션**
    - 실제 궁금할 질문 2-3개
    - 구매 결정에 도움되는 정보
    - "지금 만나보세요" 같은 명확한 CTA로 마무리

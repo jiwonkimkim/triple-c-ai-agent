@@ -351,6 +351,24 @@ export const CATEGORY_PATTERNS: Record<string, CategoryPattern> = {
 // ============================================
 
 export const SECTION_STORY_GUIDE: Record<string, SectionStoryGuide> = {
+  // MAIN: 올리브영 main.jpg 스타일 메인 이미지
+  MAIN: {
+    position: 'intro',
+    purpose: '제품 프로모션 메인 썸네일 - 수상/인증/기획 정보 강조',
+    textEmphasis: ['수상 이력', '프로모션 정보', '핵심 키워드', '제품 별명'],
+    visualEmphasis: ['제품 패키지 중심', '수상 배지', '기획 세트', '축제 분위기'],
+    textTone: '짧고 임팩트 있게, 프로모션 강조',
+    bestPractices: [
+      '제품 패키지가 크게 중앙에 배치',
+      '수상 배지/인증 마크는 코너에',
+      '1+1, NEW 등 프로모션 정보 강조',
+      '텍스트 최소화, 이미지로 승부',
+    ],
+    copyGuide: {
+      headline: '제품 별명 또는 핵심 키워드 (예: "국민세안제", "No.1 선크림")',
+      subheadline: '수상 이력 또는 프로모션 (예: "5년 연속 수상", "1+1 기획")',
+    },
+  },
   HERO: {
     position: 'intro',
     purpose: '고객의 시선을 사로잡고 핵심 가치를 전달',

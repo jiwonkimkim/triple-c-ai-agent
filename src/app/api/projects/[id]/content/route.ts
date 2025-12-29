@@ -143,6 +143,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     if (aiSections && aiSections.length > 0) {
       // Section type to Korean name mapping
       const sectionTypeNames: Record<string, string> = {
+        MAIN: '메인',
         HERO: '히어로',
         FEATURES: '제품 특징',
         SOCIAL_PROOF: '고객 후기',
@@ -182,43 +183,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         }>;
       }> = [];
 
-      // Add hook message as first section if exists
-      if (latestVersion.hookMessage) {
-        const heroSection = aiSections.find(s => s.type === 'HERO');
-        editorSections.push({
-          id: 'hook-section',
-          name: '메인 (훅 메시지)',
-          blocks: [{
-            id: 'hook-block',
-            type: 'image-overlay',
-            src: heroSection?.imageUrl || '',
-            alt: 'Hook message',
-            overlayTexts: [
-              {
-                id: 'hook-text',
-                type: 'headline',
-                content: latestVersion.hookMessage,
-                style: {
-                  x: 50,
-                  y: 50,
-                  fontSize: 48,
-                  fontWeight: 'bold',
-                  fontFamily: 'Pretendard, sans-serif',
-                  color: '#ffffff',
-                  textShadow: true,
-                  textAlign: 'center',
-                  opacity: 100,
-                  rotation: 0,
-                },
-                zIndex: 1,
-              },
-            ],
-            overlayGradient: 'linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.5))',
-          }],
-        });
-      }
-
-      // Convert each AI section to an editor section
+      // Convert each AI section to an editor section (MAIN, HERO, FEATURES, etc.)
       for (const section of aiSections) {
         const overlayTexts: Array<{
           id: string;
