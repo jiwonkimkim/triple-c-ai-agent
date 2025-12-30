@@ -373,11 +373,7 @@ export function ImageOverlayBlockRenderer({
               style={{
                 left: `${overlayText.style.x}%`,
                 top: `${overlayText.style.y}%`,
-                // 텍스트 정렬에 따라 transform 조정 (왼쪽/중앙/오른쪽 기준점)
-                transform: `translate(${
-                  overlayText.style.textAlign === 'left' ? '0' :
-                  overlayText.style.textAlign === 'right' ? '-100%' : '-50%'
-                }, -50%) rotate(${overlayText.style.rotation || 0}deg)`,
+                transform: `translate(-50%, -50%) rotate(${overlayText.style.rotation || 0}deg)`,
                 zIndex: overlayText.zIndex || 0,
                 opacity: (overlayText.style.opacity || 100) / 100,
               }}
@@ -786,11 +782,7 @@ export function ImageOverlayBlockPreview({
             style={{
               left: `${overlayText.style.x}%`,
               top: `${overlayText.style.y}%`,
-              // 텍스트 정렬에 따라 transform 조정
-              transform: `translate(${
-                overlayText.style.textAlign === 'left' ? '0' :
-                overlayText.style.textAlign === 'right' ? '-100%' : '-50%'
-              }, -50%) rotate(${overlayText.style.rotation || 0}deg)`,
+              transform: `translate(-50%, -50%) rotate(${overlayText.style.rotation || 0}deg)`,
               zIndex: overlayText.zIndex || 0,
               opacity: (overlayText.style.opacity || 100) / 100,
               color: overlayText.style.color || '#ffffff',
