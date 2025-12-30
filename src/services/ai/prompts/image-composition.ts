@@ -106,6 +106,7 @@ export const LAYOUT_PRESETS: Record<LayoutStyle, DetailPageLayoutPreset> = {
 // ============================================
 
 export const SECTION_LAYOUT_RECOMMENDATIONS: Record<SectionType, LayoutStyle[]> = {
+  MAIN: ['hero-centered', 'hero-bottom', 'floating', 'lifestyle'],
   HERO: ['hero-centered', 'hero-bottom', 'floating', 'lifestyle'],
   FEATURES: ['split-left', 'split-right', 'grid', 'floating'],
   SOCIAL_PROOF: ['comparison', 'split-left', 'hero-centered'],

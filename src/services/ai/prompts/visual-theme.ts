@@ -265,6 +265,13 @@ export interface SectionThemeGuide {
 }
 
 export const SECTION_THEME_GUIDES: Record<SectionType, SectionThemeGuide> = {
+  MAIN: {
+    sectionType: 'MAIN',
+    backgroundUsage: 'Use primary background color with subtle gradient, product as focal point',
+    productPlacement: 'Product centered or slightly off-center, occupying 50-60% of frame',
+    additionalElements: 'Minimal props, subtle shadow, brand-consistent styling',
+    textArea: 'Upper 30% for headline, lower 20% for subheadline',
+  },
   HERO: {
     sectionType: 'HERO',
     backgroundUsage: 'Use primary background color with subtle gradient, product as focal point',
