@@ -149,8 +149,10 @@ export function ImageOverlayBlockRenderer({
   const [showLayerPanel, setShowLayerPanel] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
+  const [resizeDirection, setResizeDirection] = useState<'left' | 'right' | 'both'>('both');
   const [resizeStartX, setResizeStartX] = useState(0);
   const [resizeStartWidth, setResizeStartWidth] = useState(0);
+  const [resizeStartPosX, setResizeStartPosX] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -190,14 +192,16 @@ export function ImageOverlayBlockRenderer({
   }, []);
 
   // 리사이즈 시작
-  const handleResizeStart = useCallback((e: React.MouseEvent, textId: string) => {
+  const handleResizeStart = useCallback((e: React.MouseEvent, textId: string, direction: 'left' | 'right' | 'both' = 'both') => {
     e.preventDefault();
     e.stopPropagation();
     setSelectedTextId(textId);
     setIsResizing(true);
+    setResizeDirection(direction);
     setResizeStartX(e.clientX);
     const text = block.overlayTexts.find(t => t.id === textId);
     setResizeStartWidth(text?.style.width || 30); // 기본 너비 30%
+    setResizeStartPosX(text?.style.x || 50);
   }, [block.overlayTexts]);
 
   // 리사이즈 중
@@ -206,21 +210,38 @@ export function ImageOverlayBlockRenderer({
 
     const rect = containerRef.current.getBoundingClientRect();
     const deltaX = e.clientX - resizeStartX;
-    const deltaPercent = (deltaX / rect.width) * 100 * 2; // 양쪽으로 확장
-    const newWidth = Math.max(10, Math.min(100, resizeStartWidth + deltaPercent));
+    const deltaPercent = (deltaX / rect.width) * 100;
+
+    let newWidth: number;
+    let newX: number = resizeStartPosX;
+
+    if (resizeDirection === 'right') {
+      // 오른쪽만 확장: 위치 고정, 너비만 증가
+      newWidth = Math.max(5, Math.min(100, resizeStartWidth + deltaPercent));
+    } else if (resizeDirection === 'left') {
+      // 왼쪽만 확장: 위치 이동, 너비 증가
+      newWidth = Math.max(5, Math.min(100, resizeStartWidth - deltaPercent));
+      // 왼쪽으로 확장할 때 중심점 이동
+      const widthDiff = newWidth - resizeStartWidth;
+      newX = Math.max(0, Math.min(100, resizeStartPosX - widthDiff / 2));
+    } else {
+      // 양쪽 확장 (기존 동작)
+      newWidth = Math.max(5, Math.min(100, resizeStartWidth + deltaPercent * 2));
+    }
 
     onUpdate({
       overlayTexts: block.overlayTexts.map((text) =>
         text.id === selectedTextId
-          ? { ...text, style: { ...text.style, width: newWidth } }
+          ? { ...text, style: { ...text.style, width: newWidth, x: newX } }
           : text
       ),
     });
-  }, [isResizing, selectedTextId, resizeStartX, resizeStartWidth, block.overlayTexts, onUpdate]);
+  }, [isResizing, selectedTextId, resizeStartX, resizeStartWidth, resizeStartPosX, resizeDirection, block.overlayTexts, onUpdate]);
 
   // 리사이즈 종료
   const handleResizeEnd = useCallback(() => {
     setIsResizing(false);
+    setResizeDirection('both');
   }, []);
 
   // 마우스 이벤트 리스너
@@ -412,7 +433,6 @@ export function ImageOverlayBlockRenderer({
               key={overlayText.id}
               className={cn(
                 'absolute cursor-move select-none transition-shadow',
-                selectedTextId === overlayText.id && 'ring-2 ring-yellow-400 ring-offset-2',
                 (isDragging || isResizing) && selectedTextId === overlayText.id && 'cursor-grabbing'
               )}
               style={{
@@ -475,25 +495,61 @@ export function ImageOverlayBlockRenderer({
                   {overlayText.content}
                 </div>
               )}
-              {/* 리사이즈 핸들 - 선택된 텍스트에만 표시 */}
+              {/* 리사이즈 핸들 - 선택된 텍스트에만 표시 (8개: 4모서리 + 4변) */}
               {selectedTextId === overlayText.id && !isEditing && (
                 <>
-                  {/* 왼쪽 핸들 */}
+                  {/* 왼쪽 변 핸들 */}
                   <div
-                    className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-yellow-400 rounded-full cursor-ew-resize hover:bg-yellow-500 border-2 border-white shadow-md"
+                    className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-6 bg-yellow-400 rounded cursor-ew-resize hover:bg-yellow-500 border border-white shadow-md"
                     onMouseDown={(e) => {
                       e.stopPropagation();
-                      handleResizeStart(e, overlayText.id);
+                      handleResizeStart(e, overlayText.id, 'left');
                     }}
+                    title="왼쪽으로 확장"
                   />
-                  {/* 오른쪽 핸들 */}
+                  {/* 오른쪽 변 핸들 */}
                   <div
-                    className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-yellow-400 rounded-full cursor-ew-resize hover:bg-yellow-500 border-2 border-white shadow-md"
+                    className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-2.5 h-6 bg-yellow-400 rounded cursor-ew-resize hover:bg-yellow-500 border border-white shadow-md"
                     onMouseDown={(e) => {
                       e.stopPropagation();
-                      handleResizeStart(e, overlayText.id);
+                      handleResizeStart(e, overlayText.id, 'right');
+                    }}
+                    title="오른쪽으로 확장"
+                  />
+                  {/* 왼쪽 상단 모서리 */}
+                  <div
+                    className="absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-blue-400 rounded-sm cursor-nw-resize hover:bg-blue-500 border border-white shadow-md"
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleResizeStart(e, overlayText.id, 'left');
                     }}
                   />
+                  {/* 오른쪽 상단 모서리 */}
+                  <div
+                    className="absolute right-0 top-0 translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-blue-400 rounded-sm cursor-ne-resize hover:bg-blue-500 border border-white shadow-md"
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleResizeStart(e, overlayText.id, 'right');
+                    }}
+                  />
+                  {/* 왼쪽 하단 모서리 */}
+                  <div
+                    className="absolute left-0 bottom-0 -translate-x-1/2 translate-y-1/2 w-3 h-3 bg-blue-400 rounded-sm cursor-sw-resize hover:bg-blue-500 border border-white shadow-md"
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleResizeStart(e, overlayText.id, 'left');
+                    }}
+                  />
+                  {/* 오른쪽 하단 모서리 */}
+                  <div
+                    className="absolute right-0 bottom-0 translate-x-1/2 translate-y-1/2 w-3 h-3 bg-blue-400 rounded-sm cursor-se-resize hover:bg-blue-500 border border-white shadow-md"
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleResizeStart(e, overlayText.id, 'right');
+                    }}
+                  />
+                  {/* 선택 테두리 표시 */}
+                  <div className="absolute inset-0 border-2 border-dashed border-yellow-400 pointer-events-none rounded" />
                 </>
               )}
             </div>
@@ -777,17 +833,29 @@ export function ImageOverlayBlockRenderer({
             </div>
 
             {/* 텍스트 박스 너비 */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <span className="text-xs text-muted-foreground whitespace-nowrap">너비</span>
               <Slider
                 value={[selectedText.style.width || 0]}
                 onValueChange={([value]) => handleUpdateStyle(selectedTextId!, { width: value === 0 ? undefined : value })}
                 min={0}
                 max={100}
-                step={5}
-                className="w-20"
+                step={1}
+                className="w-24"
               />
-              <span className="text-xs w-12">{selectedText.style.width ? `${selectedText.style.width}%` : '자동'}</span>
+              <Input
+                type="number"
+                value={selectedText.style.width || ''}
+                onChange={(e) => {
+                  const value = e.target.value === '' ? undefined : Math.max(0, Math.min(100, Number(e.target.value)));
+                  handleUpdateStyle(selectedTextId!, { width: value === 0 ? undefined : value });
+                }}
+                placeholder="자동"
+                className="w-14 h-7 text-xs text-center px-1"
+                min={0}
+                max={100}
+              />
+              <span className="text-xs text-muted-foreground">%</span>
             </div>
 
             {/* 텍스트 그림자 */}
