@@ -198,8 +198,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         CUSTOM: '커스텀',
       };
 
-      // 첫 번째 HERO 섹션은 '메인'으로 명명 (에디터에서 MAIN 섹션으로 인식)
-      let isFirstHero = true;
+      // MAIN 섹션은 별도 타입으로 처리 (sectionTypeNames에서 '메인'으로 매핑)
 
       // Convert each AI section to an editor section with image-overlay block
       const editorSections: Array<{
@@ -386,14 +385,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         // Skip if no overlay texts (shouldn't happen, but just in case)
         if (overlayTexts.length === 0) continue;
 
-        // 섹션 이름 결정: 첫 번째 HERO는 '메인'으로, 나머지는 기본 매핑 사용
-        let sectionName: string;
-        if (section.type === 'HERO' && isFirstHero) {
-          sectionName = '메인';
-          isFirstHero = false;
-        } else {
-          sectionName = sectionTypeNames[section.type] || section.title || '섹션';
-        }
+        // 섹션 이름 결정: MAIN은 '메인', HERO는 '히어로'로 매핑
+        const sectionName = sectionTypeNames[section.type] || section.title || '섹션';
 
         // Create editor section with the block
         editorSections.push({
