@@ -148,6 +148,9 @@ export function ImageOverlayBlockRenderer({
   const [showImageSettings, setShowImageSettings] = useState(false);
   const [showLayerPanel, setShowLayerPanel] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeStartX, setResizeStartX] = useState(0);
+  const [resizeStartWidth, setResizeStartWidth] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -186,6 +189,40 @@ export function ImageOverlayBlockRenderer({
     setIsDragging(false);
   }, []);
 
+  // 리사이즈 시작
+  const handleResizeStart = useCallback((e: React.MouseEvent, textId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedTextId(textId);
+    setIsResizing(true);
+    setResizeStartX(e.clientX);
+    const text = block.overlayTexts.find(t => t.id === textId);
+    setResizeStartWidth(text?.style.width || 30); // 기본 너비 30%
+  }, [block.overlayTexts]);
+
+  // 리사이즈 중
+  const handleResize = useCallback((e: MouseEvent) => {
+    if (!isResizing || !selectedTextId || !containerRef.current) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const deltaX = e.clientX - resizeStartX;
+    const deltaPercent = (deltaX / rect.width) * 100 * 2; // 양쪽으로 확장
+    const newWidth = Math.max(10, Math.min(100, resizeStartWidth + deltaPercent));
+
+    onUpdate({
+      overlayTexts: block.overlayTexts.map((text) =>
+        text.id === selectedTextId
+          ? { ...text, style: { ...text.style, width: newWidth } }
+          : text
+      ),
+    });
+  }, [isResizing, selectedTextId, resizeStartX, resizeStartWidth, block.overlayTexts, onUpdate]);
+
+  // 리사이즈 종료
+  const handleResizeEnd = useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
   // 마우스 이벤트 리스너
   useEffect(() => {
     if (isDragging) {
@@ -196,7 +233,15 @@ export function ImageOverlayBlockRenderer({
         window.removeEventListener('mouseup', handleDragEnd);
       };
     }
-  }, [isDragging, handleDrag, handleDragEnd]);
+    if (isResizing) {
+      window.addEventListener('mousemove', handleResize);
+      window.addEventListener('mouseup', handleResizeEnd);
+      return () => {
+        window.removeEventListener('mousemove', handleResize);
+        window.removeEventListener('mouseup', handleResizeEnd);
+      };
+    }
+  }, [isDragging, isResizing, handleDrag, handleDragEnd, handleResize, handleResizeEnd]);
 
   // 오버레이 텍스트 추가
   const handleAddOverlayText = (type: OverlayText['type']) => {
@@ -368,7 +413,7 @@ export function ImageOverlayBlockRenderer({
               className={cn(
                 'absolute cursor-move select-none transition-shadow',
                 selectedTextId === overlayText.id && 'ring-2 ring-yellow-400 ring-offset-2',
-                isDragging && selectedTextId === overlayText.id && 'cursor-grabbing'
+                (isDragging || isResizing) && selectedTextId === overlayText.id && 'cursor-grabbing'
               )}
               style={{
                 left: `${overlayText.style.x}%`,
@@ -376,6 +421,7 @@ export function ImageOverlayBlockRenderer({
                 transform: `translate(-50%, -50%) rotate(${overlayText.style.rotation || 0}deg)`,
                 zIndex: overlayText.zIndex || 0,
                 opacity: (overlayText.style.opacity || 100) / 100,
+                width: overlayText.style.width ? `${overlayText.style.width}%` : 'auto',
               }}
               onMouseDown={(e) => handleDragStart(e, overlayText.id)}
               onDoubleClick={(e) => {
@@ -393,7 +439,7 @@ export function ImageOverlayBlockRenderer({
                     if (e.key === 'Escape') setIsEditing(false);
                   }}
                   autoFocus
-                  className="bg-transparent border-none outline-none resize-none text-center min-w-[100px]"
+                  className="bg-transparent border-none outline-none resize-none w-full min-w-[100px]"
                   style={{
                     color: overlayText.style.color || '#ffffff',
                     fontSize: `${overlayText.style.fontSize || 16}px`,
@@ -428,6 +474,27 @@ export function ImageOverlayBlockRenderer({
                 >
                   {overlayText.content}
                 </div>
+              )}
+              {/* 리사이즈 핸들 - 선택된 텍스트에만 표시 */}
+              {selectedTextId === overlayText.id && !isEditing && (
+                <>
+                  {/* 왼쪽 핸들 */}
+                  <div
+                    className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-yellow-400 rounded-full cursor-ew-resize hover:bg-yellow-500 border-2 border-white shadow-md"
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleResizeStart(e, overlayText.id);
+                    }}
+                  />
+                  {/* 오른쪽 핸들 */}
+                  <div
+                    className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-yellow-400 rounded-full cursor-ew-resize hover:bg-yellow-500 border-2 border-white shadow-md"
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      handleResizeStart(e, overlayText.id);
+                    }}
+                  />
+                </>
               )}
             </div>
           ))}
@@ -673,7 +740,7 @@ export function ImageOverlayBlockRenderer({
             />
           </div>
 
-          {/* 두 번째 줄: 정렬 & 기타 */}
+          {/* 두 번째 줄: 정렬 & 너비 */}
           <div className="flex gap-2 items-center">
             {/* 정렬 */}
             <div className="flex border rounded">
@@ -683,6 +750,7 @@ export function ImageOverlayBlockRenderer({
                   selectedText.style.textAlign === 'left' && 'bg-primary text-primary-foreground'
                 )}
                 onClick={() => handleUpdateStyle(selectedTextId!, { textAlign: 'left' })}
+                title="왼쪽 정렬"
               >
                 <AlignLeft className="h-4 w-4" />
               </button>
@@ -692,6 +760,7 @@ export function ImageOverlayBlockRenderer({
                   selectedText.style.textAlign === 'center' && 'bg-primary text-primary-foreground'
                 )}
                 onClick={() => handleUpdateStyle(selectedTextId!, { textAlign: 'center' })}
+                title="가운데 정렬"
               >
                 <AlignCenter className="h-4 w-4" />
               </button>
@@ -701,9 +770,24 @@ export function ImageOverlayBlockRenderer({
                   selectedText.style.textAlign === 'right' && 'bg-primary text-primary-foreground'
                 )}
                 onClick={() => handleUpdateStyle(selectedTextId!, { textAlign: 'right' })}
+                title="오른쪽 정렬"
               >
                 <AlignRight className="h-4 w-4" />
               </button>
+            </div>
+
+            {/* 텍스트 박스 너비 */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">너비</span>
+              <Slider
+                value={[selectedText.style.width || 0]}
+                onValueChange={([value]) => handleUpdateStyle(selectedTextId!, { width: value === 0 ? undefined : value })}
+                min={0}
+                max={100}
+                step={5}
+                className="w-20"
+              />
+              <span className="text-xs w-12">{selectedText.style.width ? `${selectedText.style.width}%` : '자동'}</span>
             </div>
 
             {/* 텍스트 그림자 */}
@@ -785,6 +869,7 @@ export function ImageOverlayBlockPreview({
               transform: `translate(-50%, -50%) rotate(${overlayText.style.rotation || 0}deg)`,
               zIndex: overlayText.zIndex || 0,
               opacity: (overlayText.style.opacity || 100) / 100,
+              width: overlayText.style.width ? `${overlayText.style.width}%` : 'auto',
               color: overlayText.style.color || '#ffffff',
               backgroundColor: overlayText.style.backgroundColor,
               padding: overlayText.style.padding,

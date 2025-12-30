@@ -43,6 +43,8 @@ export interface OverlayTextStyle {
   // 자유 위치 (퍼센트 기준, 0-100)
   x: number;
   y: number;
+  // 텍스트 박스 크기 (퍼센트 기준)
+  width?: number; // 텍스트 박스 너비 (기본: auto)
   // 스타일
   color?: string;
   backgroundColor?: string;
