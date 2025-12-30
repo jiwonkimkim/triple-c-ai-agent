@@ -193,8 +193,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         SOCIAL_PROOF: '고객 후기',
         HOW_TO_USE: '사용 방법',
         FAQ: 'FAQ',
+        LIFESTYLE: '라이프스타일',
+        CTA: '구매하기',
         CUSTOM: '커스텀',
       };
+
+      // 첫 번째 HERO 섹션은 '메인'으로 명명 (에디터에서 MAIN 섹션으로 인식)
+      let isFirstHero = true;
 
       // Convert each AI section to an editor section with image-overlay block
       const editorSections: Array<{
@@ -381,10 +386,19 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         // Skip if no overlay texts (shouldn't happen, but just in case)
         if (overlayTexts.length === 0) continue;
 
+        // 섹션 이름 결정: 첫 번째 HERO는 '메인'으로, 나머지는 기본 매핑 사용
+        let sectionName: string;
+        if (section.type === 'HERO' && isFirstHero) {
+          sectionName = '메인';
+          isFirstHero = false;
+        } else {
+          sectionName = sectionTypeNames[section.type] || section.title || '섹션';
+        }
+
         // Create editor section with the block
         editorSections.push({
           id: `section-${section.id}`,
-          name: sectionTypeNames[section.type] || section.title || '섹션',
+          name: sectionName,
           blocks: [{
             id: section.id,
             type: 'image-overlay',
