@@ -246,6 +246,130 @@ export function isGeminiConfigured(): boolean {
 }
 
 // ============================================
+// 배경 제거 기능
+// ============================================
+
+export interface RemoveBackgroundOptions {
+  /** 원본 이미지 (base64 또는 data URL) */
+  sourceImage: string;
+  /** 모델 선택 */
+  model?: GeminiImageModel;
+  /** 투명 배경 여부 (true: 투명, false: 흰색 배경) */
+  transparent?: boolean;
+}
+
+/**
+ * 배경 제거: 제품 이미지에서 배경을 제거하고 제품만 추출
+ * - Gemini의 이미지 편집 기능 활용
+ * - 투명 배경 또는 흰색 배경 선택 가능
+ */
+export async function removeBackground(
+  options: RemoveBackgroundOptions
+): Promise<GeminiGeneratedImage> {
+  const {
+    sourceImage,
+    model = 'gemini-2.0-flash-exp',
+    transparent = true,
+  } = options;
+
+  const client = getGeminiClient();
+
+  try {
+    // base64 데이터 추출
+    const { base64, mimeType } = extractBase64FromDataUrl(sourceImage);
+
+    console.log(`[Gemini BG] Starting background removal`);
+    console.log(`[Gemini BG] Model: ${model}, Transparent: ${transparent}`);
+
+    const backgroundStyle = transparent
+      ? 'completely transparent background (PNG with alpha channel)'
+      : 'pure white background (#FFFFFF)';
+
+    const prompt = `[BACKGROUND REMOVAL TASK]
+Remove the background from this product image completely.
+
+REQUIREMENTS:
+1. Extract ONLY the product/object from the image
+2. Remove ALL background elements
+3. Keep the product exactly as it is - same shape, color, details
+4. Output with ${backgroundStyle}
+5. Maintain high quality and sharp edges around the product
+6. No shadows unless they are part of the product itself
+
+OUTPUT: Clean product cutout with ${backgroundStyle}, professional e-commerce quality.`;
+
+    // Gemini에 이미지 + 배경 제거 요청 전송
+    const response = await client.models.generateContent({
+      model: model,
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            {
+              inlineData: {
+                mimeType: mimeType,
+                data: base64,
+              },
+            },
+            {
+              text: prompt,
+            },
+          ],
+        },
+      ],
+      config: {
+        responseModalities: ['IMAGE'],
+      },
+    });
+
+    // 응답에서 이미지 추출
+    if (response.candidates && response.candidates[0]?.content?.parts) {
+      for (const part of response.candidates[0].content.parts) {
+        if (part.inlineData && part.inlineData.data) {
+          console.log(`[Gemini BG] Background removed successfully`);
+          return {
+            base64Data: part.inlineData.data,
+            mimeType: part.inlineData.mimeType || 'image/png',
+          };
+        }
+      }
+    }
+
+    throw new Error('No image returned from background removal');
+  } catch (error) {
+    console.error('[Gemini BG] Background removal error:', error);
+    throw error;
+  }
+}
+
+/**
+ * 제품 이미지 전처리: 배경 제거 후 Image-to-Image에 사용할 수 있는 형태로 반환
+ */
+export async function preprocessProductImage(
+  sourceImage: string,
+  model: GeminiImageModel = 'gemini-2.0-flash-exp'
+): Promise<string> {
+  try {
+    console.log('[Gemini] Preprocessing product image (removing background)...');
+
+    const result = await removeBackground({
+      sourceImage,
+      model,
+      transparent: true,
+    });
+
+    const dataUrl = base64ToDataUrl(result.base64Data, result.mimeType);
+    console.log('[Gemini] Product image preprocessed successfully');
+
+    return dataUrl;
+  } catch (error) {
+    console.error('[Gemini] Failed to preprocess image, using original:', error);
+    // 실패 시 원본 이미지 반환
+    return sourceImage;
+  }
+}
+
+// ============================================
 // Image-to-Image 기능 (사용자 제품 이미지 기반)
 // ============================================
 

@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   generateDetailPageImagesWithGemini,
   generateImageFromImage,
+  preprocessProductImage,
   base64ToDataUrl,
   isGeminiConfigured,
   GeminiImageModel,
@@ -455,14 +456,22 @@ export async function generateDetailPage(
       if (hasProductImages && primaryProductImage) {
         // ============================================
         // Image-to-Image 모드: 사용자 제품 이미지 기반 생성
-        // - 사용자가 업로드한 제품 이미지 + 이미지 프롬프트
-        // - 제품은 그대로 유지, 배경/조명/스타일만 변경
+        // 1. 먼저 배경 제거하여 제품만 추출
+        // 2. 추출된 제품 + 이미지 프롬프트로 새 이미지 생성
         // ============================================
         console.log('[AI] Starting Image-to-Image generation with user product image...');
         console.log(`[AI] Primary product image: ${primaryProductImage.substring(0, 50)}...`);
 
         try {
           const imageModel = input.imageModel || 'gemini-2.0-flash-exp';
+
+          // Step 1: 배경 제거 - 제품만 추출
+          console.log('[AI] Step 1: Removing background from product image...');
+          const cleanProductImage = await preprocessProductImage(primaryProductImage, imageModel);
+          console.log('[AI] Background removal completed');
+
+          // Step 2: 각 섹션별 Image-to-Image 생성
+          console.log('[AI] Step 2: Generating section images with clean product...');
 
           versions = await Promise.all(
             versions.map(async (version) => {
@@ -472,23 +481,22 @@ export async function generateDetailPage(
                   const prompts = section.imagePrompts || (section.imagePrompt ? [section.imagePrompt] : []);
 
                   if (prompts.length === 0) {
-                    // 프롬프트가 없으면 원본 제품 이미지 사용
-                    const imgIndex = sectionIndex % input.productImages.length;
+                    // 프롬프트가 없으면 배경 제거된 제품 이미지 사용
                     return {
                       ...section,
-                      imageUrl: input.productImages[imgIndex],
+                      imageUrl: cleanProductImage,
                     };
                   }
 
                   try {
-                    // Image-to-Image: 제품 이미지 + 프롬프트로 새 이미지 생성
+                    // Image-to-Image: 배경 제거된 제품 이미지 + 프롬프트로 새 이미지 생성
                     const generatedImages = await Promise.all(
                       prompts.slice(0, 1).map(async (prompt) => {  // 섹션당 1개씩 생성 (API 호출 최적화)
                         try {
-                          console.log(`[AI I2I] Generating ${section.type} with prompt + product image...`);
+                          console.log(`[AI I2I] Generating ${section.type} with prompt + clean product image...`);
 
                           const images = await generateImageFromImage({
-                            sourceImage: primaryProductImage,
+                            sourceImage: cleanProductImage,  // 배경 제거된 이미지 사용
                             prompt: prompt.imagePrompt,
                             model: imageModel,
                             preserveStrength: 0.85,
@@ -503,8 +511,8 @@ export async function generateDetailPage(
                           return null;
                         } catch (err) {
                           console.error(`[AI I2I] Failed for ${section.type}:`, err);
-                          // 실패 시 원본 제품 이미지 사용
-                          return primaryProductImage;
+                          // 실패 시 배경 제거된 제품 이미지 사용
+                          return cleanProductImage;
                         }
                       })
                     );
@@ -523,11 +531,10 @@ export async function generateDetailPage(
                     console.error(`[AI I2I] Section ${section.type} failed:`, sectionError);
                   }
 
-                  // 실패 시 원본 제품 이미지 폴백
-                  const imgIndex = sectionIndex % input.productImages.length;
+                  // 실패 시 배경 제거된 제품 이미지 폴백
                   return {
                     ...section,
-                    imageUrl: input.productImages[imgIndex],
+                    imageUrl: cleanProductImage,
                   };
                 })
               );
@@ -545,12 +552,12 @@ export async function generateDetailPage(
           console.log(`[AI I2I] Image-to-Image generation completed. Total: ${totalImages}`);
         } catch (imageError) {
           console.error('[AI I2I] Image-to-Image generation failed:', imageError);
-          // 실패 시 원본 이미지 사용으로 폴백
+          // 실패 시 원본 제품 이미지 사용으로 폴백
           versions = versions.map((version) => ({
             ...version,
-            sections: version.sections.map((section, idx) => ({
+            sections: version.sections.map((section) => ({
               ...section,
-              imageUrl: input.productImages[idx % input.productImages.length],
+              imageUrl: primaryProductImage,
             })),
           }));
         }
