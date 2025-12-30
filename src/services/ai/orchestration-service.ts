@@ -250,12 +250,45 @@ export async function generateSectionImagePrompt(
 
   let imagePrompt: string;
 
+  // MAIN 섹션 전용: 제품명 기반 맞춤 오브제 + 분위기 오브제 가이드
+  const mainSectionGuide = sectionType === 'MAIN' ? `
+## 🎨 MAIN 썸네일 특별 지시 (매우 중요!)
+이 섹션은 상세페이지 진입 전 첫인상을 결정하는 메인 썸네일입니다.
+
+### 1. 실제 재료 오브제 (INGREDIENT OBJECTS) - 15-20%, 베이스/전면
+제품명 "${productName}" 분석하여 실제 성분/재료 배치:
+- "로즈/rose/장미" → 장미 꽃잎
+- "베리/berry" → 딸기, 라즈베리, 블루베리
+- "허니/꿀" → 꿀, 벌집
+- "그린티/녹차" → 녹차잎
+- "시트러스/레몬/오렌지" → 과일 슬라이스
+- "라벤더" → 라벤더
+- "민트" → 민트잎
+- "알로에" → 알로에 젤/잎
+- "진주/pearl" → 진주
+- 해당 없으면 → ${category} 관련 재료
+
+### 2. 분위기 오브제 (MOOD OBJECTS) - 10-15%, 배경/측면
+제품 무드에 맞는 1-2개 분위기 요소:
+- 로맨틱/페미닌: 실크 패브릭, 드라이플라워, 리본
+- 프레시/내추럴: 물방울, 이슬, 녹색 잎
+- 럭셔리/프리미엄: 벨벳, 크리스탈, 메탈릭
+- 클린/미니멀: 흰 돌, 기하학적 형태
+- 따뜻한/아늑한: 따뜻한 톤 패브릭, 우드
+- 시원한/상쾌한: 얼음, 물 스플래시
+
+### 3. 구성
+- 제품 = 주인공 (50-60%, 중앙, 선명)
+- 재료 오브제 (15-20%, 베이스/전면)
+- 분위기 오브제 (10-15%, 배경/측면)
+` : '';
+
   if (gemini) {
     // AI를 사용하여 맞춤형 프롬프트 생성
     const promptGenerationRequest = `
 당신은 AI 이미지 생성(Gemini Imagen, DALL-E) 전문 프롬프트 엔지니어입니다.
 상업용 제품 상세페이지에 사용될 고품질 이미지 생성 프롬프트를 작성해주세요.
-
+${mainSectionGuide}
 ## 제품 정보
 - 제품명: ${productName}
 - 카테고리: ${category}
@@ -381,6 +414,448 @@ function buildProductConsistencyText(
   return instruction;
 }
 
+// ============================================
+// 카테고리별 동적 오브제 선택 시스템
+// ============================================
+
+interface DecorativeObjectSet {
+  primary: string[];      // 주요 오브제 (2-3개 선택)
+  secondary: string[];    // 보조 오브제 (1-2개 선택)
+  base: string[];         // 베이스/플랫폼 (1개 선택)
+  effects: string[];      // 조명/효과 (1개 선택)
+}
+
+const CATEGORY_DECORATIVE_OBJECTS: Record<string, DecorativeObjectSet> = {
+  // 뷰티/화장품
+  beauty: {
+    primary: [
+      'fresh rose petals scattered artfully',
+      'delicate peony blooms',
+      'cherry blossom branches',
+      'orchid flowers',
+      'dried lavender sprigs',
+      'eucalyptus leaves',
+      'small seashells',
+      'crystal clusters',
+      'pearl beads scattered',
+    ],
+    secondary: [
+      'silk fabric draping in soft blush tones',
+      'velvet ribbon curling elegantly',
+      'sheer organza fabric flowing',
+      'satin cloth with gentle folds',
+      'tulle fabric wisps',
+    ],
+    base: [
+      'polished marble slab',
+      'rose gold metallic tray',
+      'frosted glass platform',
+      'white ceramic pedestal',
+      'acrylic display block',
+      'natural stone surface',
+    ],
+    effects: [
+      'crystal prism creating rainbow light refraction',
+      'water droplets glistening on surface',
+      'soft bokeh light orbs in background',
+      'golden hour warm lighting',
+      'mirror reflection beneath',
+    ],
+  },
+  // 스킨케어
+  skincare: {
+    primary: [
+      'fresh aloe vera slices',
+      'cucumber slices with water droplets',
+      'honey dripping from honeycomb',
+      'green tea leaves',
+      'citrus fruit slices (lemon/orange)',
+      'fresh mint leaves',
+      'chamomile flowers',
+      'rice grains scattered',
+      'vitamin C oranges',
+    ],
+    secondary: [
+      'water splash frozen in motion',
+      'ice cubes melting',
+      'clear gel texture swirls',
+      'bubbles floating',
+      'morning dew droplets',
+    ],
+    base: [
+      'wet stone surface',
+      'bamboo mat',
+      'leaf-shaped ceramic plate',
+      'natural wood slice',
+      'smooth river stones',
+      'glass shelf with water underneath',
+    ],
+    effects: [
+      'water ripples reflecting light',
+      'misty spa atmosphere',
+      'soft diffused natural light',
+      'clean clinical lighting',
+      'fresh morning sunlight through window',
+    ],
+  },
+  // 패션/의류
+  fashion: {
+    primary: [
+      'vintage sunglasses',
+      'luxury watch',
+      'designer jewelry pieces',
+      'leather accessories',
+      'silk scarf draped',
+      'fashion magazine pages',
+      'elegant perfume bottle',
+      'designer handbag corner',
+    ],
+    secondary: [
+      'cashmere fabric texture',
+      'tweed material swatch',
+      'leather texture sample',
+      'denim fabric fold',
+      'linen cloth wrinkled naturally',
+    ],
+    base: [
+      'marble countertop',
+      'vintage wooden trunk',
+      'brass tray',
+      'velvet display cushion',
+      'fashion runway floor texture',
+      'boutique shelf',
+    ],
+    effects: [
+      'studio spotlight creating dramatic shadows',
+      'window light with venetian blind shadows',
+      'golden hour warmth',
+      'high fashion editorial lighting',
+      'backstage mirror lights',
+    ],
+  },
+  // 음식/식품
+  food: {
+    primary: [
+      'fresh herbs (basil, rosemary, thyme)',
+      'seasonal fruits arrangement',
+      'artisan bread slices',
+      'honey jar with dipper',
+      'spice powder sprinkled',
+      'nuts and seeds scattered',
+      'fresh vegetables',
+      'cheese wedge',
+      'olive oil drizzle',
+    ],
+    secondary: [
+      'linen napkin folded',
+      'burlap cloth texture',
+      'woven basket edge',
+      'kitchen towel striped',
+      'parchment paper crinkled',
+    ],
+    base: [
+      'rustic wooden cutting board',
+      'marble pastry slab',
+      'vintage ceramic plate',
+      'cast iron skillet edge',
+      'butcher block surface',
+      'slate serving board',
+    ],
+    effects: [
+      'steam rising naturally',
+      'morning kitchen sunlight',
+      'warm bistro lighting',
+      'food photography top-down light',
+      'cozy ambient glow',
+    ],
+  },
+  // 테크/전자기기
+  tech: {
+    primary: [
+      'geometric metal shapes',
+      'glass spheres',
+      'minimal concrete blocks',
+      'aluminum cubes',
+      'chrome rings',
+      'abstract metal sculptures',
+      'LED light strips (off)',
+      'wireless earbuds case',
+    ],
+    secondary: [
+      'carbon fiber texture sample',
+      'brushed aluminum sheet',
+      'matte black fabric',
+      'mesh material',
+      'premium leather edge',
+    ],
+    base: [
+      'matte black surface',
+      'brushed steel platform',
+      'tempered glass desk',
+      'concrete slab',
+      'dark wood desk surface',
+      'white minimalist shelf',
+    ],
+    effects: [
+      'neon accent glow',
+      'clean white studio light',
+      'blue tech ambient light',
+      'dramatic side lighting',
+      'futuristic gradient background',
+    ],
+  },
+  // 건강/웰니스
+  wellness: {
+    primary: [
+      'zen stacking stones',
+      'yoga mat rolled edge',
+      'meditation singing bowl',
+      'natural crystals (amethyst, quartz)',
+      'dried sage bundle',
+      'essential oil bottles',
+      'bamboo elements',
+      'incense stick (unlit)',
+    ],
+    secondary: [
+      'organic cotton towel',
+      'natural hemp rope',
+      'cork material',
+      'recycled paper texture',
+      'woven seagrass mat',
+    ],
+    base: [
+      'natural teak wood surface',
+      'smooth river stone slab',
+      'woven jute mat',
+      'bamboo platform',
+      'recycled wood plank',
+      'natural slate',
+    ],
+    effects: [
+      'soft morning zen light',
+      'candle glow warmth',
+      'natural sunlight through plants',
+      'peaceful spa atmosphere',
+      'serene minimalist lighting',
+    ],
+  },
+  // 주방/홈
+  home: {
+    primary: [
+      'fresh flowers in vase',
+      'candles (unlit)',
+      'coffee beans scattered',
+      'houseplant leaves',
+      'books stacked',
+      'ceramic pottery',
+      'woven basket',
+      'vintage clock',
+    ],
+    secondary: [
+      'cotton throw blanket',
+      'linen curtain edge',
+      'knit texture',
+      'natural cotton fabric',
+      'soft wool material',
+    ],
+    base: [
+      'oak wood table surface',
+      'white marble countertop',
+      'natural stone tile',
+      'vintage wooden tray',
+      'rattan placemat',
+      'terrazzo surface',
+    ],
+    effects: [
+      'cozy window light',
+      'warm living room ambiance',
+      'soft afternoon sunlight',
+      'hygge candlelit mood',
+      'clean scandinavian light',
+    ],
+  },
+  // 기본 (매칭 안될 때)
+  default: {
+    primary: [
+      'elegant flower petals',
+      'natural botanical elements',
+      'crystal accents',
+      'minimalist geometric shapes',
+      'natural textures',
+      'premium material samples',
+    ],
+    secondary: [
+      'soft fabric draping',
+      'natural fiber texture',
+      'premium material edge',
+      'subtle color accent',
+    ],
+    base: [
+      'marble surface',
+      'natural wood platform',
+      'premium display stand',
+      'elegant stone slab',
+      'glass shelf',
+    ],
+    effects: [
+      'soft studio lighting',
+      'natural window light',
+      'elegant highlight effects',
+      'professional product lighting',
+    ],
+  },
+};
+
+/**
+ * 카테고리에 맞는 오브제 세트 선택
+ */
+function getCategoryDecorativeObjects(category: string): DecorativeObjectSet {
+  const lowerCategory = category.toLowerCase();
+
+  // 카테고리 매칭
+  if (lowerCategory.includes('화장품') || lowerCategory.includes('뷰티') ||
+      lowerCategory.includes('메이크업') || lowerCategory.includes('립') ||
+      lowerCategory.includes('cosmetic') || lowerCategory.includes('beauty') ||
+      lowerCategory.includes('makeup')) {
+    return CATEGORY_DECORATIVE_OBJECTS.beauty;
+  }
+  if (lowerCategory.includes('스킨케어') || lowerCategory.includes('피부') ||
+      lowerCategory.includes('세럼') || lowerCategory.includes('크림') ||
+      lowerCategory.includes('skincare') || lowerCategory.includes('serum')) {
+    return CATEGORY_DECORATIVE_OBJECTS.skincare;
+  }
+  if (lowerCategory.includes('패션') || lowerCategory.includes('의류') ||
+      lowerCategory.includes('옷') || lowerCategory.includes('가방') ||
+      lowerCategory.includes('fashion') || lowerCategory.includes('clothing')) {
+    return CATEGORY_DECORATIVE_OBJECTS.fashion;
+  }
+  if (lowerCategory.includes('음식') || lowerCategory.includes('식품') ||
+      lowerCategory.includes('푸드') || lowerCategory.includes('요리') ||
+      lowerCategory.includes('food') || lowerCategory.includes('beverage')) {
+    return CATEGORY_DECORATIVE_OBJECTS.food;
+  }
+  if (lowerCategory.includes('전자') || lowerCategory.includes('테크') ||
+      lowerCategory.includes('기기') || lowerCategory.includes('디지털') ||
+      lowerCategory.includes('tech') || lowerCategory.includes('electronic')) {
+    return CATEGORY_DECORATIVE_OBJECTS.tech;
+  }
+  if (lowerCategory.includes('건강') || lowerCategory.includes('웰니스') ||
+      lowerCategory.includes('헬스') || lowerCategory.includes('영양') ||
+      lowerCategory.includes('wellness') || lowerCategory.includes('health')) {
+    return CATEGORY_DECORATIVE_OBJECTS.wellness;
+  }
+  if (lowerCategory.includes('홈') || lowerCategory.includes('주방') ||
+      lowerCategory.includes('인테리어') || lowerCategory.includes('리빙') ||
+      lowerCategory.includes('home') || lowerCategory.includes('kitchen')) {
+    return CATEGORY_DECORATIVE_OBJECTS.home;
+  }
+
+  return CATEGORY_DECORATIVE_OBJECTS.default;
+}
+
+/**
+ * 랜덤하게 오브제 선택 (매번 다른 조합)
+ */
+function selectRandomObjects(objects: DecorativeObjectSet): string {
+  const shuffle = <T>(arr: T[]): T[] => arr.sort(() => Math.random() - 0.5);
+
+  // 각 카테고리에서 랜덤 선택
+  const primarySelected = shuffle([...objects.primary]).slice(0, 2 + Math.floor(Math.random() * 2)); // 2-3개
+  const secondarySelected = shuffle([...objects.secondary]).slice(0, 1 + Math.floor(Math.random() * 2)); // 1-2개
+  const baseSelected = shuffle([...objects.base])[0]; // 1개
+  const effectSelected = shuffle([...objects.effects])[0]; // 1개
+
+  return `[DECORATIVE OBJECTS - dynamically selected for ${objects === CATEGORY_DECORATIVE_OBJECTS.default ? 'general' : 'category'} styling:
+    PRIMARY PROPS (subtle, small scale): ${primarySelected.join(', ')},
+    SUPPORTING ELEMENTS: ${secondarySelected.join(', ')},
+    BASE/PLATFORM: ${baseSelected},
+    LIGHTING EFFECT: ${effectSelected}]`;
+}
+
+/**
+ * MAIN 섹션용 동적 오브제 프롬프트 생성 (카테고리 기반 폴백)
+ */
+function buildDynamicDecorativePrompt(category: string): string {
+  const objects = getCategoryDecorativeObjects(category);
+  return selectRandomObjects(objects);
+}
+
+/**
+ * AI 기반 맞춤 오브제 제안 (제품 정보 기반)
+ * - 제품명, 특징, 브랜드 스타일, 타겟 고객 등을 분석하여 최적의 오브제 조합 생성
+ */
+async function generateAIDecorativeObjects(
+  productName: string,
+  category: string,
+  keyFeatures: string[],
+  targetAudience: string,
+  brandStyle?: string,
+  visualReference?: ProductVisualReference
+): Promise<string> {
+  const gemini = getGeminiClient();
+
+  if (!gemini) {
+    // AI 없으면 카테고리 기반 폴백
+    return buildDynamicDecorativePrompt(category);
+  }
+
+  const prompt = `당신은 프리미엄 상품 사진 스타일리스트입니다.
+제품 정보를 분석하여 이 제품의 썸네일 이미지에 어울리는 고급스러운 장식 오브제를 제안해주세요.
+
+## 제품 정보
+- 제품명: ${productName}
+- 카테고리: ${category}
+- 핵심 특징: ${keyFeatures.join(', ')}
+- 타겟 고객: ${targetAudience}
+${brandStyle ? `- 브랜드 스타일: ${brandStyle}` : ''}
+${visualReference?.colorScheme ? `- 제품 색상: ${visualReference.colorScheme}` : ''}
+
+## 중요 규칙
+1. 제품이 주인공! 오브제는 작고 미묘하게 배치
+2. 제품의 특징/컬러/분위기와 조화로운 오브제 선택
+3. 구매 욕구를 자극하는 감각적인 스타일링
+4. 고급스럽고 세련된 잡지 화보 느낌
+
+## 제안 형식 (JSON)
+{
+  "concept": "전체 컨셉 (예: 로맨틱 로즈가든, 미니멀 럭셔리, 내추럴 보타닉 등)",
+  "primary_objects": ["메인 오브제 2-3개 - 작은 스케일로"],
+  "secondary_elements": ["보조 소품 1-2개"],
+  "base_surface": "베이스/플랫폼 1개",
+  "lighting_mood": "조명/분위기 효과"
+}
+
+JSON만 반환하세요. 영어로 작성하세요.`;
+
+  try {
+    const response = await gemini.models.generateContent({
+      model: 'gemini-2.0-flash-exp',
+      contents: prompt,
+    });
+
+    const text = response.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+
+    let jsonStr = text;
+    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      jsonStr = jsonMatch[1];
+    }
+
+    const suggestion = JSON.parse(jsonStr);
+
+    console.log(`[Orchestration] AI suggested decorative objects for "${productName}":`, suggestion);
+
+    return `[DECORATIVE OBJECTS - AI-curated for "${productName}" (${suggestion.concept}):
+    PRIMARY PROPS (subtle, small scale): ${suggestion.primary_objects.join(', ')},
+    SUPPORTING ELEMENTS: ${suggestion.secondary_elements.join(', ')},
+    BASE/PLATFORM: ${suggestion.base_surface},
+    LIGHTING EFFECT: ${suggestion.lighting_mood}]`;
+  } catch (error) {
+    console.error('[Orchestration] Failed to generate AI decorative objects, using fallback:', error);
+    return buildDynamicDecorativePrompt(category);
+  }
+}
+
 // 폴백 이미지 프롬프트 생성 (AI 없을 때) - Gemini Imagen 최적화
 function buildFallbackImagePrompt(
   sectionType: string,
@@ -422,9 +897,37 @@ function buildFallbackImagePrompt(
   // 테마 무드 키워드
   const themeMood = visualTheme ? visualTheme.moodKeywords.slice(0, 3).join(', ') : 'modern, clean, professional';
 
+  // 제품명 기반 맞춤 오브제 + 분위기 오브제 지시
+  const productSpecificObjects = `[THUMBNAIL STYLING for "${productName}"]
+
+[1. INGREDIENT OBJECTS - 실제 재료 오브제 (15-20%, base/front)]
+Analyze product name and add REAL ingredients:
+- "로즈/rose/장미" → fresh roses, rose petals
+- "베리/berry" → fresh berries (strawberry, raspberry, blueberry)
+- "허니/honey/꿀" → golden honey drip, honeycomb
+- "그린티/녹차" → fresh green tea leaves
+- "시트러스/레몬/오렌지" → citrus slices with water droplets
+- "라벤더/lavender" → lavender sprigs
+- "민트/mint" → fresh mint leaves
+- "코코넛/coconut" → coconut pieces
+- "아보카도/avocado" → avocado slices
+- "알로에/aloe" → aloe vera gel/leaves
+- "진주/pearl" → pearl beads
+- "골드/gold" → gold flakes
+- Otherwise → ${category} relevant ingredients
+
+[2. MOOD OBJECTS - 분위기 오브제 (10-15%, background/sides)]
+Add 1-2 mood elements matching product vibe:
+- Romantic/Feminine: soft silk, dried flowers, ribbon
+- Fresh/Natural: water droplets, green leaves, dew
+- Luxurious: velvet, crystal, metallic accents
+- Clean/Minimal: white stones, geometric shapes
+- Warm/Cozy: warm fabric, natural wood
+- Refreshing: ice, water splash`;
+
   const basePrompts: Record<string, string> = {
-    // MAIN: 올리브영 메인 썸네일 스타일 - 상세페이지 진입 전 제품 슬로건 이미지
-    MAIN: `${consistencyPrefix} ${themePrefix} OLIVEYOUNG main thumbnail style product photography of ${productDesc}, ${category} product package floating centered with subtle shadow, colorful gradient background (blue to pink OR green to yellow tones), award badge effect (OLIVEYOUNG PICK, BEST SELLER medal), gift set and bonus items displayed together, sparkle confetti celebration atmosphere, festive promotional mood, product slogan text space at top, brand logo space at bottom, high contrast vibrant commercial photography, Korean beauty e-commerce style, ${themeMood}${colorNote}${packageNote}, ${styleKeywords}${brandAddition}, ${qualityKeywords}, ${noTextInstruction}`,
+    // MAIN: 제품명 맞춤 썸네일 - 제품이 돋보이고 관련 오브제로 스타일링
+    MAIN: `${consistencyPrefix} ${themePrefix} Stunning product photography of ${productDesc}, [CRITICAL: ${category} product must be THE DOMINANT HERO - largest element taking 50-60% of frame, centered or slightly off-center, sharp focus with product details clearly visible], ${productSpecificObjects}, [HIERARCHY: Product = 100% focus, Objects = subtle supporting role], clean gradient or textured background matching product colors, professional studio lighting emphasizing product, high-end product photography that makes viewers want to purchase, aspirational mood, space for slogan text at top 20% area, ${themeMood}${colorNote}${packageNote}, ${styleKeywords}${brandAddition}, ${qualityKeywords}, ${noTextInstruction}`,
 
     HERO: `${consistencyPrefix} ${themePrefix} Ultra-premium product photography of ${productDesc}, elegant ${category} product hero shot, perfectly centered composition with rule of thirds, space for text overlay at top and bottom, sophisticated gradient background (${visualTheme?.backgroundColors.gradient || 'soft white to subtle warm tones'}), professional studio softbox lighting with gentle rim light creating elegant product silhouette, subtle surface reflection on glossy base, luxury beauty advertisement aesthetic, premium cosmetic brand campaign quality, ${themeMood}, high-end minimalist design${colorNote}${packageNote}, ${styleKeywords}${brandAddition}, ${qualityKeywords}, ${noTextInstruction}`,
 

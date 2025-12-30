@@ -4,7 +4,9 @@ import { GoogleGenAI } from '@google/genai';
 import { v4 as uuidv4 } from 'uuid';
 import {
   generateDetailPageImagesWithGemini,
+  generateSectionImageWithGemini,
   generateImageFromImage,
+  generateSectionImageFromProduct,
   preprocessProductImage,
   base64ToDataUrl,
   isGeminiConfigured,
@@ -450,7 +452,9 @@ export async function generateDetailPage(
     // - Image-to-Image: 사용자 제품 이미지 + 이미지 프롬프트를 함께 사용
     // - 제품 이미지를 그대로 유지하면서 배경/스타일만 변경
     // ============================================
-    else if (input.generateImages && isGeminiConfigured()) {
+    console.log(`[AI DEBUG] generateImages=${input.generateImages}, isGeminiConfigured=${isGeminiConfigured()}, productImages=${input.productImages?.length || 0}`);
+
+    if (input.generateImages && isGeminiConfigured()) {
       // 사용자 제품 이미지가 있는지 확인
       const hasProductImages = input.productImages && input.productImages.length > 0;
       const primaryProductImage = hasProductImages ? input.productImages[0] : null;
@@ -498,41 +502,33 @@ export async function generateDetailPage(
 
                   try {
                     // Image-to-Image: 배경 제거된 제품 이미지 + 프롬프트로 새 이미지 생성
-                    const generatedImages = await Promise.all(
-                      prompts.slice(0, 1).map(async (prompt) => {  // 섹션당 1개씩 생성 (API 호출 최적화)
-                        try {
-                          console.log(`[AI I2I] Generating ${section.type} with prompt + clean product image...`);
+                    // generateSectionImageFromProduct를 사용하여 keyFeatures, targetAudience 반영
+                    const sectionType = section.type as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
 
-                          const images = await generateImageFromImage({
-                            sourceImage: cleanProductImage,  // 배경 제거된 이미지 사용
-                            prompt: prompt.imagePrompt,
-                            model: imageModel,
-                            preserveStrength: 0.85,
-                          });
+                    console.log(`[AI I2I] Generating ${sectionType} with prompt + clean product image...`);
+                    console.log(`[AI I2I] keyFeatures: ${input.keyFeatures?.slice(0, 2).join(', ')}, target: ${input.targetAudience}`);
 
-                          if (images.length > 0) {
-                            return base64ToDataUrl(
-                              images[0].base64Data,
-                              images[0].mimeType
-                            );
-                          }
-                          return null;
-                        } catch (err) {
-                          console.error(`[AI I2I] Failed for ${section.type}:`, err);
-                          // 실패 시 배경 제거된 제품 이미지 사용
-                          return cleanProductImage;
-                        }
-                      })
+                    const generatedImage = await generateSectionImageFromProduct(
+                      cleanProductImage,  // 배경 제거된 이미지 사용
+                      sectionType,
+                      input.productName,
+                      input.category,
+                      input.brandContext?.imageKeywords?.join(', '),  // additionalPrompt
+                      imageModel,
+                      input.keyFeatures,      // keyFeatures 전달
+                      input.targetAudience    // targetAudience 전달
                     );
 
-                    const validImages = generatedImages.filter((img): img is string => img !== null);
+                    if (generatedImage) {
+                      const imageUrl = base64ToDataUrl(
+                        generatedImage.base64Data,
+                        generatedImage.mimeType
+                      );
 
-                    if (validImages.length > 0) {
-                      console.log(`[AI I2I] ${section.type} section image generated successfully`);
+                      console.log(`[AI I2I] ${sectionType} section image generated successfully`);
                       return {
                         ...section,
-                        imageUrl: validImages[0],
-                        imageUrls: validImages.length > 1 ? validImages : undefined,
+                        imageUrl,
                       };
                     }
                   } catch (sectionError) {
@@ -571,7 +567,9 @@ export async function generateDetailPage(
         }
       } else {
         // ============================================
-        // Text-to-Image 모드: 제품 이미지 없이 프롬프트만으로 생성 (기존 방식)
+        // Text-to-Image 모드: 제품 이미지 없이 프롬프트만으로 생성
+        // - MAIN 섹션: 1:1 정사각형 + 맞춤 오브제
+        // - 나머지: 자유 비율
         // ============================================
         console.log('[AI] Generating images with Text-to-Image (no product image provided)...');
 
@@ -589,38 +587,33 @@ export async function generateDetailPage(
                   }
 
                   try {
-                    const generatedImages = await Promise.all(
-                      prompts.slice(0, 1).map(async (prompt) => {
-                        try {
-                          const sectionImages = await generateDetailPageImagesWithGemini(
-                            input.productName,
-                            input.category,
-                            input.keyFeatures,
-                            prompt.imagePrompt,
-                            imageModel
-                          );
+                    // 섹션 타입에 맞는 이미지 생성 (MAIN은 1:1, 나머지는 자유 비율)
+                    // keyFeatures, targetAudience도 전달하여 맞춤형 이미지 생성
+                    const sectionType = section.type as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
+                    const imagePrompt = prompts[0]?.imagePrompt || '';
 
-                          if (sectionImages.heroImage) {
-                            return base64ToDataUrl(
-                              sectionImages.heroImage.base64Data,
-                              sectionImages.heroImage.mimeType
-                            );
-                          }
-                          return null;
-                        } catch (err) {
-                          console.error(`[AI T2I] Failed for ${section.type}:`, err);
-                          return null;
-                        }
-                      })
+                    console.log(`[AI T2I] Generating ${sectionType} section...`);
+                    console.log(`[AI T2I] keyFeatures: ${input.keyFeatures?.slice(0, 2).join(', ')}, target: ${input.targetAudience}`);
+
+                    const generatedImage = await generateSectionImageWithGemini(
+                      sectionType,
+                      imagePrompt,
+                      input.productName,
+                      input.category,
+                      imageModel,
+                      input.keyFeatures,      // keyFeatures 전달
+                      input.targetAudience    // targetAudience 전달
                     );
 
-                    const validImages = generatedImages.filter((img): img is string => img !== null);
+                    if (generatedImage) {
+                      const imageUrl = base64ToDataUrl(
+                        generatedImage.base64Data,
+                        generatedImage.mimeType
+                      );
 
-                    if (validImages.length > 0) {
                       return {
                         ...section,
-                        imageUrl: validImages[0],
-                        imageUrls: validImages.length > 1 ? validImages : undefined,
+                        imageUrl,
                       };
                     }
                   } catch (sectionError) {

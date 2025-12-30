@@ -150,15 +150,44 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     // Check if contentJson is an array (new editor sections format - saved by auto-save)
     if (Array.isArray(contentJson) && contentJson.length > 0) {
-      return NextResponse.json({
-        success: true,
-        data: {
-          editorSections: contentJson,
-          versionId: latestVersion.id,
-          versionNumber: latestVersion.versionNumber,
-          updatedAt: latestVersion.updatedAt,
-        },
-      });
+      // sections의 이미지와 contentJson의 이미지가 일치하는지 확인
+      // 불일치하면 sections 데이터를 우선 사용 (이전 프로젝트 데이터 오염 방지)
+      const aiSectionsForCheck = latestVersion.sections as Array<{ imageUrl?: string }> | null;
+      const hasValidImages = aiSectionsForCheck?.some(s => s.imageUrl && s.imageUrl.startsWith('data:image'));
+
+      if (hasValidImages) {
+        // sections에 유효한 이미지가 있으면, contentJson과 비교
+        const contentJsonFirstImage = contentJson[0]?.blocks?.[0]?.src;
+        const sectionsFirstImage = aiSectionsForCheck?.[0]?.imageUrl;
+
+        // 이미지가 다르면 sections 데이터를 사용 (아래 코드로 fallthrough)
+        if (contentJsonFirstImage && sectionsFirstImage &&
+            contentJsonFirstImage !== sectionsFirstImage &&
+            !contentJsonFirstImage.startsWith('data:image')) {
+          // contentJson에 잘못된 이미지가 있음 - sections로 재생성
+          console.log('[Content API] contentJson has stale images, using sections instead');
+        } else {
+          return NextResponse.json({
+            success: true,
+            data: {
+              editorSections: contentJson,
+              versionId: latestVersion.id,
+              versionNumber: latestVersion.versionNumber,
+              updatedAt: latestVersion.updatedAt,
+            },
+          });
+        }
+      } else {
+        return NextResponse.json({
+          success: true,
+          data: {
+            editorSections: contentJson,
+            versionId: latestVersion.id,
+            versionNumber: latestVersion.versionNumber,
+            updatedAt: latestVersion.updatedAt,
+          },
+        });
+      }
     }
 
     // If contentJson.elements exists, use it (legacy format)
@@ -329,6 +358,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
               textAlign: textPosition.headline.align,
               opacity: 100,
               rotation: 0,
+              width: isMain ? 35 : 80,  // 기본 너비 설정 (화면 안에서 줄바꿈)
             },
             zIndex: zIndex++,
           });
@@ -336,15 +366,19 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
         // Add body as subheadline or body text
         if (section.body) {
+          // body가 배열인 경우 문자열로 변환
+          const bodyText = Array.isArray(section.body)
+            ? section.body.join('\n')
+            : String(section.body);
           // Split body into multiple lines if too long
-          const bodyLines = section.body.split('\n').filter(line => line.trim());
+          const bodyLines = bodyText.split('\n').filter(line => line.trim());
 
           if (bodyLines.length === 1 && bodyLines[0].length < 50) {
             // Short text - single subheadline
             overlayTexts.push({
               id: `${section.id}-body`,
               type: 'subheadline',
-              content: section.body,
+              content: bodyText,
               style: {
                 x: textPosition.body.x,
                 y: textPosition.body.y,
@@ -356,6 +390,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 textAlign: textPosition.body.align,
                 opacity: 100,
                 rotation: 0,
+                width: isMain ? 35 : 70,  // 기본 너비 설정 (화면 안에서 줄바꿈)
               },
               zIndex: zIndex++,
             });
@@ -364,7 +399,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             overlayTexts.push({
               id: `${section.id}-body`,
               type: 'body',
-              content: section.body,
+              content: bodyText,
               style: {
                 x: textPosition.body.x,
                 y: isMain ? 40 : 85,
@@ -376,6 +411,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 textAlign: textPosition.body.align,
                 opacity: 100,
                 rotation: 0,
+                width: isMain ? 35 : 80,  // 기본 너비 설정 (화면 안에서 줄바꿈)
               },
               zIndex: zIndex++,
             });

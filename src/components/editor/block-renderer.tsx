@@ -16,11 +16,12 @@ import type { EditorBlock, ImageOverlayBlock as ImageOverlayBlockType } from '@/
 interface BlockRendererProps {
   block: EditorBlock;
   isSelected: boolean;
+  isMain?: boolean;  // MAIN 섹션 여부 - 1:1 비율 적용
   onSelect: () => void;
   onUpdate: (updates: Partial<EditorBlock>) => void;
 }
 
-export function BlockRenderer({ block, isSelected, onSelect, onUpdate }: BlockRendererProps) {
+export function BlockRenderer({ block, isSelected, isMain = false, onSelect, onUpdate }: BlockRendererProps) {
   switch (block.type) {
     case 'heading':
       return (
@@ -57,6 +58,7 @@ export function BlockRenderer({ block, isSelected, onSelect, onUpdate }: BlockRe
         <ImageOverlayBlockRenderer
           block={block as ImageOverlayBlockType & { id: string }}
           isSelected={isSelected}
+          isMain={isMain}
           onSelect={onSelect}
           onUpdate={onUpdate}
         />

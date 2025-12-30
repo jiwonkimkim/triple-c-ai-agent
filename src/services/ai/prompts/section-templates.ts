@@ -91,52 +91,63 @@ export interface SectionTemplate {
 
 export const SECTION_TEMPLATES: Record<ExtendedSectionType, SectionTemplate> = {
   // ============================================
-  // MAIN: 올리브영 메인 썸네일 스타일
-  // 상세페이지 진입 전 제품 슬로건 이미지
+  // MAIN: 럭셔리 에디토리얼 썸네일 스타일
+  // 고급스러운 오브제와 함께 배치된 프리미엄 제품 이미지
   // ============================================
   MAIN: {
     type: 'MAIN',
     name: '메인 썸네일',
-    purpose: '상세페이지 진입 전 첫인상 - 올리브영 스타일 제품 슬로건 썸네일 이미지',
+    purpose: '상세페이지 진입 전 첫인상 - 럭셔리 매거진 스타일 프리미엄 제품 썸네일',
     recommendedLayout: 'hero-centered',
-    imagePromptTemplate: `OLIVEYOUNG main thumbnail style product photography for Korean beauty e-commerce.
+    imagePromptTemplate: `LUXURIOUS editorial product photography for premium e-commerce thumbnail.
 
-[COMPOSITION - 올리브영 메인 썸네일 스타일]
-- Product "{product}" package FLOATING centered with subtle drop shadow
-- Product appears to levitate slightly above surface
-- Clean negative space for text overlay (top 30%, bottom 20%)
+[CRITICAL - PRODUCT DOMINANCE 제품이 반드시 주인공]
+- Product "{product}" MUST BE THE DOMINANT HERO - largest element, 50-60% of frame
+- Product centered or slightly off-center with crystal clear sharp focus
+- Product details, texture, and design must be prominently visible
+- HIERARCHY: Product = 100% visual focus, decorative objects = subtle 20-30% supporting role
 
-[BACKGROUND - 축제/프로모션 분위기]
-- Colorful gradient background (blue-pink OR green-yellow OR purple-coral tones)
-- Soft bokeh sparkle effects scattered around product
-- Confetti or celebration particles in background
-- High saturation, vibrant commercial mood
+[COMPOSITION - 럭셔리 스틸라이프 구도]
+- Product elevated on marble pedestal, glass platform, or natural stone
+- Clean negative space for text overlay (top 20%, left side 30%)
+- Sophisticated still life arrangement where product commands attention
 
-[VISUAL EFFECTS - 수상/인기 효과]
-- Award badge styling (OLIVEYOUNG PICK, BEST SELLER medal effect)
-- Ranking medal or crown subtle glow
-- Gift set / bonus items displayed alongside main product
-- Premium promotional atmosphere
+[SUPPORTING DECORATIVE OBJECTS - 보조 오브제 (작은 스케일로 배경/측면에)]
+- Silk fabric subtle draping in soft complementary colors (background)
+- Scattered flower petals (rose, peony) at base, NOT covering product
+- Gold leaf accents as tiny highlights in corners
+- Crystal prism creating rainbow light effects at edge of frame
+- Natural marble or stone slab as elegant base
+- Delicate dried botanicals (eucalyptus, lavender) framing the scene
+- Objects must COMPLEMENT not COMPETE with product
 
-[LIGHTING]
-- Bright, even commercial lighting
-- Soft rim light on product edges
-- High contrast for product visibility
-- Studio quality with slight dreamy glow
+[BACKGROUND - 텍스처드 럭셔리]
+- Rich textured background with subtle gradient
+- Deep jewel tones OR soft neutral palette ({background})
+- Artistic shadow play from natural window light
+- High-end fashion magazine studio backdrop
+
+[LIGHTING - 드라마틱 스튜디오]
+- Dramatic studio lighting EMPHASIZING PRODUCT with brightest light on product
+- Soft shadows on decorative props (secondary)
+- Rim lighting creating elegant product silhouette
+- Professional beauty campaign lighting setup
+- Subtle reflections and highlights on product surface
 
 [STYLE]
-- Korean beauty e-commerce aesthetic
-- Festive promotional mood
-- High-end yet approachable
-- Clean, modern, celebratory
+- Vogue / Harper's Bazaar beauty editorial aesthetic
+- High-end fashion magazine quality
+- Luxe lifestyle photography that makes viewers want to purchase
+- Sophisticated, aspirational, desirable mood
+- Premium cosmetic brand campaign style
 
 [TECHNICAL]
 - 8K resolution, photorealistic
-- Professional product photography
+- Professional commercial photography
 - Absolutely NO text, NO typography, NO letters
 - Text-free image only`,
-    requiredVisuals: ['product-package', 'gradient-background', 'floating-effect'],
-    optionalVisuals: ['award-badge', 'gift-set', 'sparkle-effects', 'confetti'],
+    requiredVisuals: ['product-hero', 'luxury-backdrop', 'decorative-objects', 'elevated-platform'],
+    optionalVisuals: ['silk-fabric', 'flower-petals', 'gold-accents', 'crystal-prism', 'marble-stone', 'dried-botanicals', 'water-droplets'],
     textOverlay: {
       headline: true,
       subheadline: true,

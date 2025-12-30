@@ -407,6 +407,7 @@ export function EditorSection({
                   <BlockRenderer
                     block={block}
                     isSelected={selectedBlockId === block.id}
+                    isMain={isMain}
                     onSelect={() => onSelectBlock(block.id)}
                     onUpdate={(updates) => onUpdateBlock(block.id, updates)}
                   />

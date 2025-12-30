@@ -282,26 +282,28 @@ function PreviewBlock({ block, isMain = false }: { block: EditorBlock; isMain?: 
 }
 
 // Image Overlay 블록 미리보기 컴포넌트
+// MAIN 섹션: 1:1 정사각형 비율
+// 나머지 섹션: 원래 비율 (3:4)
 function PreviewImageOverlay({ block, isMain = false }: { block: EditorBlock; isMain?: boolean }) {
   if (block.type !== 'image-overlay') return null;
 
   const overlayTexts = block.overlayTexts || [];
+  const aspectRatio = isMain ? '1/1' : '3/4';
 
   return (
-    <div className={`relative w-full ${isMain ? 'mb-6' : ''}`} style={{ minHeight: '400px' }}>
+    <div
+      className={`relative w-full overflow-hidden ${isMain ? 'mb-6 rounded-lg' : ''}`}
+      style={{ aspectRatio }}
+    >
       {/* 배경 이미지 */}
       {block.src ? (
         <img
           src={block.src}
           alt={block.alt || '상세페이지 이미지'}
-          className={`w-full h-auto object-cover ${isMain ? 'rounded-lg' : ''}`}
-          style={{ minHeight: '400px' }}
+          className="absolute inset-0 w-full h-full object-cover"
         />
       ) : (
-        <div
-          className={`w-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center ${isMain ? 'rounded-lg' : ''}`}
-          style={{ minHeight: '400px' }}
-        >
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
           <span className="text-gray-500">이미지 없음</span>
         </div>
       )}
@@ -330,8 +332,10 @@ function PreviewImageOverlay({ block, isMain = false }: { block: EditorBlock; is
           opacity: (style.opacity ?? 100) / 100,
           textShadow: style.textShadow ? '2px 2px 4px rgba(0,0,0,0.5)' : 'none',
           zIndex: text.zIndex || 1,
-          whiteSpace: 'pre-wrap',
-          maxWidth: '90%',
+          width: style.width ? `${style.width}%` : 'auto',
+          // width 설정 시: 사용자가 조절한 너비 내에서 줄바꿈 허용
+          // width 미설정 시: 자동 줄바꿈 방지
+          whiteSpace: style.width ? 'pre-wrap' : 'nowrap',
         };
 
         return (
