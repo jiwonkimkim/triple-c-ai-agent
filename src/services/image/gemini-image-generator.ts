@@ -251,6 +251,52 @@ export function isGeminiConfigured(): boolean {
   return !!process.env.GOOGLE_AI_API_KEY;
 }
 
+/**
+ * URL을 base64 data URL로 변환
+ * - 이미 data URL이면 그대로 반환
+ * - 상대 경로(/uploads/...)면 서버에서 fetch하여 base64로 변환
+ * - 외부 URL이면 fetch하여 base64로 변환
+ */
+export async function urlToBase64DataUrl(imageUrl: string): Promise<string> {
+  // 이미 data URL인 경우 그대로 반환
+  if (imageUrl.startsWith('data:')) {
+    return imageUrl;
+  }
+
+  try {
+    let fetchUrl = imageUrl;
+
+    // 상대 경로인 경우 절대 경로로 변환
+    if (imageUrl.startsWith('/')) {
+      // Docker 내부에서는 localhost:3000 사용
+      const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+      fetchUrl = `${baseUrl}${imageUrl}`;
+    }
+
+    console.log(`[Image Utils] Fetching image from: ${fetchUrl}`);
+
+    const response = await fetch(fetchUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const base64 = buffer.toString('base64');
+
+    // Content-Type 가져오기
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+
+    const dataUrl = `data:${contentType};base64,${base64}`;
+    console.log(`[Image Utils] Converted to base64 (${Math.round(base64.length / 1024)}KB)`);
+
+    return dataUrl;
+  } catch (error) {
+    console.error('[Image Utils] Failed to convert URL to base64:', error);
+    throw error;
+  }
+}
+
 // ============================================
 // 배경 제거 기능
 // ============================================

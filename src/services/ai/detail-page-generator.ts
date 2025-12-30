@@ -10,6 +10,7 @@ import {
   isGeminiConfigured,
   GeminiImageModel,
   DEFAULT_IMAGE_MODEL,
+  urlToBase64DataUrl,
 } from '@/services/image/gemini-image-generator';
 import {
   buildEnhancedSystemPrompt,
@@ -457,18 +458,24 @@ export async function generateDetailPage(
       if (hasProductImages && primaryProductImage) {
         // ============================================
         // Image-to-Image 모드: 사용자 제품 이미지 기반 생성
-        // 1. 먼저 배경 제거하여 제품만 추출
-        // 2. 추출된 제품 + 이미지 프롬프트로 새 이미지 생성
+        // 1. URL을 base64로 변환 (Gemini API는 base64만 지원)
+        // 2. 배경 제거하여 제품만 추출
+        // 3. 추출된 제품 + 이미지 프롬프트로 새 이미지 생성
         // ============================================
         console.log('[AI] Starting Image-to-Image generation with user product image...');
-        console.log(`[AI] Primary product image: ${primaryProductImage.substring(0, 50)}...`);
+        console.log(`[AI] Primary product image: ${primaryProductImage.substring(0, 80)}...`);
 
         try {
           const imageModel = input.imageModel || DEFAULT_IMAGE_MODEL;
 
+          // Step 0: URL을 base64 data URL로 변환
+          console.log('[AI] Step 0: Converting image URL to base64...');
+          const base64ProductImage = await urlToBase64DataUrl(primaryProductImage);
+          console.log('[AI] URL to base64 conversion completed');
+
           // Step 1: 배경 제거 - 제품만 추출
           console.log('[AI] Step 1: Removing background from product image...');
-          const cleanProductImage = await preprocessProductImage(primaryProductImage, imageModel);
+          const cleanProductImage = await preprocessProductImage(base64ProductImage, imageModel);
           console.log('[AI] Background removal completed');
 
           // Step 2: 각 섹션별 Image-to-Image 생성

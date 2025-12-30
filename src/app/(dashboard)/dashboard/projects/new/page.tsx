@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Upload, X, Loader2 } from 'lucide-react';
+import { ArrowLeft, Upload, X, Loader2, Wand2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,6 +38,30 @@ const imageModelOptions = [
   { value: 'gemini-3-pro-image-preview', label: '프로 (Pro)', description: '고품질 이미지 생성' },
 ];
 
+// 개발 모드 확인
+const isDev = process.env.NODE_ENV === 'development';
+
+// 테스트용 샘플 데이터
+const TEST_DATA = {
+  project: {
+    title: '테스트 립스틱 상세페이지',
+    description: '개발 테스트용 프로젝트입니다.',
+  },
+  product: {
+    productName: '벨벳 매트 립스틱 #로즈베리',
+    category: 'Beauty & Skincare',
+    keyFeatures: [
+      '12시간 지속되는 롱래스팅 포뮬러',
+      '입술 보습 케어 성분 함유',
+      '선명한 발색과 부드러운 밀착력',
+    ],
+    targetAudience: '20-35세 뷰티에 관심있는 여성',
+    copyLength: 'medium' as const,
+    productUrl: '',
+    imageModel: 'gemini-2.5-flash-image' as const,
+  },
+};
+
 export default function NewProjectPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -69,10 +93,38 @@ export default function NewProjectPage() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<CreateProjectInput>({
     resolver: zodResolver(createProjectSchema),
   });
+
+  // [DEV] 프로젝트 정보 자동 입력
+  const handleAutoFillProject = () => {
+    setValue('title', TEST_DATA.project.title);
+    setValue('description', TEST_DATA.project.description);
+    toast({
+      title: '🧪 테스트 데이터 입력됨',
+      description: '프로젝트 정보가 자동으로 입력되었습니다.',
+    });
+  };
+
+  // [DEV] 제품 정보 자동 입력
+  const handleAutoFillProduct = () => {
+    setProductInfo({
+      productName: TEST_DATA.product.productName,
+      category: TEST_DATA.product.category,
+      keyFeatures: TEST_DATA.product.keyFeatures,
+      targetAudience: TEST_DATA.product.targetAudience,
+      copyLength: TEST_DATA.product.copyLength,
+      productUrl: TEST_DATA.product.productUrl,
+      imageModel: TEST_DATA.product.imageModel,
+    });
+    toast({
+      title: '🧪 테스트 데이터 입력됨',
+      description: '제품 정보가 자동으로 입력되었습니다.',
+    });
+  };
 
   // 세션 로딩 중이면 로딩 표시
   if (status === 'loading') {
@@ -379,10 +431,26 @@ export default function NewProjectPage() {
       {step === 1 ? (
         <Card>
           <CardHeader>
-            <CardTitle>프로젝트 정보</CardTitle>
-            <CardDescription>
-              프로젝트 이름과 설명을 입력해 주세요
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>프로젝트 정보</CardTitle>
+                <CardDescription>
+                  프로젝트 이름과 설명을 입력해 주세요
+                </CardDescription>
+              </div>
+              {isDev && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAutoFillProject}
+                  className="gap-2 border-amber-500 text-amber-600 hover:bg-amber-50"
+                >
+                  <Wand2 className="h-4 w-4" />
+                  테스트 데이터
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSubmitProject)} className="space-y-4">
@@ -487,10 +555,26 @@ export default function NewProjectPage() {
           {/* Product Info */}
           <Card>
             <CardHeader>
-              <CardTitle>제품 정보</CardTitle>
-              <CardDescription>
-                AI 콘텐츠 생성을 위해 제품 정보를 입력해 주세요
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>제품 정보</CardTitle>
+                  <CardDescription>
+                    AI 콘텐츠 생성을 위해 제품 정보를 입력해 주세요
+                  </CardDescription>
+                </div>
+                {isDev && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAutoFillProduct}
+                    className="gap-2 border-amber-500 text-amber-600 hover:bg-amber-50"
+                  >
+                    <Wand2 className="h-4 w-4" />
+                    테스트 데이터
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">

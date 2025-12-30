@@ -601,6 +601,7 @@ export async function orchestrateDetailPageGeneration(
           ? `${brandPrefix}${input.productName} - ${input.targetAudience}를 위한 ${brandTone || '완벽한'} 선택`
           : `${input.productName} - ${input.targetAudience}를 위한 완벽한 선택`,
         sections: [
+          { type: 'MAIN', title: `${brandPrefix}${input.productName}`, body: input.keyFeatures[0] || '프리미엄 품질' },
           { type: 'HERO', title: `${brandPrefix}${input.productName} 소개`, body: `${input.targetAudience}를 위해 설계된 ${brandPrefix}${input.productName}입니다.${brandTone ? ` ${brandTone}의 철학을 담았습니다.` : ''}` },
           { type: 'FEATURES', title: '주요 특징', body: input.keyFeatures.map((f, i) => `${i + 1}. ${f}`).join('\n') },
           { type: 'SOCIAL_PROOF', title: '고객 후기', body: `"${brandPrefix}${input.productName}을 사용한 후 정말 만족합니다!" - 실제 사용자` },
@@ -640,7 +641,8 @@ export async function orchestrateDetailPageGeneration(
   ]);
 
   // 3. 각 섹션별 다중 이미지 프롬프트 생성
-  // MAIN: 올리브영 메인 썸네일 스타일 (상세페이지 진입 전 제품 슬로건 이미지)
+  // MAIN: 메인 썸네일 (올리브영 스타일 - 상세페이지 진입 전 제품 슬로건 이미지)
+  // HERO: 상세페이지 첫 번째 섹션
   console.log('[Orchestration] Generating section image prompts with copyLength-based counts...');
   const sectionTypes: Array<'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ'> = [
     'MAIN', 'HERO', 'FEATURES', 'SOCIAL_PROOF', 'HOW_TO_USE', 'FAQ'
@@ -750,7 +752,7 @@ export async function orchestrateDetailPageGeneration(
     return {
       hookMessage: textContent.hookMessage,
       sections: textContent.sections.map((section, index) => {
-        const sectionType = section.type as 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
+        const sectionType = section.type as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
         const sectionPrompts = imagePromptsMap.get(sectionType) || imagePromptsMap.get('HERO') || [];
         const firstPrompt = sectionPrompts[0];
 
