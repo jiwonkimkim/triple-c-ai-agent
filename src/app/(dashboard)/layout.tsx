@@ -34,7 +34,7 @@ const navigation = [
   { name: '대시보드', href: '/dashboard', icon: LayoutDashboard },
   { name: '프로젝트', href: '/dashboard/projects', icon: FolderKanban },
   { name: '브랜드 프로필', href: '/dashboard/brands', icon: Palette },
-  { name: '템플릿 마켓플레이스', href: '/dashboard/marketplace', icon: Store },
+  { name: '마켓플레이스', href: '/dashboard/marketplace', icon: Store },
   { name: '설정', href: '/dashboard/settings', icon: Settings },
 ];
 
@@ -64,11 +64,11 @@ export default function DashboardLayout({
   }, [pathname]);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-background">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-40 bg-foreground/50 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -76,7 +76,7 @@ export default function DashboardLayout({
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-background border-r transition-all duration-300 overflow-hidden',
+          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-background border-r-2 border-border transition-all duration-300 overflow-hidden',
           // 모바일: sidebarOpen으로 제어
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
           // 데스크톱: sidebarCollapsed로 제어 - 완전히 숨김
@@ -86,9 +86,9 @@ export default function DashboardLayout({
         )}
       >
         {/* Logo */}
-        <div className="flex h-16 items-center justify-between border-b px-4 min-w-[256px]">
+        <div className="flex h-16 items-center justify-between border-b-2 border-border px-4 min-w-[256px]">
           <Link href="/dashboard" className="flex items-center space-x-2">
-            <span className="text-xl font-bold text-primary">Triple C</span>
+            <span className="text-xl font-black tracking-tighter uppercase">Triple C</span>
           </Link>
           <div className="flex items-center gap-1">
             {/* 데스크톱: 사이드바 닫기 버튼 - 모던 스타일 */}
@@ -114,7 +114,6 @@ export default function DashboardLayout({
         {/* Navigation */}
         <nav className="flex-1 space-y-1 p-4">
           {navigation.map((item) => {
-            // 대시보드는 정확히 /dashboard일 때만 활성화
             const isActive = item.href === '/dashboard'
               ? pathname === '/dashboard'
               : pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -123,10 +122,10 @@ export default function DashboardLayout({
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                  'flex items-center gap-3 px-3 py-3 text-sm font-bold uppercase tracking-wider transition-colors border-2 rounded-[var(--radius)]',
                   isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'text-muted-foreground border-transparent hover:bg-muted hover:text-foreground hover:border-border'
                 )}
                 onClick={() => setSidebarOpen(false)}
               >
@@ -138,16 +137,16 @@ export default function DashboardLayout({
         </nav>
 
         {/* User section */}
-        <div className="border-t p-4">
-          <div className="flex items-center gap-3 rounded-lg bg-muted p-3">
-            <Avatar className="h-9 w-9">
+        <div className="border-t-2 border-border p-4">
+          <div className="flex items-center gap-3 bg-muted p-3 border-2 border-border rounded-[var(--radius)]">
+            <Avatar className="h-9 w-9 border-2 border-border">
               <AvatarImage src={session?.user?.image || ''} />
-              <AvatarFallback>
+              <AvatarFallback className="bg-primary text-primary-foreground font-bold">
                 {getInitials(session?.user?.name || session?.user?.email || 'U')}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 truncate">
-              <p className="truncate text-sm font-medium">
+              <p className="truncate text-sm font-bold uppercase tracking-wider">
                 {session?.user?.name || '사용자'}
               </p>
               <p className="truncate text-xs text-muted-foreground">
@@ -161,7 +160,7 @@ export default function DashboardLayout({
       {/* Main content */}
       <div className="flex flex-1 flex-col">
         {/* Top header */}
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 lg:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b-2 border-border bg-background px-4 lg:px-6">
           {/* 모바일: 사이드바 열기 버튼 */}
           <Button
             variant="ghost"
@@ -188,10 +187,10 @@ export default function DashboardLayout({
           {/* User menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2">
-                <Avatar className="h-8 w-8">
+              <Button variant="ghost" className="flex items-center gap-2 uppercase text-xs tracking-wider font-bold">
+                <Avatar className="h-8 w-8 border-2 border-border">
                   <AvatarImage src={session?.user?.image || ''} />
-                  <AvatarFallback>
+                  <AvatarFallback className="bg-primary text-primary-foreground font-bold text-xs">
                     {getInitials(session?.user?.name || session?.user?.email || 'U')}
                   </AvatarFallback>
                 </Avatar>
@@ -201,18 +200,18 @@ export default function DashboardLayout({
                 <ChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>내 계정</DropdownMenuLabel>
-              <DropdownMenuSeparator />
+            <DropdownMenuContent align="end" className="w-56 border-2 border-border">
+              <DropdownMenuLabel className="uppercase text-xs tracking-wider">내 계정</DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-border" />
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/settings" className="cursor-pointer">
+                <Link href="/dashboard/settings" className="cursor-pointer uppercase text-xs tracking-wider font-medium">
                   <User className="mr-2 h-4 w-4" />
                   프로필 설정
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
+              <DropdownMenuSeparator className="bg-border" />
               <DropdownMenuItem
-                className="cursor-pointer text-destructive focus:text-destructive"
+                className="cursor-pointer text-destructive focus:text-destructive uppercase text-xs tracking-wider font-medium"
                 onClick={() => signOut({ callbackUrl: '/' })}
               >
                 <LogOut className="mr-2 h-4 w-4" />
@@ -223,7 +222,7 @@ export default function DashboardLayout({
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-4 lg:p-6">{children}</main>
+        <main className="flex-1 p-4 lg:p-6 bg-secondary">{children}</main>
       </div>
     </div>
   );

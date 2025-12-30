@@ -22,7 +22,9 @@
       "Bash(docker-compose:*)",
       "Bash(docker inspect:*)",
       "Bash(wsl --shutdown)",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []

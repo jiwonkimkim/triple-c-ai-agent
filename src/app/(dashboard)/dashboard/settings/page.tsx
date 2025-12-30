@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useStyleTheme } from '@/contexts/style-theme-context';
 import {
   User,
   Shield,
@@ -230,6 +231,7 @@ const staggerContainer = {
 export default function SettingsPage() {
   const { data: session, update: updateSession } = useSession();
   const { theme, setTheme } = useTheme();
+  const { styleTheme, setStyleTheme } = useStyleTheme();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [isLoading, setIsLoading] = useState(false);
@@ -944,6 +946,62 @@ export default function SettingsPage() {
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
+                        <Sparkles className="h-5 w-5 text-primary" />
+                        스타일 테마
+                      </CardTitle>
+                      <CardDescription>앱의 시각적 스타일을 선택합니다.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 gap-4 max-w-lg">
+                        {[
+                          {
+                            value: 'default',
+                            label: '기본',
+                            description: '모던하고 깔끔한 스타일',
+                            preview: 'bg-white border-blue-500'
+                          },
+                          {
+                            value: 'smile',
+                            label: 'Smile',
+                            description: '패션 브랜드 스타일',
+                            preview: 'bg-[#FFFBF5] border-black'
+                          },
+                        ].map((t) => (
+                          <motion.button
+                            key={t.value}
+                            onClick={() => setStyleTheme(t.value as 'default' | 'smile')}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className={cn(
+                              'relative flex flex-col items-start gap-2 p-4 rounded-xl border-2 transition-all text-left',
+                              styleTheme === t.value
+                                ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10'
+                                : 'border-border hover:border-primary/50'
+                            )}
+                          >
+                            <div className={cn('h-16 w-full rounded-lg border-2', t.preview)} />
+                            <div>
+                              <span className="text-sm font-semibold">{t.label}</span>
+                              <p className="text-xs text-muted-foreground">{t.description}</p>
+                            </div>
+                            {styleTheme === t.value && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="absolute -top-1 -right-1 h-5 w-5 bg-primary rounded-full flex items-center justify-center"
+                              >
+                                <Check className="h-3 w-3 text-primary-foreground" />
+                              </motion.div>
+                            )}
+                          </motion.button>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
                         <Globe className="h-5 w-5 text-primary" />
                         언어
                       </CardTitle>
@@ -955,10 +1013,10 @@ export default function SettingsPage() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="ko">🇰🇷 한국어</SelectItem>
-                          <SelectItem value="en">🇺🇸 English</SelectItem>
-                          <SelectItem value="ja">🇯🇵 日本語</SelectItem>
-                          <SelectItem value="zh">🇨🇳 中文</SelectItem>
+                          <SelectItem value="ko">한국어</SelectItem>
+                          <SelectItem value="en">English</SelectItem>
+                          <SelectItem value="ja">日本語</SelectItem>
+                          <SelectItem value="zh">中文</SelectItem>
                         </SelectContent>
                       </Select>
                     </CardContent>

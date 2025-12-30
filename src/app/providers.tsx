@@ -4,6 +4,7 @@ import { SessionProvider } from 'next-auth/react';
 import { ThemeProvider } from 'next-themes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
+import { StyleThemeProvider } from '@/contexts/style-theme-context';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -27,7 +28,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
           enableSystem={false}
           disableTransitionOnChange
         >
-          {children}
+          <StyleThemeProvider>
+            {children}
+          </StyleThemeProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </SessionProvider>

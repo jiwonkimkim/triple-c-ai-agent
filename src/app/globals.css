@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 @layer base {
+  /* Default Theme */
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
@@ -47,14 +48,101 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 224.3 76.3% 48%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Smile Theme Override - OUTSIDE @layer for higher priority */
+html.style-smile {
+  --background: 40 33% 98% !important; /* #FFFBF5 */
+  --foreground: 0 0% 0% !important; /* black */
+  --card: 40 33% 98% !important;
+  --card-foreground: 0 0% 0% !important;
+  --popover: 40 33% 98% !important;
+  --popover-foreground: 0 0% 0% !important;
+  --primary: 0 0% 0% !important; /* black */
+  --primary-foreground: 40 33% 98% !important;
+  --secondary: 36 33% 91% !important; /* #F5F0E8 */
+  --secondary-foreground: 0 0% 0% !important;
+  --muted: 36 26% 88% !important; /* #E8DFD0 */
+  --muted-foreground: 0 0% 40% !important;
+  --accent: 36 26% 88% !important;
+  --accent-foreground: 0 0% 0% !important;
+  --destructive: 0 84.2% 60.2% !important;
+  --destructive-foreground: 210 40% 98% !important;
+  --border: 0 0% 0% / 0.1 !important;
+  --input: 0 0% 0% / 0.1 !important;
+  --ring: 0 0% 0% !important;
+  --radius: 0rem !important; /* Sharp corners */
+}
+
+html.style-smile.dark {
+  --background: 0 0% 10% !important; /* #1A1A1A */
+  --foreground: 40 33% 98% !important;
+  --card: 0 0% 10% !important;
+  --card-foreground: 40 33% 98% !important;
+  --popover: 0 0% 10% !important;
+  --popover-foreground: 40 33% 98% !important;
+  --primary: 40 33% 98% !important;
+  --primary-foreground: 0 0% 10% !important;
+  --secondary: 0 0% 15% !important;
+  --secondary-foreground: 40 33% 98% !important;
+  --muted: 0 0% 15% !important;
+  --muted-foreground: 40 33% 70% !important;
+  --accent: 0 0% 15% !important;
+  --accent-foreground: 40 33% 98% !important;
+  --destructive: 0 62.8% 30.6% !important;
+  --destructive-foreground: 210 40% 98% !important;
+  --border: 40 33% 98% / 0.1 !important;
+  --input: 40 33% 98% / 0.1 !important;
+  --ring: 40 33% 98% !important;
+}
+
+/* Smile Theme Typography */
+.style-smile h1,
+.style-smile h2,
+.style-smile h3,
+.style-smile h4,
+.style-smile h5,
+.style-smile h6 {
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+}
+
+@layer components {
+  /* Smile Theme specific components */
+  .style-smile .btn-smile {
+    @apply uppercase text-xs tracking-wider font-bold;
+  }
+
+  .style-smile .card-smile {
+    @apply border-2 border-black/20 hover:border-black transition-colors;
+  }
+
+  /* Marquee Animation */
+  @keyframes marquee {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); }
+  }
+
+  @keyframes marquee-reverse {
+    0% { transform: translateX(-50%); }
+    100% { transform: translateX(0%); }
+  }
+
+  .animate-marquee {
+    animation: marquee 30s linear infinite;
+  }
+
+  .animate-marquee-reverse {
+    animation: marquee-reverse 30s linear infinite;
   }
 }
 
@@ -82,6 +170,16 @@
       background-position: -200% 0;
     }
   }
+
+  /* Outline text for Marquee */
+  .text-outline {
+    -webkit-text-stroke: 2px black;
+    color: transparent;
+  }
+
+  .dark .text-outline {
+    -webkit-text-stroke: 2px white;
+  }
 }
 
 /* Custom scrollbar */
@@ -103,6 +201,16 @@
   background: hsl(var(--muted-foreground) / 0.5);
 }
 
+/* Smile theme scrollbar */
+.style-smile ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 0;
+}
+
+.style-smile ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
+
 /* Focus styles */
 *:focus-visible {
   outline: 2px solid hsl(var(--ring));
@@ -112,4 +220,8 @@
 /* Selection */
 ::selection {
   background: hsl(var(--primary) / 0.2);
+}
+
+.style-smile ::selection {
+  background: rgba(0, 0, 0, 0.1);
 }
