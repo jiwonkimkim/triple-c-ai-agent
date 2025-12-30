@@ -31,6 +31,23 @@ const Marquee = ({ children, reverse = false }: { children: React.ReactNode; rev
   </div>
 );
 
+// Fluid 마키 컴포넌트 - 참조 사이트 스타일
+const FluidMarquee = ({ children }: { children: React.ReactNode }) => (
+  <div className="overflow-hidden whitespace-nowrap border-y border-[#7BA3D8]/20 bg-[#7BA3D8] text-white py-4">
+    <motion.div
+      animate={{ x: ['-50%', '0%'] }}
+      transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+      className="inline-flex"
+    >
+      {[...Array(8)].map((_, i) => (
+        <span key={i} className="text-[4rem] md:text-[5rem] font-light tracking-tight mx-8 uppercase">
+          {children}
+        </span>
+      ))}
+    </motion.div>
+  </div>
+);
+
 // 스캘럽 장식 컴포넌트 (Smile 테마 전용)
 const ScallopBorder = () => (
   <svg className="w-full h-6" viewBox="0 0 100 10" preserveAspectRatio="none">
@@ -45,6 +62,7 @@ const themeOptions = [
   { value: 'default', label: 'Default', description: '기본 스타일' },
   { value: 'smile', label: 'Smile', description: '패션 브랜드 스타일' },
   { value: 'sapporo', label: 'Sapporo', description: '겨울 카페 스타일' },
+  { value: 'fluid', label: 'Fluid', description: '모던 미니멀 스타일' },
 ] as const;
 
 // 눈송이 컴포넌트 (Sapporo 테마 전용)
@@ -89,6 +107,7 @@ export default function LandingPage() {
   // Use default theme until client hydration is complete
   const isSmile = isLoaded && styleTheme === 'smile';
   const isSapporo = isLoaded && styleTheme === 'sapporo';
+  const isFluid = isLoaded && styleTheme === 'fluid';
 
   return (
     <div className={cn(
@@ -115,12 +134,15 @@ export default function LandingPage() {
         "fixed top-0 left-0 right-0 z-50",
         isSapporo
           ? "bg-white/30 backdrop-blur-sm border-b border-slate-200/50"
-          : "bg-background/95 backdrop-blur-sm"
+          : isFluid
+            ? "bg-[#F5F3EA]/90 backdrop-blur-md"
+            : "bg-background/95 backdrop-blur-sm"
       )}>
         <div className={cn(
           "flex items-center justify-between px-6 py-4",
-          !isSapporo && "border-b border-border",
-          isSmile && "border-b-2"
+          !isSapporo && !isFluid && "border-b border-border",
+          isSmile && "border-b-2",
+          isFluid && "py-6 px-8 lg:px-16"
         )}>
           <Link href="/" className={cn(
             "flex items-center gap-3",
@@ -133,7 +155,8 @@ export default function LandingPage() {
             )}
             <span className={cn(
               "text-2xl font-bold",
-              isSapporo && "text-slate-700 tracking-wide font-semibold"
+              isSapporo && "text-slate-700 tracking-wide font-semibold",
+              isFluid && "text-3xl font-light tracking-tight"
             )}>
               Triple C
             </span>
@@ -142,12 +165,14 @@ export default function LandingPage() {
             <a href="#features" className={cn(
               "text-sm hover:text-primary transition-colors",
               isSmile && "uppercase tracking-wider hover:underline",
-              isSapporo && "text-slate-500 hover:text-amber-600"
+              isSapporo && "text-slate-500 hover:text-amber-600",
+              isFluid && "text-sm font-light tracking-wide hover:opacity-60"
             )}>Features</a>
             <a href="#how-it-works" className={cn(
               "text-sm hover:text-primary transition-colors",
               isSmile && "uppercase tracking-wider hover:underline",
-              isSapporo && "text-slate-500 hover:text-amber-600"
+              isSapporo && "text-slate-500 hover:text-amber-600",
+              isFluid && "text-sm font-light tracking-wide hover:opacity-60"
             )}>How It Works</a>
           </nav>
           <div className="flex items-center gap-3">
@@ -179,7 +204,8 @@ export default function LandingPage() {
               <Button variant="ghost" className={cn(
                 "text-sm",
                 isSmile && "uppercase text-xs tracking-wider",
-                isSapporo && "text-slate-600 hover:text-amber-600 hover:bg-amber-50"
+                isSapporo && "text-slate-600 hover:text-amber-600 hover:bg-amber-50",
+                isFluid && "text-sm font-light hover:bg-transparent hover:opacity-60"
               )}>
                 로그인
               </Button>
@@ -188,7 +214,8 @@ export default function LandingPage() {
               <Button className={cn(
                 "px-6 h-10",
                 isSmile && "uppercase text-xs tracking-wider",
-                isSapporo && "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg shadow-amber-500/30"
+                isSapporo && "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg shadow-amber-500/30",
+                isFluid && "bg-[#7BA3D8] text-white hover:bg-[#6B93C8] font-light px-8"
               )}>
                 시작하기
               </Button>
@@ -198,9 +225,16 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className={cn("pt-20", isSapporo && "relative z-10")}>
+      <section className={cn("pt-20", isSapporo && "relative z-10", isFluid && "pt-0")}>
         {/* Smile 테마: 마키 */}
         {isSmile && <Marquee>Triple C</Marquee>}
+
+        {/* Fluid 테마: 마키 배너 */}
+        {isFluid && (
+          <div className="pt-20">
+            <FluidMarquee>The Future of Content</FluidMarquee>
+          </div>
+        )}
 
         {/* Sapporo 테마: 배지 */}
         {isSapporo && (
@@ -223,21 +257,24 @@ export default function LandingPage() {
 
         <div className={cn(
           "relative py-24 md:py-32",
-          isSmile ? "bg-muted" : isSapporo ? "bg-transparent" : "bg-gradient-to-b from-primary/5 to-background"
+          isSmile ? "bg-muted" : isSapporo ? "bg-transparent" : isFluid ? "bg-transparent" : "bg-gradient-to-b from-primary/5 to-background",
+          isFluid && "py-20 md:py-32"
         )}>
-          <div className="container mx-auto px-6">
-            <div className="max-w-4xl">
+          <div className={cn("container mx-auto px-6", isFluid && "px-8 lg:px-20 max-w-[1500px]")}>
+            <div className={cn("max-w-4xl", isFluid && "max-w-none")}>
               <motion.h1
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
+                transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
                 className={cn(
                   "mb-8",
                   isSmile
                     ? "text-5xl md:text-7xl lg:text-8xl font-black leading-[0.9] tracking-tighter uppercase"
                     : isSapporo
                       ? "text-5xl md:text-7xl font-bold leading-tight text-center"
-                      : "text-4xl md:text-5xl lg:text-6xl font-bold leading-tight"
+                      : isFluid
+                        ? "text-[4rem] md:text-[6rem] lg:text-[8rem] font-extralight leading-[0.95] tracking-[-0.02em]"
+                        : "text-4xl md:text-5xl lg:text-6xl font-bold leading-tight"
                 )}
               >
                 {isSmile ? (
@@ -258,6 +295,11 @@ export default function LandingPage() {
                       따뜻한 콘텐츠
                     </span>
                   </>
+                ) : isFluid ? (
+                  <>
+                    <span className="block">Product Pages</span>
+                    <span className="block italic font-thin">Made Simple</span>
+                  </>
                 ) : (
                   <>
                     전문적인 상품 상세페이지를
@@ -272,7 +314,8 @@ export default function LandingPage() {
                 transition={{ delay: 0.15 }}
                 className={cn(
                   "text-lg text-muted-foreground max-w-xl mb-8",
-                  isSapporo && "text-xl text-slate-500 max-w-2xl mx-auto text-center leading-relaxed"
+                  isSapporo && "text-xl text-slate-500 max-w-2xl mx-auto text-center leading-relaxed",
+                  isFluid && "text-xl font-light max-w-2xl mb-12 leading-relaxed opacity-70"
                 )}
               >
                 {isSapporo ? (
@@ -280,6 +323,11 @@ export default function LandingPage() {
                     눈 덮인 삿포로의 따뜻한 카페처럼,
                     <br />
                     AI가 당신의 브랜드에 따뜻함을 더해드립니다.
+                  </>
+                ) : isFluid ? (
+                  <>
+                    AI-powered marketing content agent that helps you create,
+                    edit, and export professional product pages and promotional creatives.
                   </>
                 ) : (
                   <>
@@ -294,16 +342,18 @@ export default function LandingPage() {
                 transition={{ delay: 0.2 }}
                 className={cn(
                   "flex flex-col sm:flex-row gap-4",
-                  isSapporo && "justify-center items-center"
+                  isSapporo && "justify-center items-center",
+                  isFluid && "gap-6"
                 )}
               >
                 <Link href="/signup">
                   <Button size="lg" className={cn(
                     "gap-2 h-14 px-8",
                     isSmile && "uppercase text-sm tracking-wider px-10",
-                    isSapporo && "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-xl shadow-amber-500/30"
+                    isSapporo && "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-xl shadow-amber-500/30",
+                    isFluid && "bg-[#7BA3D8] text-white hover:bg-[#6B93C8] h-14 px-10 font-light text-base"
                   )}>
-                    무료로 시작하기
+                    {isFluid ? "Get started" : "무료로 시작하기"}
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
@@ -311,13 +361,16 @@ export default function LandingPage() {
                   <Button variant="outline" size="lg" className={cn(
                     "h-14 px-8",
                     isSmile && "border-2 uppercase text-sm tracking-wider hover:bg-primary hover:text-primary-foreground",
-                    isSapporo && "border-slate-300 text-slate-600 hover:bg-white/60 backdrop-blur-sm"
+                    isSapporo && "border-slate-300 text-slate-600 hover:bg-white/60 backdrop-blur-sm",
+                    isFluid && "border-[#7BA3D8]/30 text-[#7BA3D8] hover:bg-[#7BA3D8]/10 font-light text-base px-10"
                   )}>
                     {isSapporo ? (
                       <>
                         <Play className="mr-2 h-5 w-5" />
                         데모 보기
                       </>
+                    ) : isFluid ? (
+                      "Learn more"
                     ) : (
                       "자세히 알아보기"
                     )}
@@ -331,7 +384,8 @@ export default function LandingPage() {
                 className={cn(
                   "text-sm text-muted-foreground mt-6",
                   isSmile && "uppercase tracking-wider",
-                  isSapporo && "flex items-center justify-center gap-8 text-slate-500"
+                  isSapporo && "flex items-center justify-center gap-8 text-slate-500",
+                  isFluid && "text-sm font-light opacity-50 mt-8"
                 )}
               >
                 {isSapporo ? (
@@ -345,6 +399,8 @@ export default function LandingPage() {
                       카드 등록 불필요
                     </span>
                   </>
+                ) : isFluid ? (
+                  "No credit card required. 3 free generations included."
                 ) : (
                   "신용카드 없이 시작 가능. 무료 생성 3회 제공."
                 )}
@@ -362,8 +418,12 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className={cn("py-24", isSapporo && "relative z-10")}>
-        <div className="container mx-auto px-6">
+      <section id="features" className={cn(
+        "py-24",
+        isSapporo && "relative z-10",
+        isFluid && "py-32 px-8 lg:px-16"
+      )}>
+        <div className={cn("container mx-auto px-6", isFluid && "px-0")}>
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -373,14 +433,17 @@ export default function LandingPage() {
             <p className={cn(
               "text-sm text-primary mb-4",
               isSmile && "uppercase tracking-[0.3em]",
-              isSapporo && "inline-block px-4 py-1.5 rounded-full bg-amber-100 border border-amber-200 text-amber-700"
+              isSapporo && "inline-block px-4 py-1.5 rounded-full bg-amber-100 border border-amber-200 text-amber-700",
+              isFluid && "text-xs uppercase tracking-[0.2em] opacity-50"
             )}>Features</p>
             <h2 className={cn(
               isSmile
                 ? "text-4xl md:text-5xl font-black tracking-tighter uppercase"
                 : isSapporo
                   ? "text-4xl font-bold text-slate-700"
-                  : "text-3xl md:text-4xl font-bold"
+                  : isFluid
+                    ? "text-4xl md:text-5xl font-extralight tracking-tight"
+                    : "text-3xl md:text-4xl font-bold"
             )}>
               {isSmile ? (
                 <>
@@ -390,52 +453,62 @@ export default function LandingPage() {
                 </>
               ) : isSapporo ? (
                 "따뜻한 기능들"
+              ) : isFluid ? (
+                "Everything you need"
               ) : (
                 "콘텐츠 제작에 필요한 모든 것"
               )}
             </h2>
             <p className={cn(
               "mt-4 text-lg text-muted-foreground",
-              isSapporo && "text-slate-500 max-w-lg mx-auto"
+              isSapporo && "text-slate-500 max-w-lg mx-auto",
+              isFluid && "font-light opacity-60 max-w-xl"
             )}>
               {isSapporo
                 ? "삿포로의 겨울 카페처럼, 포근하고 강력한 기능을 제공합니다"
-                : "아이디어부터 콘텐츠 게시까지 하나의 워크플로우로"
+                : isFluid
+                  ? "From ideation to publication, all in one seamless workflow."
+                  : "아이디어부터 콘텐츠 게시까지 하나의 워크플로우로"
               }
             </p>
           </motion.div>
 
           <div className={cn(
             "grid md:grid-cols-2 lg:grid-cols-4",
-            isSmile ? "gap-px bg-border" : "gap-6"
+            isSmile ? "gap-px bg-border" : "gap-6",
+            isFluid && "gap-0 border-t border-l border-[#7BA3D8]/20"
           )}>
             <FeatureCard
               icon={<Zap className="h-5 w-5" />}
-              title="AI 기반 자동 생성"
-              description="몇 장의 제품 이미지와 기본 정보만으로 완성도 높은 상세페이지와 매력적인 카피를 생성합니다."
+              title={isFluid ? "AI-Powered Generation" : "AI 기반 자동 생성"}
+              description={isFluid ? "Create polished product pages and compelling copy with just a few product images and basic info." : "몇 장의 제품 이미지와 기본 정보만으로 완성도 높은 상세페이지와 매력적인 카피를 생성합니다."}
               isSmile={isSmile}
               isSapporo={isSapporo}
+              isFluid={isFluid}
             />
             <FeatureCard
               icon={<Palette className="h-5 w-5" />}
-              title="브랜드 일관성 유지"
-              description="RAG 기반 브랜드 분석으로 모든 콘텐츠가 브랜드 고유의 톤앤매너와 스타일을 유지합니다."
+              title={isFluid ? "Brand Consistency" : "브랜드 일관성 유지"}
+              description={isFluid ? "RAG-based brand analysis ensures all content maintains your unique tone and style." : "RAG 기반 브랜드 분석으로 모든 콘텐츠가 브랜드 고유의 톤앤매너와 스타일을 유지합니다."}
               isSmile={isSmile}
               isSapporo={isSapporo}
+              isFluid={isFluid}
             />
             <FeatureCard
               icon={<Clock className="h-5 w-5" />}
-              title="10배 빠른 제작"
-              description="기존 몇 시간 걸리던 작업을 몇 분 만에 완료. 전략에 집중하고 실행은 AI에게 맡기세요."
+              title={isFluid ? "10x Faster Creation" : "10배 빠른 제작"}
+              description={isFluid ? "Complete hours of work in minutes. Focus on strategy while AI handles execution." : "기존 몇 시간 걸리던 작업을 몇 분 만에 완료. 전략에 집중하고 실행은 AI에게 맡기세요."}
               isSmile={isSmile}
               isSapporo={isSapporo}
+              isFluid={isFluid}
             />
             <FeatureCard
               icon={<Users className="h-5 w-5" />}
-              title="팀 협업 지원"
-              description="B2B 워크스페이스로 마케팅 팀 전체가 프로젝트를 원활하게 협업할 수 있습니다."
+              title={isFluid ? "Team Collaboration" : "팀 협업 지원"}
+              description={isFluid ? "B2B workspaces enable your entire marketing team to collaborate seamlessly." : "B2B 워크스페이스로 마케팅 팀 전체가 프로젝트를 원활하게 협업할 수 있습니다."}
               isSmile={isSmile}
               isSapporo={isSapporo}
+              isFluid={isFluid}
             />
           </div>
         </div>
@@ -444,12 +517,16 @@ export default function LandingPage() {
       {/* Smile 테마: 마키 */}
       {isSmile && <Marquee reverse>Visual Content</Marquee>}
 
+      {/* Fluid 테마: 마키 */}
+      {isFluid && <FluidMarquee>Create · Design · Export</FluidMarquee>}
+
       {/* How It Works Section */}
       <section id="how-it-works" className={cn(
         "py-24 relative z-10",
-        isSmile ? "bg-foreground text-background" : isSapporo ? "bg-white/50 backdrop-blur-sm" : "bg-muted"
+        isSmile ? "bg-foreground text-background" : isSapporo ? "bg-white/50 backdrop-blur-sm" : isFluid ? "bg-[#7BA3D8]/5" : "bg-muted",
+        isFluid && "py-32 px-8 lg:px-16"
       )}>
-        <div className="container mx-auto px-6">
+        <div className={cn("container mx-auto px-6", isFluid && "px-0")}>
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -459,47 +536,57 @@ export default function LandingPage() {
             <p className={cn(
               "text-sm mb-4",
               isSmile ? "uppercase tracking-[0.3em] opacity-50" : "text-primary",
-              isSapporo && "inline-block px-4 py-1.5 rounded-full bg-amber-100 border border-amber-200 text-amber-700"
+              isSapporo && "inline-block px-4 py-1.5 rounded-full bg-amber-100 border border-amber-200 text-amber-700",
+              isFluid && "text-xs uppercase tracking-[0.2em] opacity-50"
             )}>Process</p>
             <h2 className={cn(
               isSmile
                 ? "text-4xl md:text-5xl font-black tracking-tighter uppercase"
                 : isSapporo
                   ? "text-4xl font-bold text-slate-700"
-                  : "text-3xl md:text-4xl font-bold"
+                  : isFluid
+                    ? "text-4xl md:text-5xl font-extralight tracking-tight"
+                    : "text-3xl md:text-4xl font-bold"
             )}>
-              이용 방법
+              {isFluid ? "How it works" : "이용 방법"}
             </h2>
             <p className={cn(
               "mt-4 text-lg",
               isSmile ? "opacity-50" : "text-muted-foreground",
-              isSapporo && "text-slate-500"
+              isSapporo && "text-slate-500",
+              isFluid && "font-light opacity-60"
             )}>
-              3단계로 전문적인 마케팅 콘텐츠 완성
+              {isFluid ? "Three simple steps to professional marketing content." : "3단계로 전문적인 마케팅 콘텐츠 완성"}
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8 md:gap-16">
+          <div className={cn(
+            "grid md:grid-cols-3 gap-8 md:gap-16",
+            isFluid && "gap-12 md:gap-20"
+          )}>
             <StepCard
               num="01"
-              title="업로드 및 입력"
-              description="제품 이미지를 업로드하고 제품명, 특징, 타겟 고객 등 기본 정보를 입력하세요."
+              title={isFluid ? "Upload & Input" : "업로드 및 입력"}
+              description={isFluid ? "Upload product images and enter basic info like product name, features, and target audience." : "제품 이미지를 업로드하고 제품명, 특징, 타겟 고객 등 기본 정보를 입력하세요."}
               isSmile={isSmile}
               isSapporo={isSapporo}
+              isFluid={isFluid}
             />
             <StepCard
               num="02"
-              title="생성 및 선택"
-              description="AI가 두 가지 버전의 상세페이지를 생성합니다. 원하는 버전을 선택하거나 조합하세요."
+              title={isFluid ? "Generate & Select" : "생성 및 선택"}
+              description={isFluid ? "AI generates two versions of your product page. Pick your favorite or combine elements." : "AI가 두 가지 버전의 상세페이지를 생성합니다. 원하는 버전을 선택하거나 조합하세요."}
               isSmile={isSmile}
               isSapporo={isSapporo}
+              isFluid={isFluid}
             />
             <StepCard
               num="03"
-              title="편집 및 내보내기"
-              description="비주얼 에디터로 세부 조정 후 HTML, 이미지, GIF, 영상 등 다양한 형식으로 내보내세요."
+              title={isFluid ? "Edit & Export" : "편집 및 내보내기"}
+              description={isFluid ? "Fine-tune with the visual editor, then export to HTML, images, GIF, or video formats." : "비주얼 에디터로 세부 조정 후 HTML, 이미지, GIF, 영상 등 다양한 형식으로 내보내세요."}
               isSmile={isSmile}
               isSapporo={isSapporo}
+              isFluid={isFluid}
             />
           </div>
         </div>
@@ -508,24 +595,31 @@ export default function LandingPage() {
       {/* Smile 테마: 마키 */}
       {isSmile && <Marquee>Get Started Now</Marquee>}
 
+      {/* Fluid 테마: 마키 */}
+      {isFluid && <FluidMarquee>Start Creating Today</FluidMarquee>}
+
       {/* CTA Section */}
       <section className={cn(
         "py-24 relative z-10",
-        isSmile ? "bg-foreground text-background" : isSapporo ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white" : "bg-primary text-primary-foreground"
+        isSmile ? "bg-foreground text-background" : isSapporo ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white" : isFluid ? "bg-[#7BA3D8] text-white" : "bg-primary text-primary-foreground",
+        isFluid && "py-40 px-8 lg:px-20"
       )}>
-        <div className="container mx-auto px-6">
-          <div className="max-w-2xl mx-auto text-center">
+        <div className={cn("container mx-auto px-6", isFluid && "px-0 max-w-[1500px]")}>
+          <div className={cn("max-w-2xl mx-auto text-center", isFluid && "max-w-none text-center")}>
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
               className={cn(
                 "mb-8",
                 isSmile
                   ? "text-5xl md:text-6xl font-black tracking-tighter uppercase text-left"
                   : isSapporo
                     ? "text-4xl md:text-5xl font-bold"
-                    : "text-3xl md:text-4xl font-bold"
+                    : isFluid
+                      ? "text-[3rem] md:text-[5rem] lg:text-[6rem] font-extralight tracking-[-0.02em] leading-[1]"
+                      : "text-3xl md:text-4xl font-bold"
               )}
             >
               {isSmile ? (
@@ -538,6 +632,11 @@ export default function LandingPage() {
                 </>
               ) : isSapporo ? (
                 "따뜻한 콘텐츠로 시작하세요"
+              ) : isFluid ? (
+                <>
+                  <span className="block">Ready to</span>
+                  <span className="block italic font-thin">transform your content?</span>
+                </>
               ) : (
                 "마케팅 콘텐츠 제작을 혁신할 준비가 되셨나요?"
               )}
@@ -549,10 +648,11 @@ export default function LandingPage() {
               viewport={{ once: true }}
               className={cn(
                 "text-xl mb-10",
-                isSmile ? "opacity-50 text-left" : "opacity-90"
+                isSmile ? "opacity-50 text-left" : "opacity-90",
+                isFluid && "font-light opacity-60 text-lg"
               )}
             >
-              이미 수천 명의 마케터들이 Triple C로 멋진 콘텐츠를 제작하고 있습니다.
+              {isFluid ? "Join thousands of marketers already creating beautiful content with Triple C." : "이미 수천 명의 마케터들이 Triple C로 멋진 콘텐츠를 제작하고 있습니다."}
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -568,10 +668,11 @@ export default function LandingPage() {
                   className={cn(
                     "gap-2 h-14 px-8",
                     isSmile && "bg-background text-foreground hover:bg-background/90 uppercase text-sm tracking-wider px-10",
-                    isSapporo && "bg-white text-amber-600 hover:bg-white/90 shadow-lg"
+                    isSapporo && "bg-white text-amber-600 hover:bg-white/90 shadow-lg",
+                    isFluid && "bg-white text-[#7BA3D8] hover:bg-white/90 font-light text-base px-10"
                   )}
                 >
-                  무료로 시작하기
+                  {isFluid ? "Get started free" : "무료로 시작하기"}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
@@ -584,25 +685,29 @@ export default function LandingPage() {
       <footer className={cn(
         "py-8 border-t border-border bg-background relative z-10",
         isSmile && "border-t-2",
-        isSapporo && "bg-white/50 backdrop-blur-sm border-slate-200/50"
+        isSapporo && "bg-white/50 backdrop-blur-sm border-slate-200/50",
+        isFluid && "py-12 px-8 lg:px-16 border-[#7BA3D8]/20"
       )}>
-        <div className="container mx-auto px-6">
+        <div className={cn("container mx-auto px-6", isFluid && "px-0")}>
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
               <span className={cn(
                 "text-xl font-bold",
                 isSmile && "font-black tracking-tighter uppercase",
-                isSapporo && "text-slate-700 font-semibold"
+                isSapporo && "text-slate-700 font-semibold",
+                isFluid && "text-2xl font-light tracking-tight"
               )}>Triple C</span>
               <span className={cn(
                 "text-sm text-muted-foreground",
-                isSapporo && "text-slate-500"
-              )}>마케팅 콘텐츠 에이전트</span>
+                isSapporo && "text-slate-500",
+                isFluid && "font-light opacity-50"
+              )}>{isFluid ? "Marketing Content Agent" : "마케팅 콘텐츠 에이전트"}</span>
             </div>
             <p className={cn(
               "text-xs text-muted-foreground",
               isSmile && "uppercase tracking-wider",
-              isSapporo && "text-slate-500"
+              isSapporo && "text-slate-500",
+              isFluid && "font-light opacity-50"
             )}>
               © {new Date().getFullYear()} Triple C. All rights reserved.
             </p>
@@ -619,12 +724,14 @@ function FeatureCard({
   description,
   isSmile,
   isSapporo,
+  isFluid,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
   isSmile: boolean;
   isSapporo: boolean;
+  isFluid?: boolean;
 }) {
   return (
     <motion.div
@@ -637,7 +744,9 @@ function FeatureCard({
           ? "bg-background hover:bg-muted"
           : isSapporo
             ? "bg-white/80 rounded-xl border border-amber-100 hover:border-amber-300 hover:shadow-lg backdrop-blur-sm"
-            : "bg-card rounded-lg border border-border hover:border-primary hover:shadow-md"
+            : isFluid
+              ? "border-r border-b border-[#7BA3D8]/20 hover:bg-[#7BA3D8]/5 p-10"
+              : "bg-card rounded-lg border border-border hover:border-primary hover:shadow-md"
       )}
     >
       <div className={cn(
@@ -646,9 +755,11 @@ function FeatureCard({
           ? "border border-border group-hover:border-primary"
           : isSapporo
             ? "rounded-lg bg-gradient-to-br from-amber-100 to-amber-50 group-hover:from-amber-200 group-hover:to-amber-100"
-            : "bg-primary/10 text-primary rounded-lg"
+            : isFluid
+              ? "w-10 h-10 border border-[#7BA3D8]/30 group-hover:border-[#7BA3D8]/50"
+              : "bg-primary/10 text-primary rounded-lg"
       )}>
-        <span className={cn(isSapporo && "text-amber-600")}>{icon}</span>
+        <span className={cn(isSapporo && "text-amber-600", isFluid && "opacity-60")}>{icon}</span>
       </div>
       <h3 className={cn(
         "mb-3",
@@ -656,11 +767,14 @@ function FeatureCard({
           ? "text-xl font-bold uppercase tracking-tight"
           : isSapporo
             ? "text-lg font-semibold text-slate-700"
-            : "text-lg font-semibold"
+            : isFluid
+              ? "text-lg font-light tracking-tight"
+              : "text-lg font-semibold"
       )}>{title}</h3>
       <p className={cn(
         "text-muted-foreground text-sm leading-relaxed",
-        isSapporo && "text-slate-500"
+        isSapporo && "text-slate-500",
+        isFluid && "font-light opacity-60"
       )}>{description}</p>
     </motion.div>
   );
@@ -672,12 +786,14 @@ function StepCard({
   description,
   isSmile,
   isSapporo,
+  isFluid,
 }: {
   num: string;
   title: string;
   description: string;
   isSmile: boolean;
   isSapporo: boolean;
+  isFluid?: boolean;
 }) {
   return (
     <motion.div
@@ -694,6 +810,10 @@ function StepCard({
         <div className="w-14 h-14 mx-auto rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center text-xl font-bold mb-4 shadow-lg shadow-amber-500/30">
           {num}
         </div>
+      ) : isFluid ? (
+        <div className="text-6xl font-extralight tracking-tight opacity-20 mb-6">
+          {num}
+        </div>
       ) : (
         <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold mb-4">
           {num}
@@ -705,12 +825,15 @@ function StepCard({
           ? "text-2xl font-bold uppercase tracking-tight"
           : isSapporo
             ? "text-xl font-semibold text-slate-700"
-            : "text-xl font-semibold"
+            : isFluid
+              ? "text-2xl font-light tracking-tight"
+              : "text-xl font-semibold"
       )}>{title}</h3>
       <p className={cn(
         "leading-relaxed",
         isSmile ? "opacity-50" : "text-muted-foreground",
-        isSapporo && "text-slate-500"
+        isSapporo && "text-slate-500",
+        isFluid && "font-light opacity-60"
       )}>{description}</p>
     </motion.div>
   );

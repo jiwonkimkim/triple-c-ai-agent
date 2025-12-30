@@ -170,6 +170,74 @@ html.style-sapporo.dark {
   letter-spacing: -0.02em;
 }
 
+/* Fluid Theme Override - Cream & Sky Blue style (Squarespace Fluid) */
+html.style-fluid {
+  --background: 45 33% 94% !important; /* Cream/Ivory #F5F3EA */
+  --foreground: 216 50% 66% !important; /* Sky blue text #7BA3D8 */
+  --card: 0 0% 100% !important; /* White cards */
+  --card-foreground: 216 50% 66% !important;
+  --popover: 0 0% 100% !important;
+  --popover-foreground: 216 50% 66% !important;
+  --primary: 216 50% 66% !important; /* Sky blue */
+  --primary-foreground: 45 33% 94% !important;
+  --secondary: 45 25% 90% !important; /* Lighter cream */
+  --secondary-foreground: 216 50% 66% !important;
+  --muted: 45 25% 90% !important;
+  --muted-foreground: 216 40% 55% !important;
+  --accent: 216 50% 66% !important; /* Sky blue accent */
+  --accent-foreground: 45 33% 94% !important;
+  --destructive: 0 84.2% 60.2% !important;
+  --destructive-foreground: 0 0% 100% !important;
+  --border: 216 30% 80% !important;
+  --input: 216 30% 85% !important;
+  --ring: 216 50% 66% !important;
+  --radius: 0.75rem !important; /* Rounded corners */
+}
+
+html.style-fluid.dark {
+  --background: 220 30% 12% !important; /* Dark navy */
+  --foreground: 216 60% 75% !important; /* Light sky blue */
+  --card: 220 25% 16% !important;
+  --card-foreground: 216 60% 75% !important;
+  --popover: 220 25% 16% !important;
+  --popover-foreground: 216 60% 75% !important;
+  --primary: 216 60% 70% !important; /* Sky blue */
+  --primary-foreground: 220 30% 12% !important;
+  --secondary: 220 25% 20% !important;
+  --secondary-foreground: 216 60% 75% !important;
+  --muted: 220 25% 20% !important;
+  --muted-foreground: 216 40% 55% !important;
+  --accent: 216 60% 70% !important;
+  --accent-foreground: 220 30% 12% !important;
+  --destructive: 0 62.8% 30.6% !important;
+  --destructive-foreground: 0 0% 98% !important;
+  --border: 216 30% 30% !important;
+  --input: 216 30% 30% !important;
+  --ring: 216 60% 70% !important;
+}
+
+/* Fluid Theme Typography - Bold, impactful headers */
+.style-fluid h1 {
+  font-size: 4rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.0;
+  text-transform: uppercase;
+}
+
+.style-fluid h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.style-fluid h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0em;
+}
+
 @layer components {
   /* Smile Theme specific components */
   .style-smile .btn-smile {
@@ -314,4 +382,18 @@ html.style-sapporo.dark {
 
 .style-sapporo ::selection {
   background: hsl(38 92% 50% / 0.2);
+}
+
+/* Fluid theme scrollbar */
+.style-fluid ::-webkit-scrollbar-thumb {
+  background: hsl(216 50% 66% / 0.3);
+  border-radius: 4px;
+}
+
+.style-fluid ::-webkit-scrollbar-thumb:hover {
+  background: hsl(216 50% 66% / 0.5);
+}
+
+.style-fluid ::selection {
+  background: hsl(216 50% 66% / 0.2);
 }
