@@ -12,10 +12,16 @@ import type { SectionType, LayoutStyle } from './types';
 
 export type ExtendedSectionType =
   | 'HERO'              // 메인 히어로 (제품 + 브랜드명 + 슬로건)
+  | 'BRAND_CONCEPT'     // 브랜드 철학/컨셉 (감성적 메시지)
   | 'FEATURES'          // 특징 아이콘 그리드
+  | 'TEXTURE'           // 제형/텍스처 클로즈업
+  | 'INGREDIENT'        // 원료/성분 비주얼화
+  | 'PRODUCT_LINEUP'    // 전체 구성품/라인업
+  | 'SKIN_RESULT'       // 피부 결과/Before-After
+  | 'MODEL_SHOT'        // 한국 여성 모델 이미지 (트렌디한 뷰티 룩)
   | 'SPECS'             // 사양/스펙 다이어그램
-  | 'MATERIAL'          // 재질/성분 하이라이트
-  | 'SOCIAL_PROOF'      // 수치/신뢰 데이터
+  | 'MATERIAL'          // 재질/성분 하이라이트 (레거시, TEXTURE+INGREDIENT로 대체)
+  | 'SOCIAL_PROOF'      // 수치/신뢰 데이터 (임상 테스트)
   | 'HOW_TO_USE'        // 사용법 단계별
   | 'LIFESTYLE'         // 라이프스타일 무드샷
   | 'FAQ'               // 자주 묻는 질문
@@ -86,38 +92,36 @@ export const SECTION_TEMPLATES: Record<ExtendedSectionType, SectionTemplate> = {
   HERO: {
     type: 'HERO',
     name: '히어로 섹션',
-    purpose: '첫인상 - 제품의 전체 구성품과 브랜드 아이덴티티를 한눈에 보여주는 메인 이미지',
+    purpose: '첫인상 - 제품과 브랜드 아이덴티티를 미니멀하게 보여주는 메인 이미지',
     recommendedLayout: 'hero-centered',
-    imagePromptTemplate: `Ultra-premium hero product photography for e-commerce detail page.
+    imagePromptTemplate: `Minimal hero product photography for Korean e-commerce detail page.
 
 [COMPOSITION]
-- Product "{product}" as the absolute focal point, occupying 60-70% of frame
-- If product is a SET or KIT: Display ALL components elegantly arranged together - main product in center, accessories/components around it in harmonious layout
-- If product is SINGLE item: Show packaging alongside the actual product (box + product)
-- 45-degree elevated angle for dimension and premium feel
-- Generous white space at top (20%) for brand name overlay
-- Clean space at bottom (15%) for product name and tagline text overlay
+- Product "{product}" centered, clean and simple
+- Single product focus (no cluttered arrangement)
+- Ample white space for text overlay (top 25%, bottom 20%)
+- Straight-on or slight angle, not dramatic
 
-[LIGHTING & ATMOSPHERE]
-- {background} gradient background that matches brand identity
-- Soft diffused studio lighting with subtle rim light for product separation
-- Gentle shadows beneath product for grounding, not harsh
-- Overall mood: Premium, trustworthy, desirable
+[BACKGROUND]
+- Solid color or subtle gradient: beige, cream, white, soft gray
+- {background} tones matching brand identity
+- NO busy patterns, NO dramatic gradients
 
 [STYLE]
-- Korean beauty/lifestyle e-commerce aesthetic (Olive Young, Coupang style)
-- Clean, minimal, sophisticated
-- Product surface textures clearly visible (matte, glossy, metallic finishes)
-- No text, no watermarks, no logos burned into image
+- Korean beauty detail page aesthetic (Olive Young, hince, Innisfree style)
+- Minimal, clean, sophisticated
+- Soft natural lighting, gentle shadows
+- Product as hero, nothing else competing
 
-[QUALITY]
-- 8K photorealistic, commercial product photography
-- Sharp focus on product, subtle depth of field on background`,
-    requiredVisuals: ['product-centered', 'full-package-display', 'brand-background', 'text-space-top', 'text-space-bottom'],
-    optionalVisuals: ['component-arrangement', 'packaging-box', 'subtle-shadow', 'reflection'],
+[IMPORTANT]
+- NO text burned into image
+- NO watermarks or logos in image
+- Leave clean space for Korean text overlay`,
+    requiredVisuals: ['product-centered', 'clean-background', 'text-space-top', 'text-space-bottom'],
+    optionalVisuals: ['subtle-shadow', 'minimal-props'],
     textOverlay: {
       headline: true,      // 브랜드명
-      subheadline: true,   // 제품명
+      subheadline: true,   // 제품명 + 슬로건
       body: false,
       bullets: false,
       numbers: false,
@@ -130,27 +134,86 @@ export const SECTION_TEMPLATES: Record<ExtendedSectionType, SectionTemplate> = {
     categorySpecificPrompts: [
       {
         categoryKeywords: ['쿠션', '파운데이션', '베이스메이크업'],
-        imagePrompt: `Premium cushion/foundation hero shot. Show compact case OPEN revealing cushion puff and product inside, plus CLOSED case alongside. If refill included, display refill pack elegantly. Background: soft beige or pink gradient matching skin tone concept. Korean beauty aesthetic, clean composition. Luxurious texture emphasis on case material (matte, glossy, or metallic finish). 8K quality, no text.`,
+        imagePrompt: `Minimal cushion/foundation hero. Single compact case, clean beige or cream background. Simple, elegant, Korean beauty aesthetic. Soft lighting. No text in image.`,
         suggestedImageCount: 1,
-        overlayTextGuide: '상단: 브랜드명, 중앙하단: 제품명 + 호수 표기 (예: #21 라이트베이지)',
+        overlayTextGuide: '상단: 브랜드명, 하단: 제품명 + 호수',
       },
       {
         categoryKeywords: ['립', '틴트', '립스틱', '립글로스'],
-        imagePrompt: `Luxurious lip product hero shot. Display the lip product tube/case standing upright as main focus. Show the product tip/applicator visible (cap off or semi-open). If SET: arrange multiple shades in elegant fan or line formation. Background: soft rose-pink or nude gradient. Emphasis on glossy/matte texture of the product case. Korean beauty lip product aesthetic. 8K quality, no text.`,
+        imagePrompt: `Minimal lip product hero. Single lip product standing upright, soft pink or nude background. Clean, feminine Korean beauty aesthetic. Soft lighting. No text in image.`,
         suggestedImageCount: 1,
-        overlayTextGuide: '상단: 브랜드명, 하단: 제품명 + 컬러명 (예: #01 Fig Mood)',
+        overlayTextGuide: '상단: 브랜드명, 하단: 제품명 + 컬러명',
       },
       {
-        categoryKeywords: ['스킨케어', '세럼', '에센스', '크림', '토너'],
-        imagePrompt: `Premium skincare hero shot. Main product bottle/jar as center focus, showing full product with cap. If SET: arrange serum, toner, cream in size-graduated layout. Show product texture hint (dropper with serum drop, cream swirl near jar). Background: clean white to soft blue gradient for freshness. Emphasize glass/premium packaging material. Korean skincare aesthetic. 8K quality, no text.`,
+        categoryKeywords: ['스킨케어', '세럼', '에센스', '크림', '토너', '로션'],
+        imagePrompt: `Minimal skincare hero. Single bottle/jar centered, white or soft beige background. Clean Korean skincare aesthetic. Natural soft lighting. No text in image.`,
         suggestedImageCount: 1,
-        overlayTextGuide: '상단: 브랜드명, 하단: 제품명 + 용량 (예: 히알루론 세럼 30ml)',
+        overlayTextGuide: '상단: 브랜드명, 하단: 제품명 + 용량',
       },
       {
         categoryKeywords: ['선케어', '선크림', '자외선'],
-        imagePrompt: `Fresh suncare hero shot. Sunscreen tube/bottle as main focus with cap visible. Show product squeeze or texture swatch nearby to indicate consistency. Background: bright, sunny yellow-to-white gradient conveying UV protection. If SET: SPF products arranged by protection level. Clean, fresh, outdoor-ready feeling. 8K quality, no text.`,
+        imagePrompt: `Minimal suncare hero. Single sunscreen product, bright clean white or soft yellow background. Fresh, clean aesthetic. No text in image.`,
         suggestedImageCount: 1,
-        overlayTextGuide: '상단: 브랜드명, 하단: 제품명 + SPF/PA 표기 (예: 톤업 선크림 SPF50+ PA++++)',
+        overlayTextGuide: '상단: 브랜드명, 하단: 제품명 + SPF/PA',
+      },
+    ],
+  },
+
+  BRAND_CONCEPT: {
+    type: 'BRAND_CONCEPT',
+    name: '브랜드 컨셉',
+    purpose: '브랜드의 핵심 철학과 제품 컨셉을 감성적으로 전달하는 무드 이미지',
+    recommendedLayout: 'hero-centered',
+    imagePromptTemplate: `Brand concept mood image for Korean beauty detail page.
+
+[COMPOSITION]
+- Abstract or atmospheric background image
+- NO product or minimal product hint (edge, shadow only)
+- Large empty space for brand philosophy text (60-70% of image)
+- Centered or left-aligned text area
+
+[BACKGROUND OPTIONS]
+- Soft texture: fabric, paper, natural material
+- Nature element: water ripple, sand, leaves (subtle)
+- Solid gradient: cream to beige, white to gray
+- {background} tones
+
+[STYLE]
+- Editorial magazine aesthetic
+- Minimal, poetic, emotional
+- Korean beauty brand lookbook style
+- Calming, aspirational mood
+
+[IMPORTANT]
+- This is for TEXT OVERLAY - leave ample clean space
+- NO product focus (that's HERO section's job)
+- NO text burned into image`,
+    requiredVisuals: ['mood-background', 'large-text-space', 'minimal-elements'],
+    optionalVisuals: ['texture-detail', 'nature-hint', 'abstract-shape'],
+    textOverlay: {
+      headline: true,      // 브랜드 철학 (예: "The Ordinary Skin")
+      subheadline: true,   // 부가 설명
+      body: true,          // 브랜드 스토리 (선택)
+      bullets: false,
+      numbers: false,
+      icons: false,
+    },
+    generateImage: true,
+    defaultOrder: 1,
+    multiImage: false,
+    maxImageCount: 1,
+    categorySpecificPrompts: [
+      {
+        categoryKeywords: ['스킨케어', '세럼', '에센스', '크림', '토너', '로션'],
+        imagePrompt: `Skincare brand concept mood. Soft water texture or dewy surface, cream/white gradient. Minimal, clean, Korean skincare philosophy aesthetic. Large text space. No product, no text in image.`,
+        suggestedImageCount: 1,
+        overlayTextGuide: '브랜드 철학 문구 (예: "피부 본연의 아름다움", "The Ordinary Skin")',
+      },
+      {
+        categoryKeywords: ['립', '틴트', '메이크업', '쿠션'],
+        imagePrompt: `Makeup brand concept mood. Soft fabric texture or abstract color gradient (rose, nude, beige). Feminine, elegant Korean beauty aesthetic. Large text space. No product, no text in image.`,
+        suggestedImageCount: 1,
+        overlayTextGuide: '브랜드 철학 문구 (예: "자연스러운 아름다움", "Your True Color")',
       },
     ],
   },
@@ -160,29 +223,31 @@ export const SECTION_TEMPLATES: Record<ExtendedSectionType, SectionTemplate> = {
     name: '특징/발색 섹션',
     purpose: '제품의 핵심 특징, 색상 바리에이션, 발색 테스트 등을 개별 블록 이미지로 상세히 보여주기',
     recommendedLayout: 'grid',
-    imagePromptTemplate: `Product feature showcase photography for e-commerce detail page.
+    imagePromptTemplate: `Korean beauty detail page - Feature block image.
 
-[IMPORTANT - INDIVIDUAL BLOCK IMAGE]
-This prompt generates ONE individual image for ONE block.
-Each feature/shade should be a SEPARATE image block in the detail page.
-Do NOT combine multiple features into one image.
+[BLOCK IMAGE RULE]
+- ONE image = ONE feature/shade
+- Each block is SEPARATE image in detail page grid
+- Clean composition for single feature focus
 
 [COMPOSITION]
-- Feature-focused product shot highlighting ONE specific characteristic
-- Product "{product}" shown from angle that best demonstrates this single feature
-- Clean {background} background
-- Space reserved for feature text overlay (icon + label area)
+- Feature "{product}" as single focus
+- Clean solid {background} background (beige, cream, white)
+- Text overlay space: bottom 20% OR right side 30%
+- Simple, not cluttered
 
 [STYLE]
-- Korean beauty e-commerce aesthetic
-- Clean, informative, professional
-- This image focuses on ONE specific feature only
+- Korean e-commerce detail page aesthetic
+- Olive Young / hince style
+- Soft natural lighting
+- Trendy, clean, minimal
 
-[QUALITY]
-- 8K photorealistic, sharp detail
-- No text, no watermarks`,
-    requiredVisuals: ['feature-focus', 'product-detail', 'text-overlay-space'],
-    optionalVisuals: ['comparison-elements', 'texture-showcase', 'swatch-display'],
+[MUST INCLUDE]
+- NO text in image
+- NO watermarks
+- Space for Korean text overlay`,
+    requiredVisuals: ['single-feature-focus', 'clean-background', 'text-overlay-space'],
+    optionalVisuals: ['swatch-display', 'comparison-elements'],
     textOverlay: {
       headline: true,
       subheadline: false,
@@ -192,132 +257,860 @@ Do NOT combine multiple features into one image.
       icons: true,
     },
     generateImage: true,
-    defaultOrder: 1,
+    defaultOrder: 2,
     multiImage: true,
-    maxImageCount: 6,
+    maxImageCount: 8,
     categorySpecificPrompts: [
       {
         categoryKeywords: ['쿠션', '파운데이션', '베이스메이크업'],
-        imagePrompt: `Cushion/Foundation SINGLE SHADE SWATCH photography for Korean beauty detail page.
+        imagePrompt: `Foundation SHADE SWATCH block image for Korean beauty detail page.
 
-[IMPORTANT - ONE BLOCK = ONE SHADE]
-This image is for ONE shade only. Generate SEPARATE images for each shade.
-Each shade = separate image block in the detail page.
+[ONE BLOCK = ONE SHADE NUMBER]
+Generate SEPARATE image for each shade:
+- #13 Ivory (밝은 피부)
+- #17 Light Beige (밝은 피부~보통 피부)
+- #21 Natural Beige (보통 피부) - 가장 인기
+- #23 Medium Beige (보통~어두운 피부)
+- #25 Warm Beige (어두운 피부)
 
-[THIS SINGLE IMAGE SHOWS]
-- ARM SWATCH TEST: Korean female model's inner forearm with ONE foundation shade swatch
-- Clean, well-lit skin showing the shade's texture and tone
-- Natural daylight simulation
+[THIS IMAGE SHOWS]
+Korean female model's inner forearm with ONE shade swatch.
+Horizontal stripe swatch showing:
+- True color on skin
+- Texture (dewy/semi-matte/natural)
+- Coverage level
+
+[COMPOSITION]
+- Forearm from wrist to elbow, angled
+- Single swatch stripe in center
+- Clean cream/beige background
+- Bottom 25% empty for shade number text
 
 [STYLE]
-- Clean white or soft beige background
-- Professional beauty photography lighting (soft, even, flattering)
-- Korean beauty aesthetic - natural, healthy skin look
-- Model: Korean female, 20s-30s, healthy clear skin
-- Focus on texture: dewy, semi-matte, or natural finish visible
+- Korean beauty swatch test aesthetic
+- Soft daylight lighting
+- Natural healthy skin
+- Professional beauty photography
 
-[QUALITY]
-- 8K, photorealistic skin texture
-- No text overlay in image
-- Commercial beauty photography standard`,
+[KEYWORDS: 커버력, 지속력, 자연스러움, 피부 표현]
+
+NO text in image.`,
         suggestedImageCount: 5,
-        overlayTextGuide: '각 블록 이미지에 호수 표기: #13 아이보리, #17 라이트베이지, #21 내추럴베이지, #23 미디엄베이지, #25 웜베이지',
+        overlayTextGuide: '각 블록: #21 내추럴베이지 / 보통 피부톤에 추천 / 자연스러운 피부 표현',
       },
       {
         categoryKeywords: ['립', '틴트', '립스틱', '립글로스'],
-        imagePrompt: `Lip product COLOR SWATCH photography series for Korean beauty detail page.
+        imagePrompt: `Lip COLOR SWATCH block image for Korean beauty detail page.
 
-[IMAGE SET - Generate multiple images for each shade]
-Create separate images for each lip color showing:
-1. LIP SWATCH: Korean female model's lips with product applied. Close-up lip shot showing color payoff and texture (glossy/matte/velvet).
+[ONE BLOCK = ONE COLOR]
+Generate SEPARATE image for each shade:
+- Each lip color = individual block image
+- Show on actual Korean model lips
 
-2. ARM SWATCH (optional): Inner forearm swatch showing true color on skin.
+[THIS IMAGE SHOWS]
+Close-up of Korean female model's lips with product applied.
+- Full lip or gradient lip application
+- Color payoff clearly visible
+- Texture visible (glossy/velvet/matte)
 
-[COLOR REPRESENTATION - Match to product shade names]
-For each shade, create authentic color representation:
-- MLBB shades: Natural rosy pink, dusty rose, soft mauve
-- Red shades: True red, cherry red, brick red
-- Coral/Orange: Coral pink, peach, apricot
-- Berry/Plum: Fig, mulberry, wine, burgundy
-- Nude: Nude beige, nude pink, caramel
+[COMPOSITION]
+- Lip close-up, chin to nose bottom
+- Lips centered
+- Clean soft pink or nude background
+- Side 30% empty for color name text
 
 [STYLE]
-- Clean background (white or soft pink gradient)
-- Beauty photography lighting - lips look plump and healthy
-- Korean beauty lip aesthetic - gradient lip, full lip, or precise application
-- Model: Korean female, beautiful lip shape, healthy lip condition
-- Texture clearly visible: glossy shine, matte velvet, or dewy finish
+- Korean beauty lip swatch aesthetic
+- Soft ring light effect
+- Plump, healthy looking lips
+- Trendy K-beauty gradient lip or full lip
 
-[QUALITY]
-- 8K macro photography quality
-- Skin texture and lip texture photorealistic
-- No text in image`,
+[KEYWORDS: 선명한 발색, 착색력, 생기, 지속력, 촉촉함]
+
+NO text in image.`,
         suggestedImageCount: 6,
-        overlayTextGuide: '각 이미지에 컬러명 표기: #01 피그무드, #02 로지코랄, #03 체리레드 등',
+        overlayTextGuide: '각 블록: #01 피그무드 / 웜톤 MLBB 컬러 / 데일리 추천',
       },
       {
         categoryKeywords: ['아이섀도우', '아이메이크업', '팔레트'],
-        imagePrompt: `Eyeshadow SWATCH photography series for Korean beauty detail page.
+        imagePrompt: `Eyeshadow SWATCH block images for Korean beauty detail page.
 
-[IMAGE SET]
-1. PALETTE OVERVIEW: Full palette open, showing all shade pans with their textures visible
-2. ARM SWATCHES: Each shade swatched on Korean model's inner forearm, arranged in a row or gradient
-3. EYE APPLICATION (optional): Eye close-up showing shades applied in a look
+[BLOCK IMAGES TO GENERATE]
+1. PALETTE OPEN: Full palette showing all shade pans
+2. ARM SWATCHES: All shades swatched in row on forearm
+3. EYE LOOK: Korean model eye with shades applied
+
+[COMPOSITION]
+- Each image clean and focused
+- Cream/white background
+- Text space at bottom 20%
 
 [STYLE]
-- Clean white or neutral background
-- Even, professional lighting showing true color payoff
-- Matte, shimmer, glitter finishes clearly differentiated
 - Korean beauty eye makeup aesthetic
+- Soft lighting showing true pigment
+- Matte/shimmer/glitter textures clear
 
-[QUALITY]
-- 8K, showing pigment and texture detail
-- No text in image`,
-        suggestedImageCount: 3,
-        overlayTextGuide: '팔레트 구성 컬러명 또는 번호 표기',
+[KEYWORDS: 발색, 지속력, 블렌딩, 다양한 연출]
+
+NO text in image.`,
+        suggestedImageCount: 4,
+        overlayTextGuide: '팔레트 구성 / 각 컬러명 / 연출 가능한 룩',
       },
       {
-        categoryKeywords: ['스킨케어', '세럼', '에센스', '크림', '토너'],
-        imagePrompt: `Skincare TEXTURE & BENEFIT photography series for e-commerce detail page.
+        categoryKeywords: ['스킨케어', '세럼', '에센스', '크림', '토너', '로션'],
+        imagePrompt: `Skincare BENEFIT block images for Korean beauty detail page.
 
-[IMAGE SET]
-1. TEXTURE SHOT: Product texture on glass/clear surface or skin - showing consistency (watery, gel, cream, oil)
-2. ABSORPTION TEST: Before/after texture absorption on skin
-3. KEY INGREDIENT VISUAL: Ingredient visualization (e.g., hyaluronic acid droplets, vitamin C citrus, centella leaves)
+[BLOCK IMAGES - One benefit per block]
+Generate separate images for each benefit:
+
+1. 보습/수분 BLOCK:
+- Water droplets or dewy skin close-up
+- Hydration visual metaphor
+- Fresh, moisturized skin texture
+
+2. 흡수력 BLOCK:
+- Before/after absorption on skin
+- Light texture sinking into skin
+- Quick absorption demonstration
+
+3. 진정 BLOCK:
+- Calm, soothed skin visual
+- Green/cool tones
+- Sensitive skin friendly concept
+
+4. 광채/탄력 BLOCK:
+- Glowing, radiant skin close-up
+- Light reflecting off healthy skin
+- Bouncy, firm skin visual
+
+[COMPOSITION]
+- Single benefit focus per image
+- Clean white/cream/soft blue background
+- Right side 30% empty for benefit text
 
 [STYLE]
-- Clean, clinical yet inviting aesthetic
-- Soft blue or white gradient background for freshness
-- Korean skincare detail page style
-- Scientific yet approachable
+- Korean skincare detail page aesthetic
+- Soft, clinical yet beautiful lighting
+- Scientific but approachable
 
-[QUALITY]
-- 8K, texture clearly visible
-- No text in image`,
-        suggestedImageCount: 3,
-        overlayTextGuide: '각 특징별 텍스트: 48시간 보습, 즉각 흡수, 저자극 테스트 완료 등',
+[KEYWORDS: 보습, 수분, 진정, 탄력, 광채, 흡수력]
+
+NO text in image.`,
+        suggestedImageCount: 4,
+        overlayTextGuide: '각 블록: 48시간 깊은 보습 / 피부 수분량 92% 증가 / 임상 테스트 완료',
       },
       {
         categoryKeywords: ['마스카라', '아이라이너'],
-        imagePrompt: `Mascara/Eyeliner BEFORE-AFTER photography for Korean beauty detail page.
+        imagePrompt: `Eye makeup BEFORE-AFTER block images for Korean beauty detail page.
 
-[IMAGE SET]
-1. BEFORE-AFTER: Split image or side-by-side showing bare lashes vs. mascara applied (volume, length, curl)
-2. BRUSH/TIP CLOSE-UP: Detailed shot of brush bristles or liner tip
-3. SMUDGE TEST (optional): Product applied, then shown after wear time
+[BLOCK IMAGES]
+1. BEFORE-AFTER BLOCK:
+- Split or side-by-side comparison
+- Bare lashes vs. product applied
+- Volume/length/curl difference clear
+
+2. BRUSH DETAIL BLOCK:
+- Brush or tip close-up
+- Show bristle/tip design
+
+3. WEAR TEST BLOCK:
+- After 8-12 hours wear
+- No smudge, no flaking proof
+
+[COMPOSITION]
+- Korean female model eye close-up
+- Clean background
+- Bottom 20% for text
 
 [STYLE]
-- Clean background
-- Close-up eye photography
-- Korean model, natural eye shape
-- Dramatic yet natural enhancement visible
+- Dramatic yet natural enhancement
+- Korean beauty aesthetic
 
-[QUALITY]
-- 8K macro quality
-- Individual lash detail visible
-- No text in image`,
+[KEYWORDS: 볼륨, 길이, 컬링, 번짐 없는, 지속력]
+
+NO text in image.`,
         suggestedImageCount: 3,
-        overlayTextGuide: '볼륨업 효과, 컬링 지속력, 번짐 없는 등 특징 표기',
+        overlayTextGuide: 'BEFORE → AFTER / 3배 볼륨업 / 12시간 컬링 지속',
+      },
+      {
+        categoryKeywords: ['선케어', '선크림', '자외선'],
+        imagePrompt: `Suncare BENEFIT block images for Korean beauty detail page.
+
+[BLOCK IMAGES]
+1. UV PROTECTION BLOCK:
+- UV shield/protection visual concept
+- Sun rays being blocked metaphor
+
+2. NO WHITE CAST BLOCK:
+- Before/after showing no white residue
+- Natural skin tone maintained
+
+3. TONE UP BLOCK:
+- Skin brightening effect
+- Natural glow, not artificial
+
+4. TEXTURE BLOCK:
+- Light, non-greasy texture on skin
+- Quick absorption demonstration
+
+[COMPOSITION]
+- Clean bright background (white/soft yellow)
+- Text space at bottom 25%
+
+[STYLE]
+- Fresh, sunny, protective feeling
+- Korean suncare aesthetic
+
+[KEYWORDS: 자외선 차단, 백탁 없는, 촉촉한, 톤업, 가벼운]
+
+NO text in image.`,
+        suggestedImageCount: 4,
+        overlayTextGuide: 'SPF50+ PA++++ / 무백탁 포뮬러 / 자연스러운 톤업',
+      },
+    ],
+  },
+
+  TEXTURE: {
+    type: 'TEXTURE',
+    name: '텍스처/제형 섹션',
+    purpose: '제품의 제형과 발림성을 직관적으로 보여주는 클로즈업 이미지',
+    recommendedLayout: 'hero-centered',
+    imagePromptTemplate: `Product texture close-up photography for Korean beauty detail page.
+
+[COMPOSITION]
+- Macro/close-up shot of product texture
+- Texture on surface: glass, skin, or neutral material
+- Clean, simple composition focusing on texture only
+- Space for descriptive text overlay
+
+[TEXTURE TYPES]
+- Cream: swirl, dollop, or spread
+- Serum/Essence: drops, drip, or puddle
+- Gel: clear, jiggly texture
+- Oil: golden drops, glossy surface
+- Lotion: light, fluid spread
+
+[BACKGROUND]
+- {background} tones (cream, white, soft beige)
+- Neutral surface (glass, marble, skin)
+- Soft, even lighting
+
+[STYLE]
+- Korean beauty texture shot aesthetic
+- Clean, minimal, tactile appeal
+- Focus on consistency and feel
+- No text in image`,
+    requiredVisuals: ['texture-closeup', 'clean-surface', 'text-space'],
+    optionalVisuals: ['skin-application', 'glass-surface', 'product-hint'],
+    textOverlay: {
+      headline: true,      // 텍스처 특징 (예: "부드러운 크림 제형")
+      subheadline: true,   // 부가 설명
+      body: false,
+      bullets: false,
+      numbers: false,
+      icons: false,
+    },
+    generateImage: true,
+    defaultOrder: 3,
+    multiImage: true,
+    maxImageCount: 2,
+    categorySpecificPrompts: [
+      {
+        categoryKeywords: ['스킨케어', '세럼', '에센스', '앰플'],
+        imagePrompt: `Serum/essence texture close-up. Clear or slightly tinted liquid drops on glass surface or skin. Show viscosity and consistency. Soft lighting, white/cream background. Korean skincare aesthetic. No text in image.`,
+        suggestedImageCount: 2,
+        overlayTextGuide: '제형 특징 (예: "가벼운 워터 텍스처", "빠른 흡수력")',
+      },
+      {
+        categoryKeywords: ['크림', '로션', '모이스처라이저'],
+        imagePrompt: `Cream/lotion texture close-up. Smooth cream swirl or dollop on neutral surface. Show rich, moisturizing texture. Soft lighting, beige/cream background. Korean skincare aesthetic. No text in image.`,
+        suggestedImageCount: 2,
+        overlayTextGuide: '제형 특징 (예: "촉촉한 크림 제형", "산뜻한 마무리감")',
+      },
+      {
+        categoryKeywords: ['립', '틴트', '립스틱', '립글로스'],
+        imagePrompt: `Lip product texture close-up. Product swatch showing color and finish (glossy, matte, velvet). On glass or lip-like surface. Korean beauty lip aesthetic. No text in image.`,
+        suggestedImageCount: 2,
+        overlayTextGuide: '제형 특징 (예: "벨벳 마무리", "글로시 텍스처")',
+      },
+      {
+        categoryKeywords: ['쿠션', '파운데이션', '베이스'],
+        imagePrompt: `Foundation/cushion texture close-up. Product spread showing coverage and finish. On skin or neutral surface. Show blendability. Korean beauty base makeup aesthetic. No text in image.`,
+        suggestedImageCount: 2,
+        overlayTextGuide: '제형 특징 (예: "자연스러운 피부 표현", "가벼운 밀착력")',
+      },
+    ],
+  },
+
+  INGREDIENT: {
+    type: 'INGREDIENT',
+    name: '성분 비주얼 섹션',
+    purpose: '핵심 성분의 원료를 자연스럽고 신선하게 시각화',
+    recommendedLayout: 'split-left',
+    imagePromptTemplate: `Natural ingredient visualization for Korean beauty detail page.
+
+[COMPOSITION]
+- Fresh, natural ingredient as hero element
+- Real ingredient visual: plants, fruits, flowers, herbs
+- Product bottle/jar as secondary element (optional)
+- Clean arrangement, not cluttered
+- Space for ingredient name and benefit text
+
+[INGREDIENT STYLING]
+- Fresh, vibrant, appetizing appearance
+- Natural lighting with soft shadows
+- Dewy, just-picked freshness
+- Artistic but realistic presentation
+
+[BACKGROUND]
+- {background} tones (white, cream, light natural)
+- Simple surface (marble, wood, fabric)
+- Nature-inspired but clean
+
+[STYLE]
+- Korean beauty ingredient shot aesthetic
+- Natural, clean, trustworthy
+- Editorial food/beauty photography style
+- No text in image`,
+    requiredVisuals: ['ingredient-hero', 'fresh-appearance', 'text-space'],
+    optionalVisuals: ['product-placement', 'multiple-ingredients', 'nature-setting'],
+    textOverlay: {
+      headline: true,      // 성분명 (예: "히알루론산")
+      subheadline: true,   // 효능 설명
+      body: false,
+      bullets: true,       // 성분 효능 리스트
+      numbers: false,
+      icons: false,
+    },
+    generateImage: true,
+    defaultOrder: 4,
+    multiImage: true,
+    maxImageCount: 3,
+    categorySpecificPrompts: [
+      {
+        categoryKeywords: ['스킨케어', '세럼', '에센스', '크림', '토너', '로션'],
+        imagePrompt: `Skincare ingredient visualization. Fresh natural ingredients (centella leaves, citrus for vitamin C, water drops for hyaluronic acid, aloe). Clean white/cream background. Korean skincare natural aesthetic. No text in image.`,
+        suggestedImageCount: 2,
+        overlayTextGuide: '성분명 + 효능 (예: "병풀 추출물 - 진정 효과", "히알루론산 - 깊은 보습")',
+      },
+      {
+        categoryKeywords: ['립', '틴트', '립스틱'],
+        imagePrompt: `Lip product ingredient visualization. Fresh fruits or flowers matching shade name (fig, cherry, rose, peach). Artistic arrangement with lip product hint. Soft pink/nude background. No text in image.`,
+        suggestedImageCount: 2,
+        overlayTextGuide: '성분명 + 효능 (예: "무화과 추출물", "시어버터 보습")',
+      },
+      {
+        categoryKeywords: ['선케어', '선크림'],
+        imagePrompt: `Suncare ingredient visualization. Clean, scientific aesthetic. Water drops, protective shield concept, or natural UV-blocking ingredients. Bright, fresh background. No text in image.`,
+        suggestedImageCount: 1,
+        overlayTextGuide: '성분명 + 효능 (예: "자외선 차단 필터", "진정 성분")',
+      },
+    ],
+  },
+
+  PRODUCT_LINEUP: {
+    type: 'PRODUCT_LINEUP',
+    name: '제품 라인업 섹션',
+    purpose: '전체 구성품이나 시리즈 제품을 한눈에 보여주는 배열 이미지',
+    recommendedLayout: 'grid',
+    imagePromptTemplate: `Product lineup/collection photography for Korean beauty detail page.
+
+[COMPOSITION]
+- All products in the set/collection arranged together
+- Organized layout: row, grid, or size-graduated arrangement
+- Each product clearly visible and identifiable
+- Even spacing between products
+- Space for product name labels
+
+[ARRANGEMENT OPTIONS]
+- Size order: smallest to largest
+- Usage order: step 1, 2, 3...
+- Color gradient: light to dark
+- Symmetrical or balanced asymmetry
+
+[BACKGROUND]
+- {background} tones (white, cream, soft gray)
+- Clean, flat surface
+- Consistent with brand aesthetic
+
+[STYLE]
+- Korean beauty product flat-lay aesthetic
+- Organized, clean, professional
+- Catalog/editorial style
+- No text in image`,
+    requiredVisuals: ['all-products', 'organized-layout', 'consistent-spacing'],
+    optionalVisuals: ['product-labels-space', 'usage-order-hint', 'size-comparison'],
+    textOverlay: {
+      headline: true,      // 라인업 타이틀 (예: "풀 라인업 구성")
+      subheadline: false,
+      body: false,
+      bullets: false,
+      numbers: true,       // 제품 번호/순서
+      icons: false,
+    },
+    generateImage: true,
+    defaultOrder: 5,
+    multiImage: false,
+    maxImageCount: 1,
+    categorySpecificPrompts: [
+      {
+        categoryKeywords: ['스킨케어', '세럼', '에센스', '크림', '토너', '로션'],
+        imagePrompt: `Skincare routine lineup. Multiple products arranged by usage order (toner, essence, serum, cream). Clean row or step arrangement. White/cream background. Korean skincare set aesthetic. No text in image.`,
+        suggestedImageCount: 1,
+        overlayTextGuide: '각 제품명 + 용량 또는 STEP 번호',
+      },
+      {
+        categoryKeywords: ['립', '틴트', '립스틱'],
+        imagePrompt: `Lip product color lineup. Multiple shades arranged in color gradient or fan formation. Clean, elegant arrangement. Soft pink/nude background. Korean beauty lip collection aesthetic. No text in image.`,
+        suggestedImageCount: 1,
+        overlayTextGuide: '각 컬러명 또는 번호',
+      },
+      {
+        categoryKeywords: ['메이크업', '쿠션', '파운데이션'],
+        imagePrompt: `Makeup product lineup. Base products or collection items arranged neatly. Clean, professional arrangement. Beige/cream background. Korean beauty makeup set aesthetic. No text in image.`,
+        suggestedImageCount: 1,
+        overlayTextGuide: '각 제품명 또는 호수',
+      },
+    ],
+  },
+
+  SKIN_RESULT: {
+    type: 'SKIN_RESULT',
+    name: '피부 결과 섹션',
+    purpose: '제품 사용 전후 피부 변화를 직접적으로 보여주는 Before/After 이미지',
+    recommendedLayout: 'comparison',
+    imagePromptTemplate: `BEFORE/AFTER skin result for Korean beauty detail page.
+
+[BEFORE-AFTER FORMAT]
+- Split image OR side-by-side comparison
+- SAME lighting, angle, and distance for both
+- Clear, visible difference between before and after
+- Natural, believable improvement (not over-edited)
+
+[COMPOSITION]
+- Skin close-up (cheek, forehead, or full face)
+- Clean neutral background
+- Text space: bottom 25% for result statistics
+- Equal space for BEFORE and AFTER
+
+[STYLE]
+- Korean beauty before-after aesthetic
+- Clinical yet beautiful
+- Believable, aspirational results
+- Professional skin photography
+
+[MUST INCLUDE]
+- NO text in image
+- Space for "BEFORE / AFTER" label overlay
+- Space for percentage/statistics overlay`,
+    requiredVisuals: ['before-after-comparison', 'skin-closeup', 'consistent-lighting'],
+    optionalVisuals: ['statistics-space', 'timeline-indicator'],
+    textOverlay: {
+      headline: true,      // "BEFORE → AFTER" 또는 "4주 사용 결과"
+      subheadline: true,   // 구체적 수치
+      body: false,
+      bullets: true,       // 개선 항목 리스트
+      numbers: true,       // 퍼센트 수치
+      icons: false,
+    },
+    generateImage: true,
+    defaultOrder: 6,
+    multiImage: true,
+    maxImageCount: 3,
+    categorySpecificPrompts: [
+      {
+        categoryKeywords: ['스킨케어', '세럼', '에센스', '크림', '토너', '로션'],
+        imagePrompt: `Skincare BEFORE-AFTER result for Korean beauty detail page.
+
+[BEFORE-AFTER IMAGES]
+Generate comparison images showing:
+
+1. 보습/수분 BEFORE-AFTER:
+BEFORE: Dry, dull skin with visible flakiness
+AFTER: Hydrated, dewy, plump skin
+- Same Korean model cheek close-up
+- Consistent lighting and angle
+- Clear moisture improvement visible
+
+2. 피부결 BEFORE-AFTER:
+BEFORE: Rough texture, visible pores, uneven
+AFTER: Smooth, refined texture, minimized pores
+- Skin texture clearly visible in both
+- Natural improvement, not plastic
+
+3. 광채/톤 BEFORE-AFTER:
+BEFORE: Dull, tired-looking skin
+AFTER: Radiant, glowing, bright skin
+- Light reflecting off healthy skin
+- Natural brightness, not filtered
+
+[COMPOSITION]
+- Split screen or side-by-side
+- Korean model skin
+- Cream/white background
+- Bottom 25% for statistics text
+
+[STYLE]
+- Korean skincare result aesthetic
+- Clinical lighting (even, consistent)
+- Natural, believable improvement
+- Professional dermatology style
+
+[KEYWORDS: 보습, 수분, 광채, 탄력, 피부결 개선]
+
+NO text in image.`,
+        suggestedImageCount: 2,
+        overlayTextGuide: 'BEFORE → AFTER / 4주 사용 결과 / 수분량 92% 증가 / 피부결 개선 89%',
+      },
+      {
+        categoryKeywords: ['쿠션', '파운데이션', '베이스메이크업'],
+        imagePrompt: `Foundation BEFORE-AFTER coverage result for Korean beauty detail page.
+
+[BEFORE-AFTER IMAGES]
+1. 커버력 BEFORE-AFTER:
+BEFORE: Bare skin with redness, blemishes, dark spots visible
+AFTER: Natural coverage, skin looks even and healthy
+- Same face/cheek area
+- Product creating natural "your skin but better" look
+
+2. 지속력 BEFORE-AFTER:
+BEFORE: Fresh application at 0 hour
+AFTER: After 8-12 hours wear
+- Still looks fresh, not cakey or separated
+- Natural finish maintained
+
+[COMPOSITION]
+- Korean model face
+- Split or side-by-side comparison
+- Soft beige background
+- Space for time/coverage statistics
+
+[STYLE]
+- Korean base makeup result aesthetic
+- Natural coverage visible
+- Skin texture still visible through makeup
+- Professional beauty photography
+
+[KEYWORDS: 커버력, 지속력, 자연스러움, 피부 표현, 무너짐 없는]
+
+NO text in image.`,
+        suggestedImageCount: 2,
+        overlayTextGuide: 'BEFORE → AFTER / 자연스러운 커버력 / 12시간 지속력 테스트',
+      },
+      {
+        categoryKeywords: ['립', '틴트', '립스틱'],
+        imagePrompt: `Lip product BEFORE-AFTER result for Korean beauty detail page.
+
+[BEFORE-AFTER IMAGES]
+1. 발색 BEFORE-AFTER:
+BEFORE: Bare lips
+AFTER: Product applied with full color payoff
+- Close-up lip shot
+- Color and texture clearly visible
+
+2. 지속력 BEFORE-AFTER:
+BEFORE: Fresh application
+AFTER: After eating/drinking/hours of wear
+- Color retention visible
+- No feathering or fading
+
+[COMPOSITION]
+- Korean model lips close-up
+- Pink/nude background
+- Space for wear time statistics
+
+[STYLE]
+- Korean lip product result aesthetic
+- Natural, healthy lip texture
+- Trendy K-beauty lip look
+
+[KEYWORDS: 발색, 지속력, 착색력, 촉촉함]
+
+NO text in image.`,
+        suggestedImageCount: 2,
+        overlayTextGuide: 'BEFORE → AFTER / 선명한 발색 / 8시간 지속력',
+      },
+      {
+        categoryKeywords: ['선케어', '선크림'],
+        imagePrompt: `Suncare BEFORE-AFTER result for Korean beauty detail page.
+
+[BEFORE-AFTER IMAGES]
+1. 백탁 테스트 BEFORE-AFTER:
+BEFORE: Product application moment
+AFTER: Fully absorbed, no white cast
+- Same skin area
+- Natural skin tone visible after
+
+2. 톤업 효과 BEFORE-AFTER:
+BEFORE: Bare skin tone
+AFTER: Brightened, even skin tone
+- Natural glow, not chalky
+
+[COMPOSITION]
+- Korean model skin
+- Bright clean background
+- Space for SPF/PA rating
+
+[STYLE]
+- Korean suncare result aesthetic
+- Fresh, natural finish
+- No white residue visible
+
+[KEYWORDS: 무백탁, 톤업, 자연스러운, 가벼운]
+
+NO text in image.`,
+        suggestedImageCount: 2,
+        overlayTextGuide: 'BEFORE → AFTER / 무백탁 포뮬러 / 자연스러운 톤업',
+      },
+    ],
+  },
+
+  MODEL_SHOT: {
+    type: 'MODEL_SHOT',
+    name: '모델 이미지 섹션',
+    purpose: '한국 여성 모델의 트렌디한 뷰티 룩으로 제품 사용감과 분위기를 전달',
+    recommendedLayout: 'hero-centered',
+    imagePromptTemplate: `Korean female model beauty shot for detail page.
+
+[MODEL SPECIFICATION]
+- Korean female model, 20s-30s
+- Clear, healthy skin
+- Natural beauty, not over-edited
+- Trendy K-beauty makeup look
+
+[COMPOSITION]
+- Portrait or half-body shot
+- Product usage visible (if applicable)
+- Clean {background} background
+- Text space: side 25% OR bottom 20%
+
+[STYLE]
+- Korean beauty editorial aesthetic
+- hince, Romand, Innisfree style
+- Soft, flattering lighting
+- Aspirational yet relatable
+
+[MUST INCLUDE]
+- NO text in image
+- NO watermarks
+- Natural, healthy appearance
+- Trendy Korean beauty aesthetic`,
+    requiredVisuals: ['korean-model', 'beauty-look', 'clean-background', 'text-space'],
+    optionalVisuals: ['product-in-shot', 'close-up-detail', 'lifestyle-context'],
+    textOverlay: {
+      headline: true,
+      subheadline: true,
+      body: false,
+      bullets: false,
+      numbers: false,
+      icons: false,
+    },
+    generateImage: true,
+    defaultOrder: 7,
+    multiImage: true,
+    maxImageCount: 3,
+    categorySpecificPrompts: [
+      {
+        categoryKeywords: ['스킨케어', '세럼', '에센스', '크림', '토너', '로션'],
+        imagePrompt: `Korean female model SKINCARE beauty shot for detail page.
+
+[MODEL]
+- Korean female, 20s-30s
+- Glowing, dewy skin (촉촉한 광채 피부)
+- Natural no-makeup or minimal makeup look
+- Healthy, hydrated skin appearance
+
+[SHOTS TO GENERATE]
+1. FACE CLOSE-UP:
+   - Cheek/face showing dewy, glowing skin
+   - Natural light highlighting skin quality
+   - Soft focus on skin texture
+
+2. HALF PORTRAIT:
+   - Model touching face gently
+   - Serene, relaxed expression
+   - Skincare routine feeling
+
+3. PRODUCT USAGE (optional):
+   - Model applying product
+   - Dropper/pump dispensing scene
+
+[COMPOSITION]
+- Soft cream/white/light blue background
+- Side or bottom space for text (25-30%)
+- Editorial beauty photography style
+
+[STYLE]
+- Korean skincare brand aesthetic (hince, Innisfree)
+- Dewy, healthy, natural skin
+- Soft, flattering lighting
+- "Glass skin" or "honey skin" concept
+
+[KEYWORDS: 보습, 광채, 촉촉, 건강한 피부]
+
+NO text in image.`,
+        suggestedImageCount: 2,
+        overlayTextGuide: '피부 컨셉 문구 (예: "매일 아침 빛나는 피부", "촉촉함이 오래가는")',
+      },
+      {
+        categoryKeywords: ['립', '틴트', '립스틱', '립글로스'],
+        imagePrompt: `Korean female model LIP beauty shot for detail page.
+
+[MODEL]
+- Korean female, 20s-30s
+- Beautiful lip shape
+- Trendy K-beauty lip makeup
+- Natural, healthy appearance
+
+[SHOTS TO GENERATE]
+1. LIP FOCUS PORTRAIT:
+   - Lower face focus (nose to chin)
+   - Lips with product applied
+   - Color payoff clearly visible
+
+2. FULL FACE BEAUTY:
+   - Full face with lip product as focus
+   - Coordinated eye makeup
+   - Trendy K-beauty look
+
+3. PROFILE/ANGLE SHOT:
+   - Side or 3/4 angle
+   - Lip shape and color visible
+   - Editorial beauty vibe
+
+[COMPOSITION]
+- Soft pink/nude/cream background
+- Text space on side (30%)
+- Beauty photography lighting
+
+[STYLE]
+- Korean lip brand aesthetic (Romand, Peripera)
+- Gradient lip or full lip application
+- Plump, healthy lips
+- Trendy, youthful vibe
+
+[KEYWORDS: 발색, 생기, 촉촉함, 지속력]
+
+NO text in image.`,
+        suggestedImageCount: 2,
+        overlayTextGuide: '립 컨셉 문구 (예: "생기 가득한 입술", "트렌디한 데일리 립")',
+      },
+      {
+        categoryKeywords: ['쿠션', '파운데이션', '베이스메이크업'],
+        imagePrompt: `Korean female model BASE MAKEUP beauty shot for detail page.
+
+[MODEL]
+- Korean female, 20s-30s
+- Flawless base makeup appearance
+- Natural, skin-like finish
+- Not cakey or heavy looking
+
+[SHOTS TO GENERATE]
+1. SKIN CLOSE-UP:
+   - Cheek/face showing base makeup finish
+   - Dewy or semi-matte finish visible
+   - Pores minimized but natural
+
+2. FULL FACE BEAUTY:
+   - Complete makeup look
+   - Base as star, other makeup minimal
+   - "Your skin but better" concept
+
+3. BEFORE-AFTER FEEL:
+   - Natural, perfected skin appearance
+   - Coverage visible but natural
+
+[COMPOSITION]
+- Soft beige/cream background
+- Editorial beauty lighting
+- Text space at bottom 25%
+
+[STYLE]
+- Korean base makeup aesthetic
+- Natural, skin-like coverage
+- "Glass skin" or "Chok-chok" finish
+- Professional beauty photography
+
+[KEYWORDS: 커버력, 지속력, 자연스러움, 피부 표현]
+
+NO text in image.`,
+        suggestedImageCount: 2,
+        overlayTextGuide: '베이스 컨셉 문구 (예: "마치 피부처럼", "하루 종일 무너짐 없이")',
+      },
+      {
+        categoryKeywords: ['아이메이크업', '아이섀도우', '마스카라'],
+        imagePrompt: `Korean female model EYE MAKEUP beauty shot for detail page.
+
+[MODEL]
+- Korean female, 20s-30s
+- Beautiful eye shape
+- Trendy K-beauty eye makeup
+- Various eye looks
+
+[SHOTS TO GENERATE]
+1. EYE CLOSE-UP:
+   - Eye area focus
+   - Eyeshadow/mascara visible
+   - Color payoff and blending clear
+
+2. HALF FACE:
+   - Eyes as focus, lips minimal
+   - Showing complete eye look
+   - Different angles
+
+[COMPOSITION]
+- Neutral/cream background
+- Close-up beauty photography
+- Text space at side 30%
+
+[STYLE]
+- Korean eye makeup aesthetic
+- Natural to glam looks
+- Soft, flattering lighting
+- Trendy eye makeup trends
+
+[KEYWORDS: 발색, 블렌딩, 지속력, 다양한 연출]
+
+NO text in image.`,
+        suggestedImageCount: 2,
+        overlayTextGuide: '아이 컨셉 문구 (예: "다양한 무드 연출", "선명한 발색")',
+      },
+      {
+        categoryKeywords: ['선케어', '선크림'],
+        imagePrompt: `Korean female model SUNCARE beauty shot for detail page.
+
+[MODEL]
+- Korean female, 20s-30s
+- Fresh, healthy appearance
+- Outdoor-ready or sun-protected feeling
+- Natural glow
+
+[SHOTS TO GENERATE]
+1. FRESH FACE:
+   - Bright, protected skin look
+   - No white cast visible
+   - Tone-up effect if applicable
+
+2. OUTDOOR VIBE:
+   - Sunny, fresh feeling
+   - Model in bright setting
+   - Confident, protected appearance
+
+[COMPOSITION]
+- Bright white/yellow-tinted background
+- Fresh, sunny atmosphere
+- Text space at bottom 25%
+
+[STYLE]
+- Korean suncare aesthetic
+- Fresh, healthy, protected
+- Bright, energetic mood
+
+[KEYWORDS: 자외선 차단, 톤업, 촉촉한, 가벼운]
+
+NO text in image.`,
+        suggestedImageCount: 2,
+        overlayTextGuide: '선케어 컨셉 문구 (예: "자외선 걱정 없이", "매일의 피부 보호")',
       },
     ],
   },
@@ -1494,33 +2287,78 @@ export interface CategorySectionConfig {
 export const CATEGORY_SECTION_CONFIGS: Record<string, CategorySectionConfig> = {
   '가전': {
     category: '가전',
-    recommendedSections: ['HERO', 'FEATURES', 'SPECS', 'MATERIAL', 'HOW_TO_USE', 'LIFESTYLE', 'INFO_TABLE', 'CTA'],
+    recommendedSections: ['HERO', 'BRAND_CONCEPT', 'FEATURES', 'SPECS', 'HOW_TO_USE', 'LIFESTYLE', 'INFO_TABLE', 'CTA'],
     requiredSections: ['HERO', 'FEATURES', 'SPECS', 'INFO_TABLE'],
-    optionalSections: ['MATERIAL', 'HOW_TO_USE', 'LIFESTYLE', 'FAQ', 'CTA'],
+    optionalSections: ['BRAND_CONCEPT', 'HOW_TO_USE', 'LIFESTYLE', 'FAQ', 'CTA'],
   },
   '스킨케어': {
     category: '스킨케어',
-    recommendedSections: ['HERO', 'FEATURES', 'MATERIAL', 'SOCIAL_PROOF', 'HOW_TO_USE', 'FAQ', 'INFO_TABLE'],
-    requiredSections: ['HERO', 'FEATURES', 'SOCIAL_PROOF'],
-    optionalSections: ['MATERIAL', 'HOW_TO_USE', 'LIFESTYLE', 'FAQ', 'INFO_TABLE', 'CTA'],
+    // hince 스타일 상세페이지 순서 반영 + MODEL_SHOT 추가
+    recommendedSections: ['HERO', 'BRAND_CONCEPT', 'TEXTURE', 'MODEL_SHOT', 'PRODUCT_LINEUP', 'SKIN_RESULT', 'INGREDIENT', 'LIFESTYLE', 'HOW_TO_USE', 'SOCIAL_PROOF', 'FAQ', 'CTA'],
+    requiredSections: ['HERO', 'BRAND_CONCEPT', 'TEXTURE', 'INGREDIENT', 'HOW_TO_USE'],
+    optionalSections: ['MODEL_SHOT', 'PRODUCT_LINEUP', 'SKIN_RESULT', 'LIFESTYLE', 'SOCIAL_PROOF', 'FAQ', 'INFO_TABLE', 'CTA', 'FEATURES', 'MATERIAL'],
+  },
+  '로션': {
+    category: '로션',
+    // 로션 특화 섹션 구성 + MODEL_SHOT 추가
+    recommendedSections: ['HERO', 'BRAND_CONCEPT', 'TEXTURE', 'MODEL_SHOT', 'SKIN_RESULT', 'INGREDIENT', 'LIFESTYLE', 'HOW_TO_USE', 'CTA'],
+    requiredSections: ['HERO', 'BRAND_CONCEPT', 'TEXTURE', 'INGREDIENT'],
+    optionalSections: ['MODEL_SHOT', 'PRODUCT_LINEUP', 'SKIN_RESULT', 'LIFESTYLE', 'SOCIAL_PROOF', 'FAQ', 'HOW_TO_USE', 'CTA'],
+  },
+  '세럼': {
+    category: '세럼',
+    // 세럼 특화 + MODEL_SHOT 추가
+    recommendedSections: ['HERO', 'BRAND_CONCEPT', 'TEXTURE', 'MODEL_SHOT', 'INGREDIENT', 'SKIN_RESULT', 'SOCIAL_PROOF', 'HOW_TO_USE', 'CTA'],
+    requiredSections: ['HERO', 'TEXTURE', 'INGREDIENT', 'SKIN_RESULT'],
+    optionalSections: ['BRAND_CONCEPT', 'MODEL_SHOT', 'PRODUCT_LINEUP', 'LIFESTYLE', 'SOCIAL_PROOF', 'FAQ', 'HOW_TO_USE', 'CTA'],
+  },
+  '크림': {
+    category: '크림',
+    // 크림 특화 + MODEL_SHOT 추가
+    recommendedSections: ['HERO', 'BRAND_CONCEPT', 'TEXTURE', 'MODEL_SHOT', 'INGREDIENT', 'SKIN_RESULT', 'HOW_TO_USE', 'LIFESTYLE', 'CTA'],
+    requiredSections: ['HERO', 'TEXTURE', 'INGREDIENT'],
+    optionalSections: ['BRAND_CONCEPT', 'MODEL_SHOT', 'PRODUCT_LINEUP', 'SKIN_RESULT', 'LIFESTYLE', 'SOCIAL_PROOF', 'FAQ', 'HOW_TO_USE', 'CTA'],
   },
   '메이크업': {
     category: '메이크업',
-    recommendedSections: ['HERO', 'FEATURES', 'SOCIAL_PROOF', 'HOW_TO_USE', 'LIFESTYLE', 'FAQ'],
-    requiredSections: ['HERO', 'FEATURES', 'HOW_TO_USE'],
-    optionalSections: ['SOCIAL_PROOF', 'LIFESTYLE', 'FAQ', 'INFO_TABLE', 'CTA'],
+    // 메이크업 + MODEL_SHOT 필수 (메이크업은 모델 이미지가 핵심)
+    recommendedSections: ['HERO', 'BRAND_CONCEPT', 'FEATURES', 'MODEL_SHOT', 'TEXTURE', 'SKIN_RESULT', 'HOW_TO_USE', 'LIFESTYLE', 'FAQ', 'CTA'],
+    requiredSections: ['HERO', 'FEATURES', 'TEXTURE', 'MODEL_SHOT', 'HOW_TO_USE'],
+    optionalSections: ['BRAND_CONCEPT', 'PRODUCT_LINEUP', 'SKIN_RESULT', 'INGREDIENT', 'LIFESTYLE', 'SOCIAL_PROOF', 'FAQ', 'CTA'],
+  },
+  '립': {
+    category: '립',
+    // 립 + MODEL_SHOT 필수 (입술 발색 모델 필수)
+    recommendedSections: ['HERO', 'BRAND_CONCEPT', 'FEATURES', 'MODEL_SHOT', 'TEXTURE', 'INGREDIENT', 'SKIN_RESULT', 'HOW_TO_USE', 'CTA'],
+    requiredSections: ['HERO', 'FEATURES', 'TEXTURE', 'MODEL_SHOT'],
+    optionalSections: ['BRAND_CONCEPT', 'PRODUCT_LINEUP', 'INGREDIENT', 'SKIN_RESULT', 'LIFESTYLE', 'FAQ', 'HOW_TO_USE', 'CTA'],
+  },
+  '쿠션': {
+    category: '쿠션',
+    // 쿠션 + MODEL_SHOT 필수 (피부 표현 모델 필수)
+    recommendedSections: ['HERO', 'FEATURES', 'MODEL_SHOT', 'TEXTURE', 'SKIN_RESULT', 'SOCIAL_PROOF', 'HOW_TO_USE', 'LIFESTYLE', 'FAQ', 'CTA'],
+    requiredSections: ['HERO', 'FEATURES', 'TEXTURE', 'MODEL_SHOT', 'SKIN_RESULT'],
+    optionalSections: ['BRAND_CONCEPT', 'PRODUCT_LINEUP', 'INGREDIENT', 'LIFESTYLE', 'SOCIAL_PROOF', 'FAQ', 'HOW_TO_USE', 'CTA'],
+  },
+  '선케어': {
+    category: '선케어',
+    // 선케어 + MODEL_SHOT 추가 (자외선 차단 효과 시각화)
+    recommendedSections: ['HERO', 'TEXTURE', 'MODEL_SHOT', 'INGREDIENT', 'SKIN_RESULT', 'SOCIAL_PROOF', 'HOW_TO_USE', 'LIFESTYLE', 'CTA'],
+    requiredSections: ['HERO', 'TEXTURE', 'SOCIAL_PROOF'],
+    optionalSections: ['BRAND_CONCEPT', 'MODEL_SHOT', 'PRODUCT_LINEUP', 'INGREDIENT', 'SKIN_RESULT', 'LIFESTYLE', 'FAQ', 'HOW_TO_USE', 'CTA'],
   },
   '식품': {
     category: '식품',
-    recommendedSections: ['HERO', 'FEATURES', 'MATERIAL', 'HOW_TO_USE', 'INFO_TABLE', 'CTA'],
+    recommendedSections: ['HERO', 'FEATURES', 'INGREDIENT', 'HOW_TO_USE', 'INFO_TABLE', 'CTA'],
     requiredSections: ['HERO', 'FEATURES', 'INFO_TABLE'],
-    optionalSections: ['MATERIAL', 'SOCIAL_PROOF', 'HOW_TO_USE', 'FAQ', 'CTA'],
+    optionalSections: ['BRAND_CONCEPT', 'PRODUCT_LINEUP', 'INGREDIENT', 'SOCIAL_PROOF', 'HOW_TO_USE', 'FAQ', 'CTA'],
   },
   'default': {
     category: 'default',
-    recommendedSections: ['HERO', 'FEATURES', 'SOCIAL_PROOF', 'HOW_TO_USE', 'FAQ'],
+    // 기본값도 새로운 섹션 타입 포함 + MODEL_SHOT
+    recommendedSections: ['HERO', 'BRAND_CONCEPT', 'FEATURES', 'MODEL_SHOT', 'TEXTURE', 'INGREDIENT', 'SKIN_RESULT', 'HOW_TO_USE', 'FAQ', 'CTA'],
     requiredSections: ['HERO', 'FEATURES'],
-    optionalSections: ['SPECS', 'MATERIAL', 'SOCIAL_PROOF', 'HOW_TO_USE', 'LIFESTYLE', 'FAQ', 'INFO_TABLE', 'CTA'],
+    optionalSections: ['BRAND_CONCEPT', 'MODEL_SHOT', 'TEXTURE', 'INGREDIENT', 'PRODUCT_LINEUP', 'SKIN_RESULT', 'SPECS', 'MATERIAL', 'SOCIAL_PROOF', 'HOW_TO_USE', 'LIFESTYLE', 'FAQ', 'INFO_TABLE', 'CTA'],
   },
 };
 
