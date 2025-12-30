@@ -127,7 +127,8 @@ const defaultBlockContent: Record<BlockType, Omit<EditorBlock, 'id'>> = {
         zIndex: 1,
       },
     ],
-    overlayGradient: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.5))',
+    // 기본 테마는 그라데이션 없음 (투명)
+    overlayGradient: undefined,
   },
   button: { type: 'button', text: 'Click me', variant: 'primary' },
   list: { type: 'list', listType: 'bullet', items: [''] },

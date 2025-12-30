@@ -261,7 +261,7 @@ export function DetailPageEditor({
                     },
                     zIndex: 1,
                   }],
-                  overlayGradient: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.5))',
+                  overlayGradient: undefined,
                 } as EditorBlock);
                 currentTexts = [];
                 zIndex = 1;
@@ -326,7 +326,7 @@ export function DetailPageEditor({
                 },
                 zIndex: 1,
               }],
-              overlayGradient: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.5))',
+              overlayGradient: undefined,
             } as EditorBlock);
           }
 
@@ -365,7 +365,7 @@ export function DetailPageEditor({
                 },
                 zIndex: 1,
               }],
-              overlayGradient: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.5))',
+              overlayGradient: undefined,
             }] as EditorBlock[],
           });
         }
@@ -401,7 +401,7 @@ export function DetailPageEditor({
                 },
                 zIndex: 1,
               }],
-              overlayGradient: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.5))',
+              overlayGradient: undefined,
             }] as EditorBlock[],
           });
         }
@@ -442,7 +442,7 @@ export function DetailPageEditor({
               },
               zIndex: 1,
             }],
-            overlayGradient: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.5))',
+            overlayGradient: undefined,
           }] as EditorBlock[],
         });
       }
@@ -529,7 +529,7 @@ export function DetailPageEditor({
           },
           zIndex: 1,
         }],
-        overlayGradient: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.5))',
+        overlayGradient: undefined,
       }] as EditorBlock[],
     }, index);
   }, [insertSectionAt, sections.length]);
@@ -758,7 +758,7 @@ export function DetailPageEditor({
             },
             zIndex: 1,
           }],
-          overlayGradient: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.5))',
+          overlayGradient: undefined,
         } as EditorBlock);
         currentTexts = [];
         currentImage = '';

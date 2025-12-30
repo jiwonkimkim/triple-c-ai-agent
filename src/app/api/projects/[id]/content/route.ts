@@ -391,7 +391,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             src: section.imageUrl || '',
             alt: section.title || 'Section image',
             overlayTexts,
-            overlayGradient: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.5))',
+            // 기본 테마는 그라데이션 없음
+            overlayGradient: undefined,
           }],
         });
       }
