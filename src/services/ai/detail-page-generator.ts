@@ -49,7 +49,7 @@ interface GenerateDetailPageInput {
 
 interface DetailPageSection {
   id: string;
-  type: 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ' | 'CUSTOM';
+  type: 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ' | 'CUSTOM';
   title?: string;
   body: string;
   order: number;

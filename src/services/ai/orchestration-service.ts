@@ -64,7 +64,7 @@ export interface GenerationInput {
 }
 
 export interface SectionImagePrompt {
-  sectionType: 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
+  sectionType: 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
   position: SectionPosition;
   imagePrompt: string;
   overlayText?: OverlayTextContent;
@@ -101,8 +101,8 @@ function calculateImageCount(
 ): number {
   const config = COPY_LENGTH_CONFIG[copyLength];
 
-  // HERO는 항상 1개
-  if (sectionType === 'HERO') {
+  // MAIN과 HERO는 항상 1개
+  if (sectionType === 'MAIN' || sectionType === 'HERO') {
     return 1;
   }
 
@@ -212,7 +212,7 @@ function getGeminiClient(): GoogleGenAI | null {
 // ============================================
 
 export async function generateSectionImagePrompt(
-  sectionType: 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ',
+  sectionType: 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ',
   productName: string,
   category: string,
   keyFeatures: string[],
@@ -423,6 +423,9 @@ function buildFallbackImagePrompt(
   const themeMood = visualTheme ? visualTheme.moodKeywords.slice(0, 3).join(', ') : 'modern, clean, professional';
 
   const basePrompts: Record<string, string> = {
+    // MAIN: 올리브영 메인 썸네일 스타일 - 상세페이지 진입 전 제품 슬로건 이미지
+    MAIN: `${consistencyPrefix} ${themePrefix} OLIVEYOUNG main thumbnail style product photography of ${productDesc}, ${category} product package floating centered with subtle shadow, colorful gradient background (blue to pink OR green to yellow tones), award badge effect (OLIVEYOUNG PICK, BEST SELLER medal), gift set and bonus items displayed together, sparkle confetti celebration atmosphere, festive promotional mood, product slogan text space at top, brand logo space at bottom, high contrast vibrant commercial photography, Korean beauty e-commerce style, ${themeMood}${colorNote}${packageNote}, ${styleKeywords}${brandAddition}, ${qualityKeywords}, ${noTextInstruction}`,
+
     HERO: `${consistencyPrefix} ${themePrefix} Ultra-premium product photography of ${productDesc}, elegant ${category} product hero shot, perfectly centered composition with rule of thirds, space for text overlay at top and bottom, sophisticated gradient background (${visualTheme?.backgroundColors.gradient || 'soft white to subtle warm tones'}), professional studio softbox lighting with gentle rim light creating elegant product silhouette, subtle surface reflection on glossy base, luxury beauty advertisement aesthetic, premium cosmetic brand campaign quality, ${themeMood}, high-end minimalist design${colorNote}${packageNote}, ${styleKeywords}${brandAddition}, ${qualityKeywords}, ${noTextInstruction}`,
 
     FEATURES: `${consistencyPrefix} ${themePrefix} The IDENTICAL ${productDesc} from HERO section showcased with key ingredient visualization for ${category}, featuring ${keyFeatures[0] || 'natural premium ingredients'}, same exact product displayed at slight angle alongside fresh botanical elements with crystal-clear water droplets, detailed macro photography with shallow depth of field, space for feature icons and text, clean minimalist background with soft gradient, natural window-style soft lighting with catchlights, scientific yet elegant aesthetic conveying innovation and quality, ${themeMood}${colorNote}${packageNote}, ${styleKeywords}${brandAddition}, ${qualityKeywords}, ${noTextInstruction}`,
@@ -631,9 +634,10 @@ export async function orchestrateDetailPageGeneration(
   ]);
 
   // 3. 각 섹션별 다중 이미지 프롬프트 생성
+  // MAIN: 올리브영 메인 썸네일 스타일 (상세페이지 진입 전 제품 슬로건 이미지)
   console.log('[Orchestration] Generating section image prompts with copyLength-based counts...');
-  const sectionTypes: Array<'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ'> = [
-    'HERO', 'FEATURES', 'SOCIAL_PROOF', 'HOW_TO_USE', 'FAQ'
+  const sectionTypes: Array<'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ'> = [
+    'MAIN', 'HERO', 'FEATURES', 'SOCIAL_PROOF', 'HOW_TO_USE', 'FAQ'
   ];
 
   const brandStyle = input.brandContext?.imageKeywords?.join(', ');
@@ -772,7 +776,7 @@ export async function orchestrateDetailPageGeneration(
 // ============================================
 
 export async function regenerateSectionImagePrompt(
-  sectionType: 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ',
+  sectionType: 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ',
   productName: string,
   category: string,
   keyFeatures: string[],

@@ -310,6 +310,7 @@ export function getVisualStyleKeywords(category: string): string[] {
  */
 export function mapSectionTypeToPosition(sectionType: string): SectionPosition {
   const mapping: Record<string, SectionPosition> = {
+    'MAIN': 'intro',      // MAIN은 intro 위치 (가장 첫 번째)
     'HERO': 'intro',
     'FEATURES': 'features',
     'SOCIAL_PROOF': 'proof',
