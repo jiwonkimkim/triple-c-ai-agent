@@ -952,7 +952,7 @@ export default function SettingsPage() {
                       <CardDescription>앱의 시각적 스타일을 선택합니다.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-2 gap-4 max-w-lg">
+                      <div className="grid grid-cols-3 gap-4 max-w-2xl">
                         {[
                           {
                             value: 'default',
@@ -966,10 +966,16 @@ export default function SettingsPage() {
                             description: '패션 브랜드 스타일',
                             preview: 'bg-[#FFFBF5] border-black'
                           },
+                          {
+                            value: 'sapporo',
+                            label: 'Sapporo',
+                            description: '겨울 카페 스타일',
+                            preview: 'bg-gradient-to-b from-[#d4e5f7] to-[#f0f5f9] border-amber-500'
+                          },
                         ].map((t) => (
                           <motion.button
                             key={t.value}
-                            onClick={() => setStyleTheme(t.value as 'default' | 'smile')}
+                            onClick={() => setStyleTheme(t.value as 'default' | 'smile' | 'sapporo')}
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             className={cn(
