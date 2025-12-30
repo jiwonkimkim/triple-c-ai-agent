@@ -24,7 +24,8 @@
       "Bash(wsl --shutdown)",
       "Bash(git branch:*)",
       "Bash(find:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(docker system prune:*)"
     ],
     "deny": [],
     "ask": []
