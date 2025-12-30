@@ -11,6 +11,7 @@ import type { SectionType, LayoutStyle } from './types';
 // ============================================
 
 export type ExtendedSectionType =
+  | 'MAIN'              // 메인 썸네일 (올리브영 스타일 - 상세페이지 진입 전 제품 슬로건 이미지)
   | 'HERO'              // 메인 히어로 (제품 + 브랜드명 + 슬로건)
   | 'BRAND_CONCEPT'     // 브랜드 철학/컨셉 (감성적 메시지)
   | 'FEATURES'          // 특징 아이콘 그리드
@@ -89,6 +90,67 @@ export interface SectionTemplate {
 // ============================================
 
 export const SECTION_TEMPLATES: Record<ExtendedSectionType, SectionTemplate> = {
+  // ============================================
+  // MAIN: 올리브영 메인 썸네일 스타일
+  // 상세페이지 진입 전 제품 슬로건 이미지
+  // ============================================
+  MAIN: {
+    type: 'MAIN',
+    name: '메인 썸네일',
+    purpose: '상세페이지 진입 전 첫인상 - 올리브영 스타일 제품 슬로건 썸네일 이미지',
+    recommendedLayout: 'hero-centered',
+    imagePromptTemplate: `OLIVEYOUNG main thumbnail style product photography for Korean beauty e-commerce.
+
+[COMPOSITION - 올리브영 메인 썸네일 스타일]
+- Product "{product}" package FLOATING centered with subtle drop shadow
+- Product appears to levitate slightly above surface
+- Clean negative space for text overlay (top 30%, bottom 20%)
+
+[BACKGROUND - 축제/프로모션 분위기]
+- Colorful gradient background (blue-pink OR green-yellow OR purple-coral tones)
+- Soft bokeh sparkle effects scattered around product
+- Confetti or celebration particles in background
+- High saturation, vibrant commercial mood
+
+[VISUAL EFFECTS - 수상/인기 효과]
+- Award badge styling (OLIVEYOUNG PICK, BEST SELLER medal effect)
+- Ranking medal or crown subtle glow
+- Gift set / bonus items displayed alongside main product
+- Premium promotional atmosphere
+
+[LIGHTING]
+- Bright, even commercial lighting
+- Soft rim light on product edges
+- High contrast for product visibility
+- Studio quality with slight dreamy glow
+
+[STYLE]
+- Korean beauty e-commerce aesthetic
+- Festive promotional mood
+- High-end yet approachable
+- Clean, modern, celebratory
+
+[TECHNICAL]
+- 8K resolution, photorealistic
+- Professional product photography
+- Absolutely NO text, NO typography, NO letters
+- Text-free image only`,
+    requiredVisuals: ['product-package', 'gradient-background', 'floating-effect'],
+    optionalVisuals: ['award-badge', 'gift-set', 'sparkle-effects', 'confetti'],
+    textOverlay: {
+      headline: true,
+      subheadline: true,
+      body: false,
+      bullets: false,
+      numbers: false,
+      icons: false,
+    },
+    generateImage: true,
+    defaultOrder: 0,
+    multiImage: false,
+    maxImageCount: 1,
+  },
+
   HERO: {
     type: 'HERO',
     name: '히어로 섹션',
@@ -2378,7 +2440,7 @@ export function getSectionTemplate(sectionType: ExtendedSectionType): SectionTem
  */
 export function mapToExtendedSectionType(sectionType: SectionType): ExtendedSectionType {
   const mapping: Record<SectionType, ExtendedSectionType> = {
-    'MAIN': 'HERO',       // MAIN은 HERO로 매핑
+    'MAIN': 'MAIN',       // MAIN은 독립적인 썸네일 섹션
     'HERO': 'HERO',
     'FEATURES': 'FEATURES',
     'SOCIAL_PROOF': 'SOCIAL_PROOF',
