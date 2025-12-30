@@ -23,6 +23,10 @@ export const COPY_LENGTH_CONFIG = {
     sectionBodyLength: 100,
     description: '임팩트 있고 간결한',
     bulletPoints: 3,
+    // 이미지 생성 설정
+    maxTotalImages: 8,           // 전체 최대 이미지 수
+    sectionImageMultiplier: 0.5, // suggestedImageCount에 곱할 배수
+    minImagesPerSection: 1,      // 섹션당 최소 이미지 수
   },
   medium: {
     hookLength: 100,
@@ -30,6 +34,10 @@ export const COPY_LENGTH_CONFIG = {
     sectionBodyLength: 200,
     description: '균형 잡힌 정보 전달',
     bulletPoints: 4,
+    // 이미지 생성 설정
+    maxTotalImages: 12,
+    sectionImageMultiplier: 0.7,
+    minImagesPerSection: 1,
   },
   long: {
     hookLength: 150,
@@ -37,6 +45,10 @@ export const COPY_LENGTH_CONFIG = {
     sectionBodyLength: 400,
     description: '상세하고 설득력 있는',
     bulletPoints: 5,
+    // 이미지 생성 설정
+    maxTotalImages: 15,
+    sectionImageMultiplier: 1.0,
+    minImagesPerSection: 1,
   },
 };
 

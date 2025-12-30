@@ -30,10 +30,14 @@ import {
   buildSectionTemplatePrompt,
   // 네거티브 프롬프트
   buildNegativePrompt,
+  // 이미지 개수 관련
+  COPY_LENGTH_CONFIG,
+  getSectionImagePrompt,
   type SectionPosition,
   type OverlayTextContent,
   type ProductVisualReference,
   type VisualTheme,
+  type ExtendedSectionType,
 } from './prompts';
 
 // ============================================
@@ -65,6 +69,9 @@ export interface SectionImagePrompt {
   imagePrompt: string;
   overlayText?: OverlayTextContent;
   compositionGuide: typeof SECTION_COMPOSITION_GUIDE[SectionPosition];
+  imageIndex?: number;        // 다중 이미지일 때 인덱스 (0부터 시작)
+  totalImagesInSection?: number; // 해당 섹션의 총 이미지 수
+  variationHint?: string;     // 이미지 변형 힌트 (예: "shade #21", "step 1")
 }
 
 export interface OrchestrationResult {
@@ -75,8 +82,116 @@ export interface OrchestrationResult {
     title?: string;
     body: string;
     order: number;
-    imagePrompt: SectionImagePrompt;
+    imagePrompt: SectionImagePrompt;      // 기존 호환성 유지 (첫 번째 이미지)
+    imagePrompts?: SectionImagePrompt[];  // 다중 이미지 프롬프트 배열
   }[];
+}
+
+// ============================================
+// 이미지 개수 계산 유틸리티
+// ============================================
+
+/**
+ * copyLength와 suggestedImageCount를 기반으로 실제 생성할 이미지 수 계산
+ */
+function calculateImageCount(
+  copyLength: 'short' | 'medium' | 'long',
+  suggestedImageCount: number,
+  sectionType: string
+): number {
+  const config = COPY_LENGTH_CONFIG[copyLength];
+
+  // HERO는 항상 1개
+  if (sectionType === 'HERO') {
+    return 1;
+  }
+
+  // suggestedImageCount에 multiplier 적용
+  const calculated = Math.round(suggestedImageCount * config.sectionImageMultiplier);
+
+  // 최소 1개, 섹션당 최대 6개로 제한
+  return Math.max(config.minImagesPerSection, Math.min(calculated, 6));
+}
+
+/**
+ * 전체 이미지 수가 maxTotalImages를 초과하지 않도록 조정
+ */
+function adjustImageCountsToLimit(
+  sectionImageCounts: { sectionType: string; count: number }[],
+  copyLength: 'short' | 'medium' | 'long'
+): Map<string, number> {
+  const config = COPY_LENGTH_CONFIG[copyLength];
+  const maxTotal = config.maxTotalImages;
+
+  // 현재 총 이미지 수 계산
+  let totalCount = sectionImageCounts.reduce((sum, s) => sum + s.count, 0);
+
+  // 초과하지 않으면 그대로 반환
+  if (totalCount <= maxTotal) {
+    const result = new Map<string, number>();
+    sectionImageCounts.forEach(s => result.set(s.sectionType, s.count));
+    return result;
+  }
+
+  // 초과하면 비례 축소 (HERO는 제외하고)
+  const heroCount = sectionImageCounts.find(s => s.sectionType === 'HERO')?.count || 1;
+  const otherSections = sectionImageCounts.filter(s => s.sectionType !== 'HERO');
+  const remainingBudget = maxTotal - heroCount;
+  const otherTotal = otherSections.reduce((sum, s) => sum + s.count, 0);
+
+  const result = new Map<string, number>();
+  result.set('HERO', heroCount);
+
+  if (otherTotal > 0) {
+    const ratio = remainingBudget / otherTotal;
+    otherSections.forEach(s => {
+      const adjusted = Math.max(1, Math.round(s.count * ratio));
+      result.set(s.sectionType, adjusted);
+    });
+  }
+
+  return result;
+}
+
+/**
+ * 다중 이미지 생성 시 변형 힌트 생성
+ * - 카테고리와 섹션 타입에 따라 적절한 힌트 제공
+ */
+function generateVariationHint(
+  sectionType: string,
+  index: number,
+  totalCount: number,
+  category: string,
+  _overlayTextGuide?: string // 향후 사용 예정
+): string {
+  // 카테고리별 특화 힌트
+  const categoryLower = category.toLowerCase();
+
+  // 쿠션/파운데이션 - 호수별 발색
+  if (sectionType === 'FEATURES' && (categoryLower.includes('쿠션') || categoryLower.includes('파운데이션'))) {
+    const shades = ['#13 아이보리', '#17 라이트베이지', '#21 내추럴베이지', '#23 미디엄베이지', '#25 웜베이지'];
+    return shades[index] || `shade variation ${index + 1}`;
+  }
+
+  // 립 제품 - 컬러 바리에이션
+  if (sectionType === 'FEATURES' && (categoryLower.includes('립') || categoryLower.includes('틴트'))) {
+    const colors = ['코랄', '로즈', '레드', '누드', '피치', '버건디'];
+    return colors[index] || `color ${index + 1}`;
+  }
+
+  // HOW_TO_USE - 사용 순서
+  if (sectionType === 'HOW_TO_USE') {
+    return `step ${index + 1} of ${totalCount}`;
+  }
+
+  // SOCIAL_PROOF - 후기 유형
+  if (sectionType === 'SOCIAL_PROOF') {
+    const proofTypes = ['before-after', 'real review', 'texture close-up', 'daily use'];
+    return proofTypes[index] || `proof ${index + 1}`;
+  }
+
+  // 기본 변형
+  return `variation ${index + 1} of ${totalCount}`;
 }
 
 // ============================================
@@ -515,63 +630,108 @@ export async function orchestrateDetailPageGeneration(
     generateTextContent(1),
   ]);
 
-  // 3. 각 섹션별 이미지 프롬프트 생성
-  console.log('[Orchestration] Generating section image prompts...');
+  // 3. 각 섹션별 다중 이미지 프롬프트 생성
+  console.log('[Orchestration] Generating section image prompts with copyLength-based counts...');
   const sectionTypes: Array<'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ'> = [
     'HERO', 'FEATURES', 'SOCIAL_PROOF', 'HOW_TO_USE', 'FAQ'
   ];
 
   const brandStyle = input.brandContext?.imageKeywords?.join(', ');
 
-  // 각 섹션별 이미지 프롬프트 병렬 생성
+  // 3-1. 각 섹션별 권장 이미지 수 계산
+  const sectionImageCounts = sectionTypes.map(sectionType => {
+    const extendedType = mapToExtendedSectionType(sectionType) as ExtendedSectionType;
+    const sectionImageInfo = getSectionImagePrompt(
+      extendedType,
+      input.category,
+      input.productName,
+      visualTheme?.backgroundColors.gradient || 'soft gradient'
+    );
+    const count = calculateImageCount(
+      input.copyLength,
+      sectionImageInfo.suggestedImageCount,
+      sectionType
+    );
+    return { sectionType, count, overlayTextGuide: sectionImageInfo.overlayTextGuide };
+  });
+
+  // 3-2. 전체 이미지 수가 maxTotalImages를 초과하지 않도록 조정
+  const adjustedCounts = adjustImageCountsToLimit(sectionImageCounts, input.copyLength);
+
+  const totalImages = Array.from(adjustedCounts.values()).reduce((sum, c) => sum + c, 0);
+  console.log(`[Orchestration] Image counts by section (total: ${totalImages}):`, Object.fromEntries(adjustedCounts));
+
+  // 3-3. 각 섹션별 다중 이미지 프롬프트 생성
   // - 동일한 visualReference 전달로 제품 일관성 유지
   // - 동일한 visualTheme 전달로 배경/조명/분위기 일관성 유지
-  const imagePrompts = await Promise.all(
-    sectionTypes.map(async (sectionType) => {
-      const [imagePrompt, overlayText] = await Promise.all([
-        generateSectionImagePrompt(
-          sectionType,
-          input.productName,
-          input.category,
-          input.keyFeatures,
-          input.targetAudience,
-          brandStyle,
-          visualReference,  // 모든 섹션에 동일한 제품 외형 참조 전달
-          visualTheme       // 모든 섹션에 동일한 비주얼 테마 전달
-        ),
-        input.generateImages ? generateOverlayText(
-          sectionType,
-          input.productName,
-          input.category,
-          input.keyFeatures,
-          input.targetAudience
-        ) : undefined,
-      ]);
+  const imagePromptsMap = new Map<string, SectionImagePrompt[]>();
 
-      return {
-        ...imagePrompt,
-        overlayText,
-      };
+  await Promise.all(
+    sectionTypes.map(async (sectionType) => {
+      const imageCount = adjustedCounts.get(sectionType) || 1;
+      const sectionInfo = sectionImageCounts.find(s => s.sectionType === sectionType);
+
+      // 해당 섹션에 대해 imageCount만큼 프롬프트 생성
+      const prompts: SectionImagePrompt[] = await Promise.all(
+        Array.from({ length: imageCount }, async (_, index) => {
+          // 변형 힌트 생성 (예: "variation 1 of 3", "shade #21")
+          const variationHint = imageCount > 1
+            ? generateVariationHint(sectionType, index, imageCount, input.category, sectionInfo?.overlayTextGuide)
+            : undefined;
+
+          const [imagePrompt, overlayText] = await Promise.all([
+            generateSectionImagePrompt(
+              sectionType,
+              input.productName,
+              input.category,
+              input.keyFeatures,
+              input.targetAudience,
+              brandStyle,
+              visualReference,
+              visualTheme
+            ),
+            input.generateImages ? generateOverlayText(
+              sectionType,
+              input.productName,
+              input.category,
+              input.keyFeatures,
+              input.targetAudience
+            ) : undefined,
+          ]);
+
+          return {
+            ...imagePrompt,
+            overlayText,
+            imageIndex: index,
+            totalImagesInSection: imageCount,
+            variationHint,
+          };
+        })
+      );
+
+      imagePromptsMap.set(sectionType, prompts);
     })
   );
 
-  console.log('[Orchestration] Image prompts generated for all sections');
+  console.log('[Orchestration] Multi-image prompts generated for all sections');
 
-  // 4. 결과 조합
+  // 4. 결과 조합 (다중 이미지 프롬프트 포함)
   const buildResult = (textContent: { hookMessage: string; sections: Array<{ type: string; title?: string; body: string }> } | null): OrchestrationResult => {
     if (!textContent) {
       // 폴백 결과
       return {
         hookMessage: `${input.productName} - 최고의 선택`,
         sections: sectionTypes.map((type, index) => {
-          const imagePrompt = imagePrompts.find(p => p.sectionType === type) || imagePrompts[0];
+          const sectionPrompts = imagePromptsMap.get(type) || [];
+          const firstPrompt = sectionPrompts[0];
           return {
             id: uuidv4(),
             type,
             title: type,
             body: `${input.productName} ${type} 섹션`,
             order: index,
-            imagePrompt,
+            imagePrompt: firstPrompt,                    // 기존 호환성
+            imagePrompts: sectionPrompts.length > 1 ? sectionPrompts : undefined, // 다중 이미지
           };
         }),
       };
@@ -581,9 +741,8 @@ export async function orchestrateDetailPageGeneration(
       hookMessage: textContent.hookMessage,
       sections: textContent.sections.map((section, index) => {
         const sectionType = section.type as 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
-        const imagePrompt = imagePrompts.find(p => p.sectionType === sectionType) ||
-          imagePrompts.find(p => p.position === mapSectionTypeToPosition(sectionType)) ||
-          imagePrompts[Math.min(index, imagePrompts.length - 1)];
+        const sectionPrompts = imagePromptsMap.get(sectionType) || imagePromptsMap.get('HERO') || [];
+        const firstPrompt = sectionPrompts[0];
 
         return {
           id: uuidv4(),
@@ -591,7 +750,8 @@ export async function orchestrateDetailPageGeneration(
           title: section.title,
           body: section.body,
           order: index,
-          imagePrompt,
+          imagePrompt: firstPrompt,                      // 기존 호환성
+          imagePrompts: sectionPrompts.length > 1 ? sectionPrompts : undefined, // 다중 이미지
         };
       }),
     };

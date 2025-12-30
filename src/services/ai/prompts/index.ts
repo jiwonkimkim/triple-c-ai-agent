@@ -169,4 +169,8 @@ export {
   buildSectionTemplatePrompt,
   generateDetailPageStructure,
   shouldGenerateImageForSection,
+  // 이미지 개수 관련
+  getSectionImagePrompt,
+  isMultiImageSection,
+  getMaxImageCount,
 } from './section-templates';

@@ -158,20 +158,25 @@ export const SECTION_TEMPLATES: Record<ExtendedSectionType, SectionTemplate> = {
   FEATURES: {
     type: 'FEATURES',
     name: '특징/발색 섹션',
-    purpose: '제품의 핵심 특징, 색상 바리에이션, 발색 테스트 등을 여러 이미지로 상세히 보여주기',
+    purpose: '제품의 핵심 특징, 색상 바리에이션, 발색 테스트 등을 개별 블록 이미지로 상세히 보여주기',
     recommendedLayout: 'grid',
     imagePromptTemplate: `Product feature showcase photography for e-commerce detail page.
 
+[IMPORTANT - INDIVIDUAL BLOCK IMAGE]
+This prompt generates ONE individual image for ONE block.
+Each feature/shade should be a SEPARATE image block in the detail page.
+Do NOT combine multiple features into one image.
+
 [COMPOSITION]
-- Feature-focused product shot highlighting specific characteristic
-- Product "{product}" shown from angle that best demonstrates the feature
+- Feature-focused product shot highlighting ONE specific characteristic
+- Product "{product}" shown from angle that best demonstrates this single feature
 - Clean {background} background
 - Space reserved for feature text overlay (icon + label area)
 
 [STYLE]
 - Korean beauty e-commerce aesthetic
 - Clean, informative, professional
-- Each image focuses on ONE specific feature
+- This image focuses on ONE specific feature only
 
 [QUALITY]
 - 8K photorealistic, sharp detail
@@ -193,20 +198,16 @@ export const SECTION_TEMPLATES: Record<ExtendedSectionType, SectionTemplate> = {
     categorySpecificPrompts: [
       {
         categoryKeywords: ['쿠션', '파운데이션', '베이스메이크업'],
-        imagePrompt: `Cushion/Foundation SHADE SWATCH photography series for Korean beauty detail page.
+        imagePrompt: `Cushion/Foundation SINGLE SHADE SWATCH photography for Korean beauty detail page.
 
-[IMAGE SET - Generate multiple images for each shade]
-Create separate images for each foundation shade showing:
-1. ARM SWATCH TEST: Beautiful Korean female model's inner forearm with foundation swatch stroke. Clean, well-lit skin. Show the shade number clearly through texture/tone. Natural daylight simulation.
+[IMPORTANT - ONE BLOCK = ONE SHADE]
+This image is for ONE shade only. Generate SEPARATE images for each shade.
+Each shade = separate image block in the detail page.
 
-2. FACE APPLICATION (optional): Half-face comparison showing bare skin vs. applied foundation - demonstrating coverage and finish.
-
-[SHADE REPRESENTATION]
-- #13 Ivory: Very fair, pink undertone swatch
-- #17 Light Beige: Fair with neutral undertone
-- #21 Natural Beige: Light-medium, yellow undertone (most popular)
-- #23 Medium Beige: Medium, warm undertone
-- #25 Warm Beige: Medium-tan, golden undertone
+[THIS SINGLE IMAGE SHOWS]
+- ARM SWATCH TEST: Korean female model's inner forearm with ONE foundation shade swatch
+- Clean, well-lit skin showing the shade's texture and tone
+- Natural daylight simulation
 
 [STYLE]
 - Clean white or soft beige background
@@ -220,7 +221,7 @@ Create separate images for each foundation shade showing:
 - No text overlay in image
 - Commercial beauty photography standard`,
         suggestedImageCount: 5,
-        overlayTextGuide: '각 이미지에 호수 표기: #13 아이보리, #17 라이트베이지, #21 내추럴베이지, #23 미디엄베이지 등',
+        overlayTextGuide: '각 블록 이미지에 호수 표기: #13 아이보리, #17 라이트베이지, #21 내추럴베이지, #23 미디엄베이지, #25 웜베이지',
       },
       {
         categoryKeywords: ['립', '틴트', '립스틱', '립글로스'],

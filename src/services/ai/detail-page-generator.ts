@@ -53,8 +53,10 @@ interface DetailPageSection {
   title?: string;
   body: string;
   order: number;
-  imageUrl?: string;
-  imagePrompt?: SectionImagePrompt; // 섹션별 이미지 생성 프롬프트
+  imageUrl?: string;                    // 기존 호환성 (첫 번째 이미지)
+  imageUrls?: string[];                 // 다중 이미지 URL 배열
+  imagePrompt?: SectionImagePrompt;     // 기존 호환성 (첫 번째 프롬프트)
+  imagePrompts?: SectionImagePrompt[];  // 다중 이미지 프롬프트 배열
 }
 
 interface DetailPageVersion {
@@ -68,6 +70,7 @@ interface GeneratedSectionResult {
   title?: string;
   body: string;
   imageUrl?: string;
+  imageUrls?: string[];  // 다중 이미지 URL
 }
 
 // 개발자 모드 프롬프트 정보 (DEV ONLY) - 생성 결과 포함
@@ -371,7 +374,7 @@ export async function generateDetailPage(
       generateImages: input.generateImages,
     });
 
-    // OrchestrationResult를 DetailPageVersion으로 변환
+    // OrchestrationResult를 DetailPageVersion으로 변환 (다중 이미지 프롬프트 포함)
     let versions: DetailPageVersion[] = orchestrationResults.map((result) => ({
       hookMessage: result.hookMessage,
       sections: result.sections.map((section) => ({
@@ -381,52 +384,77 @@ export async function generateDetailPage(
         body: section.body,
         order: section.order,
         imagePrompt: section.imagePrompt,
+        imagePrompts: section.imagePrompts,  // 다중 이미지 프롬프트 배열
       })),
     }));
 
-    // 이미지 생성이 활성화된 경우 Gemini로 각 섹션별 이미지 생성
-    // - HERO: 메인 프로모션 이미지 (제품 중심, 배지, 모델 등)
-    // - FEATURES: 제품 특징 상세 이미지
-    // - SOCIAL_PROOF: 후기/인증 관련 이미지
-    // - HOW_TO_USE: 사용법 설명 이미지
-    // - FAQ: FAQ 관련 이미지
+    // 이미지 생성이 활성화된 경우 Gemini로 각 섹션별 다중 이미지 생성
+    // - copyLength에 따라 섹션별 이미지 수가 조절됨 (short: ~8개, medium: ~12개, long: ~15개)
+    // - HERO: 1개 고정
+    // - FEATURES: 발색, 색상별 이미지 등 다중 이미지
+    // - SOCIAL_PROOF: 후기 유형별 이미지
+    // - HOW_TO_USE: 사용 단계별 이미지
+    // - FAQ: 1개 고정
     if (input.generateImages && isGeminiConfigured()) {
-      console.log('[AI] Generating section-specific images with Gemini...');
+      console.log('[AI] Generating section-specific multi-images with Gemini...');
 
       try {
         const imageModel = input.imageModel || 'gemini-2.0-flash-exp';
 
-        // 각 섹션별 이미지 생성 (각 섹션의 imagePrompt 사용)
+        // 각 섹션별 다중 이미지 생성
         versions = await Promise.all(
           versions.map(async (version) => {
             const updatedSections = await Promise.all(
               version.sections.map(async (section) => {
-                // 이미지 프롬프트가 있는 모든 섹션에 이미지 생성
-                if (section.imagePrompt) {
-                  try {
-                    // 섹션별 맞춤 프롬프트로 이미지 생성
-                    const sectionImages = await generateDetailPageImagesWithGemini(
-                      input.productName,
-                      input.category,
-                      input.keyFeatures,
-                      section.imagePrompt.imagePrompt,
-                      imageModel
-                    );
+                // 다중 이미지 프롬프트가 있는 경우
+                const prompts = section.imagePrompts || (section.imagePrompt ? [section.imagePrompt] : []);
 
-                    if (sectionImages.heroImage) {
-                      console.log(`[AI] Generated image for ${section.type} section`);
-                      return {
-                        ...section,
-                        imageUrl: base64ToDataUrl(
-                          sectionImages.heroImage.base64Data,
-                          sectionImages.heroImage.mimeType
-                        ),
-                      };
-                    }
-                  } catch (sectionImageError) {
-                    console.error(`[AI] Failed to generate image for ${section.type}:`, sectionImageError);
-                  }
+                if (prompts.length === 0) {
+                  return section;
                 }
+
+                try {
+                  // 모든 이미지 프롬프트에 대해 병렬로 이미지 생성
+                  const generatedImages = await Promise.all(
+                    prompts.map(async (prompt, index) => {
+                      try {
+                        const sectionImages = await generateDetailPageImagesWithGemini(
+                          input.productName,
+                          input.category,
+                          input.keyFeatures,
+                          prompt.imagePrompt,
+                          imageModel
+                        );
+
+                        if (sectionImages.heroImage) {
+                          return base64ToDataUrl(
+                            sectionImages.heroImage.base64Data,
+                            sectionImages.heroImage.mimeType
+                          );
+                        }
+                        return null;
+                      } catch (err) {
+                        console.error(`[AI] Failed to generate image ${index + 1} for ${section.type}:`, err);
+                        return null;
+                      }
+                    })
+                  );
+
+                  // null이 아닌 이미지만 필터링
+                  const validImages = generatedImages.filter((img): img is string => img !== null);
+
+                  if (validImages.length > 0) {
+                    console.log(`[AI] Generated ${validImages.length}/${prompts.length} images for ${section.type} section`);
+                    return {
+                      ...section,
+                      imageUrl: validImages[0],           // 기존 호환성
+                      imageUrls: validImages.length > 1 ? validImages : undefined,  // 다중 이미지
+                    };
+                  }
+                } catch (sectionImageError) {
+                  console.error(`[AI] Failed to generate images for ${section.type}:`, sectionImageError);
+                }
+
                 return section;
               })
             );
@@ -438,7 +466,11 @@ export async function generateDetailPage(
           })
         );
 
-        console.log('[AI] Section-specific images generated successfully');
+        // 총 생성된 이미지 수 로깅
+        const totalImages = versions[0]?.sections.reduce((sum, s) => {
+          return sum + (s.imageUrls?.length || (s.imageUrl ? 1 : 0));
+        }, 0) || 0;
+        console.log(`[AI] Multi-image generation completed. Total images: ${totalImages}`);
       } catch (imageError) {
         console.error('[AI] Failed to generate images with Gemini:', imageError);
         // Continue without images - don't fail the entire generation
@@ -449,15 +481,18 @@ export async function generateDetailPage(
     if (includeDevPrompts && versions.length > 0) {
       const sectionImagePrompts: DevPromptInfo['sectionImagePrompts'] = [];
 
-      // 모든 섹션의 이미지 프롬프트 및 생성된 이미지 수집
+      // 모든 섹션의 이미지 프롬프트 및 생성된 이미지 수집 (다중 이미지 지원)
       for (const section of versions[0].sections) {
-        if (section.imagePrompt) {
+        const prompts = section.imagePrompts || (section.imagePrompt ? [section.imagePrompt] : []);
+        const imageUrls = section.imageUrls || (section.imageUrl ? [section.imageUrl] : []);
+
+        prompts.forEach((prompt, index) => {
           sectionImagePrompts.push({
             sectionType: section.type,
-            imagePrompt: section.imagePrompt.imagePrompt,
-            generatedImageUrl: section.imageUrl, // 생성된 이미지 URL 포함
+            imagePrompt: prompt.imagePrompt,
+            generatedImageUrl: imageUrls[index], // 해당 인덱스의 생성된 이미지 URL
           });
-        }
+        });
       }
 
       devPrompts = {
@@ -472,6 +507,7 @@ export async function generateDetailPage(
               title: s.title,
               body: s.body,
               imageUrl: s.imageUrl,
+              imageUrls: s.imageUrls,  // 다중 이미지 URL도 포함
             })),
           },
         },
