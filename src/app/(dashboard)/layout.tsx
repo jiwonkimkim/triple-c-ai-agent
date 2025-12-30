@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { getInitials } from '@/lib/utils';
+import { useStyleTheme } from '@/contexts/style-theme-context';
 
 const navigation = [
   { name: '대시보드', href: '/dashboard', icon: LayoutDashboard },
@@ -53,6 +54,8 @@ export default function DashboardLayout({
   const { data: session } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { styleTheme, isLoaded } = useStyleTheme();
+  const isSmile = isLoaded && styleTheme === 'smile';
 
   // 에디터 페이지 진입 시 사이드바 자동 닫기
   useEffect(() => {
@@ -76,7 +79,8 @@ export default function DashboardLayout({
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-background border-r-2 border-border transition-all duration-300 overflow-hidden',
+          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-background transition-all duration-300 overflow-hidden',
+          isSmile ? 'border-r-2 border-border' : 'border-r border-border',
           // 모바일: sidebarOpen으로 제어
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
           // 데스크톱: sidebarCollapsed로 제어 - 완전히 숨김
@@ -86,9 +90,15 @@ export default function DashboardLayout({
         )}
       >
         {/* Logo */}
-        <div className="flex h-16 items-center justify-between border-b-2 border-border px-4 min-w-[256px]">
+        <div className={cn(
+          "flex h-16 items-center justify-between px-4 min-w-[256px]",
+          isSmile ? "border-b-2 border-border" : "border-b border-border"
+        )}>
           <Link href="/dashboard" className="flex items-center space-x-2">
-            <span className="text-xl font-black tracking-tighter uppercase">Triple C</span>
+            <span className={cn(
+              "text-xl font-bold",
+              isSmile && "font-black tracking-tighter uppercase"
+            )}>Triple C</span>
           </Link>
           <div className="flex items-center gap-1">
             {/* 데스크톱: 사이드바 닫기 버튼 - 모던 스타일 */}
@@ -122,10 +132,15 @@ export default function DashboardLayout({
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  'flex items-center gap-3 px-3 py-3 text-sm font-bold uppercase tracking-wider transition-colors border-2 rounded-[var(--radius)]',
+                  'flex items-center gap-3 px-3 py-3 text-sm transition-colors',
+                  isSmile
+                    ? 'font-bold uppercase tracking-wider border-2 rounded-[var(--radius)]'
+                    : 'font-medium rounded-lg',
                   isActive
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'text-muted-foreground border-transparent hover:bg-muted hover:text-foreground hover:border-border'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                  isActive && isSmile && 'border-primary',
+                  !isActive && isSmile && 'border-transparent hover:border-border'
                 )}
                 onClick={() => setSidebarOpen(false)}
               >
@@ -137,16 +152,28 @@ export default function DashboardLayout({
         </nav>
 
         {/* User section */}
-        <div className="border-t-2 border-border p-4">
-          <div className="flex items-center gap-3 bg-muted p-3 border-2 border-border rounded-[var(--radius)]">
-            <Avatar className="h-9 w-9 border-2 border-border">
+        <div className={cn(
+          "p-4",
+          isSmile ? "border-t-2 border-border" : "border-t border-border"
+        )}>
+          <div className={cn(
+            "flex items-center gap-3 bg-muted p-3",
+            isSmile ? "border-2 border-border rounded-[var(--radius)]" : "rounded-lg"
+          )}>
+            <Avatar className={cn(
+              "h-9 w-9",
+              isSmile && "border-2 border-border"
+            )}>
               <AvatarImage src={session?.user?.image || ''} />
               <AvatarFallback className="bg-primary text-primary-foreground font-bold">
                 {getInitials(session?.user?.name || session?.user?.email || 'U')}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 truncate">
-              <p className="truncate text-sm font-bold uppercase tracking-wider">
+              <p className={cn(
+                "truncate text-sm font-medium",
+                isSmile && "font-bold uppercase tracking-wider"
+              )}>
                 {session?.user?.name || '사용자'}
               </p>
               <p className="truncate text-xs text-muted-foreground">
@@ -160,7 +187,10 @@ export default function DashboardLayout({
       {/* Main content */}
       <div className="flex flex-1 flex-col">
         {/* Top header */}
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b-2 border-border bg-background px-4 lg:px-6">
+        <header className={cn(
+          "sticky top-0 z-30 flex h-16 items-center gap-4 bg-background px-4 lg:px-6",
+          isSmile ? "border-b-2 border-border" : "border-b border-border"
+        )}>
           {/* 모바일: 사이드바 열기 버튼 */}
           <Button
             variant="ghost"
@@ -187,8 +217,14 @@ export default function DashboardLayout({
           {/* User menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2 uppercase text-xs tracking-wider font-bold">
-                <Avatar className="h-8 w-8 border-2 border-border">
+              <Button variant="ghost" className={cn(
+                "flex items-center gap-2",
+                isSmile && "uppercase text-xs tracking-wider font-bold"
+              )}>
+                <Avatar className={cn(
+                  "h-8 w-8",
+                  isSmile && "border-2 border-border"
+                )}>
                   <AvatarImage src={session?.user?.image || ''} />
                   <AvatarFallback className="bg-primary text-primary-foreground font-bold text-xs">
                     {getInitials(session?.user?.name || session?.user?.email || 'U')}
@@ -200,18 +236,29 @@ export default function DashboardLayout({
                 <ChevronDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 border-2 border-border">
-              <DropdownMenuLabel className="uppercase text-xs tracking-wider">내 계정</DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-border" />
+            <DropdownMenuContent align="end" className={cn(
+              "w-56",
+              isSmile && "border-2 border-border"
+            )}>
+              <DropdownMenuLabel className={cn(
+                isSmile && "uppercase text-xs tracking-wider"
+              )}>내 계정</DropdownMenuLabel>
+              <DropdownMenuSeparator className={isSmile ? "bg-border" : ""} />
               <DropdownMenuItem asChild>
-                <Link href="/dashboard/settings" className="cursor-pointer uppercase text-xs tracking-wider font-medium">
+                <Link href="/dashboard/settings" className={cn(
+                  "cursor-pointer",
+                  isSmile && "uppercase text-xs tracking-wider font-medium"
+                )}>
                   <User className="mr-2 h-4 w-4" />
                   프로필 설정
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-border" />
+              <DropdownMenuSeparator className={isSmile ? "bg-border" : ""} />
               <DropdownMenuItem
-                className="cursor-pointer text-destructive focus:text-destructive uppercase text-xs tracking-wider font-medium"
+                className={cn(
+                  "cursor-pointer text-destructive focus:text-destructive",
+                  isSmile && "uppercase text-xs tracking-wider font-medium"
+                )}
                 onClick={() => signOut({ callbackUrl: '/' })}
               >
                 <LogOut className="mr-2 h-4 w-4" />

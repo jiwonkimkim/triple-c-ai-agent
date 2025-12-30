@@ -13,12 +13,16 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { loginSchema, type LoginInput } from '@/lib/validations';
+import { useStyleTheme } from '@/contexts/style-theme-context';
+import { cn } from '@/lib/utils';
 
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [userType, setUserType] = useState<'B2C' | 'B2B'>('B2C');
+  const { styleTheme, isLoaded } = useStyleTheme();
+  const isSmile = isLoaded && styleTheme === 'smile';
 
   const {
     register,
@@ -111,13 +115,27 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted px-4">
-      <div className="w-full max-w-md bg-background border-2 border-border p-8 rounded-[var(--radius)]">
+      <div className={cn(
+        "w-full max-w-md bg-background p-8",
+        isSmile ? "border-2 border-border" : "border border-border rounded-lg shadow-sm"
+      )}>
         <div className="space-y-1 text-center mb-8">
           <Link href="/" className="mb-4 inline-block">
-            <span className="text-2xl font-black tracking-tighter uppercase">Triple C</span>
+            <span className={cn(
+              "text-2xl font-bold",
+              isSmile && "font-black tracking-tighter uppercase"
+            )}>Triple C</span>
           </Link>
-          <h1 className="text-3xl font-black tracking-tighter uppercase">Welcome Back</h1>
-          <p className="text-sm text-muted-foreground uppercase tracking-wider">
+          <h1 className={cn(
+            "text-3xl",
+            isSmile ? "font-black tracking-tighter uppercase" : "font-bold"
+          )}>
+            {isSmile ? "Welcome Back" : "로그인"}
+          </h1>
+          <p className={cn(
+            "text-sm text-muted-foreground",
+            isSmile && "uppercase tracking-wider"
+          )}>
             계정에 로그인하세요
           </p>
         </div>
@@ -126,11 +144,17 @@ export default function LoginPage() {
           {/* 사용자 유형 탭 */}
           <Tabs value={userType} onValueChange={(v) => setUserType(v as 'B2C' | 'B2B')} className="w-full">
             <TabsList className="grid w-full grid-cols-2 bg-muted p-1">
-              <TabsTrigger value="B2C" className="flex items-center gap-2 uppercase text-xs tracking-wider font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger value="B2C" className={cn(
+                "flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+                isSmile && "uppercase text-xs tracking-wider font-bold"
+              )}>
                 <User className="h-4 w-4" />
                 개인
               </TabsTrigger>
-              <TabsTrigger value="B2B" className="flex items-center gap-2 uppercase text-xs tracking-wider font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger value="B2B" className={cn(
+                "flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+                isSmile && "uppercase text-xs tracking-wider font-bold"
+              )}>
                 <Building2 className="h-4 w-4" />
                 기업
               </TabsTrigger>
@@ -139,7 +163,10 @@ export default function LoginPage() {
 
           <Button
             variant="outline"
-            className="w-full border-2 border-border hover:border-primary hover:bg-muted uppercase text-xs tracking-wider font-bold h-12"
+            className={cn(
+              "w-full h-12",
+              isSmile ? "border-2 border-border hover:border-primary hover:bg-muted uppercase text-xs tracking-wider font-bold" : ""
+            )}
             onClick={handleGoogleSignIn}
             disabled={isLoading}
           >
@@ -154,10 +181,16 @@ export default function LoginPage() {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t-2 border-border" />
+              <span className={cn(
+                "w-full border-t",
+                isSmile && "border-t-2 border-border"
+              )} />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-4 text-muted-foreground tracking-wider">
+              <span className={cn(
+                "bg-background px-4 text-muted-foreground",
+                isSmile && "tracking-wider"
+              )}>
                 또는
               </span>
             </div>
@@ -165,23 +198,36 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="uppercase text-xs tracking-wider font-bold">이메일</Label>
+              <Label htmlFor="email" className={cn(
+                isSmile && "uppercase text-xs tracking-wider font-bold"
+              )}>이메일</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="name@example.com"
                 {...register('email')}
-                className="border-2 border-border focus:border-primary h-12 uppercase text-sm"
+                className={cn(
+                  "h-12",
+                  isSmile && "border-2 border-border focus:border-primary"
+                )}
                 disabled={isLoading}
               />
               {errors.email && (
-                <p className="text-sm text-destructive uppercase tracking-wider">{errors.email.message}</p>
+                <p className={cn(
+                  "text-sm text-destructive",
+                  isSmile && "uppercase tracking-wider"
+                )}>{errors.email.message}</p>
               )}
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="uppercase text-xs tracking-wider font-bold">비밀번호</Label>
-                <Link href="/forgot-password" className="text-xs uppercase tracking-wider hover:underline">
+                <Label htmlFor="password" className={cn(
+                  isSmile && "uppercase text-xs tracking-wider font-bold"
+                )}>비밀번호</Label>
+                <Link href="/forgot-password" className={cn(
+                  "text-xs hover:underline",
+                  isSmile && "uppercase tracking-wider"
+                )}>
                   비밀번호 찾기
                 </Link>
               </div>
@@ -189,14 +235,23 @@ export default function LoginPage() {
                 id="password"
                 type="password"
                 {...register('password')}
-                className="border-2 border-border focus:border-primary h-12"
+                className={cn(
+                  "h-12",
+                  isSmile && "border-2 border-border focus:border-primary"
+                )}
                 disabled={isLoading}
               />
               {errors.password && (
-                <p className="text-sm text-destructive uppercase tracking-wider">{errors.password.message}</p>
+                <p className={cn(
+                  "text-sm text-destructive",
+                  isSmile && "uppercase tracking-wider"
+                )}>{errors.password.message}</p>
               )}
             </div>
-            <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/80 uppercase text-xs tracking-wider font-bold h-12" disabled={isLoading}>
+            <Button type="submit" className={cn(
+              "w-full h-12",
+              isSmile && "uppercase text-xs tracking-wider font-bold"
+            )} disabled={isLoading}>
               {isLoading ? '로그인 중...' : '로그인'}
             </Button>
           </form>
@@ -205,7 +260,10 @@ export default function LoginPage() {
             <>
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t-2 border-dashed border-orange-300" />
+                  <span className={cn(
+                    "w-full border-t border-dashed border-orange-300",
+                    isSmile && "border-t-2"
+                  )} />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-background px-4 text-orange-500 tracking-wider font-bold">
@@ -215,7 +273,10 @@ export default function LoginPage() {
               </div>
               <Button
                 variant="outline"
-                className="w-full border-2 border-orange-500 text-orange-500 hover:bg-orange-50 hover:text-orange-600 uppercase text-xs tracking-wider font-bold h-12"
+                className={cn(
+                  "w-full h-12 border-orange-500 text-orange-500 hover:bg-orange-50 hover:text-orange-600",
+                  isSmile && "border-2 uppercase text-xs tracking-wider font-bold"
+                )}
                 onClick={handleDevLogin}
                 disabled={isLoading}
               >
@@ -226,7 +287,10 @@ export default function LoginPage() {
         </div>
 
         <div className="mt-8 text-center">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider">
+          <p className={cn(
+            "text-xs text-muted-foreground",
+            isSmile && "uppercase tracking-wider"
+          )}>
             계정이 없으신가요?{' '}
             <Link href={`/signup?type=${userType}`} className="text-foreground font-bold hover:underline">
               회원가입

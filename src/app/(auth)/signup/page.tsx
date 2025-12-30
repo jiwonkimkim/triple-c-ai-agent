@@ -12,6 +12,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { useStyleTheme } from '@/contexts/style-theme-context';
+import { cn } from '@/lib/utils';
 
 const signupSchema = z.object({
   email: z.string().email('유효하지 않은 이메일 주소입니다'),
@@ -36,6 +38,8 @@ export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const { styleTheme, isLoaded } = useStyleTheme();
+  const isSmile = isLoaded && styleTheme === 'smile';
 
   const {
     register,
@@ -105,13 +109,27 @@ export default function SignupPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted px-4 py-8">
-      <div className="w-full max-w-md bg-background border-2 border-border p-8 rounded-[var(--radius)]">
+      <div className={cn(
+        "w-full max-w-md bg-background p-8",
+        isSmile ? "border-2 border-border" : "border border-border rounded-lg shadow-sm"
+      )}>
         <div className="space-y-1 text-center mb-8">
           <Link href="/" className="mb-4 inline-block">
-            <span className="text-2xl font-black tracking-tighter uppercase">Triple C</span>
+            <span className={cn(
+              "text-2xl font-bold",
+              isSmile && "font-black tracking-tighter uppercase"
+            )}>Triple C</span>
           </Link>
-          <h1 className="text-3xl font-black tracking-tighter uppercase">Create Account</h1>
-          <p className="text-sm text-muted-foreground uppercase tracking-wider">
+          <h1 className={cn(
+            "text-3xl",
+            isSmile ? "font-black tracking-tighter uppercase" : "font-bold"
+          )}>
+            {isSmile ? "Create Account" : "회원가입"}
+          </h1>
+          <p className={cn(
+            "text-sm text-muted-foreground",
+            isSmile && "uppercase tracking-wider"
+          )}>
             마케팅 콘텐츠 제작을 시작하세요
           </p>
         </div>
@@ -119,7 +137,10 @@ export default function SignupPage() {
         <div className="space-y-6">
           <Button
             variant="outline"
-            className="w-full border-2 border-border hover:border-primary hover:bg-muted uppercase text-xs tracking-wider font-bold h-12"
+            className={cn(
+              "w-full h-12",
+              isSmile && "border-2 border-border hover:border-primary hover:bg-muted uppercase text-xs tracking-wider font-bold"
+            )}
             onClick={handleGoogleSignIn}
             disabled={isLoading}
           >
@@ -134,10 +155,16 @@ export default function SignupPage() {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t-2 border-border" />
+              <span className={cn(
+                "w-full border-t",
+                isSmile && "border-t-2 border-border"
+              )} />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-4 text-muted-foreground tracking-wider">
+              <span className={cn(
+                "bg-background px-4 text-muted-foreground",
+                isSmile && "tracking-wider"
+              )}>
                 또는
               </span>
             </div>
@@ -145,86 +172,131 @@ export default function SignupPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="userType" className="uppercase text-xs tracking-wider font-bold">계정 유형</Label>
+              <Label htmlFor="userType" className={cn(
+                isSmile && "uppercase text-xs tracking-wider font-bold"
+              )}>계정 유형</Label>
               <Select
                 value={userType}
                 onValueChange={(value: 'B2C' | 'B2B') => setValue('userType', value)}
                 disabled={isLoading}
               >
-                <SelectTrigger className="border-2 border-border focus:border-primary h-12 uppercase text-xs tracking-wider">
+                <SelectTrigger className={cn(
+                  "h-12",
+                  isSmile && "border-2 border-border focus:border-primary uppercase text-xs tracking-wider"
+                )}>
                   <SelectValue placeholder="계정 유형 선택" />
                 </SelectTrigger>
-                <SelectContent className="border-2 border-border">
-                  <SelectItem value="B2C" className="uppercase text-xs tracking-wider">개인 (B2C)</SelectItem>
-                  <SelectItem value="B2B" className="uppercase text-xs tracking-wider">기업 (B2B)</SelectItem>
+                <SelectContent className={cn(
+                  isSmile && "border-2 border-border"
+                )}>
+                  <SelectItem value="B2C" className={cn(isSmile && "uppercase text-xs tracking-wider")}>개인 (B2C)</SelectItem>
+                  <SelectItem value="B2B" className={cn(isSmile && "uppercase text-xs tracking-wider")}>기업 (B2B)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="name" className="uppercase text-xs tracking-wider font-bold">이름</Label>
+              <Label htmlFor="name" className={cn(
+                isSmile && "uppercase text-xs tracking-wider font-bold"
+              )}>이름</Label>
               <Input
                 id="name"
                 type="text"
                 placeholder="홍길동"
                 {...register('name')}
-                className="border-2 border-border focus:border-primary h-12"
+                className={cn(
+                  "h-12",
+                  isSmile && "border-2 border-border focus:border-primary"
+                )}
                 disabled={isLoading}
               />
               {errors.name && (
-                <p className="text-sm text-destructive uppercase tracking-wider">{errors.name.message}</p>
+                <p className={cn(
+                  "text-sm text-destructive",
+                  isSmile && "uppercase tracking-wider"
+                )}>{errors.name.message}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="uppercase text-xs tracking-wider font-bold">이메일</Label>
+              <Label htmlFor="email" className={cn(
+                isSmile && "uppercase text-xs tracking-wider font-bold"
+              )}>이메일</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="name@example.com"
                 {...register('email')}
-                className="border-2 border-border focus:border-primary h-12"
+                className={cn(
+                  "h-12",
+                  isSmile && "border-2 border-border focus:border-primary"
+                )}
                 disabled={isLoading}
               />
               {errors.email && (
-                <p className="text-sm text-destructive uppercase tracking-wider">{errors.email.message}</p>
+                <p className={cn(
+                  "text-sm text-destructive",
+                  isSmile && "uppercase tracking-wider"
+                )}>{errors.email.message}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="uppercase text-xs tracking-wider font-bold">비밀번호</Label>
+              <Label htmlFor="password" className={cn(
+                isSmile && "uppercase text-xs tracking-wider font-bold"
+              )}>비밀번호</Label>
               <Input
                 id="password"
                 type="password"
                 {...register('password')}
-                className="border-2 border-border focus:border-primary h-12"
+                className={cn(
+                  "h-12",
+                  isSmile && "border-2 border-border focus:border-primary"
+                )}
                 disabled={isLoading}
               />
               {errors.password && (
-                <p className="text-sm text-destructive uppercase tracking-wider">{errors.password.message}</p>
+                <p className={cn(
+                  "text-sm text-destructive",
+                  isSmile && "uppercase tracking-wider"
+                )}>{errors.password.message}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="uppercase text-xs tracking-wider font-bold">비밀번호 확인</Label>
+              <Label htmlFor="confirmPassword" className={cn(
+                isSmile && "uppercase text-xs tracking-wider font-bold"
+              )}>비밀번호 확인</Label>
               <Input
                 id="confirmPassword"
                 type="password"
                 {...register('confirmPassword')}
-                className="border-2 border-border focus:border-primary h-12"
+                className={cn(
+                  "h-12",
+                  isSmile && "border-2 border-border focus:border-primary"
+                )}
                 disabled={isLoading}
               />
               {errors.confirmPassword && (
-                <p className="text-sm text-destructive uppercase tracking-wider">{errors.confirmPassword.message}</p>
+                <p className={cn(
+                  "text-sm text-destructive",
+                  isSmile && "uppercase tracking-wider"
+                )}>{errors.confirmPassword.message}</p>
               )}
             </div>
 
-            <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/80 uppercase text-xs tracking-wider font-bold h-12" disabled={isLoading}>
+            <Button type="submit" className={cn(
+              "w-full h-12",
+              isSmile && "uppercase text-xs tracking-wider font-bold"
+            )} disabled={isLoading}>
               {isLoading ? '계정 생성 중...' : '계정 만들기'}
             </Button>
           </form>
 
-          <p className="text-center text-xs text-muted-foreground uppercase tracking-wider">
+          <p className={cn(
+            "text-center text-xs text-muted-foreground",
+            isSmile && "uppercase tracking-wider"
+          )}>
             계정을 만들면{' '}
             <Link href="/terms" className="underline hover:text-foreground">
               서비스 약관
@@ -238,7 +310,10 @@ export default function SignupPage() {
         </div>
 
         <div className="mt-8 text-center">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider">
+          <p className={cn(
+            "text-xs text-muted-foreground",
+            isSmile && "uppercase tracking-wider"
+          )}>
             이미 계정이 있으신가요?{' '}
             <Link href="/login" className="text-foreground font-bold hover:underline">
               로그인
