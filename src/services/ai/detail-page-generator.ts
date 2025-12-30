@@ -4,6 +4,7 @@ import { GoogleGenAI } from '@google/genai';
 import { v4 as uuidv4 } from 'uuid';
 import {
   generateDetailPageImagesWithGemini,
+  generateImageFromImage,
   base64ToDataUrl,
   isGeminiConfigured,
   GeminiImageModel,
@@ -442,93 +443,193 @@ export async function generateDetailPage(
       console.log('[AI] User product images assigned to sections');
     }
     // ============================================
-    // AI 이미지 생성 (generateImages가 true인 경우에만)
-    // - copyLength에 따라 섹션별 이미지 수가 조절됨 (short: ~8개, medium: ~12개, long: ~15개)
-    // - HERO: 1개 고정
-    // - FEATURES: 발색, 색상별 이미지 등 다중 이미지
-    // - SOCIAL_PROOF: 후기 유형별 이미지
-    // - HOW_TO_USE: 사용 단계별 이미지
-    // - FAQ: 1개 고정
+    // AI 이미지 생성 (generateImages가 true인 경우)
+    // - Image-to-Image: 사용자 제품 이미지 + 이미지 프롬프트를 함께 사용
+    // - 제품 이미지를 그대로 유지하면서 배경/스타일만 변경
     // ============================================
     else if (input.generateImages && isGeminiConfigured()) {
-      console.log('[AI] Generating section-specific multi-images with Gemini...');
+      // 사용자 제품 이미지가 있는지 확인
+      const hasProductImages = input.productImages && input.productImages.length > 0;
+      const primaryProductImage = hasProductImages ? input.productImages[0] : null;
 
-      try {
-        const imageModel = input.imageModel || 'gemini-2.0-flash-exp';
+      if (hasProductImages && primaryProductImage) {
+        // ============================================
+        // Image-to-Image 모드: 사용자 제품 이미지 기반 생성
+        // - 사용자가 업로드한 제품 이미지 + 이미지 프롬프트
+        // - 제품은 그대로 유지, 배경/조명/스타일만 변경
+        // ============================================
+        console.log('[AI] Starting Image-to-Image generation with user product image...');
+        console.log(`[AI] Primary product image: ${primaryProductImage.substring(0, 50)}...`);
 
-        // 각 섹션별 다중 이미지 생성
-        versions = await Promise.all(
-          versions.map(async (version) => {
-            const updatedSections = await Promise.all(
-              version.sections.map(async (section) => {
-                // 다중 이미지 프롬프트가 있는 경우
-                const prompts = section.imagePrompts || (section.imagePrompt ? [section.imagePrompt] : []);
+        try {
+          const imageModel = input.imageModel || 'gemini-2.0-flash-exp';
 
-                if (prompts.length === 0) {
-                  return section;
-                }
+          versions = await Promise.all(
+            versions.map(async (version) => {
+              const updatedSections = await Promise.all(
+                version.sections.map(async (section, sectionIndex) => {
+                  // 이미지 프롬프트 가져오기
+                  const prompts = section.imagePrompts || (section.imagePrompt ? [section.imagePrompt] : []);
 
-                try {
-                  // 모든 이미지 프롬프트에 대해 병렬로 이미지 생성
-                  const generatedImages = await Promise.all(
-                    prompts.map(async (prompt, index) => {
-                      try {
-                        const sectionImages = await generateDetailPageImagesWithGemini(
-                          input.productName,
-                          input.category,
-                          input.keyFeatures,
-                          prompt.imagePrompt,
-                          imageModel
-                        );
-
-                        if (sectionImages.heroImage) {
-                          return base64ToDataUrl(
-                            sectionImages.heroImage.base64Data,
-                            sectionImages.heroImage.mimeType
-                          );
-                        }
-                        return null;
-                      } catch (err) {
-                        console.error(`[AI] Failed to generate image ${index + 1} for ${section.type}:`, err);
-                        return null;
-                      }
-                    })
-                  );
-
-                  // null이 아닌 이미지만 필터링
-                  const validImages = generatedImages.filter((img): img is string => img !== null);
-
-                  if (validImages.length > 0) {
-                    console.log(`[AI] Generated ${validImages.length}/${prompts.length} images for ${section.type} section`);
+                  if (prompts.length === 0) {
+                    // 프롬프트가 없으면 원본 제품 이미지 사용
+                    const imgIndex = sectionIndex % input.productImages.length;
                     return {
                       ...section,
-                      imageUrl: validImages[0],           // 기존 호환성
-                      imageUrls: validImages.length > 1 ? validImages : undefined,  // 다중 이미지
+                      imageUrl: input.productImages[imgIndex],
                     };
                   }
-                } catch (sectionImageError) {
-                  console.error(`[AI] Failed to generate images for ${section.type}:`, sectionImageError);
-                }
 
-                return section;
-              })
-            );
+                  try {
+                    // Image-to-Image: 제품 이미지 + 프롬프트로 새 이미지 생성
+                    const generatedImages = await Promise.all(
+                      prompts.slice(0, 1).map(async (prompt) => {  // 섹션당 1개씩 생성 (API 호출 최적화)
+                        try {
+                          console.log(`[AI I2I] Generating ${section.type} with prompt + product image...`);
 
-            return {
-              ...version,
-              sections: updatedSections,
-            };
-          })
-        );
+                          const images = await generateImageFromImage({
+                            sourceImage: primaryProductImage,
+                            prompt: prompt.imagePrompt,
+                            model: imageModel,
+                            preserveStrength: 0.85,
+                          });
 
-        // 총 생성된 이미지 수 로깅
-        const totalImages = versions[0]?.sections.reduce((sum, s) => {
-          return sum + (s.imageUrls?.length || (s.imageUrl ? 1 : 0));
-        }, 0) || 0;
-        console.log(`[AI] Multi-image generation completed. Total images: ${totalImages}`);
-      } catch (imageError) {
-        console.error('[AI] Failed to generate images with Gemini:', imageError);
-        // Continue without images - don't fail the entire generation
+                          if (images.length > 0) {
+                            return base64ToDataUrl(
+                              images[0].base64Data,
+                              images[0].mimeType
+                            );
+                          }
+                          return null;
+                        } catch (err) {
+                          console.error(`[AI I2I] Failed for ${section.type}:`, err);
+                          // 실패 시 원본 제품 이미지 사용
+                          return primaryProductImage;
+                        }
+                      })
+                    );
+
+                    const validImages = generatedImages.filter((img): img is string => img !== null);
+
+                    if (validImages.length > 0) {
+                      console.log(`[AI I2I] ${section.type} section image generated successfully`);
+                      return {
+                        ...section,
+                        imageUrl: validImages[0],
+                        imageUrls: validImages.length > 1 ? validImages : undefined,
+                      };
+                    }
+                  } catch (sectionError) {
+                    console.error(`[AI I2I] Section ${section.type} failed:`, sectionError);
+                  }
+
+                  // 실패 시 원본 제품 이미지 폴백
+                  const imgIndex = sectionIndex % input.productImages.length;
+                  return {
+                    ...section,
+                    imageUrl: input.productImages[imgIndex],
+                  };
+                })
+              );
+
+              return {
+                ...version,
+                sections: updatedSections,
+              };
+            })
+          );
+
+          const totalImages = versions[0]?.sections.reduce((sum, s) => {
+            return sum + (s.imageUrls?.length || (s.imageUrl ? 1 : 0));
+          }, 0) || 0;
+          console.log(`[AI I2I] Image-to-Image generation completed. Total: ${totalImages}`);
+        } catch (imageError) {
+          console.error('[AI I2I] Image-to-Image generation failed:', imageError);
+          // 실패 시 원본 이미지 사용으로 폴백
+          versions = versions.map((version) => ({
+            ...version,
+            sections: version.sections.map((section, idx) => ({
+              ...section,
+              imageUrl: input.productImages[idx % input.productImages.length],
+            })),
+          }));
+        }
+      } else {
+        // ============================================
+        // Text-to-Image 모드: 제품 이미지 없이 프롬프트만으로 생성 (기존 방식)
+        // ============================================
+        console.log('[AI] Generating images with Text-to-Image (no product image provided)...');
+
+        try {
+          const imageModel = input.imageModel || 'gemini-2.0-flash-exp';
+
+          versions = await Promise.all(
+            versions.map(async (version) => {
+              const updatedSections = await Promise.all(
+                version.sections.map(async (section) => {
+                  const prompts = section.imagePrompts || (section.imagePrompt ? [section.imagePrompt] : []);
+
+                  if (prompts.length === 0) {
+                    return section;
+                  }
+
+                  try {
+                    const generatedImages = await Promise.all(
+                      prompts.slice(0, 1).map(async (prompt) => {
+                        try {
+                          const sectionImages = await generateDetailPageImagesWithGemini(
+                            input.productName,
+                            input.category,
+                            input.keyFeatures,
+                            prompt.imagePrompt,
+                            imageModel
+                          );
+
+                          if (sectionImages.heroImage) {
+                            return base64ToDataUrl(
+                              sectionImages.heroImage.base64Data,
+                              sectionImages.heroImage.mimeType
+                            );
+                          }
+                          return null;
+                        } catch (err) {
+                          console.error(`[AI T2I] Failed for ${section.type}:`, err);
+                          return null;
+                        }
+                      })
+                    );
+
+                    const validImages = generatedImages.filter((img): img is string => img !== null);
+
+                    if (validImages.length > 0) {
+                      return {
+                        ...section,
+                        imageUrl: validImages[0],
+                        imageUrls: validImages.length > 1 ? validImages : undefined,
+                      };
+                    }
+                  } catch (sectionError) {
+                    console.error(`[AI T2I] Section ${section.type} failed:`, sectionError);
+                  }
+
+                  return section;
+                })
+              );
+
+              return {
+                ...version,
+                sections: updatedSections,
+              };
+            })
+          );
+
+          const totalImages = versions[0]?.sections.reduce((sum, s) => {
+            return sum + (s.imageUrls?.length || (s.imageUrl ? 1 : 0));
+          }, 0) || 0;
+          console.log(`[AI T2I] Text-to-Image generation completed. Total: ${totalImages}`);
+        } catch (imageError) {
+          console.error('[AI T2I] Text-to-Image generation failed:', imageError);
+        }
       }
     }
 
