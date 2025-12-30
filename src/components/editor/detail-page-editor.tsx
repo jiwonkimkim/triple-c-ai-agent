@@ -120,7 +120,7 @@ export function DetailPageEditor({
     selectSection,
     undo,
     redo,
-    pushHistory,
+    // pushHistory is called internally by setSections/addSection, no need to call it manually
   } = useEditorStore();
 
   // Initialize editor with initial sections or fetch from API
@@ -213,6 +213,7 @@ export function DetailPageEditor({
               overlayGradient: block.overlayGradient,
             })),
           }];
+          // setSections already calls pushHistory internally
           setSections(convertedSections);
         } else if (data.success && data.data?.elements?.length > 0) {
           // Legacy: Convert old elements format to image-overlay blocks
@@ -335,11 +336,14 @@ export function DetailPageEditor({
             name: '메인 섹션',
             blocks: imageOverlayBlocks,
           }];
+          // setSections already calls pushHistory internally
           setSections(convertedSections);
         } else if (initialSections && initialSections.length > 0) {
+          // setSections already calls pushHistory internally
           setSections(initialSections);
         } else {
           // Create default section with image-overlay block
+          // addSection already calls pushHistory internally
           addSection({
             name: '히어로 섹션',
             blocks: [{
@@ -369,13 +373,15 @@ export function DetailPageEditor({
             }] as EditorBlock[],
           });
         }
-        pushHistory();
+        // Removed duplicate pushHistory() - store methods already call it internally
       } catch (error) {
         console.error('Failed to load content:', error);
         // Fallback to default section with image-overlay block
         if (initialSections && initialSections.length > 0) {
+          // setSections already calls pushHistory internally
           setSections(initialSections);
         } else {
+          // addSection already calls pushHistory internally
           addSection({
             name: '히어로 섹션',
             blocks: [{
@@ -405,7 +411,7 @@ export function DetailPageEditor({
             }] as EditorBlock[],
           });
         }
-        pushHistory();
+        // Removed duplicate pushHistory() - store methods already call it internally
       } finally {
         setIsLoading(false);
       }
@@ -415,8 +421,10 @@ export function DetailPageEditor({
       fetchContent();
     } else {
       if (initialSections && initialSections.length > 0) {
+        // setSections already calls pushHistory internally
         setSections(initialSections);
       } else {
+        // addSection already calls pushHistory internally
         addSection({
           name: '히어로 섹션',
           blocks: [{
@@ -446,7 +454,7 @@ export function DetailPageEditor({
           }] as EditorBlock[],
         });
       }
-      pushHistory();
+      // Removed duplicate pushHistory() - store methods already call it internally
       setIsLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -818,14 +826,14 @@ export function DetailPageEditor({
       name: '템플릿 섹션',
       blocks: imageOverlayBlocks,
     };
+    // setSections already calls pushHistory internally
     setSections([newSection]);
-    pushHistory();
 
     toast({
       title: '템플릿 적용 완료',
       description: `${imageOverlayBlocks.length}개 블록이 생성되었습니다.`,
     });
-  }, [setSections, pushHistory, toast]);
+  }, [setSections, toast]);
 
   // Auto-scroll chat
   useEffect(() => {
