@@ -25,7 +25,8 @@
       "Bash(git branch:*)",
       "Bash(find:*)",
       "Bash(ls:*)",
-      "Bash(docker system prune:*)"
+      "Bash(docker system prune:*)",
+      "WebFetch(domain:ai.google.dev)"
     ],
     "deny": [],
     "ask": []

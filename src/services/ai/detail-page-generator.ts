@@ -9,6 +9,7 @@ import {
   base64ToDataUrl,
   isGeminiConfigured,
   GeminiImageModel,
+  DEFAULT_IMAGE_MODEL,
 } from '@/services/image/gemini-image-generator';
 import {
   buildEnhancedSystemPrompt,
@@ -463,7 +464,7 @@ export async function generateDetailPage(
         console.log(`[AI] Primary product image: ${primaryProductImage.substring(0, 50)}...`);
 
         try {
-          const imageModel = input.imageModel || 'gemini-2.0-flash-exp';
+          const imageModel = input.imageModel || DEFAULT_IMAGE_MODEL;
 
           // Step 1: 배경 제거 - 제품만 추출
           console.log('[AI] Step 1: Removing background from product image...');
@@ -568,7 +569,7 @@ export async function generateDetailPage(
         console.log('[AI] Generating images with Text-to-Image (no product image provided)...');
 
         try {
-          const imageModel = input.imageModel || 'gemini-2.0-flash-exp';
+          const imageModel = input.imageModel || DEFAULT_IMAGE_MODEL;
 
           versions = await Promise.all(
             versions.map(async (version) => {
@@ -765,7 +766,7 @@ async function generateDetailPageLegacy(
     } else {
       const gemini = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY! });
       const response = await gemini.models.generateContent({
-        model: 'gemini-2.0-flash-exp',
+        model: 'gemini-2.5-flash',  // 텍스트 생성용 (이미지 생성이 아님)
         contents: `${systemPrompt}\n\n${userPrompt}${variationPrompt}\n\nReturn only the JSON object, no additional text or markdown.`,
       });
       const textContent = response.candidates?.[0]?.content?.parts?.[0]?.text || '';
@@ -783,7 +784,7 @@ async function generateDetailPageLegacy(
 
     if (input.generateImages && isGeminiConfigured()) {
       try {
-        const imageModel = input.imageModel || 'gemini-2.0-flash-exp';
+        const imageModel = input.imageModel || DEFAULT_IMAGE_MODEL;
         const brandStyle = input.brandContext?.imageKeywords?.join(', ');
 
         const generatedImages = await generateDetailPageImagesWithGemini(

@@ -18,11 +18,17 @@ function getGeminiClient(): GoogleGenAI {
 }
 
 // Gemini 이미지 생성 지원 모델
+// - gemini-2.5-flash-image: Image-to-Image 지원 (Nano Banana), 빠른 속도, 1024px
+// - gemini-3-pro-image-preview: Image-to-Image 지원 (Nano Banana Pro), 고품질, 4K
+// - gemini-2.0-flash-exp: Text/Vision 모델 (Image-to-Image 미지원)
 export type GeminiImageModel =
   | 'gemini-2.0-flash-exp'
   | 'gemini-2.5-flash-preview-05-20'
   | 'gemini-2.5-flash-image'
   | 'gemini-3-pro-image-preview';
+
+// Image-to-Image를 지원하는 모델 (기본값으로 사용)
+export const DEFAULT_IMAGE_MODEL: GeminiImageModel = 'gemini-2.5-flash-image';
 export type ImageAspectRatio = '1:1' | '16:9' | '9:16' | '4:3' | '3:4';
 
 export interface GeminiGenerateImageOptions {
@@ -268,7 +274,7 @@ export async function removeBackground(
 ): Promise<GeminiGeneratedImage> {
   const {
     sourceImage,
-    model = 'gemini-2.0-flash-exp',
+    model = DEFAULT_IMAGE_MODEL,  // gemini-2.5-flash-image
     transparent = true,
   } = options;
 
@@ -347,7 +353,7 @@ OUTPUT: Clean product cutout with ${backgroundStyle}, professional e-commerce qu
  */
 export async function preprocessProductImage(
   sourceImage: string,
-  model: GeminiImageModel = 'gemini-2.0-flash-exp'
+  model: GeminiImageModel = DEFAULT_IMAGE_MODEL  // gemini-2.5-flash-image
 ): Promise<string> {
   try {
     console.log('[Gemini] Preprocessing product image (removing background)...');
@@ -414,7 +420,7 @@ export async function generateImageFromImage(
   const {
     sourceImage,
     prompt,
-    model = 'gemini-2.0-flash-exp',
+    model = DEFAULT_IMAGE_MODEL,  // gemini-2.5-flash-image (Image-to-Image 지원)
     preserveStrength = 0.85,
   } = options;
 
@@ -444,6 +450,9 @@ ${prompt}
 - No text or watermarks on the image`;
 
     // Gemini에 이미지 + 텍스트 프롬프트 동시 전송
+    console.log(`[Gemini I2I] Sending request to ${model}...`);
+    console.log(`[Gemini I2I] Image size (base64 length): ${base64.length}`);
+
     const response = await client.models.generateContent({
       model: model,
       contents: [
@@ -467,17 +476,30 @@ ${prompt}
       },
     });
 
+    console.log(`[Gemini I2I] Response received:`, JSON.stringify({
+      hasResponse: !!response,
+      hasCandidates: !!response?.candidates,
+      candidatesCount: response?.candidates?.length,
+      hasParts: !!response?.candidates?.[0]?.content?.parts,
+      partsCount: response?.candidates?.[0]?.content?.parts?.length,
+    }));
+
     // 응답에서 이미지 추출
     if (response.candidates && response.candidates[0]?.content?.parts) {
       for (const part of response.candidates[0].content.parts) {
+        console.log(`[Gemini I2I] Part type:`, part.text ? 'text' : part.inlineData ? 'inlineData' : 'unknown');
         if (part.inlineData && part.inlineData.data) {
-          console.log(`[Gemini I2I] Image generated, mimeType: ${part.inlineData.mimeType}`);
+          console.log(`[Gemini I2I] Image generated, mimeType: ${part.inlineData.mimeType}, data length: ${part.inlineData.data.length}`);
           results.push({
             base64Data: part.inlineData.data,
             mimeType: part.inlineData.mimeType || 'image/png',
           });
+        } else if (part.text) {
+          console.log(`[Gemini I2I] Text response instead of image: ${part.text.substring(0, 200)}...`);
         }
       }
+    } else {
+      console.warn(`[Gemini I2I] No candidates or parts in response`);
     }
 
     console.log(`[Gemini I2I] Total images generated: ${results.length}`);
@@ -498,7 +520,7 @@ export async function generateSectionImageFromProduct(
   productName: string,
   category: string,
   additionalPrompt?: string,
-  model: GeminiImageModel = 'gemini-2.0-flash-exp'
+  model: GeminiImageModel = DEFAULT_IMAGE_MODEL  // gemini-2.5-flash-image
 ): Promise<GeminiGeneratedImage> {
   // 섹션별 스타일 프롬프트
   const sectionPrompts: Record<string, string> = {
@@ -547,7 +569,7 @@ export async function generateDetailPageImagesFromProduct(
   category: string,
   sections: Array<'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ'>,
   brandStyle?: string,
-  model: GeminiImageModel = 'gemini-2.0-flash-exp'
+  model: GeminiImageModel = DEFAULT_IMAGE_MODEL  // gemini-2.5-flash-image
 ): Promise<Map<string, GeminiGeneratedImage>> {
   const results = new Map<string, GeminiGeneratedImage>();
 

@@ -297,6 +297,7 @@ export default function NewProjectPage() {
       });
 
       // 3. 상세페이지 생성 API 호출
+      // generateImages: true → 사용자 제품 이미지 + 프롬프트로 Image-to-Image 생성
       const generateRes = await fetch('/api/generate/detail-page', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -309,6 +310,7 @@ export default function NewProjectPage() {
           targetAudience: productInfo.targetAudience || '일반 소비자',
           copyLength: productInfo.copyLength,
           productUrl: productInfo.productUrl || undefined,
+          generateImages: true,  // Image-to-Image 생성 활성화
           imageModel: productInfo.imageModel,
         }),
       });
