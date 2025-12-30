@@ -149,9 +149,11 @@ export function ImageOverlayBlockRenderer({
   const [showLayerPanel, setShowLayerPanel] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
-  const [resizeDirection, setResizeDirection] = useState<'left' | 'right' | 'both'>('both');
+  const [resizeDirection, setResizeDirection] = useState<'left' | 'right' | 'both' | 'corner-tl' | 'corner-tr' | 'corner-bl' | 'corner-br'>('both');
   const [resizeStartX, setResizeStartX] = useState(0);
+  const [resizeStartY, setResizeStartY] = useState(0);
   const [resizeStartWidth, setResizeStartWidth] = useState(0);
+  const [resizeStartFontSize, setResizeStartFontSize] = useState(0);
   const [resizeStartPosX, setResizeStartPosX] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -192,15 +194,17 @@ export function ImageOverlayBlockRenderer({
   }, []);
 
   // 리사이즈 시작
-  const handleResizeStart = useCallback((e: React.MouseEvent, textId: string, direction: 'left' | 'right' | 'both' = 'both') => {
+  const handleResizeStart = useCallback((e: React.MouseEvent, textId: string, direction: 'left' | 'right' | 'both' | 'corner-tl' | 'corner-tr' | 'corner-bl' | 'corner-br' = 'both') => {
     e.preventDefault();
     e.stopPropagation();
     setSelectedTextId(textId);
     setIsResizing(true);
     setResizeDirection(direction);
     setResizeStartX(e.clientX);
+    setResizeStartY(e.clientY);
     const text = block.overlayTexts.find(t => t.id === textId);
     setResizeStartWidth(text?.style.width || 30); // 기본 너비 30%
+    setResizeStartFontSize(text?.style.fontSize || 16);
     setResizeStartPosX(text?.style.x || 50);
   }, [block.overlayTexts]);
 
@@ -210,33 +214,60 @@ export function ImageOverlayBlockRenderer({
 
     const rect = containerRef.current.getBoundingClientRect();
     const deltaX = e.clientX - resizeStartX;
-    const deltaPercent = (deltaX / rect.width) * 100;
+    const deltaY = e.clientY - resizeStartY;
+    const deltaPercentX = (deltaX / rect.width) * 100;
+    const deltaPercentY = (deltaY / rect.height) * 100;
 
-    let newWidth: number;
+    let newWidth: number = resizeStartWidth;
     let newX: number = resizeStartPosX;
+    let newFontSize: number = resizeStartFontSize;
 
-    if (resizeDirection === 'right') {
+    // 모서리 리사이즈: 너비 + 폰트 크기 동시 조절
+    if (resizeDirection.startsWith('corner-')) {
+      const isLeft = resizeDirection === 'corner-tl' || resizeDirection === 'corner-bl';
+      const isTop = resizeDirection === 'corner-tl' || resizeDirection === 'corner-tr';
+
+      // 너비 조절 (좌우 방향)
+      if (isLeft) {
+        newWidth = Math.max(5, Math.min(100, resizeStartWidth - deltaPercentX));
+        const widthDiff = newWidth - resizeStartWidth;
+        newX = Math.max(0, Math.min(100, resizeStartPosX - widthDiff / 2));
+      } else {
+        newWidth = Math.max(5, Math.min(100, resizeStartWidth + deltaPercentX));
+      }
+
+      // 폰트 크기 조절 (상하 방향) - 위로 드래그하면 커지고, 아래로 드래그하면 작아짐
+      const fontDelta = isTop ? -deltaPercentY : deltaPercentY;
+      newFontSize = Math.max(8, Math.min(200, resizeStartFontSize + fontDelta * 1.5));
+    } else if (resizeDirection === 'right') {
       // 오른쪽만 확장: 위치 고정, 너비만 증가
-      newWidth = Math.max(5, Math.min(100, resizeStartWidth + deltaPercent));
+      newWidth = Math.max(5, Math.min(100, resizeStartWidth + deltaPercentX));
     } else if (resizeDirection === 'left') {
       // 왼쪽만 확장: 위치 이동, 너비 증가
-      newWidth = Math.max(5, Math.min(100, resizeStartWidth - deltaPercent));
-      // 왼쪽으로 확장할 때 중심점 이동
+      newWidth = Math.max(5, Math.min(100, resizeStartWidth - deltaPercentX));
       const widthDiff = newWidth - resizeStartWidth;
       newX = Math.max(0, Math.min(100, resizeStartPosX - widthDiff / 2));
     } else {
       // 양쪽 확장 (기존 동작)
-      newWidth = Math.max(5, Math.min(100, resizeStartWidth + deltaPercent * 2));
+      newWidth = Math.max(5, Math.min(100, resizeStartWidth + deltaPercentX * 2));
     }
 
     onUpdate({
       overlayTexts: block.overlayTexts.map((text) =>
         text.id === selectedTextId
-          ? { ...text, style: { ...text.style, width: newWidth, x: newX } }
+          ? {
+              ...text,
+              style: {
+                ...text.style,
+                width: newWidth,
+                x: newX,
+                ...(resizeDirection.startsWith('corner-') && { fontSize: Math.round(newFontSize) })
+              }
+            }
           : text
       ),
     });
-  }, [isResizing, selectedTextId, resizeStartX, resizeStartWidth, resizeStartPosX, resizeDirection, block.overlayTexts, onUpdate]);
+  }, [isResizing, selectedTextId, resizeStartX, resizeStartY, resizeStartWidth, resizeStartFontSize, resizeStartPosX, resizeDirection, block.overlayTexts, onUpdate]);
 
   // 리사이즈 종료
   const handleResizeEnd = useCallback(() => {
@@ -500,8 +531,9 @@ export function ImageOverlayBlockRenderer({
                 <>
                   {/* 왼쪽 변 핸들 */}
                   <div
-                    className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2.5 h-6 bg-yellow-400 rounded cursor-ew-resize hover:bg-yellow-500 border border-white shadow-md"
+                    className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-8 bg-yellow-400 rounded cursor-ew-resize hover:bg-yellow-500 border-2 border-white shadow-lg z-10"
                     onMouseDown={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       handleResizeStart(e, overlayText.id, 'left');
                     }}
@@ -509,44 +541,53 @@ export function ImageOverlayBlockRenderer({
                   />
                   {/* 오른쪽 변 핸들 */}
                   <div
-                    className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-2.5 h-6 bg-yellow-400 rounded cursor-ew-resize hover:bg-yellow-500 border border-white shadow-md"
+                    className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 w-3 h-8 bg-yellow-400 rounded cursor-ew-resize hover:bg-yellow-500 border-2 border-white shadow-lg z-10"
                     onMouseDown={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       handleResizeStart(e, overlayText.id, 'right');
                     }}
                     title="오른쪽으로 확장"
                   />
-                  {/* 왼쪽 상단 모서리 */}
+                  {/* 왼쪽 상단 모서리 - 너비 + 폰트 크기 조절 */}
                   <div
-                    className="absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-blue-400 rounded-sm cursor-nw-resize hover:bg-blue-500 border border-white shadow-md"
+                    className="absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-blue-400 rounded-sm cursor-nwse-resize hover:bg-blue-500 border-2 border-white shadow-lg z-10"
                     onMouseDown={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
-                      handleResizeStart(e, overlayText.id, 'left');
+                      handleResizeStart(e, overlayText.id, 'corner-tl');
                     }}
+                    title="대각선 리사이즈 (너비 + 폰트 크기)"
                   />
-                  {/* 오른쪽 상단 모서리 */}
+                  {/* 오른쪽 상단 모서리 - 너비 + 폰트 크기 조절 */}
                   <div
-                    className="absolute right-0 top-0 translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-blue-400 rounded-sm cursor-ne-resize hover:bg-blue-500 border border-white shadow-md"
+                    className="absolute right-0 top-0 translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-blue-400 rounded-sm cursor-nesw-resize hover:bg-blue-500 border-2 border-white shadow-lg z-10"
                     onMouseDown={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
-                      handleResizeStart(e, overlayText.id, 'right');
+                      handleResizeStart(e, overlayText.id, 'corner-tr');
                     }}
+                    title="대각선 리사이즈 (너비 + 폰트 크기)"
                   />
-                  {/* 왼쪽 하단 모서리 */}
+                  {/* 왼쪽 하단 모서리 - 너비 + 폰트 크기 조절 */}
                   <div
-                    className="absolute left-0 bottom-0 -translate-x-1/2 translate-y-1/2 w-3 h-3 bg-blue-400 rounded-sm cursor-sw-resize hover:bg-blue-500 border border-white shadow-md"
+                    className="absolute left-0 bottom-0 -translate-x-1/2 translate-y-1/2 w-4 h-4 bg-blue-400 rounded-sm cursor-nesw-resize hover:bg-blue-500 border-2 border-white shadow-lg z-10"
                     onMouseDown={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
-                      handleResizeStart(e, overlayText.id, 'left');
+                      handleResizeStart(e, overlayText.id, 'corner-bl');
                     }}
+                    title="대각선 리사이즈 (너비 + 폰트 크기)"
                   />
-                  {/* 오른쪽 하단 모서리 */}
+                  {/* 오른쪽 하단 모서리 - 너비 + 폰트 크기 조절 */}
                   <div
-                    className="absolute right-0 bottom-0 translate-x-1/2 translate-y-1/2 w-3 h-3 bg-blue-400 rounded-sm cursor-se-resize hover:bg-blue-500 border border-white shadow-md"
+                    className="absolute right-0 bottom-0 translate-x-1/2 translate-y-1/2 w-4 h-4 bg-blue-400 rounded-sm cursor-nwse-resize hover:bg-blue-500 border-2 border-white shadow-lg z-10"
                     onMouseDown={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
-                      handleResizeStart(e, overlayText.id, 'right');
+                      handleResizeStart(e, overlayText.id, 'corner-br');
                     }}
+                    title="대각선 리사이즈 (너비 + 폰트 크기)"
                   />
                   {/* 선택 테두리 표시 */}
                   <div className="absolute inset-0 border-2 border-dashed border-yellow-400 pointer-events-none rounded" />
