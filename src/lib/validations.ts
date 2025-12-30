@@ -94,7 +94,7 @@ export const generateDetailPageSchema = z.object({
   targetAudience: z.string().optional().default('일반 소비자'),
   copyLength: z.enum(['short', 'medium', 'long']),
   productUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
-  generateImages: z.boolean().optional().default(true),
+  generateImages: z.boolean().optional().default(false), // 기본: 사용자 업로드 이미지 직접 사용
   imageModel: z.enum(['gemini-2.0-flash-exp', 'gemini-2.5-flash-preview-05-20', 'gemini-2.5-flash-image', 'gemini-3-pro-image-preview']).optional(),
 });
 

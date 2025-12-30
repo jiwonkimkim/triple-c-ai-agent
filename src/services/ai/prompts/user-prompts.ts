@@ -3,8 +3,41 @@
  * 사용자 입력을 기반으로 AI에게 전달할 요청 프롬프트 생성
  */
 
-import type { GenerateDetailPageInput } from './types';
+import type { GenerateDetailPageInput, BrandContext } from './types';
 import { COPY_LENGTH_CONFIG, getCategoryPattern } from './category-patterns';
+
+// ============================================
+// 브랜드 컨텍스트 프롬프트 빌더
+// ============================================
+
+function buildBrandContextPrompt(brandContext: BrandContext): string {
+  let prompt = `
+## 브랜드 정보 (반드시 반영)
+
+**브랜드명:** ${brandContext.name}
+
+**브랜드 아이덴티티:**
+${brandContext.identity}
+
+**톤앤매너:**
+${brandContext.toneAndManner}
+- 이 톤앤매너를 모든 카피에 일관되게 적용해주세요.
+- 브랜드의 목소리와 스타일을 유지해주세요.
+
+**비주얼 키워드:** ${brandContext.imageKeywords.join(', ')}
+- 이 키워드들이 텍스트 톤에도 반영되어야 합니다.
+`;
+
+  if (brandContext.ragContext) {
+    prompt += `
+**브랜드 참고 자료 (RAG):**
+${brandContext.ragContext}
+- 위 참고 자료의 스타일과 표현을 참조하여 카피를 작성해주세요.
+`;
+  }
+
+  return prompt;
+}
 
 // ============================================
 // 상세페이지 생성 프롬프트
@@ -14,15 +47,21 @@ export function buildUserPrompt(input: GenerateDetailPageInput): string {
   const categoryPattern = getCategoryPattern(input.category);
   const lengthConfig = COPY_LENGTH_CONFIG[input.copyLength];
 
+  // 브랜드 컨텍스트 섹션 (있는 경우만)
+  const brandSection = input.brandContext
+    ? buildBrandContextPrompt(input.brandContext)
+    : '';
+
   return `[필수 규칙] 이모지, 특수문자, 기호 사용 절대 금지. 순수 한글/영문 텍스트만 사용하세요.
 
 다음 제품의 상세페이지 콘텐츠를 생성해주세요.
-
+${brandSection}
 ## 제품 정보
 
 **제품명:** ${input.productName}
 **카테고리:** ${input.category}
 **타겟 고객:** ${input.targetAudience}
+${input.brandContext ? `**브랜드:** ${input.brandContext.name}` : ''}
 
 **주요 특징:**
 ${input.keyFeatures.map((f, i) => `${i + 1}. ${f}`).join('\n')}
@@ -115,7 +154,12 @@ ${categoryPattern.topStats.length > 0 ? `- 인사이트: ${categoryPattern.topSt
 - 특수 기호 금지 (*, #, ~, ^ 등으로 꾸미지 말 것)
 - 순수 한글/영문/숫자만 사용
 - 상세페이지에 어울리는 깔끔한 문체로 작성
-
+${input.brandContext ? `
+## 필수: 브랜드 일관성 유지
+- 위에서 제공한 브랜드 정보(${input.brandContext.name})를 모든 카피에 반드시 반영하세요.
+- 브랜드의 톤앤매너(${input.brandContext.toneAndManner})를 일관되게 유지하세요.
+- 제품명에 브랜드명이 포함되지 않았다면 적절히 브랜드를 언급해주세요.
+` : ''}
 JSON 객체만 반환하고, 추가 설명은 포함하지 마세요.`;
 }
 

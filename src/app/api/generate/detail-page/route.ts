@@ -122,6 +122,8 @@ export async function POST(request: NextRequest) {
     const includeDevPrompts = isDev && (body.includeDevPrompts ?? true);
 
     // Generate detail page versions with optional image generation
+    // - generateImages: false (기본) = 사용자 업로드 제품 이미지 직접 사용
+    // - generateImages: true = AI가 새로운 이미지 생성
     const generationResult = await generateDetailPage({
       productImages: validatedData.productImages,
       productName: validatedData.productName,
@@ -130,7 +132,7 @@ export async function POST(request: NextRequest) {
       targetAudience: validatedData.targetAudience || '일반 소비자',
       copyLength: validatedData.copyLength,
       brandContext,
-      generateImages: validatedData.generateImages ?? true, // 기본적으로 이미지 생성 활성화
+      generateImages: validatedData.generateImages ?? false, // 기본: 사용자 이미지 직접 사용
       imageModel: validatedData.imageModel,
     }, { includeDevPrompts });
 

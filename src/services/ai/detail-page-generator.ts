@@ -149,15 +149,24 @@ function getAvailableProvider(): 'gemini' | 'anthropic' | 'openai' | 'groq' | nu
   return null;
 }
 
-// Generate mock detail page for development
+// Generate mock detail page for development (브랜드 컨텍스트 반영)
 function generateMockDetailPage(input: GenerateDetailPageInput, versionIndex: number): DetailPageVersion {
+  // 브랜드 정보 추출
+  const brandName = input.brandContext?.name || '';
+  const brandTone = input.brandContext?.toneAndManner || '';
+  const brandPrefix = brandName ? `${brandName} ` : '';
+
   const variations = [
     {
-      hookMessage: `${input.productName} - ${input.targetAudience}를 위한 완벽한 선택`,
+      hookMessage: brandName
+        ? `${brandPrefix}${input.productName} - ${input.targetAudience}를 위한 ${brandTone || '특별한'} 선택`
+        : `${input.productName} - ${input.targetAudience}를 위한 완벽한 선택`,
       angle: '혜택 중심',
     },
     {
-      hookMessage: `지금 바로 ${input.productName}의 놀라운 가치를 경험하세요`,
+      hookMessage: brandName
+        ? `${brandName}이 선보이는 ${input.productName}의 놀라운 가치를 경험하세요`
+        : `지금 바로 ${input.productName}의 놀라운 가치를 경험하세요`,
       angle: '행동 유도',
     },
   ];
@@ -170,8 +179,8 @@ function generateMockDetailPage(input: GenerateDetailPageInput, versionIndex: nu
       {
         id: uuidv4(),
         type: 'HERO',
-        title: `${input.productName} 소개`,
-        body: `${input.targetAudience}를 위해 설계된 ${input.productName}입니다. ${input.keyFeatures[0] || '뛰어난 품질'}을 자랑합니다.`,
+        title: `${brandPrefix}${input.productName} 소개`,
+        body: `${input.targetAudience}를 위해 설계된 ${brandPrefix}${input.productName}입니다. ${input.keyFeatures[0] || '뛰어난 품질'}을 자랑합니다.${brandTone ? ` ${brandTone}의 철학을 담았습니다.` : ''}`,
         order: 0,
       },
       {
@@ -185,21 +194,21 @@ function generateMockDetailPage(input: GenerateDetailPageInput, versionIndex: nu
         id: uuidv4(),
         type: 'SOCIAL_PROOF',
         title: '고객 후기',
-        body: `"${input.productName}을 사용한 후 정말 만족합니다!" - 실제 사용자 후기`,
+        body: `"${brandPrefix}${input.productName}을 사용한 후 정말 만족합니다!" - 실제 사용자 후기`,
         order: 2,
       },
       {
         id: uuidv4(),
         type: 'HOW_TO_USE',
         title: '사용 방법',
-        body: `1. ${input.productName}을 준비합니다.\n2. 간단한 설정을 완료합니다.\n3. 바로 사용을 시작하세요!`,
+        body: `1. ${brandPrefix}${input.productName}을 준비합니다.\n2. 간단한 설정을 완료합니다.\n3. 바로 사용을 시작하세요!`,
         order: 3,
       },
       {
         id: uuidv4(),
         type: 'FAQ',
         title: '자주 묻는 질문',
-        body: `Q: ${input.productName}의 주요 특징은 무엇인가요?\nA: ${input.keyFeatures[0] || '뛰어난 품질과 성능'}입니다.`,
+        body: `Q: ${brandPrefix}${input.productName}의 주요 특징은 무엇인가요?\nA: ${input.keyFeatures[0] || '뛰어난 품질과 성능'}입니다.`,
         order: 4,
       },
     ],
@@ -388,14 +397,60 @@ export async function generateDetailPage(
       })),
     }));
 
-    // 이미지 생성이 활성화된 경우 Gemini로 각 섹션별 다중 이미지 생성
+    // ============================================
+    // 사용자 제품 이미지 직접 사용 (기본 동작)
+    // - generateImages가 false이거나 undefined인 경우
+    // - 사용자가 업로드한 제품 이미지를 섹션에 배치
+    // ============================================
+    if (!input.generateImages && input.productImages && input.productImages.length > 0) {
+      console.log(`[AI] Using user's product images directly (${input.productImages.length} images)`);
+
+      versions = versions.map((version) => {
+        const updatedSections = version.sections.map((section, sectionIndex) => {
+          // 각 섹션에 이미지 배치 전략:
+          // - HERO: 첫 번째 이미지 (대표 이미지)
+          // - FEATURES: 2번째 이미지부터 순차 배치
+          // - 나머지 섹션: 순환하여 이미지 배치
+          let imageIndex: number;
+
+          switch (section.type) {
+            case 'HERO':
+              imageIndex = 0; // 첫 번째 이미지
+              break;
+            case 'FEATURES':
+              imageIndex = Math.min(1, input.productImages.length - 1); // 두 번째 이미지 또는 첫 번째
+              break;
+            default:
+              // 나머지 섹션은 순환 배치
+              imageIndex = sectionIndex % input.productImages.length;
+          }
+
+          const productImage = input.productImages[imageIndex];
+
+          return {
+            ...section,
+            imageUrl: productImage,  // 사용자 제품 이미지 직접 사용
+          };
+        });
+
+        return {
+          ...version,
+          sections: updatedSections,
+        };
+      });
+
+      console.log('[AI] User product images assigned to sections');
+    }
+    // ============================================
+    // AI 이미지 생성 (generateImages가 true인 경우에만)
     // - copyLength에 따라 섹션별 이미지 수가 조절됨 (short: ~8개, medium: ~12개, long: ~15개)
     // - HERO: 1개 고정
     // - FEATURES: 발색, 색상별 이미지 등 다중 이미지
     // - SOCIAL_PROOF: 후기 유형별 이미지
     // - HOW_TO_USE: 사용 단계별 이미지
     // - FAQ: 1개 고정
-    if (input.generateImages && isGeminiConfigured()) {
+    // ============================================
+    else if (input.generateImages && isGeminiConfigured()) {
       console.log('[AI] Generating section-specific multi-images with Gemini...');
 
       try {

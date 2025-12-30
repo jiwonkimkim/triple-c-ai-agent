@@ -591,15 +591,21 @@ export async function orchestrateDetailPageGeneration(
       : '';
 
     if (!gemini) {
-      // Mock 데이터 반환
+      // Mock 데이터 반환 (브랜드 컨텍스트 반영)
+      const brandName = input.brandContext?.name || '';
+      const brandTone = input.brandContext?.toneAndManner || '';
+      const brandPrefix = brandName ? `${brandName} ` : '';
+
       return {
-        hookMessage: `${input.productName} - ${input.targetAudience}를 위한 완벽한 선택`,
+        hookMessage: brandName
+          ? `${brandPrefix}${input.productName} - ${input.targetAudience}를 위한 ${brandTone || '완벽한'} 선택`
+          : `${input.productName} - ${input.targetAudience}를 위한 완벽한 선택`,
         sections: [
-          { type: 'HERO', title: `${input.productName} 소개`, body: `${input.targetAudience}를 위해 설계된 ${input.productName}입니다.` },
+          { type: 'HERO', title: `${brandPrefix}${input.productName} 소개`, body: `${input.targetAudience}를 위해 설계된 ${brandPrefix}${input.productName}입니다.${brandTone ? ` ${brandTone}의 철학을 담았습니다.` : ''}` },
           { type: 'FEATURES', title: '주요 특징', body: input.keyFeatures.map((f, i) => `${i + 1}. ${f}`).join('\n') },
-          { type: 'SOCIAL_PROOF', title: '고객 후기', body: `"${input.productName}을 사용한 후 정말 만족합니다!" - 실제 사용자` },
-          { type: 'HOW_TO_USE', title: '사용 방법', body: `1. ${input.productName}을 준비합니다.\n2. 설정을 완료합니다.\n3. 사용을 시작하세요!` },
-          { type: 'FAQ', title: '자주 묻는 질문', body: `Q: 주요 특징은?\nA: ${input.keyFeatures[0] || '뛰어난 품질'}입니다.` },
+          { type: 'SOCIAL_PROOF', title: '고객 후기', body: `"${brandPrefix}${input.productName}을 사용한 후 정말 만족합니다!" - 실제 사용자` },
+          { type: 'HOW_TO_USE', title: '사용 방법', body: `1. ${brandPrefix}${input.productName}을 준비합니다.\n2. 설정을 완료합니다.\n3. 사용을 시작하세요!` },
+          { type: 'FAQ', title: '자주 묻는 질문', body: `Q: ${brandPrefix}${input.productName}의 주요 특징은?\nA: ${input.keyFeatures[0] || '뛰어난 품질'}입니다.` },
         ],
       };
     }
