@@ -35,6 +35,10 @@ export interface EmbeddingResult {
 export async function generateEmbedding(text: string): Promise<number[]> {
   const client = getOpenAIClient();
 
+  if (!client) {
+    throw new Error('OpenAI client not available. OPENAI_API_KEY is not set.');
+  }
+
   // Truncate if too long
   const truncatedText = truncateText(text, MAX_INPUT_TOKENS);
 
@@ -52,6 +56,11 @@ export async function generateEmbedding(text: string): Promise<number[]> {
  */
 export async function generateEmbeddings(texts: string[]): Promise<EmbeddingResult[]> {
   const client = getOpenAIClient();
+
+  if (!client) {
+    throw new Error('OpenAI client not available. OPENAI_API_KEY is not set.');
+  }
+
   const results: EmbeddingResult[] = [];
 
   // Process in batches

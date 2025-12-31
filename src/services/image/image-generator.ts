@@ -56,6 +56,10 @@ export async function generateImage(
 
   const client = getOpenAIClient();
 
+  if (!client) {
+    throw new Error('OpenAI client not available. OPENAI_API_KEY is not set.');
+  }
+
   // DALL-E 3 only supports n=1, so we need multiple calls for multiple images
   const results: GeneratedImage[] = [];
 
