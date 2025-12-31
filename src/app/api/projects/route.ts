@@ -62,10 +62,12 @@ export async function GET(request: NextRequest) {
               name: true,
             },
           },
+          // 프로젝트 목록 최적화: sections 제외 (base64 이미지가 커서 느림)
+          // 썸네일은 productImages 사용, 상세 데이터는 /api/projects/[id]/content에서 로드
           detailPageVersions: {
             select: {
               id: true,
-              sections: true,
+              // sections 제외 - 프로젝트 상세 페이지에서만 로드
             },
             orderBy: { createdAt: 'desc' },
             take: 1,
