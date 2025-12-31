@@ -30,8 +30,49 @@ export async function purchaseTemplate(
     return { success: false, error: 'Template is not available for purchase' };
   }
 
+  // System templates with no seller - only free templates allowed
   if (!template.userId) {
-    return { success: false, error: 'Template has no seller' };
+    if (template.price > 0) {
+      return { success: false, error: 'System template cannot be sold' };
+    }
+    // Allow free system template "purchase" (just record the download)
+    const existingPurchase = await prisma.templatePurchase.findFirst({
+      where: {
+        templateId,
+        buyerId,
+      },
+    });
+
+    if (existingPurchase) {
+      return { success: false, error: 'Template already acquired' };
+    }
+
+    // For system templates, create a purchase record without seller
+    const purchase = await prisma.templatePurchase.create({
+      data: {
+        templateId,
+        buyerId,
+        sellerId: buyerId, // Use buyer as placeholder for system templates
+        pricePaid: 0,
+        sellerEarning: 0,
+        platformFee: 0,
+      },
+    });
+
+    // Increment download count
+    await prisma.template.update({
+      where: { id: templateId },
+      data: { downloadCount: { increment: 1 } },
+    });
+
+    return {
+      success: true,
+      purchase: {
+        id: purchase.id,
+        templateId: purchase.templateId,
+        pricePaid: 0,
+      },
+    };
   }
 
   if (template.userId === buyerId) {

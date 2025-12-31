@@ -1,0 +1,76 @@
+{
+  "product_code": "A000000229216",
+  "name": "랑콤 립 이돌 버터글로우 (미니립 증정 기획)",
+  "brand": "랑콤",
+  "category": "카테고리 > 메이크업 > 립 메이크업",
+  "price": "39950",
+  "folder_name": "oliveyoung_랑콤_A000000229216",
+  "images": [
+    {
+      "image": "detail_001.jpg",
+      "ocr_text": "LANCOME\nLIP IDÔLE\nSQUALANE-12 BUTTERGLOW™™\nNEW 립 이돌 버터글로우\nLANCOME\nALL FOR CARE\nGLOW FOR ALL",
+      "description": "[배경] 옅은 핑크색 배경, 은은한 그라데이션\n[레이아웃] 제품들이 중앙에 집중되어 있고, 윗부분에 브랜드 로고와 제품명, 아랫부분에 추가 텍스트 배치. 여백을 많이 사용하여 고급스러운 느낌을 줌.\n[제품/오브젝트] 립스틱 여러 개. 다양한 각도와 위치로 배치. 립스틱 뚜껑은 로즈 골드 색상이며, 내용물은 핑크, 코랄, 브라운 계열. 립스틱 하나는 눕혀져 있으며 브랜드 로고가 보임.\n[텍스트 요소] 상단에 브랜드 로고 (LANCOME), 제품명 (LIP IDÔLE), 설명 (SQUALANE-12 BUTTERGLOW™™), 신제품 강조 (NEW 립 이돌 버터글로우). 하단에 문구 (ALL FOR CARE, GLOW FOR ALL)가 옅은 핑크색으로 적혀 있음.\n[그래픽 요소] 없음\n[인물] 모델 없음\n[라이팅] 부드러운 조명. 립스틱에 은은한 광택이 돌도록 연출. 그림자는 거의 없음.\n[전체 분위기] 고급스럽고 세련된 뷰티 광고 스타일. 톤앤매너는 여성스럽고 부드러움. 랑콤 브랜드의 고급스러운 이미지를 잘 나타냄.",
+      "prompt": "A luxurious beauty product advertisement for Lancôme lipsticks. Background: soft pink gradient, creating a gentle and elegant atmosphere. Composition: Several Lancôme Lip Idôle lipsticks arranged in the center, some standing upright and one laying down with the brand name visible. Lipstick cases are rose gold with varying shades of pink, coral, and brown lipstick. Text elements: \"LANCOME\" logo at the top, \"LIP IDÔLE\", \"SQUALANE-12 BUTTERGLOW™™\", and \"NEW 립 이돌 버터글로우\" in a bold black rectangle. At the bottom, subtly written in light pink: \"ALL FOR CARE, GLOW FOR ALL\". Lighting: soft and diffused, highlighting the glossy texture of the lipsticks with minimal shadows. Style: minimalist, clean, and sophisticated, reflecting the Lancôme brand aesthetic. soft lighting, luxury beauty ad style. --ar 3:4 --v 5 --stylize 300"
+    },
+    {
+      "image": "detail_002.jpg",
+      "ocr_text": "입술에 부드럽게 스며드는 내추럴 컬러 립 케어\n#24시간입술보습 #부드러운텍스처 #맑은컬러투명광택\nLANCÔME\nINSTANT HYDRATION\n79% 립 케어 성분으로\n24시간 촉촉한 입술\n스쿠알란, 시어버터, 세라마이드 성분 함유\n시어버터",
+      "description": "[배경] 옅은 핑크색과 흰색의 부드러운 그라데이션 배경\n[레이아웃] 립밤과 케이스가 중앙 상단에 위치, 텍스트 정보는 중앙 하단에 배치\n[제품/오브젝트] 립밤 1개, 립밤 케이스 1개, 투명한 핑크색 젤 질감의 오브젝트가 바닥에 넓게 퍼져있음. 립밤은 세워져 있고 케이스는 옆으로 눕혀져 있음. 립밤과 케이스는 45도 각도로 배치. 립밤이 케이스보다 약간 더 큼\n[텍스트 요소] 상단에 한국어 텍스트, 중앙에 영어 텍스트, 하단에 한국어 텍스트 배치. 브랜드 로고는 제품 케이스에 새겨져 있음. 텍스트는 정렬되어 있고, 톤 다운된 핑크색.\n[그래픽 요소] 없음\n[인물] 없음\n[라이팅] 부드럽고 은은한 조명, 제품 표면에 하이라이트와 그림자가 자연스럽게 표현됨\n[전체 분위기] 고급스럽고 깨끗한 느낌의 뷰티 광고 스타일, 핑크색을 사용하여 여성스럽고 촉촉한 느낌을 강조",
+      "prompt": "close-up shot of a pink lip balm and its case on a light pink and white gradient background, surrounded by translucent pink gel, soft lighting, minimalist, luxury beauty ad style, Lancôme logo --ar 3:4 --v 5 --stylize 300"
+    },
+    {
+      "image": "detail_003.jpg",
+      "ocr_text": "& 호호바버터\n입술 건조함 완화\n바이오테크\n로즈 오일\n보습&입술 장벽 강화\n스쿠알란\n수분 공급\n세라마이드\n입술 장벽 강화\nOVERTIME REJUVENATION\n갈라지고 건조한 입술 리페어 효과\n갈라지고 건조한 입술을 케어해주며\n사용할수록 부드러워지는 케어 인 글로우 밤",
+      "description": "[배경] 연한 핑크색 배경, 부드러운 질감\n[레이아웃] 립밤 스틱을 중앙에 세로로 배치, 주변에 물방울 및 꽃잎 형태의 오브젝트들이 떠다니는 듯한 배치, 텍스트는 상단과 하단에 분산 배치\n[제품/오브젝트] 립밤 스틱 1개 (핑크색), 물방울 모양의 투명한 오브젝트 3개, 꽃잎 형태의 오브젝트 1개, 각 오브젝트 주변에 텍스트 라벨 배치\n[텍스트 요소] 제품 정보 관련 텍스트는 오브젝트 주변에 배치, 메인 카피는 이미지 하단에 배치, 텍스트 색상은 흰색 또는 연한 핑크색\n[그래픽 요소] 물방울 및 꽃잎 오브젝트는 투명하고 몽환적인 느낌을 줌\n[인물] 하단에 여성의 눈썹과 눈 일부가 보임\n[라이팅] 부드러운 자연광, 은은한 그림자\n[전체 분위기] 여성스럽고 고급스러운 뷰티 광고 스타일, 톤앤매너는 연한 핑크색을 사용하여 부드럽고 촉촉한 느낌을 강조",
+      "prompt": "Close-up of a pink lip balm stick surrounded by transparent water droplets and pink rose petals on a soft pink gradient background. The water droplets and petals are scattered around the lip balm, creating a floating effect. Soft, diffused lighting with subtle shadows. Add Korean text labels near the objects, describing their properties. luxury beauty ad style, minimalist --ar 3:4 --v 5 --stylize 300"
+    },
+    {
+      "image": "detail_004.jpg",
+      "ocr_text": "BENEFIT\n강력한 립 케어 효과\n79%\n립케어 성분\n24H\n지속되는 보습감\n37.6%\n건조함 개선",
+      "description": "[배경] 연한 핑크색 배경, 부드러운 그라데이션\n[레이아웃] 상단에 모델 얼굴 클로즈업, 하단에 제품 정보 텍스트 배치, 텍스트는 원형 프레임 안에 삽입\n[제품/오브젝트] 립밤 스틱 1개, 모델 입술에 닿아있는 모습, 손으로 잡고 있음, 립밤은 핑크색\n[텍스트 요소] 'BENEFIT' 브랜드명, '강력한 립 케어 효과' 메인 카피, '79%' '24H' '37.6%' 숫자 강조, '립케어 성분' '지속되는 보습감' '건조함 개선' 설명 텍스트, 원형 프레임 안에 텍스트 배치\n[그래픽 요소] 원형 테두리, 숫자 강조를 위한 % 기호 및 별표, 부드러운 핑크색 사용\n[인물] 여성 모델, 얼굴 클로즈업, 입술 강조, 립밤 바르는 모습\n[라이팅] 부드러운 자연광, 그림자 최소화, 피부톤 자연스럽게 표현\n[전체 분위기] 깨끗하고 촉촉한 느낌, 여성스럽고 고급스러운 분위기, 핑크톤으로 통일감",
+      "prompt": "close-up of a beautiful woman applying lip balm, soft pink background gradient, featuring the text \"BENEFIT\", \"강력한 립 케어 효과\", \"79% 립케어 성분\", \"24H 지속되는 보습감\", \"37.6% 건조함 개선\" in circular frames, soft lighting, clean and minimalist, luxury beauty ad style --ar 3:4 --v 5 --stylize 300"
+    },
+    {
+      "image": "detail_005.jpg",
+      "ocr_text": "* 23-55세 여성 28명 대상으로 사용 24시간 후 측정한 보습 기기평가 결과\nBUTTERY TEXTURE\n부드럽게 녹아드는 버터글로우\n바르는 순간 입술에 부드럽게 녹아들어\n끈적임 없이 가볍게 발리는 제형\nLANCOME",
+      "description": "[배경] 옅은 핑크색 바탕, 은은한 물결 질감, 작은 금색 입자 표현\n[레이아웃] 립스틱과 립밤 케이스가 화면 중앙에 위치, 립스틱은 약간 기울어져 있음, 텍스트는 상단에 배치, 브랜드 로고는 케이스에 새겨져 있음, 여백은 상단과 하단에 충분히 확보\n[제품/오브젝트] 립스틱 1개, 립밤 케이스 1개, 립스틱은 뚜껑이 열린 상태로 내용물이 보임, 립밤 케이스는 투명하고 각진 디자인, 립스틱은 립밤보다 약간 크게 배치\n[텍스트 요소] 상단에 작은 글씨로 사용 대상 및 측정 결과 고지, 메인 카피는 'BUTTERY TEXTURE', '부드럽게 녹아드는 버터글로우', '바르는 순간 입술에 부드럽게 녹아들어\n끈적임 없이 가볍게 발리는 제형'으로 강조, 립밤 케이스에 'LANCOME' 로고 각인\n[그래픽 요소] 배경의 물결 질감 표현, 작은 금색 입자 표현으로 고급스러운 느낌 강조\n[인물] 없음\n[라이팅] 부드러운 조명, 제품 표면에 은은한 하이라이트, 그림자는 최소화\n[전체 분위기] 고급스러움, 촉촉함, 부드러움, 은은하고 여성스러운 느낌, 핑크 톤앤매너",
+      "prompt": "close up shot of a lipstick and lip balm container, soft pink background with subtle waves texture and small gold particles, lipstick slightly tilted, open cap, transparent lip balm container with angular design, 'LANCOME' logo embossed on the container, soft lighting, gentle highlights, minimalist, luxury beauty ad style --ar 3:4 --v 5 --stylize 300"
+    },
+    {
+      "image": "detail_006.jpg",
+      "ocr_text": "INSTANT FLUSH & GLOW\n은은하게 물드는\n맑은 컬러와 투명한 광택\n바를수록 은은하게 물드는 맑은 컬러와\n입술 볼륨을 살려주는 투명한 광택",
+      "description": "[배경] 옅은 핑크색 그라데이션 배경\n[레이아웃] 상단에 텍스트, 하단에 립스틱/밤 덩어리 2개가 수직으로 쌓여 있음. 여백은 상단에 많고 하단으로 갈수록 줄어듦.\n[제품/오브젝트] 립밤/립스틱 덩어리 여러 개, 두 개의 기둥처럼 쌓여 있음. 다양한 색조 (핑크, 레드, 브라운). 윗부분이 살짝 녹아 있는 듯한 표현.\n[텍스트 요소] 상단에 헤드라인, 중간에 제품 설명 텍스트. 폰트는 깔끔하고 현대적인 스타일.\n[그래픽 요소] 없음\n[인물] 없음\n[라이팅] 부드러운 조명. 립밤 덩어리에 광택이 있고, 그림자가 은은하게 드리워짐.\n[전체 분위기] 고급스럽고 깨끗한 뷰티 광고 스타일. 톤앤매너는 여성스럽고 차분함. 은은한 광택과 색감이 강조됨.",
+      "prompt": "Close-up of two stacks of colorful lip balms or lipsticks, arranged vertically against a light pink gradient background. The lip balms are in various shades of pink, red, and brown, appearing slightly melted at the top. Soft, diffused lighting emphasizes the glossy texture and subtle shadows. Minimalist, luxury beauty ad style. --ar 3:4 --v 5 --stylize 300"
+    },
+    {
+      "image": "detail_007.jpg",
+      "ocr_text": "SCENT\nVanilla & Peppermint\n입술 위로 은은하게 퍼지는 부드러운 바닐라 향과\n산뜻한 페퍼민트 향의 조화를 느껴보세요\nALL SHADES\n립 이돌 버터글로우의 맑게 빛나는\n10가지 쉐이드를 만나보세요\n#10 Keep it Glo\n#42 Heated G",
+      "description": "[배경] 연한 핑크색 배경, 은은한 그라데이션, 물방울 패턴\n[레이아웃] 상단에 브랜드 로고, 중앙에 제품 정보와 설명, 하단에 립 컬러 발색 이미지 배치. 텍스트는 중앙 정렬.\n[제품/오브젝트] 바닐라빈, 꽃, 립글로스, 물방울 이미지. 바닐라빈과 꽃 이미지는 원형 프레임 안에 배치. 립글로스는 립 발색과 함께 하단에 배치.\n[텍스트 요소] SCENT, Vanilla & Peppermint, 입술 위로 은은하게 퍼지는 부드러운 바닐라 향과 산뜻한 페퍼민트 향의 조화를 느껴보세요, ALL SHADES, 립 이돌 버터글로우의 맑게 빛나는 10가지 쉐이드를 만나보세요, #10 Keep it Glo, #42 Heated G\n[그래픽 요소] 원형 프레임, 물방울 패턴\n[인물] 립 발색 이미지에 입술 모델 사용\n[라이팅] 전체적으로 부드러운 조명, 은은한 그림자\n[전체 분위기] 깨끗하고 여성스러운 분위기, 고급스러운 뷰티 광고 스타일",
+      "prompt": "soft pink background with subtle gradient and water drop pattern, vanilla bean in a transparent sphere, white flowers in a transparent sphere, lip gloss swatches on lips, product name text, soft lighting, minimalist, luxury beauty ad style --ar 3:4 --v 5 --stylize 300"
+    },
+    {
+      "image": "detail_008.jpg",
+      "ocr_text": "Low\n/ Best / #10 로지 밤\nBest #42 로지 코랄\nwy\n#30 Lisa's Coral Glow\n#28 Pink Squad\nBest #30 뮤트 로즈\n#28 크리미 핑크\n#31 Popping Poppy\n#31 피치 코랄\n#36 Lude Now\n#36 누드 로즈\n#45 That's My Jam\n#45 웜 레드\n#50 Sheik'a Rosy Nude\n#60 Million-Dollar\n#50 MLBB\n#53 The Tea is L",
+      "description": "[배경] 흰색 배경\n[레이아웃] 각 제품별로 입술 클로즈업 이미지와 제품 정보 텍스트, 그리고 색상 블록이 세로로 배치되어 있음. 여러 세트가 그리드 형태로 나열됨. 여백이 적절하게 사용됨.\n[제품/오브젝트] 립 제품 (립스틱/틴트), 입술 클로즈업 이미지, 각 제품별 색상 블록. 립스틱이 입술에 발리는 모습 연출. 제품은 각기 다른 각도와 위치로 배치됨. 입술 이미지가 가장 크고, 색상 블록이 그 다음, 립스틱이 가장 작음.\n[텍스트 요소] 제품 이름, 색상 번호. 'Best' 문구. 각 제품별로 세로로 배치된 색상 블록에 텍스트가 세로로 적혀 있음. 제품명은 이미지 하단에 가로로 배치.\n[그래픽 요소] 없음\n[인물] 입술 클로즈업, 입술 주변 피부 일부 보임\n[라이팅] 부드러운 조명, 입술에 광택이 강조됨. 그림자는 거의 없음.\n[전체 분위기] 깨끗하고 밝은 분위기. 고급스러운 뷰티 광고 스타일. 제품 색상을 강조하고 소비자의 구매를 유도하는 세련된 느낌.",
+      "prompt": "close-up of lips with glossy lipstick application, clean white background, soft lighting, product color swatch block with text beside lips, luxury beauty ad style, minimalist --ar 3:4 --v 5 --stylize 300"
+    },
+    {
+      "image": "detail_009.jpg",
+      "ocr_text": "#53 태닝 브라운\n#60 모브 플럼",
+      "description": "[배경] 흰색 단색 배경\n[레이아웃] 좌우로 분할, 각 영역에 제품 클로즈업, 하단에 텍스트 배치, 여백 존재\n[제품/오브젝트] 립스틱 2개, 립 발색, 각 제품은 립스틱과 발색 부분을 클로즈업하여 보여줌, 립스틱은 약간 기울어져 있고, 입술 발색은 정면을 향함, 립스틱과 립 컬러 크기는 비슷함\n[텍스트 요소] 제품 이름은 하단 중앙에 위치, 폰트 스타일은 깔끔하고 현대적, 제품 번호와 이름으로 구성\n[그래픽 요소] 없음\n[인물] 입술 일부, 피부톤은 밝음\n[라이팅] 부드러운 자연광, 그림자는 거의 없음\n[전체 분위기] 깔끔하고 미니멀한 뷰티 광고 스타일, 제품의 색상과 질감을 강조",
+      "prompt": "close-up of two lipstick shades on lips, with lipstick tubes visible, #53 Tanning Brown and #60 Mauve Plum text labels below each shade, white background, soft lighting, minimalist, luxury beauty ad style --ar 3:4 --v 5 --stylize 300"
+    },
+    {
+      "image": "detail_page.png",
+      "ocr_text": "LANCOME\nLIP IDOLE\nSQUALANE-12 BUTTERGLOW™\nNEW 집 이돌 버터글로우\n트\nALL FOR CARE\nGLOW FOR ALL\n입술에 부드럽게 스며드는 내추럴 컬러 립 케어\n#24시간입술보습 #부드러운스 #컬러투광\nINSTANT HYDRATION\n79% 립 케어 성분으로\n24시간 촉촉한 입술\n스쿠알란, 시어버터, 세라마이드 성분 함유\n시어버터\nOVERTIME REJUVENATION\n갈라지고 건조한 입술 리페어 효과\n갈라지고 건조한 입술을 케어해주며\n사용할수록 부드러워지는게어인 글로우\n강력한 립 케어 효과\n79%\n24H\n37.6%\nBUTTERY TEXTURE\n부드럽게 녹아드는 버터글로우\n바르는 순간 입술에 부드럽게 녹아들어\n끈적임 없이 가볍게 발리는 제형\nLANCOME\nINSTANT FLUSH & GLOW\n은은하게 물드는\n맑은 컬러와 투명한 광택\n바를수록 은은하게 물드는 맑은 컬러와\n입술 볼륨을 살려주는 투명한 광덕\nSCENT\nVanilla & Peppermint\n위로 은은하게 퍼지는 부드러운 바닐라 향과\n산뜻한 페퍼민트향의 조화를 보세요\nALL SHADES\n이들 버터글로우의 맑게 빛나는\n10가지 쉐이드를 만나보세요\n지방",
+      "description": "[배경] 연한 핑크색, 그라데이션\n[레이아웃] 제품 중앙 배치, 텍스트 상하 배치, 여백 활용\n[제품/오브젝트] 립스틱, 여러 개, 다양한 각도, 크기 다양\n[텍스트 요소] 브랜드 이름, 제품 이름, 설명, 강조 문구, 흰색/검정색 텍스트\n[그래픽 요소] 원형 아이콘, 물결 효과, 꽃잎 이미지\n[인물] 모델 입술 클로즈업, 립스틱 바르는 모습\n[라이팅] 부드러운 조명, 은은한 그림자\n[전체 분위기] 고급스러운, 여성스러운, 깨끗한, 톤온톤\n",
+      "prompt": "soft pink gradient background, Lancome Lip Idole Butterglow lipstick, multiple lipsticks in various angles and sizes, white and black text labels, soft lighting, luxury beauty ad style, Vanilla & Peppermint scent, flower decoration --ar 3:4 --v 5 --stylize 300"
+    },
+    {
+      "image": "main.jpg",
+      "ocr_text": "ELLE\nKOREA\nBEAUTY\nAWARDS\n2025\n포인트\n+3%\nCJONE",
+      "description": "[배경] 옅은 핑크색에서 흰색으로 부드럽게 변하는 그라데이션 배경\n[레이아웃] 인물이 중앙에 위치하고, 제품이 왼쪽에 배치됨. 오른쪽 상단에 로고와 포인트 배너가 위치함. 여백은 적절하게 분배되어 답답하지 않음.\n[제품/오브젝트] 립밤 2개, 하나는 뚜껑이 닫힌 상태, 다른 하나는 열린 상태로 배치. 인물은 열린 립밤을 들고 입술에 바르는 포즈를 취하고 있음. 제품은 세로로 길쭉하며, 인물 크기에 비해 제품 크기는 적당함.\n[텍스트 요소] 'ELLE KOREA BEAUTY AWARDS 2025', '포인트 +3%', 'CJONE' 텍스트가 이미지 상단에 배치되어 있음.\n[그래픽 요소] ELLE 로고, CJONE 로고, 원형 배너, 제품의 세로 줄무늬 디자인\n[인물] 여성 모델, 정면을 바라보며 미소짓고 있음. 상반신만 보이며, 핑크색 상의를 입고 있음.\n[라이팅] 부드러운 조명, 그림자는 거의 없음. 전체적으로 밝고 화사한 분위기.\n[전체 분위기] 고급스러운 뷰티 광고 스타일, 깨끗하고 밝은 톤앤매너. 핑크색을 사용하여 여성스러움을 강조.",
+      "prompt": "soft pink to white gradient background, a beautiful Asian woman applying a pink lip balm, two lip balm products on the left, ELLE KOREA BEAUTY AWARDS 2025 logo and a point banner on the top right, soft lighting, clean and bright, luxury beauty ad style --ar 3:4 --v 5 --stylize 300"
+    }
+  ]
+}

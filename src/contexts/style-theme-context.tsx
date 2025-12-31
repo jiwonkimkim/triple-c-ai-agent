@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useLayoutEffect, ReactNode } from 'react';
 
-export type StyleTheme = 'default' | 'smile' | 'sapporo';
+export type StyleTheme = 'default' | 'smile' | 'sapporo' | 'fluid';
 
 interface StyleThemeContextType {
   styleTheme: StyleTheme;
@@ -17,11 +17,13 @@ const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffec
 
 function applyStyleTheme(theme: StyleTheme) {
   const html = document.documentElement;
-  html.classList.remove('style-smile', 'style-sapporo');
+  html.classList.remove('style-smile', 'style-sapporo', 'style-fluid');
   if (theme === 'smile') {
     html.classList.add('style-smile');
   } else if (theme === 'sapporo') {
     html.classList.add('style-sapporo');
+  } else if (theme === 'fluid') {
+    html.classList.add('style-fluid');
   }
 }
 
@@ -33,7 +35,7 @@ export function StyleThemeProvider({ children }: { children: ReactNode }) {
   // Load theme from localStorage on client mount
   useIsomorphicLayoutEffect(() => {
     const saved = localStorage.getItem('style-theme') as StyleTheme;
-    if (saved === 'default' || saved === 'smile' || saved === 'sapporo') {
+    if (saved === 'default' || saved === 'smile' || saved === 'sapporo' || saved === 'fluid') {
       setStyleThemeState(saved);
       applyStyleTheme(saved);
     }

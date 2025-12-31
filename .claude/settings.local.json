@@ -26,7 +26,15 @@
       "Bash(find:*)",
       "Bash(ls:*)",
       "Bash(docker system prune:*)",
-      "WebFetch(domain:ai.google.dev)"
+      "WebFetch(domain:ai.google.dev)",
+      "Bash(for:*)",
+      "Bash(do cat \"$f\")",
+      "Bash(done)",
+      "Bash(python3:*)",
+      "Bash(npx tsx:*)",
+      "Bash(DATABASE_URL=\"postgresql://triple_c:triple_c_password@localhost:5433/triple_c?schema=public\" npx tsx:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:YOUR_PASSWORD_HERE@localhost:5433/triple_c?schema=public\" npx tsx:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres:YOUR_PASSWORD_HERE@localhost:5433/triple_c?schema=public\" docker exec:*)"
     ],
     "deny": [],
     "ask": []

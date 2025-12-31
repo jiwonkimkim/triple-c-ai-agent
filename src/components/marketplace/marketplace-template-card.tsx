@@ -12,11 +12,22 @@ import {
   CardHeader,
 } from '@/components/ui/card';
 
+export interface TemplateSectionData {
+  id: string;
+  type: string;
+  imageUrl?: string;
+  ocrText?: string;
+  description?: string;
+  prompt?: string;
+}
+
 export interface MarketplaceTemplateData {
   id: string;
   name: string;
   category: string;
   thumbnailUrl?: string | null;
+  previewImages?: string[];
+  sections?: TemplateSectionData[];
   description?: string | null;
   price: number;
   tags?: string[];

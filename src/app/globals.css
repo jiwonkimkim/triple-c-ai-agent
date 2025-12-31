@@ -221,7 +221,7 @@ html.style-fluid.dark {
   font-size: 4rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  line-height: 1.0;
+  line-height: 1.1;
   text-transform: uppercase;
 }
 
@@ -229,6 +229,7 @@ html.style-fluid.dark {
   font-size: 2.5rem;
   font-weight: 700;
   letter-spacing: -0.01em;
+  line-height: 1.15;
   text-transform: uppercase;
 }
 
@@ -236,6 +237,7 @@ html.style-fluid.dark {
   font-size: 1.5rem;
   font-weight: 600;
   letter-spacing: 0em;
+  line-height: 1.2;
 }
 
 @layer components {

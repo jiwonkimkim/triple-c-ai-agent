@@ -17,6 +17,7 @@ import {
   MarketplaceTemplateData,
 } from './marketplace-template-card';
 import { PurchaseConfirmDialog } from './purchase-confirm-dialog';
+import { TemplatePreviewModal } from './template-preview-modal';
 import { useDebounce } from '@/hooks/use-debounce';
 
 interface MarketplaceGalleryProps {
@@ -53,6 +54,8 @@ export function MarketplaceGallery({
   const [sortBy, setSortBy] = useState('newest');
   const [page, setPage] = useState(1);
   const [purchaseTemplate, setPurchaseTemplate] =
+    useState<MarketplaceTemplateData | null>(null);
+  const [previewTemplate, setPreviewTemplate] =
     useState<MarketplaceTemplateData | null>(null);
 
   const debouncedSearch = useDebounce(search, 300);
@@ -132,8 +135,12 @@ export function MarketplaceGallery({
   };
 
   const handlePreview = (template: MarketplaceTemplateData) => {
-    // TODO: Implement preview modal
-    console.log('Preview:', template);
+    setPreviewTemplate(template);
+  };
+
+  const handlePreviewPurchase = (template: MarketplaceTemplateData) => {
+    setPreviewTemplate(null);
+    setPurchaseTemplate(template);
   };
 
   return (
@@ -270,6 +277,13 @@ export function MarketplaceGallery({
           )}
         </>
       )}
+
+      {/* Template Preview Modal */}
+      <TemplatePreviewModal
+        template={previewTemplate}
+        onClose={() => setPreviewTemplate(null)}
+        onPurchase={handlePreviewPurchase}
+      />
 
       {/* Purchase Confirm Dialog */}
       <PurchaseConfirmDialog
