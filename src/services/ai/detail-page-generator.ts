@@ -224,11 +224,11 @@ function generateMockDetailPage(input: GenerateDetailPageInput, versionIndex: nu
 
 // Initialize AI clients
 const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+  apiKey: process.env.ANTHROPIC_API_KEY || '',
 });
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY || '',
 });
 
 // Generate system prompt - 고도화된 버전 사용

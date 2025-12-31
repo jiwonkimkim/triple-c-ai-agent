@@ -3,10 +3,10 @@ import OpenAI from 'openai';
 // Singleton OpenAI client
 let openaiClient: OpenAI | null = null;
 
-function getOpenAIClient(): OpenAI {
+function getOpenAIClient(): OpenAI | null {
   if (!openaiClient) {
     if (!process.env.OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY is not set');
+      return null;
     }
 
     openaiClient = new OpenAI({

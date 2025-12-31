@@ -30,7 +30,9 @@
       "Bash(findstr:*)",
       "Bash(npm run dev:*)",
       "Bash(wmic cpu get:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(npm install:*)",
+      "Bash(openssl rand:*)"
     ],
     "deny": [],
     "ask": []
