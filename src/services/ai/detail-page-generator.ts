@@ -14,6 +14,7 @@ import {
   DEFAULT_IMAGE_MODEL,
   urlToBase64DataUrl,
 } from '@/services/image/gemini-image-generator';
+import { uploadGeneratedImage } from '@/services/image/image-upload-service';
 import {
   buildEnhancedSystemPrompt,
   buildEnhancedUserPrompt,
@@ -520,15 +521,16 @@ export async function generateDetailPage(
                     );
 
                     if (generatedImage) {
-                      const imageUrl = base64ToDataUrl(
-                        generatedImage.base64Data,
-                        generatedImage.mimeType
-                      );
+                      // Cloudinary에 업로드 (설정되어 있으면) 또는 base64 fallback
+                      const uploadResult = await uploadGeneratedImage(generatedImage, {
+                        folder: 'triple-c/sections',
+                        sectionType,
+                      });
 
                       console.log(`[AI I2I] ${sectionType} section image generated successfully`);
                       return {
                         ...section,
-                        imageUrl,
+                        imageUrl: uploadResult.url,
                       };
                     }
                   } catch (sectionError) {
@@ -606,14 +608,15 @@ export async function generateDetailPage(
                     );
 
                     if (generatedImage) {
-                      const imageUrl = base64ToDataUrl(
-                        generatedImage.base64Data,
-                        generatedImage.mimeType
-                      );
+                      // Cloudinary에 업로드 (설정되어 있으면) 또는 base64 fallback
+                      const uploadResult = await uploadGeneratedImage(generatedImage, {
+                        folder: 'triple-c/sections',
+                        sectionType,
+                      });
 
                       return {
                         ...section,
-                        imageUrl,
+                        imageUrl: uploadResult.url,
                       };
                     }
                   } catch (sectionError) {
@@ -795,34 +798,44 @@ async function generateDetailPageLegacy(
           imageModel
         );
 
-        versions = versions.map((version) => {
-          const updatedSections = version.sections.map((section, index) => {
-            if (section.type === 'HERO' && generatedImages.heroImage) {
-              return {
-                ...section,
-                imageUrl: base64ToDataUrl(
-                  generatedImages.heroImage.base64Data,
-                  generatedImages.heroImage.mimeType
-                ),
-              };
-            }
-            if (section.type === 'FEATURES' && generatedImages.featureImages[0]) {
-              const featureIndex = Math.min(index - 1, generatedImages.featureImages.length - 1);
-              if (featureIndex >= 0 && generatedImages.featureImages[featureIndex]) {
-                return {
-                  ...section,
-                  imageUrl: base64ToDataUrl(
-                    generatedImages.featureImages[featureIndex].base64Data,
-                    generatedImages.featureImages[featureIndex].mimeType
-                  ),
-                };
-              }
-            }
-            return section;
-          });
+        // Cloudinary 업로드를 위해 async 처리
+        versions = await Promise.all(
+          versions.map(async (version) => {
+            const updatedSections = await Promise.all(
+              version.sections.map(async (section, index) => {
+                if (section.type === 'HERO' && generatedImages.heroImage) {
+                  const uploadResult = await uploadGeneratedImage(generatedImages.heroImage, {
+                    folder: 'triple-c/sections',
+                    sectionType: 'HERO',
+                  });
+                  return {
+                    ...section,
+                    imageUrl: uploadResult.url,
+                  };
+                }
+                if (section.type === 'FEATURES' && generatedImages.featureImages[0]) {
+                  const featureIndex = Math.min(index - 1, generatedImages.featureImages.length - 1);
+                  if (featureIndex >= 0 && generatedImages.featureImages[featureIndex]) {
+                    const uploadResult = await uploadGeneratedImage(
+                      generatedImages.featureImages[featureIndex],
+                      {
+                        folder: 'triple-c/sections',
+                        sectionType: 'FEATURES',
+                      }
+                    );
+                    return {
+                      ...section,
+                      imageUrl: uploadResult.url,
+                    };
+                  }
+                }
+                return section;
+              })
+            );
 
-          return { ...version, sections: updatedSections };
-        });
+            return { ...version, sections: updatedSections };
+          })
+        );
       } catch (imageError) {
         console.error('[AI] Failed to generate images:', imageError);
       }
