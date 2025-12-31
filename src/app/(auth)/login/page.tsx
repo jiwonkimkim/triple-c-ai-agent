@@ -49,8 +49,8 @@ export default function LoginPage() {
           title: '환영합니다!',
           description: '성공적으로 로그인되었습니다.',
         });
-        router.push('/dashboard');
-        router.refresh();
+        // Use hard redirect to ensure session cookie is properly set
+        window.location.href = '/dashboard';
       }
     } catch (error) {
       toast({
@@ -96,8 +96,8 @@ export default function LoginPage() {
           title: '개발자 모드',
           description: userType === 'B2C' ? '개인 개발자로 로그인 되었습니다.' : '기업 개발자로 로그인 되었습니다.',
         });
-        router.push('/dashboard');
-        router.refresh();
+        // Use hard redirect to ensure session cookie is properly set
+        window.location.href = '/dashboard';
       }
     } catch (error) {
       toast({
