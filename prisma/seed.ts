@@ -1,5 +1,7 @@
-import { PrismaClient, TemplateCategory } from '@prisma/client';
+import { PrismaClient, TemplateCategory, TemplateCreator } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const prisma = new PrismaClient();
 
@@ -475,7 +477,118 @@ async function main() {
   });
 
   console.log('✅ Created seller balances');
+
+  // Seed Oliveyoung reference templates
+  await seedOliveyoungTemplates();
+
   console.log('🎉 Seeding completed!');
+}
+
+/**
+ * Oliveyoung 참조 템플릿 시드
+ */
+async function seedOliveyoungTemplates() {
+  const templatesDir = path.join(process.cwd(), 'public/templates/oliveyoung');
+
+  // 템플릿 폴더가 없으면 스킵
+  if (!fs.existsSync(templatesDir)) {
+    console.log('⏭️ Oliveyoung templates directory not found, skipping...');
+    return;
+  }
+
+  const productFolders = fs.readdirSync(templatesDir).filter(f => {
+    const stat = fs.statSync(path.join(templatesDir, f));
+    return stat.isDirectory();
+  });
+
+  console.log(`📦 Found ${productFolders.length} Oliveyoung product folders`);
+
+  for (const folder of productFolders) {
+    const folderPath = path.join(templatesDir, folder);
+
+    // JSON 파일 찾기
+    const jsonFiles = fs.readdirSync(folderPath).filter(f => f.endsWith('.json'));
+    if (jsonFiles.length === 0) {
+      console.log(`⏭️ No JSON file in ${folder}, skipping...`);
+      continue;
+    }
+
+    const jsonPath = path.join(folderPath, jsonFiles[0]);
+    const ocrData = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
+
+    const productCode = ocrData.product_code;
+    const templateId = `oliveyoung-${productCode}`;
+    const basePath = `/templates/oliveyoung/${folder}`;
+
+    // 이미지 파일 목록
+    const imageFiles = fs.readdirSync(folderPath)
+      .filter(f => f.endsWith('.jpg') || f.endsWith('.png'))
+      .filter(f => !f.includes('detail_page'));
+
+    const mainImage = imageFiles.find(f => f.startsWith('main'));
+    const detailImages = imageFiles
+      .filter(f => f.startsWith('detail_'))
+      .sort();
+
+    // thumbnailUrl
+    const thumbnailUrl = mainImage ? `${basePath}/${mainImage}` : null;
+
+    // previewImages
+    const previewImages = detailImages.map(img => `${basePath}/${img}`);
+
+    // sections from OCR data
+    const sections = ocrData.images
+      ?.filter((img: any) => img.image.startsWith('detail_') && img.image.endsWith('.jpg'))
+      .sort((a: any, b: any) => a.image.localeCompare(b.image))
+      .map((img: any, index: number) => ({
+        id: `section_${index + 1}`,
+        type: index === 0 ? 'HERO' : 'FEATURES',
+        imageUrl: `${basePath}/${img.image}`,
+        ocrText: img.ocr_text || '',
+        description: img.description || '',
+        prompt: img.prompt || '',
+      })) || [];
+
+    // 제품 설명 생성 (OCR 데이터에서 추출)
+    const firstSection = ocrData.images?.find((img: any) => img.image === 'detail_002.jpg');
+    const description = firstSection?.ocr_text?.split('\n').slice(0, 2).join(' ') ||
+      `${ocrData.brand} ${ocrData.name}`;
+
+    try {
+      await prisma.template.upsert({
+        where: { id: templateId },
+        update: {
+          thumbnailUrl,
+          previewImages,
+          sections,
+          description,
+        },
+        create: {
+          id: templateId,
+          name: `[${ocrData.brand}] ${ocrData.name}`,
+          category: TemplateCategory.BEAUTY,
+          thumbnailUrl,
+          previewImages,
+          sections,
+          isReference: true,
+          createdBy: TemplateCreator.SYSTEM,
+          isPublished: true,
+          publishedAt: new Date(),
+          price: 0,
+          description,
+          tags: [ocrData.brand, '올리브영', 'K-뷰티', '참조템플릿'],
+          downloadCount: 0,
+          ratingCount: 0,
+        },
+      });
+
+      console.log(`✅ Seeded: [${ocrData.brand}] ${ocrData.name}`);
+    } catch (error) {
+      console.error(`❌ Failed to seed ${folder}:`, error);
+    }
+  }
+
+  console.log('✅ Oliveyoung templates seeding completed');
 }
 
 main()
