@@ -158,6 +158,8 @@ export default function ProjectDetailPage() {
         onOpenChange={regenerationHook.closeDialog}
         project={project}
         isRegenerating={regenerationHook.isRegenerating}
+        selectedModel={regenerationHook.selectedModel}
+        onModelChange={regenerationHook.setSelectedModel}
         onRegenerate={regenerationHook.handleRegenerate}
       />
     </div>

@@ -16,6 +16,7 @@ export interface ProjectData {
   copyLength?: 'short' | 'medium' | 'long';
   productUrl?: string;
   productImages?: string[];
+  imageModel?: 'gemini-2.5-flash-image' | 'gemini-3-pro-image-preview';
   detailPageVersions: Array<{
     id: string;
     versionNumber: number;

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import type { ProjectData, SettingsFormState } from '../_types';
@@ -21,6 +21,16 @@ export function useRegeneration(
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [lastDevPrompts, setLastDevPrompts] = useState<DevPromptInfo | null>(null);
+  const [selectedModel, setSelectedModel] = useState<'gemini-2.5-flash-image' | 'gemini-3-pro-image-preview'>(
+    settingsForm.imageModel || 'gemini-2.5-flash-image'
+  );
+
+  // settingsForm.imageModel이 변경되면 selectedModel도 업데이트
+  useEffect(() => {
+    if (settingsForm.imageModel) {
+      setSelectedModel(settingsForm.imageModel);
+    }
+  }, [settingsForm.imageModel]);
 
   const openDialog = useCallback(() => {
     setDialogOpen(true);
@@ -61,7 +71,7 @@ export function useRegeneration(
           copyLength: project.copyLength || 'medium',
           productUrl: project.productUrl || '',
           generateImages: true,
-          imageModel: settingsForm.imageModel,
+          imageModel: selectedModel,
         }),
       });
 
@@ -95,12 +105,14 @@ export function useRegeneration(
     } finally {
       setIsRegenerating(false);
     }
-  }, [project, projectId, settingsForm.imageModel, queryClient, toast, options]);
+  }, [project, projectId, selectedModel, queryClient, toast, options]);
 
   return {
     isRegenerating,
     dialogOpen,
     lastDevPrompts,
+    selectedModel,
+    setSelectedModel,
     openDialog,
     closeDialog,
     handleRegenerate,

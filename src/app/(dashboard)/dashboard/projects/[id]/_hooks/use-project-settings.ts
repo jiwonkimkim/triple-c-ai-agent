@@ -37,7 +37,7 @@ export function useProjectSettings(project: ProjectData | undefined, projectId: 
         copyLength: project.copyLength || 'medium',
         productUrl: project.productUrl || '',
         productImages: project.productImages || [],
-        imageModel: 'gemini-2.5-flash-image',
+        imageModel: project.imageModel || 'gemini-2.5-flash-image',
       });
     }
   }, [project]);
@@ -101,6 +101,7 @@ export function useProjectSettings(project: ProjectData | undefined, projectId: 
           copyLength: settingsForm.copyLength,
           productUrl: settingsForm.productUrl,
           productImages: settingsForm.productImages,
+          imageModel: settingsForm.imageModel,
         }),
       });
 

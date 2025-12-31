@@ -336,6 +336,7 @@ export default function NewProjectPage() {
           copyLength: productInfo.copyLength,
           productUrl: productInfo.productUrl || '',
           productImages: imageUrls,
+          imageModel: productInfo.imageModel,
         }),
       });
 

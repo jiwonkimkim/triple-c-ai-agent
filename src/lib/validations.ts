@@ -45,6 +45,7 @@ export const createProjectSchema = z.object({
   copyLength: z.enum(['short', 'medium', 'long']).optional(),
   productUrl: z.string().url().optional().or(z.literal('')),
   productImages: z.array(z.string()).optional(),
+  imageModel: z.enum(['gemini-2.5-flash-image', 'gemini-3-pro-image-preview']).optional(),
 });
 
 export const updateProjectSchema = z.object({
@@ -60,6 +61,7 @@ export const updateProjectSchema = z.object({
   copyLength: z.enum(['short', 'medium', 'long']).optional(),
   productUrl: z.string().url().optional().or(z.literal('')),
   productImages: z.array(z.string()).optional(),
+  imageModel: z.enum(['gemini-2.5-flash-image', 'gemini-3-pro-image-preview']).optional(),
 });
 
 // ============================================
