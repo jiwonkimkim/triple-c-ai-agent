@@ -47,6 +47,7 @@ import type { ImageOverlayBlock, OverlayText, OverlayTextStyle } from '@/stores/
 interface ImageOverlayBlockRendererProps {
   block: ImageOverlayBlock & { id: string };
   isSelected: boolean;
+  isMain?: boolean;  // MAIN 섹션 여부 - 1:1 비율 적용
   onSelect: () => void;
   onUpdate: (updates: Partial<ImageOverlayBlock>) => void;
 }
@@ -87,6 +88,7 @@ const fontOptions = [
 ];
 
 // 텍스트 타입별 기본 스타일
+// width가 설정되면 화면 안에서 줄바꿈됨, 이동해도 동적으로 줄어들지 않음
 const defaultStylesByType: Record<OverlayText['type'], Partial<OverlayTextStyle>> = {
   headline: {
     x: 50,
@@ -96,6 +98,7 @@ const defaultStylesByType: Record<OverlayText['type'], Partial<OverlayTextStyle>
     color: '#ffffff',
     textShadow: true,
     textAlign: 'center',
+    width: 80,  // 기본 너비 80% - 화면 안에서 줄바꿈
   },
   subheadline: {
     x: 50,
@@ -105,6 +108,7 @@ const defaultStylesByType: Record<OverlayText['type'], Partial<OverlayTextStyle>
     color: '#ffffff',
     textShadow: true,
     textAlign: 'center',
+    width: 70,  // 기본 너비 70%
   },
   body: {
     x: 50,
@@ -114,6 +118,7 @@ const defaultStylesByType: Record<OverlayText['type'], Partial<OverlayTextStyle>
     color: '#ffffff',
     textShadow: true,
     textAlign: 'center',
+    width: 80,  // 기본 너비 80%
   },
   statistic: {
     x: 50,
@@ -123,6 +128,7 @@ const defaultStylesByType: Record<OverlayText['type'], Partial<OverlayTextStyle>
     color: '#ffffff',
     textShadow: true,
     textAlign: 'center',
+    // 통계 숫자는 보통 짧아서 width 없음
   },
   cta: {
     x: 50,
@@ -133,6 +139,7 @@ const defaultStylesByType: Record<OverlayText['type'], Partial<OverlayTextStyle>
     backgroundColor: 'rgba(0,0,0,0.7)',
     padding: '12px 24px',
     textAlign: 'center',
+    // CTA 버튼은 보통 짧아서 width 없음
   },
 };
 
@@ -141,6 +148,7 @@ const generateId = () => `overlay-${Date.now()}-${Math.random().toString(36).sub
 export function ImageOverlayBlockRenderer({
   block,
   isSelected,
+  isMain = false,
   onSelect,
   onUpdate,
 }: ImageOverlayBlockRendererProps) {
@@ -167,7 +175,7 @@ export function ImageOverlayBlockRenderer({
     setIsDragging(true);
   }, []);
 
-  // 드래그 중
+  // 드래그 중 - 범위 제한 없이 자유롭게 이동 가능 (밖으로 나갈 수 있음)
   const handleDrag = useCallback((e: MouseEvent) => {
     if (!isDragging || !selectedTextId || !containerRef.current) return;
 
@@ -175,14 +183,11 @@ export function ImageOverlayBlockRenderer({
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
 
-    // 범위 제한 (0-100)
-    const clampedX = Math.max(0, Math.min(100, x));
-    const clampedY = Math.max(0, Math.min(100, y));
-
+    // 범위 제한 없음 - 텍스트가 이미지 밖으로 나갈 수 있음
     onUpdate({
       overlayTexts: block.overlayTexts.map((text) =>
         text.id === selectedTextId
-          ? { ...text, style: { ...text.style, x: clampedX, y: clampedY } }
+          ? { ...text, style: { ...text.style, x, y } }
           : text
       ),
     });
@@ -227,29 +232,29 @@ export function ImageOverlayBlockRenderer({
       const isLeft = resizeDirection === 'corner-tl' || resizeDirection === 'corner-bl';
       const isTop = resizeDirection === 'corner-tl' || resizeDirection === 'corner-tr';
 
-      // 너비 조절 (좌우 방향)
+      // 너비 조절 (좌우 방향) - 최소 5%만 유지, 최대 제한 없음
       if (isLeft) {
-        newWidth = Math.max(5, Math.min(100, resizeStartWidth - deltaPercentX));
+        newWidth = Math.max(5, resizeStartWidth - deltaPercentX);
         const widthDiff = newWidth - resizeStartWidth;
-        newX = Math.max(0, Math.min(100, resizeStartPosX - widthDiff / 2));
+        newX = resizeStartPosX - widthDiff / 2; // 범위 제한 없음
       } else {
-        newWidth = Math.max(5, Math.min(100, resizeStartWidth + deltaPercentX));
+        newWidth = Math.max(5, resizeStartWidth + deltaPercentX);
       }
 
       // 폰트 크기 조절 (상하 방향) - 위로 드래그하면 커지고, 아래로 드래그하면 작아짐
       const fontDelta = isTop ? -deltaPercentY : deltaPercentY;
       newFontSize = Math.max(8, Math.min(200, resizeStartFontSize + fontDelta * 1.5));
     } else if (resizeDirection === 'right') {
-      // 오른쪽만 확장: 위치 고정, 너비만 증가
-      newWidth = Math.max(5, Math.min(100, resizeStartWidth + deltaPercentX));
+      // 오른쪽만 확장: 위치 고정, 너비만 증가 (최소 5%만 유지)
+      newWidth = Math.max(5, resizeStartWidth + deltaPercentX);
     } else if (resizeDirection === 'left') {
-      // 왼쪽만 확장: 위치 이동, 너비 증가
-      newWidth = Math.max(5, Math.min(100, resizeStartWidth - deltaPercentX));
+      // 왼쪽만 확장: 위치 이동, 너비 증가 (최소 5%만 유지)
+      newWidth = Math.max(5, resizeStartWidth - deltaPercentX);
       const widthDiff = newWidth - resizeStartWidth;
-      newX = Math.max(0, Math.min(100, resizeStartPosX - widthDiff / 2));
+      newX = resizeStartPosX - widthDiff / 2; // 범위 제한 없음
     } else {
-      // 양쪽 확장 (기존 동작)
-      newWidth = Math.max(5, Math.min(100, resizeStartWidth + deltaPercentX * 2));
+      // 양쪽 확장 (기존 동작) - 최소 5%만 유지
+      newWidth = Math.max(5, resizeStartWidth + deltaPercentX * 2);
     }
 
     onUpdate({
@@ -411,16 +416,17 @@ export function ImageOverlayBlockRenderer({
   return (
     <div
       className={cn(
-        'relative rounded-lg overflow-hidden transition-all',
+        'relative rounded-lg transition-all',
         isSelected && 'ring-2 ring-primary'
       )}
       onClick={onSelect}
     >
-      {/* 이미지 캔버스 */}
+      {/* 이미지 캔버스 - overflow-visible로 텍스트가 이미지 밖으로 나갈 수 있음 */}
+      {/* MAIN 섹션은 1:1, 나머지는 3:4 비율 */}
       <div
         ref={containerRef}
-        className="relative bg-muted"
-        style={{ aspectRatio: '3/4' }}
+        className="relative bg-muted overflow-visible"
+        style={{ aspectRatio: isMain ? '1/1' : '3/4' }}
       >
         {block.src ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -520,7 +526,9 @@ export function ImageOverlayBlockRenderer({
                     letterSpacing: overlayText.style.letterSpacing ? `${overlayText.style.letterSpacing}px` : undefined,
                     lineHeight: overlayText.style.lineHeight || 1.4,
                     borderRadius: overlayText.style.padding ? '4px' : undefined,
-                    whiteSpace: 'pre-wrap',
+                    // width 설정 시: 사용자가 조절한 너비 내에서 줄바꿈 허용
+                    // width 미설정 시: 자동 줄바꿈 방지 (이동해도 줄어들지 않음)
+                    whiteSpace: overlayText.style.width ? 'pre-wrap' : 'nowrap',
                   }}
                 >
                   {overlayText.content}
@@ -943,11 +951,13 @@ export function ImageOverlayBlockRenderer({
 // 미리보기용 렌더러 (편집 불가)
 export function ImageOverlayBlockPreview({
   block,
+  isMain = false,
 }: {
   block: ImageOverlayBlock & { id: string };
+  isMain?: boolean;  // MAIN 섹션 여부 - 1:1 비율 적용
 }) {
   return (
-    <div className="relative rounded-lg overflow-hidden" style={{ aspectRatio: '3/4' }}>
+    <div className="relative rounded-lg overflow-hidden" style={{ aspectRatio: isMain ? '1/1' : '3/4' }}>
       {block.src ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -992,7 +1002,7 @@ export function ImageOverlayBlockPreview({
               letterSpacing: overlayText.style.letterSpacing ? `${overlayText.style.letterSpacing}px` : undefined,
               lineHeight: overlayText.style.lineHeight || 1.4,
               borderRadius: overlayText.style.padding ? '4px' : undefined,
-              whiteSpace: 'pre-wrap',
+              whiteSpace: overlayText.style.width ? 'pre-wrap' : 'nowrap',
             }}
           >
             {overlayText.content}
