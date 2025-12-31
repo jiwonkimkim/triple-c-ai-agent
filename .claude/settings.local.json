@@ -26,7 +26,11 @@
       "Bash(find:*)",
       "Bash(ls:*)",
       "Bash(docker system prune:*)",
-      "WebFetch(domain:ai.google.dev)"
+      "WebFetch(domain:ai.google.dev)",
+      "Bash(findstr:*)",
+      "Bash(npm run dev:*)",
+      "Bash(wmic cpu get:*)",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "ask": []
