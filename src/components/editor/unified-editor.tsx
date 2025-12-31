@@ -180,13 +180,27 @@ export function UnifiedEditor({
   const updateElement = useCallback((id: string, updates: Partial<EditableElement>) => {
     setElements((prev) => {
       const newElements = prev.map((el) => (el.id === id ? { ...el, ...updates } : el));
-      // Add to history
-      setHistory((h) => [...h.slice(0, historyIndex + 1), newElements]);
-      setHistoryIndex((i) => i + 1);
       return newElements;
     });
     setIsDirty(true);
-  }, [historyIndex]);
+  }, []);
+
+  // 히스토리 업데이트를 별도 effect로 분리 (무한 루프 방지)
+  useEffect(() => {
+    // elements가 변경되면 히스토리에 추가
+    // 초기 로딩이나 undo/redo로 인한 변경은 제외
+    if (isDirty && elements.length > 0) {
+      const currentHistory = history.slice(0, historyIndex + 1);
+      const lastHistoryItem = currentHistory[currentHistory.length - 1];
+
+      // 실제로 변경된 경우에만 히스토리 추가
+      if (JSON.stringify(lastHistoryItem) !== JSON.stringify(elements)) {
+        setHistory([...currentHistory, elements]);
+        setHistoryIndex(currentHistory.length);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [elements, isDirty]);
 
   // Undo
   const undo = useCallback(() => {
