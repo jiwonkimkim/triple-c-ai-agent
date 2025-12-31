@@ -38,6 +38,7 @@ services:
       - /app/.next
     environment:
       - NODE_ENV=development
+      - NODE_OPTIONS=--max-old-space-size=4096
       - DATABASE_URL=postgresql://postgres:YOUR_PASSWORD_HERE@postgres:5432/triple_c?schema=public
       - NEXTAUTH_URL=http://localhost:3002
       - NEXTAUTH_SECRET=NEXTAUTH_SECRET_REMOVED
@@ -53,10 +54,10 @@ services:
       resources:
         limits:
           cpus: '4'
-          memory: 5G
+          memory: 4G
         reservations:
           cpus: '2'
-          memory: 3G
+          memory: 2G
 
   # pgAdmin - Web UI for PostgreSQL
   pgadmin:
