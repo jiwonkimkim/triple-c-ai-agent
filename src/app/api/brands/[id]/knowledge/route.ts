@@ -4,13 +4,13 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
 import {
-
-export const dynamic = 'force-dynamic';
   indexBrandContent,
   getBrandIndexStats,
   deleteBrandIndex,
   getBrandContext,
 } from '@/services/rag/brand-context';
+
+export const dynamic = 'force-dynamic';
 
 const indexSchema = z.object({
   websiteUrls: z.array(z.string().url()).optional(),

@@ -5,12 +5,12 @@ import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { GoogleGenAI } from '@google/genai';
 import {
-
-export const dynamic = 'force-dynamic';
   generateImageWithGemini,
   base64ToDataUrl,
   isGeminiConfigured,
 } from '@/services/image/gemini-image-generator';
+
+export const dynamic = 'force-dynamic';
 
 // Groq client (OpenAI-compatible API)
 const groq = new OpenAI({

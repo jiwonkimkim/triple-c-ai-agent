@@ -4,6 +4,8 @@ import { stripe, getPlanByPriceId, PLANS } from '@/lib/stripe';
 import { prisma } from '@/lib/prisma';
 import Stripe from 'stripe';
 
+export const dynamic = 'force-dynamic';
+
 // POST /api/billing/webhook - Handle Stripe webhooks
 export async function POST(request: NextRequest) {
   const body = await request.text();

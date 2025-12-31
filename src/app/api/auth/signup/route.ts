@@ -3,6 +3,8 @@ import { z } from 'zod';
 import prisma from '@/lib/prisma';
 import { hashPassword } from '@/lib/auth';
 
+export const dynamic = 'force-dynamic';
+
 // Validation schemas
 const b2cSignupSchema = z.object({
   email: z.string().email('Invalid email address'),

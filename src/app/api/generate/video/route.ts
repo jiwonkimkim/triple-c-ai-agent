@@ -4,8 +4,6 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import {
-
-export const dynamic = 'force-dynamic';
   generateVideo,
   checkVideoJobStatus,
   getVideoResult,
@@ -15,6 +13,8 @@ export const dynamic = 'force-dynamic';
   type VideoAspectRatio,
   type VideoDuration,
 } from '@/services/video';
+
+export const dynamic = 'force-dynamic';
 
 const videoSchema = z.object({
   projectId: z.string(),
