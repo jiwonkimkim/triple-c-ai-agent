@@ -130,6 +130,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 textAlign: string;
                 opacity: number;
                 rotation: number;
+                width?: number;
               };
               zIndex: number;
             }>;
@@ -253,6 +254,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
               textAlign: 'left' | 'center' | 'right';
               opacity: number;
               rotation: number;
+              width?: number;
             };
             zIndex: number;
           }>;
@@ -277,6 +279,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             textAlign: 'left' | 'center' | 'right';
             opacity: number;
             rotation: number;
+            width?: number;
           };
           zIndex: number;
         }> = [];

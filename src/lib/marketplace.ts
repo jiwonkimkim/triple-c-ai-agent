@@ -1,5 +1,6 @@
 import { prisma } from './prisma';
 import { MARKETPLACE_CONFIG, calculateMarketplaceEarnings } from './stripe';
+import { getFilesystemTemplateById } from './filesystem-templates';
 
 /**
  * Purchase a template from the marketplace
@@ -16,6 +17,23 @@ export async function purchaseTemplate(
     pricePaid: number;
   };
 }> {
+  // Handle filesystem templates (IDs starting with 'fs-')
+  if (templateId.startsWith('fs-')) {
+    const fsTemplate = getFilesystemTemplateById(templateId);
+    if (!fsTemplate) {
+      return { success: false, error: 'Filesystem template not found' };
+    }
+    // Filesystem templates are always free and don't need DB records
+    return {
+      success: true,
+      purchase: {
+        id: `fs-purchase-${Date.now()}`,
+        templateId,
+        pricePaid: 0,
+      },
+    };
+  }
+
   // 1. Get template and validate
   const template = await prisma.template.findUnique({
     where: { id: templateId },
@@ -246,6 +264,12 @@ export async function canAccessTemplate(
   userId: string,
   templateId: string
 ): Promise<boolean> {
+  // Filesystem templates are always accessible (free system templates)
+  if (templateId.startsWith('fs-')) {
+    const fsTemplate = getFilesystemTemplateById(templateId);
+    return !!fsTemplate;
+  }
+
   const template = await prisma.template.findUnique({
     where: { id: templateId },
   });

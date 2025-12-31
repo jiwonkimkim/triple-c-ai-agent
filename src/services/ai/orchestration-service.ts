@@ -948,7 +948,7 @@ Add 1-2 mood elements matching product vibe:
 // ============================================
 
 export async function generateOverlayText(
-  sectionType: 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ',
+  sectionType: 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ' | 'MAIN',
   productName: string,
   category: string,
   keyFeatures: string[],
