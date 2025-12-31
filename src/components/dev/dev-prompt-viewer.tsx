@@ -95,7 +95,7 @@ function PromptContent({ title, content, height = "h-[220px]" }: { title: string
 
 export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
   // 개발 환경에서만 렌더링
-  if (process.env.NODE_ENV !== 'development') {
+  if (process.env.NODE_ENV !== 'development' && process.env.NEXT_PUBLIC_DEV_MODE !== 'true') {
     return null;
   }
 
@@ -295,7 +295,7 @@ export function DevPromptInlineViewer({ prompts }: DevPromptViewerProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   // 개발 환경에서만 렌더링
-  if (process.env.NODE_ENV !== 'development') {
+  if (process.env.NODE_ENV !== 'development' && process.env.NEXT_PUBLIC_DEV_MODE !== 'true') {
     return null;
   }
 

@@ -59,7 +59,7 @@ export const authOptions: NextAuthOptions = {
       },
     }),
     // Development-only login provider (no authentication required)
-    ...(process.env.NODE_ENV === 'development'
+    ...((process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEV_MODE === 'true')
       ? [
           CredentialsProvider({
             id: 'dev-login',

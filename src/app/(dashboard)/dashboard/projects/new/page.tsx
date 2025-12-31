@@ -39,7 +39,7 @@ const imageModelOptions = [
 ];
 
 // 개발 모드 확인
-const isDev = process.env.NODE_ENV === 'development';
+const isDev = process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEV_MODE === 'true';
 
 // 테스트용 샘플 데이터
 const TEST_DATA = {
