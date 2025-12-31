@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
         : {}),
     };
 
-    const [projectsRaw, total] = await Promise.all([
+    const [projects, total] = await Promise.all([
       prisma.project.findMany({
         where,
         select: {
@@ -62,7 +62,6 @@ export async function GET(request: NextRequest) {
               name: true,
             },
           },
-          // 썸네일 추출을 위해 sections는 가져오되, 응답에서는 썸네일만 반환
           detailPageVersions: {
             select: {
               id: true,
@@ -84,55 +83,6 @@ export async function GET(request: NextRequest) {
       }),
       prisma.project.count({ where }),
     ]);
-
-    // 프로젝트 목록용 최적화: sections에서 첫 번째 썸네일만 추출하고 나머지는 제거
-    const projects = projectsRaw.map((project) => {
-      let thumbnail: string | null = null;
-
-      const latestVersion = project.detailPageVersions[0];
-      if (latestVersion?.sections) {
-        const sections = latestVersion.sections as Array<{
-          imageUrl?: string;
-          blocks?: Array<{ type?: string; src?: string }>;
-        }>;
-
-        // 첫 번째 이미지 찾기 (imageUrl 또는 blocks[].src)
-        for (const section of sections) {
-          if (section.imageUrl) {
-            thumbnail = section.imageUrl;
-            break;
-          }
-          if (section.blocks) {
-            for (const block of section.blocks) {
-              if (block.src) {
-                thumbnail = block.src;
-                break;
-              }
-            }
-            if (thumbnail) break;
-          }
-        }
-      }
-
-      // sections 데이터 제거하고 thumbnail만 반환
-      return {
-        id: project.id,
-        title: project.title,
-        description: project.description,
-        status: project.status,
-        productImages: project.productImages,
-        category: project.category,
-        createdAt: project.createdAt,
-        updatedAt: project.updatedAt,
-        brandProfile: project.brandProfile,
-        thumbnail, // 추출된 썸네일
-        detailPageVersions: project.detailPageVersions.map((v) => ({
-          id: v.id,
-          // sections는 제외
-        })),
-        _count: project._count,
-      };
-    });
 
     return NextResponse.json({
       success: true,

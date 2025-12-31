@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { getFilesystemTemplates, FilesystemTemplate } from '@/lib/filesystem-templates';
 
 /**
  * GET /api/marketplace/templates
@@ -122,8 +121,8 @@ export async function GET(request: NextRequest) {
       purchasedTemplateIds = purchases.map((p) => p.templateId);
     }
 
-    // Format DB templates
-    const formattedDbTemplates = templates.map((template) => ({
+    // Format response
+    const formattedTemplates = templates.map((template) => ({
       id: template.id,
       name: template.name,
       category: template.category,
@@ -150,79 +149,13 @@ export async function GET(request: NextRequest) {
       isOwner: template.user?.id === userId,
     }));
 
-    // Get filesystem templates (from public/templates directory)
-    let filesystemTemplates: FilesystemTemplate[] = [];
-    try {
-      filesystemTemplates = getFilesystemTemplates();
-
-      // Apply filters to filesystem templates
-      if (category && category !== 'all') {
-        filesystemTemplates = filesystemTemplates.filter(
-          t => t.category === category.toUpperCase()
-        );
-      }
-
-      if (search) {
-        const searchLower = search.toLowerCase();
-        filesystemTemplates = filesystemTemplates.filter(
-          t =>
-            t.name.toLowerCase().includes(searchLower) ||
-            t.description?.toLowerCase().includes(searchLower) ||
-            t.tags.some(tag => tag.toLowerCase().includes(searchLower))
-        );
-      }
-
-      // Filesystem templates are always free (price = 0)
-      if (minPrice !== null && parseInt(minPrice) > 0) {
-        filesystemTemplates = [];
-      }
-    } catch (error) {
-      console.error('Error loading filesystem templates:', error);
-    }
-
-    // Merge templates - filesystem templates come first, then DB templates
-    const allTemplates = [...filesystemTemplates, ...formattedDbTemplates];
-
-    // Sort merged templates
-    switch (sortBy) {
-      case 'newest':
-        allTemplates.sort((a, b) =>
-          new Date(b.publishedAt || 0).getTime() - new Date(a.publishedAt || 0).getTime()
-        );
-        break;
-      case 'oldest':
-        allTemplates.sort((a, b) =>
-          new Date(a.publishedAt || 0).getTime() - new Date(b.publishedAt || 0).getTime()
-        );
-        break;
-      case 'popular':
-        allTemplates.sort((a, b) => b.downloadCount - a.downloadCount);
-        break;
-      case 'rating':
-        allTemplates.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-        break;
-      case 'price_low':
-        allTemplates.sort((a, b) => a.price - b.price);
-        break;
-      case 'price_high':
-        allTemplates.sort((a, b) => b.price - a.price);
-        break;
-      case 'name':
-        allTemplates.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-    }
-
-    // Apply pagination to merged results
-    const totalMerged = total + filesystemTemplates.length;
-    const paginatedTemplates = allTemplates.slice((page - 1) * limit, page * limit);
-
     return NextResponse.json({
-      templates: paginatedTemplates,
+      templates: formattedTemplates,
       pagination: {
         page,
         limit,
-        total: totalMerged,
-        totalPages: Math.ceil(totalMerged / limit),
+        total,
+        totalPages: Math.ceil(total / limit),
       },
     });
   } catch (error) {

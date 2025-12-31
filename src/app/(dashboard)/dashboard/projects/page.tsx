@@ -51,13 +51,13 @@ interface Project {
   status: 'ACTIVE' | 'ARCHIVED' | 'DELETED';
   category?: string;
   productImages?: string[];
-  thumbnail?: string | null; // API에서 추출된 썸네일
   brandProfile?: {
     id: string;
     name: string;
   };
   detailPageVersions?: {
     id: string;
+    sections: unknown;
   }[];
   _count: {
     detailPageVersions: number;
@@ -533,8 +533,29 @@ function ProjectCard({ project, isSelected, onToggleSelect }: ProjectCardProps) 
   const isArchived = project.status === 'ARCHIVED';
   const isDeleted = project.status === 'DELETED';
 
-  // 썸네일: API에서 추출된 thumbnail > productImages > 기본 아이콘
-  const thumbnailUrl = project.thumbnail || project.productImages?.[0];
+  // 썸네일 이미지 결정: 상세페이지 섹션의 이미지 > productImages > 기본 아이콘
+  const getFirstImageFromSections = (): string | undefined => {
+    const sections = project.detailPageVersions?.[0]?.sections;
+    if (!sections || !Array.isArray(sections)) return undefined;
+
+    for (const section of sections) {
+      // Section 타입 (blocks 배열 포함)
+      if (section.blocks && Array.isArray(section.blocks)) {
+        for (const block of section.blocks) {
+          if (block.type === 'image' && block.src) {
+            return block.src;
+          }
+        }
+      }
+      // DetailPageSection 타입 (imageUrl 필드)
+      if (section.imageUrl) {
+        return section.imageUrl;
+      }
+    }
+    return undefined;
+  };
+
+  const thumbnailUrl = getFirstImageFromSections() || project.productImages?.[0];
   const hasVersions = project._count.detailPageVersions > 0;
 
   return (
