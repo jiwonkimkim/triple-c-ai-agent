@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 // POST /api/projects/[id]/versions/[versionId]/restore - Restore to a specific version
 export async function POST(
   request: NextRequest,

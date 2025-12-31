@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { chunkText } from '@/services/rag/text-chunker';
 
+export const dynamic = 'force-dynamic';
+
 // POST /api/brands/[id]/knowledge/upload - Upload file and extract text
 export async function POST(
   request: NextRequest,

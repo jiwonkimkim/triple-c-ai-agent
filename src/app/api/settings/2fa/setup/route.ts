@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma';
 import { authenticator } from 'otplib';
 import QRCode from 'qrcode';
 
+export const dynamic = 'force-dynamic';
+
 // POST /api/settings/2fa/setup - Generate 2FA secret and QR code
 export async function POST(request: NextRequest) {
   try {

@@ -5,6 +5,8 @@ import { withdrawSellerEarnings } from '@/lib/marketplace';
 import { MARKETPLACE_CONFIG } from '@/lib/stripe';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 const withdrawSchema = z.object({
   amount: z
     .number()

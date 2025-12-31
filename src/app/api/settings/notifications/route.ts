@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
+export const dynamic = 'force-dynamic';
+
 // Note: In production, you would store these settings in the database
 // For now, we'll acknowledge the request and return success
 export async function PATCH(request: NextRequest) {

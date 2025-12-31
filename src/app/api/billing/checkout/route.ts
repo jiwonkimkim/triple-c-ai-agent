@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma';
 import { stripe, PLANS, type PlanId } from '@/lib/stripe';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 const checkoutSchema = z.object({
   planId: z.enum(['STARTER', 'PRO', 'ENTERPRISE']),
   billingCycle: z.enum(['monthly', 'yearly']),

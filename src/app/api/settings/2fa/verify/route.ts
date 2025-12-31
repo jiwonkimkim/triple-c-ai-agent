@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { authenticator } from 'otplib';
 
+export const dynamic = 'force-dynamic';
+
 // POST /api/settings/2fa/verify - Verify code and enable 2FA
 export async function POST(request: NextRequest) {
   try {

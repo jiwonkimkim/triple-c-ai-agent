@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 // PUT /api/workspaces/[id]/members/[memberId] - Update member role
 const updateMemberSchema = z.object({
   role: z.enum(['ADMIN', 'EDITOR', 'VIEWER']),

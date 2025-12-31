@@ -32,7 +32,11 @@
       "Bash(wmic cpu get:*)",
       "Bash(taskkill:*)",
       "Bash(npm install:*)",
-      "Bash(openssl rand:*)"
+      "Bash(openssl rand:*)",
+      "Bash(set DATABASE_URL=postgresql://neondb_owner:npg_aPdkWwpnsl05@ep-jolly-frost-ah4l55sw-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require)",
+      "Bash(npx prisma db push:*)",
+      "Bash(npx cross-env:*)",
+      "Bash(node -e:*)"
     ],
     "deny": [],
     "ask": []

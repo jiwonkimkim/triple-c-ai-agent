@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 // 개발 환경에서 사용자 ID 동기화 헬퍼 함수
 async function syncDevUserId(user: { id: string; email: string }) {
   if (process.env.NODE_ENV === 'development') {

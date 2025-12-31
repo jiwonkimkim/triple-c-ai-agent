@@ -5,6 +5,8 @@ import prisma from '@/lib/prisma';
 import { createBrandProfileSchema } from '@/lib/validations';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/brands - List all brand profiles
 export async function GET(request: NextRequest) {
   try {

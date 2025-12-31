@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { parseUserAgent, getClientIP } from '@/lib/device-info';
 
+export const dynamic = 'force-dynamic';
+
 // POST /api/auth/record-session - Record current session for tracking
 export async function POST(request: NextRequest) {
   try {

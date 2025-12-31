@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { stripe } from '@/lib/stripe';
 
+export const dynamic = 'force-dynamic';
+
 // POST /api/billing/portal - Create customer portal session
 export async function POST(request: NextRequest) {
   try {

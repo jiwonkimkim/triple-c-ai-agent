@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma';
 import { CREDIT_COSTS } from '@/lib/stripe';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/billing/credits - Get credit balance and history
 export async function GET(request: NextRequest) {
   try {

@@ -5,6 +5,8 @@ import prisma from '@/lib/prisma';
 import { updateBrandProfileSchema } from '@/lib/validations';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/brands/[id] - Get a single brand profile
 export async function GET(
   request: NextRequest,

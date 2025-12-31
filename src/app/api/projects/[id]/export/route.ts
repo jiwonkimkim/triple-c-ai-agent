@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import type { Section, EditorBlock } from '@/stores/editor-store';
 
+export const dynamic = 'force-dynamic';
+
 const exportSchema = z.object({
   sections: z.array(z.any()),
   format: z.enum(['html', 'json']),

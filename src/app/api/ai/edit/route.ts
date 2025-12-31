@@ -5,6 +5,8 @@ import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { GoogleGenAI } from '@google/genai';
 import {
+
+export const dynamic = 'force-dynamic';
   generateImageWithGemini,
   base64ToDataUrl,
   isGeminiConfigured,

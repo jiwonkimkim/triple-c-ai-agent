@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 const trackEventSchema = z.object({
   variantId: z.string(),
   type: z.enum(['VIEW', 'CLICK', 'CONVERSION', 'SCROLL', 'TIME_SPENT']),

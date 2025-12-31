@@ -7,6 +7,8 @@ import { generateDetailPage } from '@/services/ai/detail-page-generator';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 
+export const dynamic = 'force-dynamic';
+
 // POST /api/generate/detail-page - Generate detail page versions
 export async function POST(request: NextRequest) {
   try {

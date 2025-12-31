@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/settings/sessions - Get all active sessions
 export async function GET(request: NextRequest) {
   try {

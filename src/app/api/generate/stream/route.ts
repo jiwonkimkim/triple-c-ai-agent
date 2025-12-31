@@ -6,6 +6,8 @@ import { z } from 'zod';
 import { generateDetailPage } from '@/services/ai/detail-page-generator';
 import { getBrandContext } from '@/services/rag/brand-context';
 
+export const dynamic = 'force-dynamic';
+
 const generateSchema = z.object({
   projectId: z.string(),
   type: z.enum(['detail_page', 'motion', 'video']),

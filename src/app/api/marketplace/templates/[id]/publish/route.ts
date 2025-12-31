@@ -5,6 +5,8 @@ import { publishTemplate, unpublishTemplate } from '@/lib/marketplace';
 import { MARKETPLACE_CONFIG } from '@/lib/stripe';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 const publishSchema = z.object({
   price: z
     .number()

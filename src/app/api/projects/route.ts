@@ -5,6 +5,8 @@ import prisma from '@/lib/prisma';
 import { createProjectSchema } from '@/lib/validations';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/projects - List all projects for the current user
 export async function GET(request: NextRequest) {
   try {

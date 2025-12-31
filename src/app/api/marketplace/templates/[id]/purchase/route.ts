@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { purchaseTemplate } from '@/lib/marketplace';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * POST /api/marketplace/templates/[id]/purchase
  * Purchase a template from the marketplace
