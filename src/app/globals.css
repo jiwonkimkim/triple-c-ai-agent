@@ -499,16 +499,16 @@ html.style-fluid.dark {
 
 /* 프라이머리 버튼 */
 .glass-btn-primary {
-  background: rgba(80, 140, 255, 0.4);
+  background: rgba(255, 255, 255, 0.15);
   backdrop-filter: blur(40px) saturate(150%);
   -webkit-backdrop-filter: blur(40px) saturate(150%);
-  border: 1px solid rgba(150, 190, 255, 0.25);
-  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: rgba(0, 0, 0, 0.65);
   box-shadow: 0 4px 24px rgba(80, 140, 255, 0.2);
 }
 
 .glass-btn-primary:hover {
-  background: rgba(80, 140, 255, 0.5);
+  background: rgba(255, 255, 255, 0.22);
   box-shadow: 0 6px 28px rgba(80, 140, 255, 0.3);
 }
 
