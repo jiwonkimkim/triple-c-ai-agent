@@ -213,6 +213,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       body: string;
       order: number;
       imageUrl?: string;
+      imageUrls?: string[];  // 다중 이미지 지원
     }>;
 
     if (aiSections && aiSections.length > 0) {
@@ -428,19 +429,30 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         // 섹션 이름 결정: MAIN은 '메인', HERO는 '히어로'로 매핑
         const sectionName = sectionTypeNames[section.type] || section.title || '섹션';
 
-        // Create editor section with the block
+        // 이미지 목록 결정: imageUrls 배열이 있으면 사용, 없으면 imageUrl 사용
+        const images = section.imageUrls && section.imageUrls.length > 0
+          ? section.imageUrls
+          : section.imageUrl
+            ? [section.imageUrl]
+            : [''];
+
+        // 여러 이미지가 있으면 여러 블록 생성 (첫 번째만 텍스트 오버레이 포함)
+        const blocks = images.map((imageUrl, imgIndex) => ({
+          id: `${section.id}-img-${imgIndex}`,
+          type: 'image-overlay' as const,
+          src: imageUrl,
+          alt: `${section.title || 'Section image'} ${imgIndex + 1}`,
+          // 첫 번째 이미지에만 텍스트 오버레이 표시
+          overlayTexts: imgIndex === 0 ? overlayTexts : [],
+          // 기본 테마는 그라데이션 없음
+          overlayGradient: undefined,
+        }));
+
+        // Create editor section with multiple blocks
         editorSections.push({
           id: `section-${section.id}`,
-          name: sectionName,
-          blocks: [{
-            id: section.id,
-            type: 'image-overlay',
-            src: section.imageUrl || '',
-            alt: section.title || 'Section image',
-            overlayTexts,
-            // 기본 테마는 그라데이션 없음
-            overlayGradient: undefined,
-          }],
+          name: `${sectionName}${images.length > 1 ? ` (${images.length}장)` : ''}`,
+          blocks,
         });
       }
 
