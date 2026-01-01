@@ -885,10 +885,9 @@ export function DetailPageEditor({
             템플릿
           </Button>
           <Button
-            variant={isChatOpen ? 'secondary' : 'outline'}
             size="sm"
             onClick={() => setIsChatOpen(!isChatOpen)}
-            className="w-24 justify-center gap-2"
+            className={`w-24 justify-center gap-2 ${isChatOpen ? 'bg-gradient-to-r from-purple-600 to-pink-600' : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'} text-white`}
           >
             <Sparkles className="h-4 w-4" />
             AI 편집
