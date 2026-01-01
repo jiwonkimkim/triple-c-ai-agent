@@ -176,7 +176,7 @@ export default function ProjectsPage() {
           <p className="text-muted-foreground">상품 상세페이지 프로젝트를 관리하세요</p>
         </div>
         <Link href="/dashboard/projects/new">
-          <Button className="gap-2 bg-gradient-to-br from-sky-100/40 via-blue-50/30 to-indigo-100/40 hover:from-sky-100/60 hover:via-blue-50/50 hover:to-indigo-100/60 backdrop-blur-xl border border-white/60 shadow-[0_8px_32px_rgba(31,38,135,0.15)] hover:shadow-[0_8px_32px_rgba(31,38,135,0.25)] text-slate-700 font-medium transition-all duration-300 rounded-xl">
+          <Button className="gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-2xl border border-white/40 rounded-2xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.6),inset_0_-1px_1px_rgba(0,0,0,0.05),0_10px_40px_-10px_rgba(0,0,0,0.15),0_0_0_1px_rgba(255,255,255,0.2)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.8),inset_0_-1px_1px_rgba(0,0,0,0.05),0_15px_50px_-10px_rgba(0,0,0,0.2),0_0_0_1px_rgba(255,255,255,0.3)] text-slate-600 hover:text-slate-800 font-medium transition-all duration-300">
             <Plus className="h-4 w-4" />
             새 프로젝트
           </Button>
@@ -585,26 +585,28 @@ function ProjectCard({ project, isSelected, onToggleSelect }: ProjectCardProps) 
             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
               <Link href={`/dashboard/projects/${project.id}`} onClick={(e) => e.stopPropagation()}>
                 <Button size="sm" variant="secondary">
-                  <Eye className="h-4 w-4 mr-1" />
-                  보기
+                  <Pencil className="h-4 w-4 mr-1" />
+                  편집하기
                 </Button>
               </Link>
             </div>
           )}
 
-          {/* Selection indicator - 선택됐을 때만 표시 */}
-          {isSelected && (
-            <div className="absolute top-2 left-2 z-10">
-              <div className="w-5 h-5 rounded border-2 flex items-center justify-center bg-primary border-primary text-primary-foreground">
-                <Check className="h-3 w-3" />
-              </div>
+          {/* Selection indicator - 글래스모피즘 스타일 (항상 표시) */}
+          <div className="absolute top-2 left-2 z-10">
+            <div className={`w-6 h-6 rounded-lg flex items-center justify-center backdrop-blur-md border shadow-[0_4px_16px_rgba(31,38,135,0.15)] transition-all duration-200 ${
+              isSelected
+                ? 'bg-gradient-to-br from-sky-200/70 via-blue-100/60 to-indigo-200/70 border-white/80 text-slate-700'
+                : 'bg-gradient-to-br from-white/40 via-white/30 to-white/40 border-white/50'
+            }`}>
+              {isSelected && <Check className="h-3.5 w-3.5" />}
             </div>
-          )}
+          </div>
 
-          {/* Category badge */}
+          {/* Category badge - 글래스모피즘 스타일 */}
           {project.category && (
             <Badge
-              className={`absolute top-2 right-2 text-white ${categoryColors[project.category] || 'bg-gray-500'}`}
+              className="absolute top-2 right-2 bg-gradient-to-br from-white/50 via-white/40 to-white/50 backdrop-blur-md border border-white/60 shadow-[0_4px_16px_rgba(31,38,135,0.12)] text-slate-600 font-medium"
             >
               {categoryLabels[project.category] || project.category}
             </Badge>
@@ -790,12 +792,14 @@ function ProjectListItem({ project, isSelected, onToggleSelect }: ProjectCardPro
           isArchived ? 'opacity-60' : ''
         } ${isDeleted ? 'opacity-50 border-dashed' : ''} ${isSelected ? 'ring-2 ring-primary bg-primary/5' : ''}`}
       >
-        {/* Selection indicator - 선택됐을 때만 표시 */}
-        {isSelected && (
-          <div className="w-5 h-5 rounded border-2 flex items-center justify-center bg-primary border-primary text-primary-foreground shrink-0">
-            <Check className="h-3 w-3" />
-          </div>
-        )}
+        {/* Selection indicator - 글래스모피즘 스타일 (항상 표시) */}
+        <div className={`w-6 h-6 rounded-lg flex items-center justify-center backdrop-blur-md border shadow-[0_4px_16px_rgba(31,38,135,0.15)] transition-all duration-200 shrink-0 ${
+          isSelected
+            ? 'bg-gradient-to-br from-sky-200/70 via-blue-100/60 to-indigo-200/70 border-white/80 text-slate-700'
+            : 'bg-gradient-to-br from-white/40 via-white/30 to-white/40 border-white/50'
+        }`}>
+          {isSelected && <Check className="h-3.5 w-3.5" />}
+        </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
