@@ -162,6 +162,36 @@ export async function POST(request: NextRequest) {
       )
     );
 
+    // Also create ProjectVersion for history tracking
+    const latestProjectVersion = await prisma.projectVersion.findFirst({
+      where: { projectId: validatedData.projectId },
+      orderBy: { versionNumber: 'desc' },
+    });
+    const newProjectVersionNumber = (latestProjectVersion?.versionNumber || 0) + 1;
+
+    await prisma.projectVersion.create({
+      data: {
+        projectId: validatedData.projectId,
+        versionNumber: newProjectVersionNumber,
+        action: 'GENERATE',
+        description: `AI 생성 (${validatedData.copyLength || 'medium'})`,
+        content: {
+          sections: versions[0]?.sections || [],
+          hookMessage: versions[0]?.hookMessage,
+        } as unknown as Prisma.InputJsonValue,
+        createdById: session.user.id,
+      },
+    });
+
+    // Update project current version
+    await prisma.project.update({
+      where: { id: validatedData.projectId },
+      data: {
+        currentVersion: newProjectVersionNumber,
+        updatedAt: new Date(),
+      },
+    });
+
     // Deduct credits
     await prisma.user.update({
       where: { id: session.user.id },
