@@ -161,7 +161,7 @@ export default function DashboardLayout({
       {/* Main content */}
       <div className="flex flex-1 flex-col">
         {/* Top header */}
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-white/40 bg-white/40 backdrop-blur-[20px] px-4 lg:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 bg-transparent px-4 lg:px-6">
           {/* 모바일: 사이드바 열기 버튼 */}
           <Button
             variant="ghost"
