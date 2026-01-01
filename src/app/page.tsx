@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Zap, Palette, Clock, Users, Sparkles, CheckCircle, Sun, Moon, Play, Check } from 'lucide-react';
+import { ArrowRight, Zap, Palette, Clock, Users, Sparkles, CheckCircle, Sun, Moon, Play, Check, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import {
   DropdownMenu,
@@ -235,6 +235,147 @@ export default function LandingPage() {
           </div>
         </div>
       </header>
+
+      {/* Intro Section - 첫 번째 페이지 */}
+      <section className={cn(
+        "min-h-screen flex flex-col items-center justify-center px-6 pt-20",
+        isSapporo && "relative z-10"
+      )}>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="text-center max-w-4xl mx-auto"
+        >
+          {/* 메인 타이틀 */}
+          <h1 className={cn(
+            "text-4xl md:text-5xl lg:text-6xl font-semibold text-center mb-3 tracking-tight",
+            isSmile && "font-black uppercase tracking-tighter",
+            isSapporo && "text-slate-700",
+            isFluid && "font-extralight text-5xl md:text-6xl lg:text-7xl"
+          )}>
+            {isSmile ? (
+              <>CONTENTS CREATE COPY</>
+            ) : isSapporo ? (
+              <>따뜻한 콘텐츠의 시작</>
+            ) : isFluid ? (
+              <>Contents · Create · Copy</>
+            ) : (
+              <>Contents Create Copy</>
+            )}
+          </h1>
+
+          {/* 서브 타이틀 */}
+          <p className="text-center mb-12">
+            {isSmile ? (
+              <span className="uppercase tracking-wider text-sm">
+                당신의 아이디어를 브랜드 콘텐츠로
+              </span>
+            ) : isSapporo ? (
+              <span className="text-slate-500 text-lg">
+                AI가 만드는 따뜻하고 감성적인 마케팅 콘텐츠
+              </span>
+            ) : isFluid ? (
+              <span className="text-lg font-light opacity-60">
+                Transform your ideas into elegant brand content
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-2 text-lg tracking-wide flex-wrap justify-center">
+                <span className="text-foreground/40 font-light italic">당신의 아이디어로</span>
+                <span className="text-foreground/50 font-light">세련된</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-500 font-medium">
+                  브랜드 콘텐츠
+                </span>
+                <span className="text-foreground/50 font-light">생성</span>
+                <Sparkles className="w-4 h-4 text-indigo-400/70" />
+              </span>
+            )}
+          </p>
+
+          {/* 버튼 섹션 */}
+          <div className="flex flex-wrap justify-center gap-4 mb-16">
+            {isSmile ? (
+              <>
+                <Link href="/signup">
+                  <button className="px-8 py-3 text-sm font-medium uppercase tracking-wider bg-foreground text-background hover:bg-foreground/90 transition-colors">
+                    시작하기
+                    <ArrowRight className="w-4 h-4 inline ml-2" />
+                  </button>
+                </Link>
+                <Link href="#features">
+                  <button className="px-8 py-3 text-sm font-medium uppercase tracking-wider border-2 border-foreground hover:bg-foreground hover:text-background transition-colors">
+                    더 알아보기
+                  </button>
+                </Link>
+              </>
+            ) : isSapporo ? (
+              <>
+                <Link href="/signup">
+                  <button className="px-8 py-3 text-sm font-medium rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700 shadow-lg shadow-amber-500/30 transition-all">
+                    무료로 시작하기
+                    <ArrowRight className="w-4 h-4 inline ml-2" />
+                  </button>
+                </Link>
+                <Link href="#features">
+                  <button className="px-8 py-3 text-sm font-medium rounded-full border border-slate-300 text-slate-600 hover:bg-white/60 backdrop-blur-sm transition-all">
+                    기능 살펴보기
+                  </button>
+                </Link>
+              </>
+            ) : isFluid ? (
+              <>
+                <Link href="/signup">
+                  <button className="px-10 py-3 text-base font-light bg-[#7BA3D8] text-white hover:bg-[#6B93C8] transition-colors">
+                    Get started
+                    <ArrowRight className="w-4 h-4 inline ml-2" />
+                  </button>
+                </Link>
+                <Link href="#features">
+                  <button className="px-10 py-3 text-base font-light border border-[#7BA3D8]/30 text-[#7BA3D8] hover:bg-[#7BA3D8]/10 transition-colors">
+                    Learn more
+                  </button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="#features">
+                  <button className="glass-btn px-6 py-3 text-sm font-medium text-foreground">
+                    더 알아보기
+                  </button>
+                </Link>
+                <Link href="/signup">
+                  <button className="glass-btn glass-btn-primary px-6 py-3 text-sm font-medium flex items-center gap-2">
+                    시작하기
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* 스크롤 인디케이터 */}
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            className={cn(
+              "flex flex-col items-center gap-2 opacity-50",
+              isSmile && "opacity-30"
+            )}
+          >
+            <span className={cn(
+              "text-xs",
+              isSmile && "uppercase tracking-widest",
+              isFluid && "font-light"
+            )}>
+              {isFluid ? "Scroll" : "스크롤"}
+            </span>
+            <div className={cn(
+              "w-px h-8",
+              isSmile ? "bg-foreground" : isSapporo ? "bg-amber-400" : isFluid ? "bg-[#7BA3D8]" : "bg-gradient-to-b from-indigo-400 to-transparent"
+            )} />
+          </motion.div>
+        </motion.div>
+      </section>
 
       {/* Hero Section */}
       <section className={cn("pt-20", isSapporo && "relative z-10", isFluid && "pt-0")}>
