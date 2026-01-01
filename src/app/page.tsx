@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Zap, Palette, Clock, Users, Sparkles, CheckCircle, Sun, Moon, Play, Check, Heart, Settings } from 'lucide-react';
+import { ArrowRight, Zap, Palette, Clock, Users, Sparkles, CheckCircle, Sun, Moon, Play, Check, Heart, Settings, Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
 import {
   DropdownMenu,
@@ -126,6 +126,9 @@ export default function LandingPage() {
   // 좋아요 버튼 파티클 상태
   const [particles, setParticles] = useState<Particle[]>([]);
   const heartButtonRef = useRef<HTMLButtonElement>(null);
+
+  // 이메일 구독 상태
+  const [emailValue, setEmailValue] = useState('');
 
   // 파티클 생성 함수
   const createParticles = () => {
@@ -563,49 +566,34 @@ export default function LandingPage() {
                   </>
                 )}
               </motion.p>
+
+              {/* 이메일 구독 섹션 */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className={cn(
-                  "flex flex-col sm:flex-row gap-4",
-                  isSapporo && "justify-center items-center",
-                  isFluid && "gap-6"
-                )}
+                className="w-full max-w-md mx-auto mt-12"
               >
-                <Link href="/signup">
-                  <Button size="lg" className={cn(
-                    "gap-2 h-14 px-8",
-                    isSmile && "uppercase text-sm tracking-wider px-10 bg-foreground text-background hover:bg-foreground/90",
-                    isSapporo && "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-xl shadow-amber-500/30",
-                    isFluid && "bg-[#7BA3D8] text-white hover:bg-[#6B93C8] h-14 px-10 font-light text-base",
-                    isDefault && "glass-btn glass-btn-primary"
-                  )}>
-                    {isFluid ? "Get started" : "무료로 시작하기"}
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link href="#features">
-                  <Button variant="outline" size="lg" className={cn(
-                    "h-14 px-8",
-                    isSmile && "border-2 border-foreground uppercase text-sm tracking-wider hover:bg-foreground hover:text-background",
-                    isSapporo && "border-slate-300 text-slate-600 hover:bg-white/60 backdrop-blur-sm",
-                    isFluid && "border-[#7BA3D8]/30 text-[#7BA3D8] hover:bg-[#7BA3D8]/10 font-light text-base px-10",
-                    isDefault && "glass-btn border-white/30"
-                  )}>
-                    {isSapporo ? (
-                      <>
-                        <Play className="mr-2 h-5 w-5" />
-                        데모 보기
-                      </>
-                    ) : isFluid ? (
-                      "Learn more"
-                    ) : (
-                      "자세히 알아보기"
-                    )}
-                  </Button>
-                </Link>
+                <div className="relative group flex items-center gap-3 p-2 rounded-2xl bg-white/40 backdrop-blur-xl border border-white/50 shadow-sm transition-all duration-300 focus-within:border-blue-400/50 focus-within:shadow-lg focus-within:shadow-blue-500/10">
+                  <div className="flex items-center gap-2 flex-1 px-3">
+                    <Mail className={`w-[18px] h-[18px] transition-colors duration-300 ${emailValue ? 'text-blue-500' : 'text-foreground/30'}`} />
+                    <input
+                      type="email"
+                      placeholder="이메일 주소를 입력하세요"
+                      value={emailValue}
+                      onChange={(e) => setEmailValue(e.target.value)}
+                      className="w-full bg-transparent border-none focus:outline-none focus:ring-0 text-sm placeholder:text-foreground/30 py-2"
+                    />
+                  </div>
+                  <button className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/30">
+                    구독
+                  </button>
+                </div>
+                <p className="text-center text-xs text-foreground/40 mt-4">
+                  스팸 없이 주요 업데이트만 보내드립니다
+                </p>
               </motion.div>
+
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
