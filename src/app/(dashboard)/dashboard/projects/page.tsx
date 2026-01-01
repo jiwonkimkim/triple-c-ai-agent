@@ -176,7 +176,7 @@ export default function ProjectsPage() {
           <p className="text-muted-foreground">상품 상세페이지 프로젝트를 관리하세요</p>
         </div>
         <Link href="/dashboard/projects/new">
-          <Button className="gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-2xl border border-white/40 rounded-2xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.6),inset_0_-1px_1px_rgba(0,0,0,0.05),0_10px_40px_-10px_rgba(0,0,0,0.15),0_0_0_1px_rgba(255,255,255,0.2)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.8),inset_0_-1px_1px_rgba(0,0,0,0.05),0_15px_50px_-10px_rgba(0,0,0,0.2),0_0_0_1px_rgba(255,255,255,0.3)] text-slate-600 hover:text-slate-800 font-medium transition-all duration-300">
+          <Button className="gap-2 bg-sky-200/5 hover:bg-sky-200/10 backdrop-blur-2xl border border-white/40 rounded-2xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.6),inset_0_-1px_1px_rgba(0,0,0,0.05),0_10px_40px_-10px_rgba(0,0,0,0.15),0_0_0_1px_rgba(255,255,255,0.2)] hover:shadow-[inset_0_1px_1px_rgba(255,255,255,0.8),inset_0_-1px_1px_rgba(0,0,0,0.05),0_15px_50px_-10px_rgba(0,0,0,0.2),0_0_0_1px_rgba(255,255,255,0.3)] text-slate-600 hover:text-slate-800 font-medium transition-all duration-300">
             <Plus className="h-4 w-4" />
             새 프로젝트
           </Button>
