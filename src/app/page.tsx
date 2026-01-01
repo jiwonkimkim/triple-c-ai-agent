@@ -264,7 +264,7 @@ export default function LandingPage() {
 
         <div className={cn(
           "relative py-24 md:py-32",
-          isSmile ? "bg-muted" : isSapporo ? "bg-transparent" : isFluid ? "bg-transparent" : "bg-gradient-to-b from-primary/5 to-background",
+          isSmile ? "bg-muted" : isSapporo ? "bg-transparent" : isFluid ? "bg-transparent" : "bg-transparent",
           isFluid && "py-20 md:py-32"
         )}>
           <div className={cn("container mx-auto px-6", isFluid && "px-8 lg:px-20 max-w-[1500px]")}>
@@ -530,7 +530,7 @@ export default function LandingPage() {
       {/* How It Works Section */}
       <section id="how-it-works" className={cn(
         "py-24 relative z-10",
-        isSmile ? "bg-foreground text-background" : isSapporo ? "bg-white/50 backdrop-blur-sm" : isFluid ? "bg-[#7BA3D8]/5" : "bg-muted",
+        isSmile ? "bg-foreground text-background" : isSapporo ? "bg-white/50 backdrop-blur-sm" : isFluid ? "bg-[#7BA3D8]/5" : "bg-transparent",
         isFluid && "py-32 px-8 lg:px-16"
       )}>
         <div className={cn("container mx-auto px-6", isFluid && "px-0")}>
