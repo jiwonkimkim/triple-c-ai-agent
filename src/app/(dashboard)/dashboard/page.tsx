@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { Plus, FolderKanban, Palette, Clock, Zap, Loader2, Sparkles, ArrowRight } from 'lucide-react';
+import { Plus, FolderKanban, Palette, Clock, Zap, Loader2, Sparkles, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MouseGlowEffect } from '@/components/ui/mouse-glow-effect';
 import { useStyleTheme } from '@/contexts/style-theme-context';
@@ -100,13 +100,12 @@ export default function DashboardPage() {
             </div>
             <Link href={`/dashboard/projects/new${promptValue ? `?prompt=${encodeURIComponent(promptValue)}` : ''}`}>
               <button className={cn(
-                "px-6 py-3 text-sm font-medium whitespace-nowrap transition-all duration-200 flex items-center gap-2",
+                "p-3 transition-all duration-200 flex items-center justify-center",
                 isSmile
-                  ? "bg-foreground text-background hover:bg-foreground/90 uppercase tracking-wider"
+                  ? "bg-foreground text-background hover:bg-foreground/90"
                   : "rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 hover:shadow-lg hover:shadow-blue-500/30"
               )}>
-                시작하기
-                <ArrowRight className="w-4 h-4" />
+                <Send className="w-5 h-5" />
               </button>
             </Link>
           </div>
@@ -317,7 +316,7 @@ function StatsCard({
 }) {
   const content = (
     <div className={cn(
-      "p-4",
+      "p-4 h-full min-h-[120px] flex flex-col",
       href && "cursor-pointer",
       isSmile ? "bg-background border border-border" : "glass-card"
     )}>
@@ -327,6 +326,7 @@ function StatsCard({
       </div>
       <div className="text-2xl font-bold">{value}</div>
       <p className="text-xs text-muted-foreground">{description}</p>
+      <div className="flex-1" />
       {progress && (
         <div className="mt-3">
           <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -341,7 +341,7 @@ function StatsCard({
   );
 
   if (href) {
-    return <Link href={href}>{content}</Link>;
+    return <Link href={href} className="h-full">{content}</Link>;
   }
 
   return content;
