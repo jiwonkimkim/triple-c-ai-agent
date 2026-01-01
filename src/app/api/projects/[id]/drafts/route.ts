@@ -68,6 +68,15 @@ export async function POST(
     const body = await request.json();
     const { versionId, content } = draftSchema.parse(body);
 
+    // Check if we should create a new ProjectVersion (throttle to 5 minutes)
+    const lastProjectVersion = await prisma.projectVersion.findFirst({
+      where: { projectId },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    const shouldCreateVersion = !lastProjectVersion || lastProjectVersion.createdAt < fiveMinutesAgo;
+
     if (versionId) {
       // Update existing draft/version
       const existingVersion = await prisma.detailPageVersion.findFirst({
@@ -92,6 +101,21 @@ export async function POST(
         },
       });
 
+      // Create ProjectVersion for history (throttled)
+      if (shouldCreateVersion) {
+        const newVersionNumber = (lastProjectVersion?.versionNumber || 0) + 1;
+        await prisma.projectVersion.create({
+          data: {
+            projectId,
+            versionNumber: newVersionNumber,
+            action: 'AUTO_SAVE',
+            description: '자동 저장',
+            content: { sections: content },
+            createdById: session.user.id,
+          },
+        });
+      }
+
       return NextResponse.json({
         success: true,
         data: {
@@ -113,6 +137,21 @@ export async function POST(
           status: 'DRAFT',
         },
       });
+
+      // Create ProjectVersion for history (throttled)
+      if (shouldCreateVersion) {
+        const newVersionNumber = (lastProjectVersion?.versionNumber || 0) + 1;
+        await prisma.projectVersion.create({
+          data: {
+            projectId,
+            versionNumber: newVersionNumber,
+            action: 'AUTO_SAVE',
+            description: '자동 저장',
+            content: { sections: content },
+            createdById: session.user.id,
+          },
+        });
+      }
 
       return NextResponse.json({
         success: true,
