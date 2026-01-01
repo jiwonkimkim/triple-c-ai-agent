@@ -188,9 +188,9 @@ export function TemplatePreviewModal({
               {/* 제품 정보 (카테고리, 브랜드, 가격) */}
               {(sections?.category || sections?.brand || sections?.price) && (
                 <div className="flex flex-col gap-1 text-sm text-muted-foreground mb-3">
-                  {sections?.category && <span>카테고리: {sections.category}</span>}
-                  {sections?.brand && <span>브랜드: {sections.brand}</span>}
-                  {sections?.price && <span>가격: {Number(sections.price).toLocaleString()}원</span>}
+                  {sections?.category && <span><span className="font-semibold text-foreground">카테고리</span> {sections.category}</span>}
+                  {sections?.brand && <span><span className="font-semibold text-foreground">브랜드</span> {sections.brand}</span>}
+                  {sections?.price && <span><span className="font-semibold text-foreground">가격</span> {Number(sections.price).toLocaleString()}원</span>}
                 </div>
               )}
 
