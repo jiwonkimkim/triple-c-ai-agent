@@ -493,6 +493,7 @@ export default function LandingPage() {
               isSmile={isSmile}
               isSapporo={isSapporo}
               isFluid={isFluid}
+              isDefault={isDefault}
             />
             <FeatureCard
               icon={<Palette className="h-5 w-5" />}
@@ -501,6 +502,7 @@ export default function LandingPage() {
               isSmile={isSmile}
               isSapporo={isSapporo}
               isFluid={isFluid}
+              isDefault={isDefault}
             />
             <FeatureCard
               icon={<Clock className="h-5 w-5" />}
@@ -509,6 +511,7 @@ export default function LandingPage() {
               isSmile={isSmile}
               isSapporo={isSapporo}
               isFluid={isFluid}
+              isDefault={isDefault}
             />
             <FeatureCard
               icon={<Users className="h-5 w-5" />}
@@ -517,6 +520,7 @@ export default function LandingPage() {
               isSmile={isSmile}
               isSapporo={isSapporo}
               isFluid={isFluid}
+              isDefault={isDefault}
             />
           </div>
         </div>
@@ -579,6 +583,7 @@ export default function LandingPage() {
               isSmile={isSmile}
               isSapporo={isSapporo}
               isFluid={isFluid}
+              isDefault={isDefault}
             />
             <StepCard
               num="02"
@@ -587,6 +592,7 @@ export default function LandingPage() {
               isSmile={isSmile}
               isSapporo={isSapporo}
               isFluid={isFluid}
+              isDefault={isDefault}
             />
             <StepCard
               num="03"
@@ -595,6 +601,7 @@ export default function LandingPage() {
               isSmile={isSmile}
               isSapporo={isSapporo}
               isFluid={isFluid}
+              isDefault={isDefault}
             />
           </div>
         </div>
@@ -733,6 +740,7 @@ function FeatureCard({
   isSmile,
   isSapporo,
   isFluid,
+  isDefault,
 }: {
   icon: React.ReactNode;
   title: string;
@@ -740,6 +748,7 @@ function FeatureCard({
   isSmile: boolean;
   isSapporo: boolean;
   isFluid?: boolean;
+  isDefault?: boolean;
 }) {
   return (
     <motion.div
@@ -747,14 +756,16 @@ function FeatureCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       className={cn(
-        "p-8 group transition-colors",
+        "p-8 group",
         isSmile
-          ? "bg-background hover:bg-muted"
+          ? "bg-background hover:bg-muted transition-colors"
           : isSapporo
-            ? "bg-white/80 rounded-xl border border-amber-100 hover:border-amber-300 hover:shadow-lg backdrop-blur-sm"
+            ? "bg-white/80 rounded-xl border border-amber-100 hover:border-amber-300 hover:shadow-lg backdrop-blur-sm transition-colors"
             : isFluid
-              ? "border-r border-b border-[#7BA3D8]/20 hover:bg-[#7BA3D8]/5 p-10"
-              : "bg-card rounded-lg border border-border hover:border-primary hover:shadow-md"
+              ? "border-r border-b border-[#7BA3D8]/20 hover:bg-[#7BA3D8]/5 p-10 transition-colors"
+              : isDefault
+                ? "glass-card"
+                : "bg-card rounded-lg border border-border hover:border-primary hover:shadow-md transition-colors"
       )}
     >
       <div className={cn(
@@ -765,7 +776,9 @@ function FeatureCard({
             ? "rounded-lg bg-gradient-to-br from-amber-100 to-amber-50 group-hover:from-amber-200 group-hover:to-amber-100"
             : isFluid
               ? "w-10 h-10 border border-[#7BA3D8]/30 group-hover:border-[#7BA3D8]/50"
-              : "bg-primary/10 text-primary rounded-lg"
+              : isDefault
+                ? "bg-white/20 text-primary rounded-lg"
+                : "bg-primary/10 text-primary rounded-lg"
       )}>
         <span className={cn(isSapporo && "text-amber-600", isFluid && "opacity-60")}>{icon}</span>
       </div>
@@ -795,6 +808,7 @@ function StepCard({
   isSmile,
   isSapporo,
   isFluid,
+  isDefault,
 }: {
   num: string;
   title: string;
@@ -802,13 +816,17 @@ function StepCard({
   isSmile: boolean;
   isSapporo: boolean;
   isFluid?: boolean;
+  isDefault?: boolean;
 }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className={cn(isSapporo && "text-center")}
+      className={cn(
+        isSapporo && "text-center",
+        isDefault && "glass-card p-8"
+      )}
     >
       {isSmile ? (
         <div className="text-8xl font-black tracking-tighter opacity-10 mb-4">
@@ -820,6 +838,10 @@ function StepCard({
         </div>
       ) : isFluid ? (
         <div className="text-6xl font-extralight tracking-tight opacity-20 mb-6">
+          {num}
+        </div>
+      ) : isDefault ? (
+        <div className="w-12 h-12 rounded-full bg-white/20 text-primary flex items-center justify-center text-lg font-bold mb-4">
           {num}
         </div>
       ) : (
