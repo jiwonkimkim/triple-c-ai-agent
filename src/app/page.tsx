@@ -572,20 +572,20 @@ export default function LandingPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="w-full max-w-md mx-auto mt-12"
+                className="w-full max-w-lg mx-auto mt-12"
               >
-                <div className="relative group flex items-center gap-3 p-2 rounded-2xl bg-white/40 backdrop-blur-xl border border-white/50 shadow-sm transition-all duration-300 focus-within:border-blue-400/50 focus-within:shadow-lg focus-within:shadow-blue-500/10">
-                  <div className="flex items-center gap-2 flex-1 px-3">
+                <div className="flex items-center gap-3">
+                  <div className="relative group flex items-center gap-2 flex-1 px-4 py-3 rounded-2xl bg-white/40 backdrop-blur-xl border border-white/50 shadow-sm transition-all duration-300 focus-within:border-blue-400/50 focus-within:shadow-lg focus-within:shadow-blue-500/10">
                     <Mail className={`w-[18px] h-[18px] transition-colors duration-300 ${emailValue ? 'text-blue-500' : 'text-foreground/30'}`} />
                     <input
                       type="email"
                       placeholder="이메일 주소를 입력하세요"
                       value={emailValue}
                       onChange={(e) => setEmailValue(e.target.value)}
-                      className="w-full bg-transparent border-none focus:outline-none focus:ring-0 text-sm placeholder:text-foreground/30 py-2"
+                      className="w-full bg-transparent border-none focus:outline-none focus:ring-0 text-sm placeholder:text-foreground/30"
                     />
                   </div>
-                  <button className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/30">
+                  <button className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/30 whitespace-nowrap">
                     구독
                   </button>
                 </div>
