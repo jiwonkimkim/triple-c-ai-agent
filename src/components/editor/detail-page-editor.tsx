@@ -894,8 +894,6 @@ export function DetailPageEditor({
             AI 편집
           </Button>
 
-          <div className="h-6 w-px bg-border mx-1" />
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="w-24 justify-center gap-2">
