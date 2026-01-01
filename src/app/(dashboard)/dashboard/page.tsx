@@ -124,7 +124,9 @@ export default function DashboardPage() {
             AI로 상품 상세페이지 생성을 시작하세요
           </p>
           <Link href="/dashboard/projects/new">
-            <Button className="w-full">시작하기</Button>
+            <button className="glass-btn glass-btn-primary w-full px-6 py-3 text-sm font-medium">
+              시작하기
+            </button>
           </Link>
         </div>
 
