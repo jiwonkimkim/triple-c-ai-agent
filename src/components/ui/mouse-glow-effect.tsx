@@ -60,18 +60,6 @@ export function MouseGlowEffect() {
           filter: `blur(65px) hue-rotate(${combinedHue}deg)`,
         }}
       />
-      {/* 에메랄드색 */}
-      <div
-        className="pointer-events-none fixed transition-all duration-1000 ease-out animate-morph-2"
-        style={{
-          width: 580,
-          height: 380,
-          left: mousePosition.x - 300,
-          top: mousePosition.y - 120,
-          background: 'radial-gradient(ellipse at 70% 45%, rgba(110, 231, 183, 0.38) 0%, rgba(110, 231, 183, 0.1) 45%, transparent 68%)',
-          filter: `blur(70px) hue-rotate(${combinedHue * 0.4}deg)`,
-        }}
-      />
       {/* 보라색 */}
       <div
         className="pointer-events-none fixed transition-all duration-850 ease-out animate-morph-3"
@@ -82,18 +70,6 @@ export function MouseGlowEffect() {
           top: mousePosition.y - 360,
           background: 'radial-gradient(ellipse at 25% 70%, rgba(196, 181, 253, 0.35) 0%, rgba(196, 181, 253, 0.08) 48%, transparent 68%)',
           filter: `blur(72px) hue-rotate(${combinedHue * 1.1}deg)`,
-        }}
-      />
-      {/* 청록색 */}
-      <div
-        className="pointer-events-none fixed transition-all duration-900 ease-out animate-morph-4"
-        style={{
-          width: 350,
-          height: 450,
-          left: mousePosition.x - 100,
-          top: mousePosition.y - 280,
-          background: 'radial-gradient(ellipse at 55% 40%, rgba(153, 246, 228, 0.3) 0%, rgba(153, 246, 228, 0.06) 45%, transparent 65%)',
-          filter: `blur(60px) hue-rotate(${combinedHue * 0.7}deg)`,
         }}
       />
       {/* 연한 노랑 */}
