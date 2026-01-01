@@ -221,7 +221,7 @@ export default function LandingPage() {
             <Link href="/signup">
               <Button className={cn(
                 "px-6 h-10",
-                isSmile && "uppercase text-xs tracking-wider",
+                isSmile && "uppercase text-xs tracking-wider bg-foreground text-background hover:bg-foreground/90",
                 isSapporo && "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg shadow-amber-500/30",
                 isFluid && "bg-[#7BA3D8] text-white hover:bg-[#6B93C8] font-light px-8"
               )}>
@@ -357,7 +357,7 @@ export default function LandingPage() {
                 <Link href="/signup">
                   <Button size="lg" className={cn(
                     "gap-2 h-14 px-8",
-                    isSmile && "uppercase text-sm tracking-wider px-10",
+                    isSmile && "uppercase text-sm tracking-wider px-10 bg-foreground text-background hover:bg-foreground/90",
                     isSapporo && "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-xl shadow-amber-500/30",
                     isFluid && "bg-[#7BA3D8] text-white hover:bg-[#6B93C8] h-14 px-10 font-light text-base"
                   )}>
@@ -368,7 +368,7 @@ export default function LandingPage() {
                 <Link href="#features">
                   <Button variant="outline" size="lg" className={cn(
                     "h-14 px-8",
-                    isSmile && "border-2 uppercase text-sm tracking-wider hover:bg-primary hover:text-primary-foreground",
+                    isSmile && "border-2 border-foreground uppercase text-sm tracking-wider hover:bg-foreground hover:text-background",
                     isSapporo && "border-slate-300 text-slate-600 hover:bg-white/60 backdrop-blur-sm",
                     isFluid && "border-[#7BA3D8]/30 text-[#7BA3D8] hover:bg-[#7BA3D8]/10 font-light text-base px-10"
                   )}>
@@ -483,7 +483,7 @@ export default function LandingPage() {
 
           <div className={cn(
             "grid md:grid-cols-2 lg:grid-cols-4",
-            isSmile ? "gap-px bg-border" : "gap-6",
+            isSmile ? "gap-4" : "gap-6",
             isFluid && "gap-0 border-t border-l border-[#7BA3D8]/20"
           )}>
             <FeatureCard
@@ -758,7 +758,7 @@ function FeatureCard({
       className={cn(
         "p-8 group",
         isSmile
-          ? "bg-background hover:bg-muted transition-colors"
+          ? "bg-background hover:bg-muted transition-colors border border-border"
           : isSapporo
             ? "bg-white/80 rounded-xl border border-amber-100 hover:border-amber-300 hover:shadow-lg backdrop-blur-sm transition-colors"
             : isFluid
