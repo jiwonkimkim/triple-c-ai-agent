@@ -36,8 +36,13 @@ export function MouseGlowEffect() {
 
   const combinedHue = (hueRotation + autoHue) % 360;
 
-  // 라이트 테마에서만 표시, 마운트 전에는 숨김
-  if (!mounted || theme === 'dark') {
+  // 마운트 전이거나 다크 테마일 때만 숨김
+  if (!mounted) {
+    return null;
+  }
+
+  // 다크 테마일 때만 숨김 (light, system, undefined 등에서는 표시)
+  if (theme === 'dark') {
     return null;
   }
 
