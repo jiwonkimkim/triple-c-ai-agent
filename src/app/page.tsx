@@ -375,11 +375,6 @@ export default function LandingPage() {
               </>
             ) : (
               <>
-                <Link href="#features">
-                  <button className="glass-btn px-6 py-3 text-sm font-medium text-foreground">
-                    더 알아보기
-                  </button>
-                </Link>
                 <Link href="/signup">
                   <button className="glass-btn glass-btn-primary px-6 py-3 text-sm font-medium flex items-center gap-2">
                     시작하기
