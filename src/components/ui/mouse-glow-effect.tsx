@@ -19,18 +19,18 @@ export function MouseGlowEffect() {
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
-      const rotation = ((e.clientX + e.clientY) / 8) % 360;
+      const rotation = ((e.clientX + e.clientY) / 30) % 360;
       setHueRotation(rotation);
     };
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  // 자동 색상 변화
+  // 자동 색상 변화 (더 느리게)
   useEffect(() => {
     const interval = setInterval(() => {
-      setAutoHue(prev => (prev + 0.08) % 360);
-    }, 50);
+      setAutoHue(prev => (prev + 0.02) % 360);
+    }, 100);
     return () => clearInterval(interval);
   }, []);
 
