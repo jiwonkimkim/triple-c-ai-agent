@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { getInitials } from '@/lib/utils';
+import { useStyleTheme } from '@/contexts/style-theme-context';
 
 const navigation = [
   { name: '대시보드', href: '/dashboard', icon: LayoutDashboard },
@@ -51,8 +52,11 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const { styleTheme, isLoaded } = useStyleTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  const isSmile = isLoaded && styleTheme === 'smile';
 
   // 에디터 페이지 진입 시 사이드바 자동 닫기
   useEffect(() => {
@@ -123,9 +127,12 @@ export default function DashboardLayout({
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-500',
+                  'flex items-center gap-3 px-3 py-2 text-sm font-medium transition-all duration-500',
+                  isSmile ? 'rounded-none' : 'rounded-lg',
                   isActive
-                    ? 'text-white shadow-[0_0_20px_#eee] bg-[length:200%_auto] bg-[linear-gradient(to_right,#77A1D3_0%,#79CBCA_51%,#77A1D3_100%)]'
+                    ? isSmile
+                      ? 'bg-foreground text-background'
+                      : 'text-white shadow-[0_0_20px_#eee] bg-[length:200%_auto] bg-[linear-gradient(to_right,#77A1D3_0%,#79CBCA_51%,#77A1D3_100%)]'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 )}
                 onClick={() => setSidebarOpen(false)}

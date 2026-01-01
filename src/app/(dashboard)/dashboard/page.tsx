@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { Plus, FolderKanban, Palette, Clock, Zap, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MouseGlowEffect } from '@/components/ui/mouse-glow-effect';
+import { useStyleTheme } from '@/contexts/style-theme-context';
+import { cn } from '@/lib/utils';
 
 interface RecentProject {
   id: string;
@@ -26,6 +28,9 @@ interface DashboardStats {
 
 export default function DashboardPage() {
   const { data: session } = useSession();
+  const { styleTheme, isLoaded } = useStyleTheme();
+  const isSmile = isLoaded && styleTheme === 'smile';
+
   const [stats, setStats] = useState<DashboardStats>({
     totalProjects: 0,
     totalBrands: 0,
@@ -76,7 +81,12 @@ export default function DashboardPage() {
           </p>
         </div>
         <Link href="/dashboard/projects/new">
-          <Button className="gap-2 text-white font-medium rounded-lg shadow-[0_0_20px_#eee] transition-all duration-500 bg-[length:200%_auto] bg-[linear-gradient(to_right,#83a4d4_0%,#b6fbff_51%,#83a4d4_100%)] hover:bg-[position:right_center]">
+          <Button className={cn(
+            "gap-2 font-medium transition-all duration-500",
+            isSmile
+              ? "bg-foreground text-background hover:bg-foreground/90 rounded-none uppercase text-xs tracking-wider"
+              : "text-white rounded-lg shadow-[0_0_20px_#eee] bg-[length:200%_auto] bg-[linear-gradient(to_right,#83a4d4_0%,#b6fbff_51%,#83a4d4_100%)] hover:bg-[position:right_center]"
+          )}>
             <Plus className="h-4 w-4" />
             새 프로젝트
           </Button>
@@ -91,6 +101,7 @@ export default function DashboardPage() {
           description="활성 프로젝트"
           icon={<FolderKanban className="h-4 w-4 text-muted-foreground" />}
           href="/dashboard/projects"
+          isSmile={isSmile}
         />
         <StatsCard
           title="브랜드 프로필"
@@ -98,63 +109,84 @@ export default function DashboardPage() {
           description="등록된 브랜드"
           icon={<Palette className="h-4 w-4 text-muted-foreground" />}
           href="/dashboard/brands"
+          isSmile={isSmile}
         />
         <StatsCard
           title="생성된 페이지"
           value={isLoading ? '-' : stats.generatedPages.toString()}
           description="이번 달"
           icon={<Zap className="h-4 w-4 text-muted-foreground" />}
+          isSmile={isSmile}
         />
         <StatsCard
           title="남은 크레딧"
           value={isLoading ? '-' : stats.remainingCredits.toString()}
           description="무료 체험 크레딧"
           icon={<Clock className="h-4 w-4 text-muted-foreground" />}
+          isSmile={isSmile}
         />
       </div>
 
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 relative z-10">
-        <div className="glass-card p-6">
+        <div className={cn(
+          "p-6",
+          isSmile ? "bg-background border border-border" : "glass-card"
+        )}>
           <div className="flex items-center gap-2 mb-2">
             <FolderKanban className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold">새 프로젝트 만들기</h3>
+            <h3 className={cn("font-semibold", isSmile && "uppercase tracking-tight")}>새 프로젝트 만들기</h3>
           </div>
           <p className="text-sm text-muted-foreground mb-4">
             AI로 상품 상세페이지 생성을 시작하세요
           </p>
           <Link href="/dashboard/projects/new">
-            <button className="glass-btn glass-btn-primary w-full px-6 py-3 text-sm font-medium">
+            <button className={cn(
+              "w-full px-6 py-3 text-sm font-medium",
+              isSmile ? "bg-foreground text-background hover:bg-foreground/90 uppercase tracking-wider" : "glass-btn glass-btn-primary"
+            )}>
               시작하기
             </button>
           </Link>
         </div>
 
-        <div className="glass-card p-6">
+        <div className={cn(
+          "p-6",
+          isSmile ? "bg-background border border-border" : "glass-card"
+        )}>
           <div className="flex items-center gap-2 mb-2">
             <Palette className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold">브랜드 프로필 설정</h3>
+            <h3 className={cn("font-semibold", isSmile && "uppercase tracking-tight")}>브랜드 프로필 설정</h3>
           </div>
           <p className="text-sm text-muted-foreground mb-4">
             일관된 콘텐츠를 위해 브랜드 보이스와 스타일을 설정하세요
           </p>
           <Link href="/dashboard/brands">
-            <button className="glass-btn glass-btn-primary w-full px-6 py-3 text-sm font-medium">
+            <button className={cn(
+              "w-full px-6 py-3 text-sm font-medium",
+              isSmile ? "bg-foreground text-background hover:bg-foreground/90 uppercase tracking-wider" : "glass-btn glass-btn-primary"
+            )}>
               브랜드 관리
             </button>
           </Link>
         </div>
 
-        <div className="glass-card p-6">
+        <div className={cn(
+          "p-6",
+          isSmile ? "bg-background border border-border" : "glass-card"
+        )}>
           <div className="flex items-center gap-2 mb-2">
             <Zap className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold">템플릿 둘러보기</h3>
+            <h3 className={cn("font-semibold", isSmile && "uppercase tracking-tight")}>템플릿 둘러보기</h3>
           </div>
           <p className="text-sm text-muted-foreground mb-4">
             빠른 시작을 위한 템플릿을 탐색해 보세요
           </p>
           <Link href="/dashboard/marketplace">
-            <button className="glass-btn glass-btn-primary w-full px-6 py-3 text-sm font-medium">
+            <button className={cn(
+              "w-full px-6 py-3 text-sm font-medium",
+              isSmile ? "bg-foreground text-background hover:bg-foreground/90 uppercase tracking-wider" : "glass-btn glass-btn-primary"
+            )}>
               템플릿 보기
             </button>
           </Link>
@@ -162,11 +194,14 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent Projects */}
-      <div className="glass-card p-6 relative z-10">
+      <div className={cn(
+        "p-6 relative z-10",
+        isSmile ? "bg-background border border-border" : "glass-card"
+      )}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-lg">최근 프로젝트</h3>
+          <h3 className={cn("font-semibold text-lg", isSmile && "uppercase tracking-tight")}>최근 프로젝트</h3>
           <Link href="/dashboard/projects">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className={cn(isSmile && "uppercase text-xs tracking-wider")}>
               전체 보기
             </Button>
           </Link>
@@ -183,9 +218,15 @@ export default function DashboardPage() {
                 href={`/dashboard/projects/${project.id}`}
                 className="block"
               >
-                <div className="glass-card-strong p-4 flex items-center justify-between">
+                <div className={cn(
+                  "p-4 flex items-center justify-between",
+                  isSmile ? "bg-muted border border-border" : "glass-card-strong"
+                )}>
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center">
+                    <div className={cn(
+                      "w-10 h-10 flex items-center justify-center",
+                      isSmile ? "bg-foreground/10" : "rounded-xl bg-gradient-to-br from-primary/20 to-primary/40"
+                    )}>
                       <FolderKanban className="h-5 w-5 text-primary" />
                     </div>
                     <div>
@@ -237,15 +278,21 @@ function StatsCard({
   description,
   icon,
   href,
+  isSmile,
 }: {
   title: string;
   value: string;
   description: string;
   icon: React.ReactNode;
   href?: string;
+  isSmile?: boolean;
 }) {
   const content = (
-    <div className={`glass-card p-4 ${href ? 'cursor-pointer' : ''}`}>
+    <div className={cn(
+      "p-4",
+      href && "cursor-pointer",
+      isSmile ? "bg-background border border-border" : "glass-card"
+    )}>
       <div className="flex items-center justify-between pb-2">
         <span className="text-sm font-medium">{title}</span>
         {icon}
