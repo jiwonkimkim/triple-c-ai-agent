@@ -21,7 +21,7 @@ export function useAutoSave({
 
   const { sections, isDirty, isSaving, setDirty, setSaving, setLastSavedAt } = useEditorStore();
 
-  const save = useCallback(async () => {
+  const save = useCallback(async (isManualSave = false) => {
     if (!isDirty || isSaving) return;
 
     const currentContent = JSON.stringify(sections);
@@ -42,6 +42,7 @@ export function useAutoSave({
         body: JSON.stringify({
           versionId,
           content: sections,
+          isManualSave,
         }),
       });
 
@@ -98,12 +99,12 @@ export function useAutoSave({
     };
   }, [isDirty, projectId, versionId, sections]);
 
-  // Handle keyboard shortcut (Ctrl+S)
+  // Handle keyboard shortcut (Ctrl+S) - manual save
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
-        save();
+        save(true); // Manual save
       }
     };
 

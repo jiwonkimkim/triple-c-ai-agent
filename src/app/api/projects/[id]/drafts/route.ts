@@ -28,6 +28,7 @@ async function syncDevUserId(user: { id: string; email: string }) {
 const draftSchema = z.object({
   versionId: z.string().optional(),
   content: z.any(), // JSON content for editor sections
+  isManualSave: z.boolean().optional(), // true for manual save button
 });
 
 // POST /api/projects/[id]/drafts - Create or update draft
@@ -66,16 +67,18 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { versionId, content } = draftSchema.parse(body);
+    const { versionId, content, isManualSave } = draftSchema.parse(body);
 
-    // Check if we should create a new ProjectVersion (throttle to 5 minutes)
+    // Check if we should create a new ProjectVersion
+    // - Manual save: always create
+    // - Auto save: throttle to 5 minutes
     const lastProjectVersion = await prisma.projectVersion.findFirst({
       where: { projectId },
       orderBy: { createdAt: 'desc' },
     });
 
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-    const shouldCreateVersion = !lastProjectVersion || lastProjectVersion.createdAt < fiveMinutesAgo;
+    const shouldCreateVersion = isManualSave || !lastProjectVersion || lastProjectVersion.createdAt < fiveMinutesAgo;
 
     if (versionId) {
       // Update existing draft/version
@@ -101,15 +104,15 @@ export async function POST(
         },
       });
 
-      // Create ProjectVersion for history (throttled)
+      // Create ProjectVersion for history
       if (shouldCreateVersion) {
         const newVersionNumber = (lastProjectVersion?.versionNumber || 0) + 1;
         await prisma.projectVersion.create({
           data: {
             projectId,
             versionNumber: newVersionNumber,
-            action: 'AUTO_SAVE',
-            description: '자동 저장',
+            action: isManualSave ? 'UPDATE' : 'AUTO_SAVE',
+            description: isManualSave ? '수동 저장' : '자동 저장',
             content: { sections: content },
             createdById: session.user.id,
           },
@@ -138,15 +141,15 @@ export async function POST(
         },
       });
 
-      // Create ProjectVersion for history (throttled)
+      // Create ProjectVersion for history
       if (shouldCreateVersion) {
         const newVersionNumber = (lastProjectVersion?.versionNumber || 0) + 1;
         await prisma.projectVersion.create({
           data: {
             projectId,
             versionNumber: newVersionNumber,
-            action: 'AUTO_SAVE',
-            description: '자동 저장',
+            action: isManualSave ? 'UPDATE' : 'AUTO_SAVE',
+            description: isManualSave ? '수동 저장' : '자동 저장',
             content: { sections: content },
             createdById: session.user.id,
           },

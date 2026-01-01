@@ -913,7 +913,7 @@ export function DetailPageEditor({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button size="sm" onClick={save} disabled={isSaving || !isDirty} className="w-24 justify-center gap-2">
+          <Button size="sm" onClick={() => save(true)} disabled={isSaving || !isDirty} className="w-24 justify-center gap-2">
             {isSaving ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
