@@ -491,7 +491,7 @@ export default function LandingPage() {
           isFluid && "py-20 md:py-32"
         )}>
           <div className={cn("container mx-auto px-6", isFluid && "px-8 lg:px-20 max-w-[1500px]")}>
-            <div className={cn("max-w-4xl", isFluid && "max-w-none")}>
+            <div className={cn("max-w-4xl mx-auto text-center", isFluid && "max-w-none text-left")}>
               <motion.h1
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -501,7 +501,7 @@ export default function LandingPage() {
                   isSmile
                     ? "text-5xl md:text-7xl lg:text-8xl font-black leading-[0.9] tracking-tighter uppercase"
                     : isSapporo
-                      ? "text-5xl md:text-7xl font-bold leading-tight text-center"
+                      ? "text-5xl md:text-7xl font-bold leading-tight"
                       : isFluid
                         ? "text-[4rem] md:text-[6rem] lg:text-[8rem] font-extralight leading-[0.95] tracking-[-0.02em]"
                         : "text-4xl md:text-5xl lg:text-6xl font-bold leading-tight"
@@ -543,9 +543,9 @@ export default function LandingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 }}
                 className={cn(
-                  "text-lg text-muted-foreground max-w-xl mb-8",
-                  isSapporo && "text-xl text-slate-500 max-w-2xl mx-auto text-center leading-relaxed",
-                  isFluid && "text-xl font-light max-w-2xl mb-12 leading-relaxed opacity-70"
+                  "text-lg text-muted-foreground max-w-xl mx-auto mb-8",
+                  isSapporo && "text-xl text-slate-500 max-w-2xl leading-relaxed",
+                  isFluid && "text-xl font-light max-w-2xl mb-12 leading-relaxed opacity-70 mx-0"
                 )}
               >
                 {isSapporo ? (
