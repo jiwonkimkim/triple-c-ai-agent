@@ -175,9 +175,9 @@ export function MarketplaceTemplateCard({
         {/* 제품 정보 표시 */}
         {(productCategory || productBrand || productPrice) && (
           <div className="flex flex-col gap-0.5 text-xs text-muted-foreground mt-1">
-            {productCategory && <span><span className="font-semibold text-foreground">카테고리</span> {productCategory}</span>}
-            {productBrand && <span><span className="font-semibold text-foreground">브랜드</span> {productBrand}</span>}
-            {productPrice && <span><span className="font-semibold text-foreground">가격</span> {Number(productPrice).toLocaleString()}원</span>}
+            {productCategory && <span><span className="font-semibold bg-yellow-100 text-yellow-800 px-1 rounded">카테고리</span> {productCategory}</span>}
+            {productBrand && <span><span className="font-semibold bg-pink-100 text-pink-800 px-1 rounded">브랜드</span> {productBrand}</span>}
+            {productPrice && <span><span className="font-semibold bg-green-100 text-green-800 px-1 rounded">가격</span> {Number(productPrice).toLocaleString()}원</span>}
           </div>
         )}
         {/* 설명 표시 */}
