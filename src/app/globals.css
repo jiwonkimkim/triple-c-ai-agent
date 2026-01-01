@@ -556,3 +556,15 @@ html.style-fluid.dark {
 .glass-input::placeholder {
   color: rgba(0, 0, 0, 0.35);
 }
+
+/* 하트 파티클 애니메이션 */
+@keyframes particle {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) translate(0, 0) rotate(0deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) rotate(var(--rotation)) scale(0);
+  }
+}

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Zap, Palette, Clock, Users, Sparkles, CheckCircle, Sun, Moon, Play, Check, Heart, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -103,6 +103,16 @@ const Snowflakes = () => {
   );
 };
 
+// 파티클 인터페이스
+interface Particle {
+  id: number;
+  x: number;
+  y: number;
+  rotation: number;
+  scale: number;
+  color: string;
+}
+
 export default function LandingPage() {
   const { styleTheme, setStyleTheme, isLoaded } = useStyleTheme();
   // Use default theme until client hydration is complete
@@ -112,6 +122,32 @@ export default function LandingPage() {
 
   // default 테마 여부 (smile, sapporo, fluid가 아닌 경우)
   const isDefault = isLoaded && !isSmile && !isSapporo && !isFluid;
+
+  // 좋아요 버튼 파티클 상태
+  const [particles, setParticles] = useState<Particle[]>([]);
+  const heartButtonRef = useRef<HTMLButtonElement>(null);
+
+  // 파티클 생성 함수
+  const createParticles = () => {
+    const colors = ['#ff6b9d', '#f43f5e', '#dc2626', '#fb7185', '#fda4af'];
+    const newParticles: Particle[] = [];
+
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2;
+      const distance = 40 + Math.random() * 30;
+      newParticles.push({
+        id: Date.now() + i,
+        x: Math.cos(angle) * distance,
+        y: Math.sin(angle) * distance,
+        rotation: Math.random() * 360,
+        scale: 0.5 + Math.random() * 0.5,
+        color: colors[Math.floor(Math.random() * colors.length)],
+      });
+    }
+
+    setParticles(newParticles);
+    setTimeout(() => setParticles([]), 800);
+  };
 
   return (
     <div className={cn(
@@ -350,6 +386,48 @@ export default function LandingPage() {
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </Link>
+                <button
+                  ref={heartButtonRef}
+                  onClick={createParticles}
+                  className="glass-btn px-6 py-3 text-sm font-medium text-foreground flex items-center gap-2 group relative"
+                >
+                  {/* 파티클 효과 */}
+                  {particles.map((particle) => (
+                    <span
+                      key={particle.id}
+                      className="absolute pointer-events-none animate-[particle_0.8s_ease-out_forwards]"
+                      style={{
+                        left: '50%',
+                        top: '50%',
+                        '--tx': `${particle.x}px`,
+                        '--ty': `${particle.y}px`,
+                        '--rotation': `${particle.rotation}deg`,
+                      } as React.CSSProperties}
+                    >
+                      <Heart
+                        className="w-3 h-3"
+                        fill={particle.color}
+                        stroke="none"
+                        style={{ transform: `scale(${particle.scale})` }}
+                      />
+                    </span>
+                  ))}
+                  <Heart
+                    className="w-5 h-5 drop-shadow-[0_2px_3px_rgba(244,63,94,0.4)] transition-transform duration-300 group-hover:scale-110 group-hover:animate-[pulse_0.8s_ease-in-out_infinite]"
+                    fill="url(#heartGradient)"
+                    stroke="none"
+                  />
+                  <svg width="0" height="0">
+                    <defs>
+                      <linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#ff6b9d" />
+                        <stop offset="50%" stopColor="#f43f5e" />
+                        <stop offset="100%" stopColor="#dc2626" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  좋아요
+                </button>
               </>
             )}
           </div>
