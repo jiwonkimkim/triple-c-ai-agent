@@ -60,6 +60,18 @@ export function MouseGlowEffect() {
           filter: `blur(65px) hue-rotate(${combinedHue}deg)`,
         }}
       />
+      {/* 연한 에메랄드 */}
+      <div
+        className="pointer-events-none fixed transition-all duration-1000 ease-out animate-morph-2"
+        style={{
+          width: 500,
+          height: 400,
+          left: mousePosition.x - 280,
+          top: mousePosition.y - 150,
+          background: 'radial-gradient(ellipse at 60% 40%, rgba(167, 243, 208, 0.28) 0%, rgba(167, 243, 208, 0.06) 45%, transparent 65%)',
+          filter: `blur(70px) hue-rotate(${combinedHue * 0.3}deg)`,
+        }}
+      />
       {/* 보라색 */}
       <div
         className="pointer-events-none fixed transition-all duration-850 ease-out animate-morph-3"
