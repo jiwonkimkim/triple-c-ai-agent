@@ -215,7 +215,8 @@ export default function LandingPage() {
                 "text-sm",
                 isSmile && "uppercase text-xs tracking-wider",
                 isSapporo && "text-slate-600 hover:text-amber-600 hover:bg-amber-50",
-                isFluid && "text-sm font-light hover:bg-transparent hover:opacity-60"
+                isFluid && "text-sm font-light hover:bg-transparent hover:opacity-60",
+                isDefault && "glass-btn"
               )}>
                 로그인
               </Button>
@@ -225,7 +226,8 @@ export default function LandingPage() {
                 "px-6 h-10",
                 isSmile && "uppercase text-xs tracking-wider bg-foreground text-background hover:bg-foreground/90",
                 isSapporo && "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg shadow-amber-500/30",
-                isFluid && "bg-[#7BA3D8] text-white hover:bg-[#6B93C8] font-light px-8"
+                isFluid && "bg-[#7BA3D8] text-white hover:bg-[#6B93C8] font-light px-8",
+                isDefault && "glass-btn glass-btn-primary"
               )}>
                 시작하기
               </Button>
