@@ -78,9 +78,9 @@ export async function POST(
     });
 
     // Also update detailPageVersion for the editor
-    // Convert from projectVersion format ({ sections }) to detailPageVersion format ({ elements })
+    // ProjectVersion stores content as { sections: [editor sections array] }
     const contentData = versionToRestore.content as { sections?: any[] };
-    const elements = contentData?.sections || [];
+    const editorSections = contentData?.sections || [];
 
     // Get latest detailPageVersion number
     const latestDetailVersion = await prisma.detailPageVersion.findFirst({
@@ -90,11 +90,12 @@ export async function POST(
     const newDetailVersionNumber = (latestDetailVersion?.versionNumber || 0) + 1;
 
     // Create new detailPageVersion with restored content
+    // contentJson should be the direct array of editor sections (not wrapped in { elements })
     await prisma.detailPageVersion.create({
       data: {
         projectId,
         versionNumber: newDetailVersionNumber,
-        contentJson: { elements },
+        contentJson: editorSections,
         status: 'DRAFT',
       },
     });
