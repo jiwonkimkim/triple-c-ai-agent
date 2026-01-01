@@ -144,11 +144,13 @@ export default function LandingPage() {
           ? "bg-white/30 backdrop-blur-sm border-b border-slate-200/50"
           : isFluid
             ? "bg-[#F5F3EA]/90 backdrop-blur-md"
-            : "bg-background/95 backdrop-blur-sm"
+            : isDefault
+              ? "bg-transparent"
+              : "bg-background/95 backdrop-blur-sm"
       )}>
         <div className={cn(
           "flex items-center justify-between px-6 py-4",
-          !isSapporo && !isFluid && "border-b border-border",
+          !isSapporo && !isFluid && !isDefault && "border-b border-border",
           isSmile && "border-b-2",
           isFluid && "py-6 px-8 lg:px-16"
         )}>
