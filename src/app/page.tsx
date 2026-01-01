@@ -759,6 +759,172 @@ export default function LandingPage() {
       {/* Fluid 테마: 마키 */}
       {isFluid && <FluidMarquee>Create · Design · Export</FluidMarquee>}
 
+      {/* Marketplace Section */}
+      <section className={cn(
+        "py-24",
+        isSapporo && "relative z-10",
+        isFluid && "py-32 px-8 lg:px-16"
+      )}>
+        <div className={cn("container mx-auto px-6", isFluid && "px-0")}>
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className={cn("mb-16 text-center")}
+          >
+            <p className={cn(
+              "text-sm text-primary mb-4",
+              isSmile && "uppercase tracking-[0.3em]",
+              isSapporo && "inline-block px-4 py-1.5 rounded-full bg-amber-100 border border-amber-200 text-amber-700",
+              isFluid && "text-xs uppercase tracking-[0.2em] opacity-50"
+            )}>Marketplace</p>
+            <h2 className={cn(
+              isSmile
+                ? "text-4xl md:text-5xl font-black tracking-tighter uppercase"
+                : isSapporo
+                  ? "text-4xl font-bold text-slate-700"
+                  : isFluid
+                    ? "text-4xl md:text-5xl font-extralight tracking-tight"
+                    : "text-3xl md:text-4xl font-bold"
+            )}>
+              {isSmile ? (
+                <>
+                  템플릿
+                  <br />
+                  마켓플레이스
+                </>
+              ) : isSapporo ? (
+                "템플릿 마켓플레이스"
+              ) : isFluid ? (
+                "Template Marketplace"
+              ) : (
+                "템플릿 마켓플레이스"
+              )}
+            </h2>
+            <p className={cn(
+              "mt-4 text-lg text-muted-foreground max-w-2xl mx-auto",
+              isSapporo && "text-slate-500",
+              isFluid && "font-light opacity-60"
+            )}>
+              {isSapporo
+                ? "다양한 브랜드의 참조 템플릿으로 영감을 얻고, 나만의 콘텐츠를 빠르게 제작하세요"
+                : isFluid
+                  ? "Browse reference templates from various brands. Get inspired and create your content faster."
+                  : "다양한 브랜드의 참조 템플릿으로 영감을 얻고, 나만의 콘텐츠를 빠르게 제작하세요"
+              }
+            </p>
+          </motion.div>
+
+          {/* 마켓플레이스 프리뷰 이미지 */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mt-12"
+          >
+            <div className={cn(
+              "relative mx-auto max-w-5xl rounded-xl overflow-hidden shadow-2xl",
+              isDefault && "bg-white/10 backdrop-blur-sm border border-white/20",
+              isSmile && "border-2 border-foreground",
+              isSapporo && "shadow-amber-500/20",
+              isFluid && "border border-[#7BA3D8]/20"
+            )}>
+              {/* 브라우저 창 상단 바 */}
+              <div className={cn(
+                "flex items-center gap-2 px-4 py-3",
+                isDefault && "bg-white/20 backdrop-blur-sm border-b border-white/20",
+                isSmile && "bg-muted border-b-2 border-foreground",
+                isSapporo && "bg-white/60 border-b border-slate-200",
+                isFluid && "bg-[#F5F3EA] border-b border-[#7BA3D8]/20"
+              )}>
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-red-400" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-400" />
+                  <div className="w-3 h-3 rounded-full bg-green-400" />
+                </div>
+                <div className={cn(
+                  "flex-1 mx-4 px-4 py-1 rounded-md text-xs text-center",
+                  isDefault && "bg-white/30 text-foreground/50",
+                  isSmile && "bg-background text-foreground/50 uppercase tracking-wider",
+                  isSapporo && "bg-white text-slate-400",
+                  isFluid && "bg-white text-[#7BA3D8]/50"
+                )}>
+                  Triple C Marketplace
+                </div>
+              </div>
+              {/* 마켓플레이스 스크린샷 */}
+              <img
+                src="/images/marketplace-preview.jpg"
+                alt="Triple C 마켓플레이스 미리보기"
+                className="w-full h-auto"
+              />
+            </div>
+
+            {/* 마켓플레이스 특징 */}
+            <div className={cn(
+              "grid md:grid-cols-3 gap-6 mt-12 max-w-4xl mx-auto",
+              isFluid && "gap-8"
+            )}>
+              <div className={cn(
+                "text-center p-6",
+                isDefault && "glass-card",
+                isSmile && "border border-border",
+                isSapporo && "bg-white/60 rounded-xl border border-amber-100",
+                isFluid && "border border-[#7BA3D8]/20"
+              )}>
+                <div className={cn(
+                  "text-3xl font-bold mb-2",
+                  isSapporo && "text-amber-600",
+                  isFluid && "font-light"
+                )}>400+</div>
+                <p className={cn(
+                  "text-sm text-muted-foreground",
+                  isSapporo && "text-slate-500",
+                  isFluid && "font-light opacity-60"
+                )}>참조 템플릿</p>
+              </div>
+              <div className={cn(
+                "text-center p-6",
+                isDefault && "glass-card",
+                isSmile && "border border-border",
+                isSapporo && "bg-white/60 rounded-xl border border-amber-100",
+                isFluid && "border border-[#7BA3D8]/20"
+              )}>
+                <div className={cn(
+                  "text-3xl font-bold mb-2",
+                  isSapporo && "text-amber-600",
+                  isFluid && "font-light"
+                )}>무료</div>
+                <p className={cn(
+                  "text-sm text-muted-foreground",
+                  isSapporo && "text-slate-500",
+                  isFluid && "font-light opacity-60"
+                )}>모든 템플릿 무료 제공</p>
+              </div>
+              <div className={cn(
+                "text-center p-6",
+                isDefault && "glass-card",
+                isSmile && "border border-border",
+                isSapporo && "bg-white/60 rounded-xl border border-amber-100",
+                isFluid && "border border-[#7BA3D8]/20"
+              )}>
+                <div className={cn(
+                  "text-3xl font-bold mb-2",
+                  isSapporo && "text-amber-600",
+                  isFluid && "font-light"
+                )}>K-뷰티</div>
+                <p className={cn(
+                  "text-sm text-muted-foreground",
+                  isSapporo && "text-slate-500",
+                  isFluid && "font-light opacity-60"
+                )}>올리브영 인기 브랜드</p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* How It Works Section */}
       <section id="how-it-works" className={cn(
         "py-24 relative z-10",

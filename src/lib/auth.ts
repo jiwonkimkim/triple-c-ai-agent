@@ -58,7 +58,7 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
-    // Development-only login provider (no authentication required)
+    // Development-only login provider (API key required)
     ...((process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEV_MODE === 'true')
       ? [
           CredentialsProvider({
@@ -66,8 +66,15 @@ export const authOptions: NextAuthOptions = {
             name: 'dev-login',
             credentials: {
               userType: { label: 'User Type', type: 'text' },
+              apiKey: { label: 'API Key', type: 'password' },
             },
             async authorize(credentials) {
+              // API 키 검증
+              const validApiKey = process.env.DEV_API_KEY;
+              if (!credentials?.apiKey || credentials.apiKey !== validApiKey) {
+                throw new Error('Invalid API key');
+              }
+
               // userType 파라미터로 B2C/B2B 구분
               const userType = (credentials?.userType === 'B2B' ? 'B2B' : 'B2C') as 'B2C' | 'B2B';
               const devEmail = userType === 'B2B' ? 'dev-b2b@example.com' : 'dev@example.com';

@@ -20,6 +20,7 @@ export default function LoginPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [userType, setUserType] = useState<'B2C' | 'B2B'>('B2C');
+  const [devApiKey, setDevApiKey] = useState('');
 
   const {
     register,
@@ -78,10 +79,20 @@ export default function LoginPage() {
   };
 
   const handleDevLogin = async () => {
+    if (!devApiKey.trim()) {
+      toast({
+        variant: 'destructive',
+        title: 'API 키 필요',
+        description: '개발자 API 키를 입력해주세요.',
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const result = await signIn('dev-login', {
         userType,
+        apiKey: devApiKey,
         redirect: false,
       });
 
@@ -240,13 +251,25 @@ export default function LoginPage() {
                   </span>
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="devApiKey" className="text-orange-500">개발자 API 키</Label>
+                <Input
+                  id="devApiKey"
+                  type="password"
+                  placeholder="API 키를 입력하세요"
+                  value={devApiKey}
+                  onChange={(e) => setDevApiKey(e.target.value)}
+                  className="border-orange-300 focus:border-orange-500"
+                  disabled={isLoading}
+                />
+              </div>
               <Button
                 variant="outline"
                 className="w-full border-orange-500 text-orange-500 hover:bg-orange-50 hover:text-orange-600"
                 onClick={handleDevLogin}
-                disabled={isLoading}
+                disabled={isLoading || !devApiKey.trim()}
               >
-                {userType === 'B2C' ? '🔧 개인 개발자 로그인 (인증 불필요)' : '🏢 기업 개발자 로그인 (인증 불필요)'}
+                {userType === 'B2C' ? '🔧 개인 개발자 로그인' : '🏢 기업 개발자 로그인'}
               </Button>
             </>
           )}
