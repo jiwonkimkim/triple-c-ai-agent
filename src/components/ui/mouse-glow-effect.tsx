@@ -42,10 +42,10 @@ export function MouseGlowEffect() {
   }
 
   return (
-    <>
+    <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
       {/* 분홍색 */}
       <div
-        className="pointer-events-none fixed transition-all duration-700 ease-out animate-morph-1 z-0"
+        className="pointer-events-none fixed transition-all duration-700 ease-out animate-morph-1"
         style={{
           width: 520,
           height: 680,
@@ -57,7 +57,7 @@ export function MouseGlowEffect() {
       />
       {/* 에메랄드색 */}
       <div
-        className="pointer-events-none fixed transition-all duration-1000 ease-out animate-morph-2 z-0"
+        className="pointer-events-none fixed transition-all duration-1000 ease-out animate-morph-2"
         style={{
           width: 580,
           height: 380,
@@ -69,7 +69,7 @@ export function MouseGlowEffect() {
       />
       {/* 보라색 */}
       <div
-        className="pointer-events-none fixed transition-all duration-850 ease-out animate-morph-3 z-0"
+        className="pointer-events-none fixed transition-all duration-850 ease-out animate-morph-3"
         style={{
           width: 480,
           height: 620,
@@ -81,7 +81,7 @@ export function MouseGlowEffect() {
       />
       {/* 청록색 */}
       <div
-        className="pointer-events-none fixed transition-all duration-900 ease-out animate-morph-4 z-0"
+        className="pointer-events-none fixed transition-all duration-900 ease-out animate-morph-4"
         style={{
           width: 350,
           height: 450,
@@ -91,6 +91,6 @@ export function MouseGlowEffect() {
           filter: `blur(60px) hue-rotate(${combinedHue * 0.7}deg)`,
         }}
       />
-    </>
+    </div>
   );
 }
