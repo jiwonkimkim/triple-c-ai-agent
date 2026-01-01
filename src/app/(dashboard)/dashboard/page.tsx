@@ -147,6 +147,7 @@ export default function DashboardPage() {
           description="무료 체험 크레딧"
           icon={<Clock className="h-4 w-4 text-muted-foreground" />}
           isSmile={isSmile}
+          progress={isLoading ? undefined : { current: stats.remainingCredits, max: 3 }}
         />
       </div>
 
@@ -304,6 +305,7 @@ function StatsCard({
   icon,
   href,
   isSmile,
+  progress,
 }: {
   title: string;
   value: string;
@@ -311,6 +313,7 @@ function StatsCard({
   icon: React.ReactNode;
   href?: string;
   isSmile?: boolean;
+  progress?: { current: number; max: number };
 }) {
   const content = (
     <div className={cn(
@@ -324,6 +327,19 @@ function StatsCard({
       </div>
       <div className="text-2xl font-bold">{value}</div>
       <p className="text-xs text-muted-foreground">{description}</p>
+      {progress && (
+        <div className="mt-3">
+          <div className="h-2 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500"
+              style={{ width: `${Math.min((progress.current / progress.max) * 100, 100)}%` }}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            {progress.max - progress.current}회 사용 / {progress.max}회 중
+          </p>
+        </div>
+      )}
     </div>
   );
 
