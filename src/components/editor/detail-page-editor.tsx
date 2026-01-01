@@ -931,7 +931,8 @@ export function DetailPageEditor({
             selectSection(null);
           }}
         >
-          {/* Floating viewport toggle - bottom right */}
+          {/* Floating viewport toggle - bottom right (hide when AI chat is open) */}
+          {!isChatOpen && (
           <div className="fixed bottom-6 right-6 z-30 flex items-center gap-1 rounded-lg border bg-background/95 backdrop-blur-sm p-1.5 shadow-lg">
             <button
               className={cn(
@@ -979,6 +980,7 @@ export function DetailPageEditor({
               <Smartphone className="h-4 w-4" />
             </button>
           </div>
+          )}
           <div className={cn('mx-auto transition-all duration-300', previewWidths[previewMode])}>
             <div className="space-y-0">
               {/* MAIN 섹션 판별: 첫 번째 섹션이 메인인지 확인 */}
