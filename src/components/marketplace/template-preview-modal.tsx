@@ -36,13 +36,19 @@ export function TemplatePreviewModal({
   const isFree = template.price === 0;
   const canPurchase = !template.isPurchased && !template.isOwner;
 
-  // 모든 이미지 배열 (썸네일 + previewImages)
-  const allImages = [
-    template.thumbnailUrl,
-    ...(template.previewImages || []),
-  ].filter(Boolean) as string[];
+  // sections에서 이미지 메타데이터 추출
+  const sections = template.sections as any;
+  const sectionImages = sections?.images || [];
+
+  // previewImages 사용 (모든 이미지가 순서대로 저장됨)
+  const allImages = (template.previewImages && template.previewImages.length > 0)
+    ? template.previewImages
+    : [template.thumbnailUrl].filter(Boolean) as string[];
 
   const currentImage = allImages[currentImageIndex] || template.thumbnailUrl;
+
+  // 현재 이미지의 메타데이터 찾기
+  const currentImageMeta = sectionImages.find((img: any) => img.url === currentImage) || sectionImages[currentImageIndex];
 
   const goToPrev = () => {
     setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : allImages.length - 1));
@@ -123,6 +129,15 @@ export function TemplatePreviewModal({
                 )}
               </div>
 
+              {/* 현재 이미지 설명 */}
+              {currentImageMeta?.description && (
+                <div className="px-4 py-3 border-t bg-background/80">
+                  <p className="text-sm text-muted-foreground line-clamp-3">
+                    {currentImageMeta.description}
+                  </p>
+                </div>
+              )}
+
               {/* Thumbnail Strip */}
               {allImages.length > 1 && (
                 <div className="p-2 border-t bg-background/50">
@@ -178,6 +193,15 @@ export function TemplatePreviewModal({
 
               {/* Title */}
               <h2 className="text-2xl font-bold mb-2">{template.name}</h2>
+
+              {/* 제품 정보 (카테고리, 브랜드, 가격) */}
+              {(sections?.category || sections?.brand || sections?.price) && (
+                <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted-foreground mb-3">
+                  {sections?.category && <span>{sections.category}</span>}
+                  {sections?.brand && <span>| {sections.brand}</span>}
+                  {sections?.price && <span>| {Number(sections.price).toLocaleString()}원</span>}
+                </div>
+              )}
 
               {/* Rating & Downloads */}
               <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">

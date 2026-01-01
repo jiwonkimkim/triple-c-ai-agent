@@ -151,8 +151,15 @@ export async function GET(request: NextRequest) {
       isOwner: template.user?.id === userId,
     }));
 
+    // Sort to show purchased templates first
+    const sortedTemplates = formattedTemplates.sort((a, b) => {
+      if (a.isPurchased && !b.isPurchased) return -1;
+      if (!a.isPurchased && b.isPurchased) return 1;
+      return 0;
+    });
+
     return NextResponse.json({
-      templates: formattedTemplates,
+      templates: sortedTemplates,
       pagination: {
         page,
         limit,

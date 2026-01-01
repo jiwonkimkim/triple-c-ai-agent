@@ -27,7 +27,16 @@ export interface MarketplaceTemplateData {
   category: string;
   thumbnailUrl?: string | null;
   previewImages?: string[];
-  sections?: TemplateSectionData[];
+  sections?: TemplateSectionData[] | {
+    product_code?: string;
+    original_price?: string;
+    raw_data?: {
+      category?: string;
+      brand?: string;
+      price?: string;
+      product_code?: string;
+    };
+  };
   description?: string | null;
   price: number;
   tags?: string[];
@@ -77,6 +86,12 @@ export function MarketplaceTemplateCard({
 }: MarketplaceTemplateCardProps) {
   const canPurchase = !template.isPurchased && !template.isOwner;
   const isFree = template.price === 0;
+
+  // sections에서 제품 정보 추출
+  const sections = template.sections as any;
+  const productCategory = sections?.category || '';
+  const productBrand = sections?.brand || template.tags?.[1] || '';
+  const productPrice = sections?.price || '';
 
   return (
     <Card
@@ -157,10 +172,29 @@ export function MarketplaceTemplateCard({
             </div>
           )}
         </div>
+        {/* 제품 정보 표시 */}
+        {(productCategory || productBrand || productPrice) && (
+          <div className="flex flex-wrap gap-x-2 gap-y-1 text-xs text-muted-foreground mt-1">
+            {productCategory && <span>{productCategory}</span>}
+            {productBrand && <span>| {productBrand}</span>}
+            {productPrice && <span>| {Number(productPrice).toLocaleString()}원</span>}
+          </div>
+        )}
+        {/* 설명 표시 */}
         {template.description && (
           <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
             {template.description}
           </p>
+        )}
+        {/* 태그 표시 */}
+        {template.tags && template.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {template.tags.slice(0, 3).map((tag, idx) => (
+              <Badge key={idx} variant="outline" className="text-[10px] px-1.5 py-0">
+                {tag}
+              </Badge>
+            ))}
+          </div>
         )}
       </CardHeader>
 

@@ -77,9 +77,6 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-bold tracking-tight">
             환영합니다, {session?.user?.name?.split(' ')[0] || '사용자'}님!
           </h1>
-          <p className="text-muted-foreground">
-            오늘의 프로젝트 현황을 확인해 보세요.
-          </p>
         </div>
         <div className="w-full max-w-xl mt-2">
           <div className="flex items-center gap-3">
