@@ -361,7 +361,8 @@ export default function LandingPage() {
                     "gap-2 h-14 px-8",
                     isSmile && "uppercase text-sm tracking-wider px-10 bg-foreground text-background hover:bg-foreground/90",
                     isSapporo && "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-xl shadow-amber-500/30",
-                    isFluid && "bg-[#7BA3D8] text-white hover:bg-[#6B93C8] h-14 px-10 font-light text-base"
+                    isFluid && "bg-[#7BA3D8] text-white hover:bg-[#6B93C8] h-14 px-10 font-light text-base",
+                    isDefault && "glass-btn glass-btn-primary"
                   )}>
                     {isFluid ? "Get started" : "무료로 시작하기"}
                     <ArrowRight className="h-4 w-4" />
@@ -372,7 +373,8 @@ export default function LandingPage() {
                     "h-14 px-8",
                     isSmile && "border-2 border-foreground uppercase text-sm tracking-wider hover:bg-foreground hover:text-background",
                     isSapporo && "border-slate-300 text-slate-600 hover:bg-white/60 backdrop-blur-sm",
-                    isFluid && "border-[#7BA3D8]/30 text-[#7BA3D8] hover:bg-[#7BA3D8]/10 font-light text-base px-10"
+                    isFluid && "border-[#7BA3D8]/30 text-[#7BA3D8] hover:bg-[#7BA3D8]/10 font-light text-base px-10",
+                    isDefault && "glass-btn border-white/30"
                   )}>
                     {isSapporo ? (
                       <>
