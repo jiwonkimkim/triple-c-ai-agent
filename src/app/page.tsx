@@ -616,7 +616,7 @@ export default function LandingPage() {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className={cn("mb-16", isSapporo && "text-center")}
+            className={cn("mb-16 text-center")}
           >
             <p className={cn(
               "text-sm text-primary mb-4",
