@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { Plus, FolderKanban, Palette, Clock, Zap, Loader2, Mail } from 'lucide-react';
+import { Plus, FolderKanban, Palette, Clock, Zap, Loader2, Sparkles, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MouseGlowEffect } from '@/components/ui/mouse-glow-effect';
 import { useStyleTheme } from '@/contexts/style-theme-context';
@@ -39,7 +39,7 @@ export default function DashboardPage() {
     recentProjects: [],
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [emailValue, setEmailValue] = useState('');
+  const [promptValue, setPromptValue] = useState('');
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -81,7 +81,7 @@ export default function DashboardPage() {
             오늘의 프로젝트 현황을 확인해 보세요.
           </p>
         </div>
-        <div className="w-full max-w-lg mt-2">
+        <div className="w-full max-w-xl mt-2">
           <div className="flex items-center gap-3">
             <div className={cn(
               "relative group flex items-center gap-2 flex-1 px-4 py-3 rounded-2xl transition-all duration-300 focus-within:shadow-lg focus-within:shadow-blue-500/10",
@@ -89,26 +89,29 @@ export default function DashboardPage() {
                 ? "bg-background border-2 border-foreground focus-within:border-foreground"
                 : "bg-white/40 backdrop-blur-xl border border-white/50 shadow-sm focus-within:border-blue-400/50"
             )}>
-              <Mail className={`w-[18px] h-[18px] transition-colors duration-300 ${emailValue ? 'text-blue-500' : 'text-foreground/30'}`} />
+              <Sparkles className={`w-[18px] h-[18px] transition-colors duration-300 ${promptValue ? 'text-blue-500' : 'text-foreground/30'}`} />
               <input
-                type="email"
-                placeholder="이메일 주소를 입력하세요"
-                value={emailValue}
-                onChange={(e) => setEmailValue(e.target.value)}
+                type="text"
+                placeholder="어떤 콘텐츠를 만들고 싶으신가요?"
+                value={promptValue}
+                onChange={(e) => setPromptValue(e.target.value)}
                 className="w-full bg-transparent border-none focus:outline-none focus:ring-0 text-sm placeholder:text-foreground/30"
               />
             </div>
-            <button className={cn(
-              "px-6 py-3 text-sm font-medium whitespace-nowrap transition-all duration-200",
-              isSmile
-                ? "bg-foreground text-background hover:bg-foreground/90 uppercase tracking-wider"
-                : "rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 hover:shadow-lg hover:shadow-blue-500/30"
-            )}>
-              구독
-            </button>
+            <Link href={`/dashboard/projects/new${promptValue ? `?prompt=${encodeURIComponent(promptValue)}` : ''}`}>
+              <button className={cn(
+                "px-6 py-3 text-sm font-medium whitespace-nowrap transition-all duration-200 flex items-center gap-2",
+                isSmile
+                  ? "bg-foreground text-background hover:bg-foreground/90 uppercase tracking-wider"
+                  : "rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 hover:shadow-lg hover:shadow-blue-500/30"
+              )}>
+                시작하기
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </Link>
           </div>
           <p className="text-center text-xs text-foreground/40 mt-3">
-            스팸 없이 주요 업데이트만 보내드립니다
+            예: 화장품 상세페이지, 패션 룩북, 음식 메뉴판 등
           </p>
         </div>
       </div>
