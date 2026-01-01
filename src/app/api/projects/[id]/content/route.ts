@@ -217,13 +217,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }>;
 
     if (aiSections && aiSections.length > 0) {
-      // 디버그 로그: 섹션 데이터 확인
-      console.log('[Content API] Processing sections:', aiSections.map(s => ({
-        type: s.type,
-        hasImageUrl: !!s.imageUrl,
-        imageUrlsLength: s.imageUrls?.length || 0,
-      })));
-
       // Section type to Korean name mapping
       const sectionTypeNames: Record<string, string> = {
         MAIN: '메인',
@@ -456,15 +449,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         }));
 
         // Create editor section with multiple blocks
-        console.log(`[Content API] Section ${section.type}: ${images.length} images, ${blocks.length} blocks created`);
         editorSections.push({
           id: `section-${section.id}`,
           name: `${sectionName}${images.length > 1 ? ` (${images.length}장)` : ''}`,
           blocks,
         });
       }
-
-      console.log(`[Content API] Total editor sections: ${editorSections.length}, Total blocks: ${editorSections.reduce((sum, s) => sum + s.blocks.length, 0)}`);
 
 
       return NextResponse.json({
