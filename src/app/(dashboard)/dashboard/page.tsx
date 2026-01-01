@@ -137,9 +137,9 @@ export default function DashboardPage() {
             일관된 콘텐츠를 위해 브랜드 보이스와 스타일을 설정하세요
           </p>
           <Link href="/dashboard/brands">
-            <Button variant="outline" className="w-full">
+            <button className="glass-btn glass-btn-primary w-full px-6 py-3 font-medium">
               브랜드 관리
-            </Button>
+            </button>
           </Link>
         </div>
 
@@ -152,9 +152,9 @@ export default function DashboardPage() {
             빠른 시작을 위한 템플릿을 탐색해 보세요
           </p>
           <Link href="/dashboard/marketplace">
-            <Button variant="outline" className="w-full">
+            <button className="glass-btn glass-btn-primary w-full px-6 py-3 font-medium">
               템플릿 보기
-            </Button>
+            </button>
           </Link>
         </div>
       </div>

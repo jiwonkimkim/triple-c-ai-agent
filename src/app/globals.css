@@ -487,3 +487,45 @@ html.style-fluid.dark {
   border-color: rgba(255, 255, 255, 0.4);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
 }
+
+/* Liquid Glass 버튼 - 투명한 물 느낌 */
+.glass-btn {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(40px) saturate(150%);
+  -webkit-backdrop-filter: blur(40px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50px;
+  transition: all 0.3s ease;
+}
+
+.glass-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.glass-btn:active {
+  transform: scale(0.98);
+}
+
+/* 프라이머리 버튼 */
+.glass-btn-primary {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(40px) saturate(150%);
+  -webkit-backdrop-filter: blur(40px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.glass-btn-primary:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* 아이콘 버튼 */
+.glass-btn-icon {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
