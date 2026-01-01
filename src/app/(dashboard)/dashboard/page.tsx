@@ -162,10 +162,10 @@ export default function DashboardPage() {
           </p>
           <Link href="/dashboard/projects/new">
             <button className={cn(
-              "w-full px-6 py-3 text-sm font-medium transition-all duration-200",
+              "w-full px-6 py-3 text-sm font-medium transition-all duration-200 rounded-[50px]",
               isSmile
                 ? "bg-foreground text-background hover:bg-foreground/90 uppercase tracking-wider"
-                : "glass-btn bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 hover:shadow-lg hover:shadow-blue-500/30"
+                : "bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 hover:shadow-lg hover:shadow-blue-500/30"
             )}>
               시작하기
             </button>
