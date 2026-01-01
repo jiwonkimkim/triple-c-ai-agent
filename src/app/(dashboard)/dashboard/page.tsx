@@ -174,21 +174,21 @@ export default function DashboardPage() {
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : stats.recentProjects.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {stats.recentProjects.map((project) => (
               <Link
                 key={project.id}
                 href={`/dashboard/projects/${project.id}`}
                 className="block"
               >
-                <div className="flex items-center justify-between rounded-lg border border-white/20 bg-white/10 p-4 hover:bg-white/20 transition-colors">
+                <div className="glass-card-strong p-4 flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center">
                       <FolderKanban className="h-5 w-5 text-primary" />
                     </div>
                     <div>
                       <h4 className="font-medium">{project.title}</h4>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         {project.brandProfile?.name || '브랜드 미지정'} · 페이지 {project._count.detailPageVersions}개
                       </p>
                     </div>
@@ -196,8 +196,8 @@ export default function DashboardPage() {
                   <div className="text-right">
                     <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
                       project.status === 'ACTIVE'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 text-gray-700'
+                        ? 'bg-green-500/20 text-green-700'
+                        : 'bg-gray-500/20 text-gray-700'
                     }`}>
                       {project.status === 'ACTIVE' ? '활성' : project.status === 'ARCHIVED' ? '보관됨' : project.status}
                     </span>
