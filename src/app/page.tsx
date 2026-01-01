@@ -661,6 +661,53 @@ export default function LandingPage() {
             </p>
           </motion.div>
 
+          {/* 에디터 프리뷰 이미지 */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mt-12 mb-16"
+          >
+            <div className={cn(
+              "relative mx-auto max-w-5xl rounded-xl overflow-hidden shadow-2xl",
+              isDefault && "bg-white/10 backdrop-blur-sm border border-white/20",
+              isSmile && "border-2 border-foreground",
+              isSapporo && "shadow-amber-500/20",
+              isFluid && "border border-[#7BA3D8]/20"
+            )}>
+              {/* 브라우저 창 상단 바 */}
+              <div className={cn(
+                "flex items-center gap-2 px-4 py-3",
+                isDefault && "bg-white/20 backdrop-blur-sm border-b border-white/20",
+                isSmile && "bg-muted border-b-2 border-foreground",
+                isSapporo && "bg-white/60 border-b border-slate-200",
+                isFluid && "bg-[#F5F3EA] border-b border-[#7BA3D8]/20"
+              )}>
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-red-400" />
+                  <div className="w-3 h-3 rounded-full bg-yellow-400" />
+                  <div className="w-3 h-3 rounded-full bg-green-400" />
+                </div>
+                <div className={cn(
+                  "flex-1 mx-4 px-4 py-1 rounded-md text-xs text-center",
+                  isDefault && "bg-white/30 text-foreground/50",
+                  isSmile && "bg-background text-foreground/50 uppercase tracking-wider",
+                  isSapporo && "bg-white text-slate-400",
+                  isFluid && "bg-white text-[#7BA3D8]/50"
+                )}>
+                  Triple C Editor
+                </div>
+              </div>
+              {/* 에디터 스크린샷 */}
+              <img
+                src="/editor-preview.jpg"
+                alt="Triple C 에디터 미리보기"
+                className="w-full h-auto"
+              />
+            </div>
+          </motion.div>
+
           <div className={cn(
             "grid md:grid-cols-2 lg:grid-cols-4",
             isSmile ? "gap-4" : "gap-6",

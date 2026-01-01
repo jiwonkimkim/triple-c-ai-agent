@@ -82,7 +82,7 @@ export default function DashboardPage() {
         </div>
         <Link href="/dashboard/projects/new">
           <Button className={cn(
-            "gap-2 font-medium transition-all duration-500",
+            "gap-2 font-medium transition-all duration-500 shimmer-btn",
             isSmile
               ? "bg-foreground text-background hover:bg-foreground/90 rounded-none uppercase text-xs tracking-wider"
               : "text-white rounded-lg shadow-[0_0_20px_#eee] bg-[length:200%_auto] bg-[linear-gradient(to_right,#83a4d4_0%,#b6fbff_51%,#83a4d4_100%)] hover:bg-[position:right_center]"
@@ -142,7 +142,7 @@ export default function DashboardPage() {
           </p>
           <Link href="/dashboard/projects/new">
             <button className={cn(
-              "w-full px-6 py-3 text-sm font-medium rounded-xl transition-all duration-200",
+              "w-full px-6 py-3 text-sm font-medium rounded-full transition-all duration-200",
               isSmile
                 ? "bg-foreground text-background hover:bg-foreground/90 uppercase tracking-wider"
                 : "bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 hover:shadow-lg hover:shadow-blue-500/30"

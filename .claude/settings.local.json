@@ -37,7 +37,10 @@
       "Bash(npx prisma db push:*)",
       "Bash(npx cross-env:*)",
       "Bash(node -e:*)",
-      "Bash(npx prisma generate:*)"
+      "Bash(npx prisma generate:*)",
+      "Bash(cmd //c \"move \"\"C:\\\\Users\\\\user\\\\Desktop\\\\AI심화캠프_패스트캠퍼스\\\\git\\\\Triple_C\\\\instant-math-guide\"\" \"\"C:\\\\Users\\\\user\\\\Desktop\\\\AI심화캠프_패스트캠퍼스\\\\git\\\\\"\"\")",
+      "Bash(robocopy:*)",
+      "Bash(dir \"C:\\\\Users\\\\user\\\\Desktop\\\\AI심화캠프_패스트캠퍼스\\\\\")"
     ],
     "deny": [],
     "ask": []
