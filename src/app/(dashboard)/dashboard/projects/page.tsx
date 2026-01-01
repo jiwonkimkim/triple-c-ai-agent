@@ -592,16 +592,14 @@ function ProjectCard({ project, isSelected, onToggleSelect }: ProjectCardProps) 
             </div>
           )}
 
-          {/* Selection indicator */}
-          <div className="absolute top-2 left-2 z-10">
-            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-              isSelected
-                ? 'bg-primary border-primary text-primary-foreground'
-                : 'bg-white/80 border-white/60'
-            }`}>
-              {isSelected && <Check className="h-3 w-3" />}
+          {/* Selection indicator - 선택됐을 때만 표시 */}
+          {isSelected && (
+            <div className="absolute top-2 left-2 z-10">
+              <div className="w-5 h-5 rounded border-2 flex items-center justify-center bg-primary border-primary text-primary-foreground">
+                <Check className="h-3 w-3" />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Category badge */}
           {project.category && (
@@ -792,14 +790,12 @@ function ProjectListItem({ project, isSelected, onToggleSelect }: ProjectCardPro
           isArchived ? 'opacity-60' : ''
         } ${isDeleted ? 'opacity-50 border-dashed' : ''} ${isSelected ? 'ring-2 ring-primary bg-primary/5' : ''}`}
       >
-        {/* Selection indicator */}
-        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors shrink-0 ${
-          isSelected
-            ? 'bg-primary border-primary text-primary-foreground'
-            : 'bg-background border-muted-foreground/30'
-        }`}>
-          {isSelected && <Check className="h-3 w-3" />}
-        </div>
+        {/* Selection indicator - 선택됐을 때만 표시 */}
+        {isSelected && (
+          <div className="w-5 h-5 rounded border-2 flex items-center justify-center bg-primary border-primary text-primary-foreground shrink-0">
+            <Check className="h-3 w-3" />
+          </div>
+        )}
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
