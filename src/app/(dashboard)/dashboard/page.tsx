@@ -73,7 +73,7 @@ export default function DashboardPage() {
           </p>
         </div>
         <Link href="/dashboard/projects/new">
-          <Button className="gap-2 text-white font-medium rounded-xl shadow-[0_0_20px_rgba(131,164,212,0.4),inset_0_1px_1px_rgba(255,255,255,0.4)] transition-all duration-500 bg-[length:200%_auto] bg-[linear-gradient(to_right,rgba(131,164,212,0.7)_0%,rgba(182,251,255,0.7)_51%,rgba(131,164,212,0.7)_100%)] hover:bg-[position:right_center] backdrop-blur-xl border border-white/30">
+          <Button className="gap-2 text-white font-medium rounded-xl shadow-[0_0_20px_#eee] transition-all duration-500 bg-[length:200%_auto] bg-[linear-gradient(to_right,#83a4d4_0%,#b6fbff_51%,#83a4d4_100%)] hover:bg-[position:right_center]">
             <Plus className="h-4 w-4" />
             새 프로젝트
           </Button>

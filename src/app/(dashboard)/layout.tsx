@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { getInitials } from '@/lib/utils';
+import { MouseGlowEffect } from '@/components/ui/mouse-glow-effect';
 
 const navigation = [
   { name: '대시보드', href: '/dashboard', icon: LayoutDashboard },
@@ -65,6 +66,9 @@ export default function DashboardLayout({
 
   return (
     <div className="flex min-h-screen">
+      {/* Mouse Glow Effect - 라이트 테마에서만 표시 */}
+      <MouseGlowEffect />
+
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -88,7 +92,7 @@ export default function DashboardLayout({
         {/* Logo */}
         <div className="flex h-16 items-center justify-between border-b px-4 min-w-[256px]">
           <Link href="/dashboard" className="flex items-center space-x-2">
-            <span className="text-2xl font-black tracking-tight bg-clip-text text-transparent bg-[linear-gradient(to_right,#77A1D3,#79CBCA)]">Triple C</span>
+            <span className="text-2xl font-black tracking-tight text-primary">Triple C</span>
           </Link>
           <div className="flex items-center gap-1">
             {/* 데스크톱: 사이드바 닫기 버튼 - 모던 스타일 */}

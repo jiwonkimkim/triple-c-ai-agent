@@ -399,3 +399,26 @@ html.style-fluid.dark {
 .style-fluid ::selection {
   background: hsl(216 50% 66% / 0.2);
 }
+
+/* Mouse Glow Effect Morph Animations */
+@keyframes morph-1 {
+  0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+}
+@keyframes morph-2 {
+  0%, 100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+  50% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; }
+}
+@keyframes morph-3 {
+  0%, 100% { border-radius: 50% 50% 40% 60% / 70% 30% 60% 40%; }
+  50% { border-radius: 40% 60% 50% 50% / 40% 70% 30% 60%; }
+}
+@keyframes morph-4 {
+  0%, 100% { border-radius: 70% 30% 60% 40% / 50% 60% 40% 50%; }
+  50% { border-radius: 30% 70% 40% 60% / 60% 40% 50% 50%; }
+}
+
+.animate-morph-1 { animation: morph-1 12s ease-in-out infinite; }
+.animate-morph-2 { animation: morph-2 15s ease-in-out infinite; }
+.animate-morph-3 { animation: morph-3 18s ease-in-out infinite; }
+.animate-morph-4 { animation: morph-4 14s ease-in-out infinite; }

@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useStyleTheme } from '@/contexts/style-theme-context';
 import { cn } from '@/lib/utils';
+import { MouseGlowEffect } from '@/components/ui/mouse-glow-effect';
 
 // 마키 텍스트 컴포넌트 (Smile 테마 전용)
 const Marquee = ({ children, reverse = false }: { children: React.ReactNode; reverse?: boolean }) => (
@@ -109,11 +110,17 @@ export default function LandingPage() {
   const isSapporo = isLoaded && styleTheme === 'sapporo';
   const isFluid = isLoaded && styleTheme === 'fluid';
 
+  // default 테마 여부 (smile, sapporo, fluid가 아닌 경우)
+  const isDefault = isLoaded && !isSmile && !isSapporo && !isFluid;
+
   return (
     <div className={cn(
       "min-h-screen bg-background text-foreground",
       isSapporo && "bg-gradient-to-b from-[#d4e5f7] via-[#e8f1f8] to-[#f0f5f9]"
     )}>
+      {/* Default 테마: 마우스 따라다니는 글로우 효과 */}
+      {isDefault && <MouseGlowEffect />}
+
       {/* Sapporo 테마: 눈 내림 효과 */}
       {isSapporo && <Snowflakes />}
 
