@@ -592,16 +592,14 @@ function ProjectCard({ project, isSelected, onToggleSelect }: ProjectCardProps) 
             </div>
           )}
 
-          {/* Selection indicator - 글래스모피즘 스타일 (항상 표시) */}
-          <div className="absolute top-2 left-2 z-10">
-            <div className={`w-6 h-6 rounded-lg flex items-center justify-center backdrop-blur-md border shadow-[0_4px_16px_rgba(31,38,135,0.15)] transition-all duration-200 ${
-              isSelected
-                ? 'bg-gradient-to-br from-sky-200/70 via-blue-100/60 to-indigo-200/70 border-white/80 text-slate-700'
-                : 'bg-gradient-to-br from-white/40 via-white/30 to-white/40 border-white/50'
-            }`}>
-              {isSelected && <Check className="h-3.5 w-3.5" />}
+          {/* Selection indicator - 글래스모피즘 스타일 (선택 시에만 표시) */}
+          {isSelected && (
+            <div className="absolute top-2 left-2 z-10">
+              <div className="w-6 h-6 rounded-lg flex items-center justify-center backdrop-blur-md border bg-gradient-to-br from-sky-200/70 via-blue-100/60 to-indigo-200/70 border-white/80 shadow-[0_4px_16px_rgba(31,38,135,0.15)] text-slate-700">
+                <Check className="h-3.5 w-3.5" />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Category badge - 글래스모피즘 스타일 */}
           {project.category && (
@@ -792,14 +790,12 @@ function ProjectListItem({ project, isSelected, onToggleSelect }: ProjectCardPro
           isArchived ? 'opacity-60' : ''
         } ${isDeleted ? 'opacity-50 border-dashed' : ''} ${isSelected ? 'ring-2 ring-primary bg-primary/5' : ''}`}
       >
-        {/* Selection indicator - 글래스모피즘 스타일 (항상 표시) */}
-        <div className={`w-6 h-6 rounded-lg flex items-center justify-center backdrop-blur-md border shadow-[0_4px_16px_rgba(31,38,135,0.15)] transition-all duration-200 shrink-0 ${
-          isSelected
-            ? 'bg-gradient-to-br from-sky-200/70 via-blue-100/60 to-indigo-200/70 border-white/80 text-slate-700'
-            : 'bg-gradient-to-br from-white/40 via-white/30 to-white/40 border-white/50'
-        }`}>
-          {isSelected && <Check className="h-3.5 w-3.5" />}
-        </div>
+        {/* Selection indicator - 글래스모피즘 스타일 (선택 시에만 표시) */}
+        {isSelected && (
+          <div className="w-6 h-6 rounded-lg flex items-center justify-center backdrop-blur-md border bg-gradient-to-br from-sky-200/70 via-blue-100/60 to-indigo-200/70 border-white/80 shadow-[0_4px_16px_rgba(31,38,135,0.15)] text-slate-700 shrink-0">
+            <Check className="h-3.5 w-3.5" />
+          </div>
+        )}
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
