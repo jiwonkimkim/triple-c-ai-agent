@@ -76,7 +76,7 @@ export default function DashboardLayout({
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-white/70 backdrop-blur-xl border-r border-white/20 transition-all duration-300 overflow-hidden',
+          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-white/40 backdrop-blur-[20px] border-r border-white/40 transition-all duration-300 overflow-hidden',
           // 모바일: sidebarOpen으로 제어
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
           // 데스크톱: sidebarCollapsed로 제어 - 완전히 숨김
@@ -86,7 +86,7 @@ export default function DashboardLayout({
         )}
       >
         {/* Logo */}
-        <div className="flex h-16 items-center justify-between border-b border-white/20 px-4 min-w-[256px]">
+        <div className="flex h-16 items-center justify-between border-b border-white/40 px-4 min-w-[256px]">
           <Link href="/dashboard" className="flex items-center space-x-2">
             <span className="text-2xl font-black tracking-tight text-primary">Triple C</span>
           </Link>
@@ -138,7 +138,7 @@ export default function DashboardLayout({
         </nav>
 
         {/* User section */}
-        <div className="border-t border-white/20 p-4">
+        <div className="border-t border-white/40 p-4">
           <div className="flex items-center gap-3 rounded-lg bg-white/30 p-3">
             <Avatar className="h-9 w-9">
               <AvatarImage src={session?.user?.image || ''} />
@@ -161,7 +161,7 @@ export default function DashboardLayout({
       {/* Main content */}
       <div className="flex flex-1 flex-col">
         {/* Top header */}
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-white/20 bg-white/70 backdrop-blur-xl px-4 lg:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-white/40 bg-white/40 backdrop-blur-[20px] px-4 lg:px-6">
           {/* 모바일: 사이드바 열기 버튼 */}
           <Button
             variant="ghost"
