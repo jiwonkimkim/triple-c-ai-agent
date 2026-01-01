@@ -887,7 +887,7 @@ export function DetailPageEditor({
           <Button
             size="sm"
             onClick={() => setIsChatOpen(!isChatOpen)}
-            className={`w-24 justify-center gap-2 ${isChatOpen ? 'bg-gradient-to-r from-purple-600 to-pink-600' : 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600'} text-white`}
+            className="w-24 justify-center gap-2 text-white font-medium rounded-lg shadow-[0_0_20px_#eee] transition-all duration-500 bg-[length:200%_auto] bg-[linear-gradient(to_right,#ddd6f3_0%,#faaca8_51%,#ddd6f3_100%)] hover:bg-[position:right_center]"
           >
             <Sparkles className="h-4 w-4" />
             AI 편집
