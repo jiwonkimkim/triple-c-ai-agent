@@ -115,7 +115,8 @@ export default function LandingPage() {
 
   return (
     <div className={cn(
-      "min-h-screen bg-background text-foreground",
+      "min-h-screen text-foreground",
+      isDefault ? "bg-transparent" : "bg-background",
       isSapporo && "bg-gradient-to-b from-[#d4e5f7] via-[#e8f1f8] to-[#f0f5f9]"
     )}>
       {/* Default 테마: 마우스 따라다니는 글로우 효과 */}
