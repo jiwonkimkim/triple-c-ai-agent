@@ -164,7 +164,7 @@ export default function DashboardPage() {
           <Link href="/dashboard/brands">
             <button className={cn(
               "w-full px-6 py-3 text-sm font-medium",
-              isSmile ? "bg-foreground text-background hover:bg-foreground/90 uppercase tracking-wider" : "glass-btn glass-btn-primary"
+              isSmile ? "bg-foreground text-background hover:bg-foreground/90 uppercase tracking-wider" : "glass-btn"
             )}>
               브랜드 관리
             </button>
@@ -185,7 +185,7 @@ export default function DashboardPage() {
           <Link href="/dashboard/marketplace">
             <button className={cn(
               "w-full px-6 py-3 text-sm font-medium",
-              isSmile ? "bg-foreground text-background hover:bg-foreground/90 uppercase tracking-wider" : "glass-btn glass-btn-primary"
+              isSmile ? "bg-foreground text-background hover:bg-foreground/90 uppercase tracking-wider" : "glass-btn"
             )}>
               템플릿 보기
             </button>
