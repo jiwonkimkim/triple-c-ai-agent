@@ -1228,7 +1228,12 @@ export async function orchestrateDetailPageGeneration(
     })
   );
 
-  console.log('[Orchestration] Multi-image prompts generated for all sections');
+  // 각 섹션별 생성된 프롬프트 수 로그
+  const promptCounts: Record<string, number> = {};
+  imagePromptsMap.forEach((prompts, sectionType) => {
+    promptCounts[sectionType] = prompts.length;
+  });
+  console.log('[Orchestration] ★★★ Multi-image prompts per section:', JSON.stringify(promptCounts));
 
   // 4. 결과 조합 (다중 이미지 프롬프트 포함)
   const buildResult = (textContent: { hookMessage: string; sections: Array<{ type: string; title?: string; body: string }> } | null): OrchestrationResult => {
@@ -1246,7 +1251,7 @@ export async function orchestrateDetailPageGeneration(
             body: `${input.productName} ${type} 섹션`,
             order: index,
             imagePrompt: firstPrompt,                    // 기존 호환성
-            imagePrompts: sectionPrompts.length > 1 ? sectionPrompts : undefined, // 다중 이미지
+            imagePrompts: sectionPrompts,                 // 항상 배열 전달
           };
         }),
       };
@@ -1266,7 +1271,7 @@ export async function orchestrateDetailPageGeneration(
           body: section.body,
           order: index,
           imagePrompt: firstPrompt,                      // 기존 호환성
-          imagePrompts: sectionPrompts.length > 1 ? sectionPrompts : undefined, // 다중 이미지
+          imagePrompts: sectionPrompts,                   // 항상 배열 전달
         };
       }),
     };
