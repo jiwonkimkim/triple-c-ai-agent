@@ -176,7 +176,7 @@ export default function ProjectsPage() {
           <p className="text-muted-foreground">상품 상세페이지 프로젝트를 관리하세요</p>
         </div>
         <Link href="/dashboard/projects/new">
-          <Button className="gap-2">
+          <Button className="gap-2 bg-gradient-to-r from-purple-500/90 to-pink-500/90 hover:from-purple-600 hover:to-pink-600 text-white backdrop-blur-sm border border-white/20 shadow-lg shadow-purple-500/25">
             <Plus className="h-4 w-4" />
             새 프로젝트
           </Button>
