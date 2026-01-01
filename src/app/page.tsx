@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Zap, Palette, Clock, Users, Sparkles, CheckCircle, Sun, Moon, Play, Check, Heart } from 'lucide-react';
+import { ArrowRight, Zap, Clock, Users, Sparkles, CheckCircle, Sun, Moon, Play, Check, Heart, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
 import {
   DropdownMenu,
@@ -171,26 +171,27 @@ export default function LandingPage() {
               Triple C
             </span>
           </Link>
-          <nav className="hidden md:flex items-center gap-8">
-            <a href="#features" className={cn(
-              "text-sm hover:text-primary transition-colors",
-              isSmile && "uppercase tracking-wider hover:underline",
-              isSapporo && "text-slate-500 hover:text-amber-600",
-              isFluid && "text-sm font-light tracking-wide hover:opacity-60"
-            )}>Features</a>
-            <a href="#how-it-works" className={cn(
-              "text-sm hover:text-primary transition-colors",
-              isSmile && "uppercase tracking-wider hover:underline",
-              isSapporo && "text-slate-500 hover:text-amber-600",
-              isFluid && "text-sm font-light tracking-wide hover:opacity-60"
-            )}>How It Works</a>
-          </nav>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-6">
+            <nav className="hidden md:flex items-center gap-6">
+              <a href="#features" className={cn(
+                "text-sm hover:text-primary transition-colors",
+                isSmile && "uppercase tracking-wider hover:underline",
+                isSapporo && "text-slate-500 hover:text-amber-600",
+                isFluid && "text-sm font-light tracking-wide hover:opacity-60"
+              )}>Features</a>
+              <a href="#how-it-works" className={cn(
+                "text-sm hover:text-primary transition-colors",
+                isSmile && "uppercase tracking-wider hover:underline",
+                isSapporo && "text-slate-500 hover:text-amber-600",
+                isFluid && "text-sm font-light tracking-wide hover:opacity-60"
+              )}>How It Works</a>
+            </nav>
+
             {/* Theme Selector */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-9 w-9">
-                  <Palette className="h-4 w-4" />
+                  <Settings className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
