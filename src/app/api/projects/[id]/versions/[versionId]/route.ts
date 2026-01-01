@@ -6,6 +6,10 @@ import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
 
+interface RouteParams {
+  params: { id: string; versionId: string };
+}
+
 const updateVersionSchema = z.object({
   description: z.string().min(1).max(100),
 });
@@ -13,7 +17,7 @@ const updateVersionSchema = z.object({
 // PATCH /api/projects/[id]/versions/[versionId] - Update version description
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string; versionId: string }> }
+  { params }: RouteParams
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -22,7 +26,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id: projectId, versionId } = await params;
+    const { id: projectId, versionId } = params;
     const body = await request.json();
 
     // Validate request body

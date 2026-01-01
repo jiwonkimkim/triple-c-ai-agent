@@ -6,10 +6,14 @@ import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
 
+interface RouteParams {
+  params: { id: string };
+}
+
 // GET /api/projects/[id]/versions - Get version history
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: RouteParams
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -18,7 +22,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id: projectId } = await params;
+    const projectId = params.id;
 
     // Verify project ownership
     const project = await prisma.project.findFirst({
@@ -97,7 +101,7 @@ const createVersionSchema = z.object({
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: RouteParams
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -106,7 +110,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id: projectId } = await params;
+    const projectId = params.id;
     const body = await request.json();
     const validatedData = createVersionSchema.parse(body);
 

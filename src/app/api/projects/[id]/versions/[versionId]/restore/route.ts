@@ -5,10 +5,14 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
+interface RouteParams {
+  params: { id: string; versionId: string };
+}
+
 // POST /api/projects/[id]/versions/[versionId]/restore - Restore to a specific version
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string; versionId: string }> }
+  { params }: RouteParams
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,7 +21,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id: projectId, versionId } = await params;
+    const { id: projectId, versionId } = params;
 
     // Verify project ownership
     const project = await prisma.project.findFirst({
