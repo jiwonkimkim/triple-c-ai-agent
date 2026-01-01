@@ -357,7 +357,7 @@ ${negativePrompt}
 
     try {
       const response = await gemini.models.generateContent({
-        model: 'gemini-2.0-flash-exp',
+        model: 'gemini-2.5-flash',
         contents: promptGenerationRequest,
       });
 
@@ -829,7 +829,7 @@ JSON만 반환하세요. 영어로 작성하세요.`;
 
   try {
     const response = await gemini.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.5-flash',
       contents: prompt,
     });
 
@@ -961,7 +961,7 @@ export async function generateOverlayText(
 
   try {
     const response = await gemini.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.5-flash',
       contents: prompt,
     });
 
@@ -1030,7 +1030,7 @@ JSON만 반환하세요.
 
   try {
     const response = await gemini.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.5-flash',
       contents: prompt,
     });
 
@@ -1115,7 +1115,7 @@ export async function orchestrateDetailPageGeneration(
     }
 
     const response = await gemini.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.5-flash',
       contents: `${systemPrompt}\n\n${userPrompt}${variationPrompt}\n\nCRITICAL: Do NOT use any emojis (😊, ✨, 💕, 🌟, ❤️, etc.). Write plain text only.\n\nReturn only the JSON object, no additional text or markdown.`,
     });
 
@@ -1350,7 +1350,7 @@ ${userFeedback ? `## 사용자 피드백\n${userFeedback}` : ''}
 
   try {
     const response = await gemini.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.5-flash',
       contents: promptGenerationRequest,
     });
 
