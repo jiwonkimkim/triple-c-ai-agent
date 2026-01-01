@@ -129,15 +129,6 @@ export function TemplatePreviewModal({
                 )}
               </div>
 
-              {/* 현재 이미지 설명 */}
-              {currentImageMeta?.description && (
-                <div className="px-4 py-3 border-t bg-background/80">
-                  <p className="text-sm text-muted-foreground line-clamp-3">
-                    {currentImageMeta.description}
-                  </p>
-                </div>
-              )}
-
               {/* Thumbnail Strip */}
               {allImages.length > 1 && (
                 <div className="p-2 border-t bg-background/50">
@@ -196,10 +187,10 @@ export function TemplatePreviewModal({
 
               {/* 제품 정보 (카테고리, 브랜드, 가격) */}
               {(sections?.category || sections?.brand || sections?.price) && (
-                <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted-foreground mb-3">
-                  {sections?.category && <span>{sections.category}</span>}
-                  {sections?.brand && <span>| {sections.brand}</span>}
-                  {sections?.price && <span>| {Number(sections.price).toLocaleString()}원</span>}
+                <div className="flex flex-col gap-1 text-sm text-muted-foreground mb-3">
+                  {sections?.category && <span>카테고리: {sections.category}</span>}
+                  {sections?.brand && <span>브랜드: {sections.brand}</span>}
+                  {sections?.price && <span>가격: {Number(sections.price).toLocaleString()}원</span>}
                 </div>
               )}
 
@@ -220,12 +211,14 @@ export function TemplatePreviewModal({
 
               <Separator className="my-4" />
 
-              {/* Description */}
-              {template.description && (
+              {/* Description - 현재 이미지의 설명 표시 */}
+              {(currentImageMeta?.description || template.description) && (
                 <div className="mb-4">
-                  <h3 className="font-semibold mb-2">설명</h3>
+                  <h3 className="font-semibold mb-2">
+                    설명 {allImages.length > 1 && `(${currentImageIndex + 1}/${allImages.length})`}
+                  </h3>
                   <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                    {template.description}
+                    {currentImageMeta?.description || template.description}
                   </p>
                 </div>
               )}

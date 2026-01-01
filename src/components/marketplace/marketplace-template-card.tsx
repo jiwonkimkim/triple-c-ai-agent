@@ -174,10 +174,10 @@ export function MarketplaceTemplateCard({
         </div>
         {/* 제품 정보 표시 */}
         {(productCategory || productBrand || productPrice) && (
-          <div className="flex flex-wrap gap-x-2 gap-y-1 text-xs text-muted-foreground mt-1">
-            {productCategory && <span>{productCategory}</span>}
-            {productBrand && <span>| {productBrand}</span>}
-            {productPrice && <span>| {Number(productPrice).toLocaleString()}원</span>}
+          <div className="flex flex-col gap-0.5 text-xs text-muted-foreground mt-1">
+            {productCategory && <span>카테고리: {productCategory}</span>}
+            {productBrand && <span>브랜드: {productBrand}</span>}
+            {productPrice && <span>가격: {Number(productPrice).toLocaleString()}원</span>}
           </div>
         )}
         {/* 설명 표시 */}
