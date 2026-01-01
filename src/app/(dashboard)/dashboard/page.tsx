@@ -66,8 +66,8 @@ export default function DashboardPage() {
       <MouseGlowEffect />
 
       {/* Welcome Section */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between relative z-10">
-        <div>
+      <div className="flex flex-col gap-4 items-center relative z-10">
+        <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight">
             환영합니다, {session?.user?.name?.split(' ')[0] || '사용자'}님!
           </h1>
