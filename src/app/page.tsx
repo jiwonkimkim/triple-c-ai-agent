@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Zap, Clock, Users, Sparkles, CheckCircle, Sun, Moon, Play, Check, Heart, Settings } from 'lucide-react';
+import { ArrowRight, Zap, Palette, Clock, Users, Sparkles, CheckCircle, Sun, Moon, Play, Check, Heart, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
 import {
   DropdownMenu,
