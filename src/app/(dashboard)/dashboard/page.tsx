@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Plus, FolderKanban, Palette, Clock, Zap, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { MouseGlowEffect } from '@/components/ui/mouse-glow-effect';
 
 interface RecentProject {
   id: string;
@@ -61,9 +61,12 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 relative">
+      {/* Mouse Glow Effect - 대시보드 페이지에서만 표시 */}
+      <MouseGlowEffect />
+
       {/* Welcome Section */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between relative z-10">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
             환영합니다, {session?.user?.name?.split(' ')[0] || '사용자'}님!
@@ -73,7 +76,7 @@ export default function DashboardPage() {
           </p>
         </div>
         <Link href="/dashboard/projects/new">
-          <Button className="gap-2 text-white font-medium rounded-xl shadow-[0_0_20px_#eee] transition-all duration-500 bg-[length:200%_auto] bg-[linear-gradient(to_right,#83a4d4_0%,#b6fbff_51%,#83a4d4_100%)] hover:bg-[position:right_center]">
+          <Button className="gap-2 text-white font-medium rounded-lg shadow-[0_0_20px_#eee] transition-all duration-500 bg-[length:200%_auto] bg-[linear-gradient(to_right,#83a4d4_0%,#b6fbff_51%,#83a4d4_100%)] hover:bg-[position:right_center]">
             <Plus className="h-4 w-4" />
             새 프로젝트
           </Button>
@@ -81,7 +84,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 relative z-10">
         <StatsCard
           title="총 프로젝트"
           value={isLoading ? '-' : stats.totalProjects.toString()}
@@ -111,133 +114,117 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FolderKanban className="h-5 w-5 text-primary" />
-              새 프로젝트 만들기
-            </CardTitle>
-            <CardDescription>
-              AI로 상품 상세페이지 생성을 시작하세요
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link href="/dashboard/projects/new">
-              <Button className="w-full">시작하기</Button>
-            </Link>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 relative z-10">
+        <div className="glass-card p-6">
+          <div className="flex items-center gap-2 mb-2">
+            <FolderKanban className="h-5 w-5 text-primary" />
+            <h3 className="font-semibold">새 프로젝트 만들기</h3>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            AI로 상품 상세페이지 생성을 시작하세요
+          </p>
+          <Link href="/dashboard/projects/new">
+            <Button className="w-full">시작하기</Button>
+          </Link>
+        </div>
 
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Palette className="h-5 w-5 text-primary" />
-              브랜드 프로필 설정
-            </CardTitle>
-            <CardDescription>
-              일관된 콘텐츠를 위해 브랜드 보이스와 스타일을 설정하세요
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link href="/dashboard/brands">
-              <Button variant="outline" className="w-full">
-                브랜드 관리
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+        <div className="glass-card p-6">
+          <div className="flex items-center gap-2 mb-2">
+            <Palette className="h-5 w-5 text-primary" />
+            <h3 className="font-semibold">브랜드 프로필 설정</h3>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            일관된 콘텐츠를 위해 브랜드 보이스와 스타일을 설정하세요
+          </p>
+          <Link href="/dashboard/brands">
+            <Button variant="outline" className="w-full">
+              브랜드 관리
+            </Button>
+          </Link>
+        </div>
 
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-primary" />
-              템플릿 둘러보기
-            </CardTitle>
-            <CardDescription>
-              빠른 시작을 위한 템플릿을 탐색해 보세요
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link href="/dashboard/marketplace">
-              <Button variant="outline" className="w-full">
-                템플릿 보기
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+        <div className="glass-card p-6">
+          <div className="flex items-center gap-2 mb-2">
+            <Zap className="h-5 w-5 text-primary" />
+            <h3 className="font-semibold">템플릿 둘러보기</h3>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            빠른 시작을 위한 템플릿을 탐색해 보세요
+          </p>
+          <Link href="/dashboard/marketplace">
+            <Button variant="outline" className="w-full">
+              템플릿 보기
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Recent Projects */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>최근 프로젝트</CardTitle>
-            <Link href="/dashboard/projects">
-              <Button variant="ghost" size="sm">
-                전체 보기
-              </Button>
-            </Link>
+      <div className="glass-card p-6 relative z-10">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-lg">최근 프로젝트</h3>
+          <Link href="/dashboard/projects">
+            <Button variant="ghost" size="sm">
+              전체 보기
+            </Button>
+          </Link>
+        </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : stats.recentProjects.length > 0 ? (
-            <div className="space-y-4">
-              {stats.recentProjects.map((project) => (
-                <Link
-                  key={project.id}
-                  href={`/dashboard/projects/${project.id}`}
-                  className="block"
-                >
-                  <div className="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                        <FolderKanban className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <h4 className="font-medium">{project.title}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {project.brandProfile?.name || '브랜드 미지정'} · 페이지 {project._count.detailPageVersions}개
-                        </p>
-                      </div>
+        ) : stats.recentProjects.length > 0 ? (
+          <div className="space-y-4">
+            {stats.recentProjects.map((project) => (
+              <Link
+                key={project.id}
+                href={`/dashboard/projects/${project.id}`}
+                className="block"
+              >
+                <div className="flex items-center justify-between rounded-lg border border-white/20 bg-white/10 p-4 hover:bg-white/20 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                      <FolderKanban className="h-5 w-5 text-primary" />
                     </div>
-                    <div className="text-right">
-                      <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                        project.status === 'ACTIVE'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-gray-100 text-gray-700'
-                      }`}>
-                        {project.status === 'ACTIVE' ? '활성' : project.status === 'ARCHIVED' ? '보관됨' : project.status}
-                      </span>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {new Date(project.updatedAt).toLocaleDateString('ko-KR')}
+                    <div>
+                      <h4 className="font-medium">{project.title}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {project.brandProfile?.name || '브랜드 미지정'} · 페이지 {project._count.detailPageVersions}개
                       </p>
                     </div>
                   </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <FolderKanban className="h-12 w-12 text-muted-foreground/50" />
-              <h3 className="mt-4 text-lg font-medium">아직 프로젝트가 없습니다</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                첫 번째 프로젝트를 만들어 AI 콘텐츠 생성을 시작해 보세요.
-              </p>
-              <Link href="/dashboard/projects/new" className="mt-4">
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  프로젝트 만들기
-                </Button>
+                  <div className="text-right">
+                    <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                      project.status === 'ACTIVE'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-gray-100 text-gray-700'
+                    }`}>
+                      {project.status === 'ACTIVE' ? '활성' : project.status === 'ARCHIVED' ? '보관됨' : project.status}
+                    </span>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {new Date(project.updatedAt).toLocaleDateString('ko-KR')}
+                    </p>
+                  </div>
+                </div>
               </Link>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <FolderKanban className="h-12 w-12 text-muted-foreground/50" />
+            <h3 className="mt-4 text-lg font-medium">아직 프로젝트가 없습니다</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              첫 번째 프로젝트를 만들어 AI 콘텐츠 생성을 시작해 보세요.
+            </p>
+            <Link href="/dashboard/projects/new" className="mt-4">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                프로젝트 만들기
+              </Button>
+            </Link>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -256,16 +243,14 @@ function StatsCard({
   href?: string;
 }) {
   const content = (
-    <Card className={href ? 'hover:shadow-md transition-shadow cursor-pointer' : ''}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+    <div className={`glass-card p-4 ${href ? 'cursor-pointer' : ''}`}>
+      <div className="flex items-center justify-between pb-2">
+        <span className="text-sm font-medium">{title}</span>
         {icon}
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        <p className="text-xs text-muted-foreground">{description}</p>
-      </CardContent>
-    </Card>
+      </div>
+      <div className="text-2xl font-bold">{value}</div>
+      <p className="text-xs text-muted-foreground">{description}</p>
+    </div>
   );
 
   if (href) {
