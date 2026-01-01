@@ -123,9 +123,9 @@ export default function DashboardLayout({
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-500',
                   isActive
-                    ? 'bg-primary text-primary-foreground'
+                    ? 'text-white shadow-[0_0_20px_#eee] bg-[length:200%_auto] bg-[linear-gradient(to_right,#77A1D3_0%,#79CBCA_51%,#77A1D3_100%)]'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 )}
                 onClick={() => setSidebarOpen(false)}

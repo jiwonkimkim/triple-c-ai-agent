@@ -114,7 +114,7 @@ export default function BrandsPage() {
           </p>
         </div>
         <Link href="/dashboard/brands/new">
-          <Button className="gap-2">
+          <Button className="gap-2 text-white font-medium rounded-xl shadow-[0_0_20px_#eee] transition-all duration-500 bg-[length:200%_auto] bg-[linear-gradient(to_right,#77A1D3_0%,#79CBCA_51%,#77A1D3_100%)] hover:bg-[position:right_center]">
             <Plus className="h-4 w-4" />
             새 브랜드
           </Button>
