@@ -457,12 +457,16 @@ html.style-fluid.dark {
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .glass-card:hover {
-  border-color: rgba(255, 255, 255, 0.3);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  transform: translateY(-8px) scale(1.03);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 30px 60px -15px rgba(0, 0, 0, 0.25),
+    0 0 40px rgba(255, 255, 255, 0.15),
+    inset 0 1px 2px rgba(255, 255, 255, 0.5);
 }
 
 .glass-card-strong {
