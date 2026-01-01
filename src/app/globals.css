@@ -469,12 +469,14 @@ html.style-fluid.dark {
   -webkit-backdrop-filter: blur(24px) saturate(200%);
   border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 16px;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .glass-card-strong:hover {
   background: rgba(255, 255, 255, 0.2);
   border-color: rgba(255, 255, 255, 0.35);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
 }
 
 /* Liquid Glass 버튼 - 투명한 물 느낌 */
@@ -497,15 +499,17 @@ html.style-fluid.dark {
 
 /* 프라이머리 버튼 */
 .glass-btn-primary {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(80, 140, 255, 0.4);
   backdrop-filter: blur(40px) saturate(150%);
   -webkit-backdrop-filter: blur(40px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(150, 190, 255, 0.25);
+  color: white;
+  box-shadow: 0 4px 24px rgba(80, 140, 255, 0.2);
 }
 
 .glass-btn-primary:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(80, 140, 255, 0.5);
+  box-shadow: 0 6px 28px rgba(80, 140, 255, 0.3);
 }
 
 /* 아이콘 버튼 */
