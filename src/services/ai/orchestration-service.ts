@@ -1099,17 +1099,18 @@ export async function orchestrateDetailPageGeneration(
       const brandTone = input.brandContext?.toneAndManner || '';
       const brandPrefix = brandName ? `${brandName} ` : '';
 
+      const keyFeatures = input.keyFeatures || ['프리미엄 품질'];
       return {
         hookMessage: brandName
-          ? `${brandPrefix}${input.productName} - ${input.targetAudience}를 위한 ${brandTone || '완벽한'} 선택`
-          : `${input.productName} - ${input.targetAudience}를 위한 완벽한 선택`,
+          ? `${brandPrefix}${input.productName} - ${input.targetAudience || '고객'}를 위한 ${brandTone || '완벽한'} 선택`
+          : `${input.productName} - ${input.targetAudience || '고객'}를 위한 완벽한 선택`,
         sections: [
-          { type: 'MAIN', title: `${brandPrefix}${input.productName}`, body: input.keyFeatures[0] || '프리미엄 품질' },
-          { type: 'HERO', title: `${brandPrefix}${input.productName} 소개`, body: `${input.targetAudience}를 위해 설계된 ${brandPrefix}${input.productName}입니다.${brandTone ? ` ${brandTone}의 철학을 담았습니다.` : ''}` },
-          { type: 'FEATURES', title: '주요 특징', body: input.keyFeatures.map((f, i) => `${i + 1}. ${f}`).join('\n') },
+          { type: 'MAIN', title: `${brandPrefix}${input.productName}`, body: keyFeatures[0] || '프리미엄 품질' },
+          { type: 'HERO', title: `${brandPrefix}${input.productName} 소개`, body: `${input.targetAudience || '고객'}를 위해 설계된 ${brandPrefix}${input.productName}입니다.${brandTone ? ` ${brandTone}의 철학을 담았습니다.` : ''}` },
+          { type: 'FEATURES', title: '주요 특징', body: keyFeatures.map((f, i) => `${i + 1}. ${f}`).join('\n') },
           { type: 'SOCIAL_PROOF', title: '고객 후기', body: `"${brandPrefix}${input.productName}을 사용한 후 정말 만족합니다!" - 실제 사용자` },
           { type: 'HOW_TO_USE', title: '사용 방법', body: `1. ${brandPrefix}${input.productName}을 준비합니다.\n2. 설정을 완료합니다.\n3. 사용을 시작하세요!` },
-          { type: 'FAQ', title: '자주 묻는 질문', body: `Q: ${brandPrefix}${input.productName}의 주요 특징은?\nA: ${input.keyFeatures[0] || '뛰어난 품질'}입니다.` },
+          { type: 'FAQ', title: '자주 묻는 질문', body: `Q: ${brandPrefix}${input.productName}의 주요 특징은?\nA: ${keyFeatures[0] || '뛰어난 품질'}입니다.` },
         ],
       };
     }
