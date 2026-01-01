@@ -74,89 +74,135 @@ export async function GET(request: NextRequest) {
         break;
     }
 
-    // Run count and findMany in parallel
-    const [total, templates] = await Promise.all([
-      prisma.template.count({ where }),
-      prisma.template.findMany({
-        where,
-        orderBy,
-        skip: (page - 1) * limit,
-        take: limit,
+    const templateSelect = {
+      id: true,
+      name: true,
+      category: true,
+      thumbnailUrl: true,
+      previewImages: true,
+      sections: true,
+      description: true,
+      price: true,
+      tags: true,
+      downloadCount: true,
+      rating: true,
+      ratingCount: true,
+      isReference: true,
+      createdBy: true,
+      publishedAt: true,
+      user: {
         select: {
           id: true,
           name: true,
-          category: true,
-          thumbnailUrl: true,
-          previewImages: true,
-          sections: true,
-          description: true,
-          price: true,
-          tags: true,
-          downloadCount: true,
-          rating: true,
-          ratingCount: true,
-          isReference: true,
-          createdBy: true,
-          publishedAt: true,
-          user: {
-            select: {
-              id: true,
-              name: true,
-              nickname: true,
-              image: true,
-            },
-          },
+          nickname: true,
+          image: true,
         },
-      }),
-    ]);
+      },
+    };
 
-    // If user is logged in, check which templates they've purchased
+    // Get purchased template IDs first (if user is logged in)
     let purchasedTemplateIds: string[] = [];
-    if (userId && templates.length > 0) {
+    if (userId) {
       const purchases = await prisma.templatePurchase.findMany({
-        where: {
-          buyerId: userId,
-          templateId: { in: templates.map((t) => t.id) },
-        },
+        where: { buyerId: userId },
         select: { templateId: true },
       });
       purchasedTemplateIds = purchases.map((p) => p.templateId);
     }
 
-    // Format response
-    const formattedTemplates = templates.map((template) => ({
-      id: template.id,
-      name: template.name,
-      category: template.category,
-      thumbnailUrl: template.thumbnailUrl,
-      previewImages: template.previewImages,
-      sections: template.sections,
-      description: template.description,
-      price: template.price,
-      tags: template.tags,
-      downloadCount: template.downloadCount,
-      rating: template.rating,
-      ratingCount: template.ratingCount,
-      isReference: template.isReference,
-      createdBy: template.createdBy,
-      publishedAt: template.publishedAt,
-      seller: template.user
-        ? {
-            id: template.user.id,
-            name: template.user.name || template.user.nickname || 'Unknown',
-            image: template.user.image,
-          }
-        : null,
-      isPurchased: purchasedTemplateIds.includes(template.id),
-      isOwner: template.user?.id === userId,
-    }));
+    // Get total count
+    const total = await prisma.template.count({ where });
 
-    // Sort to show purchased templates first
-    const sortedTemplates = formattedTemplates.sort((a, b) => {
-      if (a.isPurchased && !b.isPurchased) return -1;
-      if (!a.isPurchased && b.isPurchased) return 1;
-      return 0;
-    });
+    let sortedTemplates: any[] = [];
+
+    if (page === 1 && userId && purchasedTemplateIds.length > 0) {
+      // On page 1, fetch purchased templates first, then others
+      const [purchasedTemplates, otherTemplates] = await Promise.all([
+        prisma.template.findMany({
+          where: {
+            ...where,
+            id: { in: purchasedTemplateIds },
+          },
+          orderBy,
+          select: templateSelect,
+        }),
+        prisma.template.findMany({
+          where: {
+            ...where,
+            id: { notIn: purchasedTemplateIds },
+          },
+          orderBy,
+          take: limit - purchasedTemplateIds.length > 0 ? limit : limit,
+          select: templateSelect,
+        }),
+      ]);
+
+      // Combine: purchased first, then others
+      const allTemplates = [...purchasedTemplates, ...otherTemplates].slice(0, limit);
+
+      sortedTemplates = allTemplates.map((template) => ({
+        id: template.id,
+        name: template.name,
+        category: template.category,
+        thumbnailUrl: template.thumbnailUrl,
+        previewImages: template.previewImages,
+        sections: template.sections,
+        description: template.description,
+        price: template.price,
+        tags: template.tags,
+        downloadCount: template.downloadCount,
+        rating: template.rating,
+        ratingCount: template.ratingCount,
+        isReference: template.isReference,
+        createdBy: template.createdBy,
+        publishedAt: template.publishedAt,
+        seller: template.user
+          ? {
+              id: template.user.id,
+              name: template.user.name || template.user.nickname || 'Unknown',
+              image: template.user.image,
+            }
+          : null,
+        isPurchased: purchasedTemplateIds.includes(template.id),
+        isOwner: template.user?.id === userId,
+      }));
+    } else {
+      // For other pages or non-logged-in users, use normal pagination
+      const templates = await prisma.template.findMany({
+        where,
+        orderBy,
+        skip: (page - 1) * limit,
+        take: limit,
+        select: templateSelect,
+      });
+
+      sortedTemplates = templates.map((template) => ({
+        id: template.id,
+        name: template.name,
+        category: template.category,
+        thumbnailUrl: template.thumbnailUrl,
+        previewImages: template.previewImages,
+        sections: template.sections,
+        description: template.description,
+        price: template.price,
+        tags: template.tags,
+        downloadCount: template.downloadCount,
+        rating: template.rating,
+        ratingCount: template.ratingCount,
+        isReference: template.isReference,
+        createdBy: template.createdBy,
+        publishedAt: template.publishedAt,
+        seller: template.user
+          ? {
+              id: template.user.id,
+              name: template.user.name || template.user.nickname || 'Unknown',
+              image: template.user.image,
+            }
+          : null,
+        isPurchased: purchasedTemplateIds.includes(template.id),
+        isOwner: template.user?.id === userId,
+      }));
+    }
 
     return NextResponse.json({
       templates: sortedTemplates,
