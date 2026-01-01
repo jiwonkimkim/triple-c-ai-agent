@@ -91,6 +91,54 @@ export function MouseGlowEffect() {
           filter: `blur(60px) hue-rotate(${combinedHue * 0.7}deg)`,
         }}
       />
+      {/* 연한 노랑 */}
+      <div
+        className="pointer-events-none fixed transition-all duration-800 ease-out animate-morph-5"
+        style={{
+          width: 420,
+          height: 380,
+          left: mousePosition.x - 150,
+          top: mousePosition.y - 200,
+          background: 'radial-gradient(ellipse at 60% 35%, rgba(253, 230, 138, 0.32) 0%, rgba(253, 230, 138, 0.07) 48%, transparent 68%)',
+          filter: `blur(68px) hue-rotate(${combinedHue * 0.3}deg)`,
+        }}
+      />
+      {/* 연한 피치/살구색 */}
+      <div
+        className="pointer-events-none fixed transition-all duration-950 ease-out animate-morph-6"
+        style={{
+          width: 500,
+          height: 420,
+          left: mousePosition.x - 320,
+          top: mousePosition.y - 180,
+          background: 'radial-gradient(ellipse at 40% 55%, rgba(254, 202, 165, 0.30) 0%, rgba(254, 202, 165, 0.06) 50%, transparent 70%)',
+          filter: `blur(65px) hue-rotate(${combinedHue * 0.5}deg)`,
+        }}
+      />
+      {/* 연한 하늘색 */}
+      <div
+        className="pointer-events-none fixed transition-all duration-750 ease-out animate-morph-7"
+        style={{
+          width: 460,
+          height: 520,
+          left: mousePosition.x - 80,
+          top: mousePosition.y - 320,
+          background: 'radial-gradient(ellipse at 45% 30%, rgba(147, 197, 253, 0.33) 0%, rgba(147, 197, 253, 0.08) 46%, transparent 66%)',
+          filter: `blur(70px) hue-rotate(${combinedHue * 0.9}deg)`,
+        }}
+      />
+      {/* 연한 코랄 */}
+      <div
+        className="pointer-events-none fixed transition-all duration-880 ease-out animate-morph-8"
+        style={{
+          width: 380,
+          height: 480,
+          left: mousePosition.x - 200,
+          top: mousePosition.y - 100,
+          background: 'radial-gradient(ellipse at 50% 60%, rgba(251, 182, 182, 0.28) 0%, rgba(251, 182, 182, 0.06) 48%, transparent 68%)',
+          filter: `blur(62px) hue-rotate(${combinedHue * 0.6}deg)`,
+        }}
+      />
     </div>
   );
 }

@@ -423,6 +423,28 @@ html.style-fluid.dark {
 .animate-morph-3 { animation: morph-3 18s ease-in-out infinite; }
 .animate-morph-4 { animation: morph-4 14s ease-in-out infinite; }
 
+@keyframes morph-5 {
+  0%, 100% { border-radius: 55% 45% 35% 65% / 65% 35% 65% 35%; }
+  50% { border-radius: 35% 65% 55% 45% / 45% 55% 35% 65%; }
+}
+@keyframes morph-6 {
+  0%, 100% { border-radius: 45% 55% 65% 35% / 35% 65% 55% 45%; }
+  50% { border-radius: 65% 35% 45% 55% / 55% 45% 65% 35%; }
+}
+@keyframes morph-7 {
+  0%, 100% { border-radius: 50% 50% 35% 65% / 60% 40% 55% 45%; }
+  50% { border-radius: 35% 65% 50% 50% / 45% 55% 40% 60%; }
+}
+@keyframes morph-8 {
+  0%, 100% { border-radius: 65% 35% 55% 45% / 45% 55% 35% 65%; }
+  50% { border-radius: 45% 55% 35% 65% / 65% 35% 55% 45%; }
+}
+
+.animate-morph-5 { animation: morph-5 16s ease-in-out infinite; }
+.animate-morph-6 { animation: morph-6 13s ease-in-out infinite; }
+.animate-morph-7 { animation: morph-7 17s ease-in-out infinite; }
+.animate-morph-8 { animation: morph-8 11s ease-in-out infinite; }
+
 /* Glass Card Styles */
 .glass-card {
   background: linear-gradient(
