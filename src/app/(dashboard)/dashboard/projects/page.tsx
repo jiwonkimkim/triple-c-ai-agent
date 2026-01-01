@@ -601,10 +601,10 @@ function ProjectCard({ project, isSelected, onToggleSelect }: ProjectCardProps) 
             </div>
           )}
 
-          {/* Category badge - 글래스모피즘 스타일 */}
+          {/* Category badge */}
           {project.category && (
             <Badge
-              className="absolute top-2 right-2 bg-gradient-to-br from-white/50 via-white/40 to-white/50 backdrop-blur-md border border-white/60 shadow-[0_4px_16px_rgba(31,38,135,0.12)] text-slate-600 font-medium"
+              className="absolute top-2 right-2 bg-white text-slate-600 font-medium border-0"
             >
               {categoryLabels[project.category] || project.category}
             </Badge>
