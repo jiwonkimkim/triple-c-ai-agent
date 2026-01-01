@@ -88,7 +88,7 @@ export default function DashboardLayout({
         {/* Logo */}
         <div className="flex h-16 items-center justify-between border-b px-4 min-w-[256px]">
           <Link href="/dashboard" className="flex items-center space-x-2">
-            <span className="text-xl font-bold text-primary">Triple C</span>
+            <span className="text-2xl font-black tracking-tight bg-clip-text text-transparent bg-[linear-gradient(to_right,#77A1D3,#79CBCA)]">Triple C</span>
           </Link>
           <div className="flex items-center gap-1">
             {/* 데스크톱: 사이드바 닫기 버튼 - 모던 스타일 */}

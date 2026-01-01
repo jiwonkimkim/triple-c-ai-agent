@@ -73,7 +73,7 @@ export function ProjectHeader({
           <Button
             variant={activeTab === 'editor' ? 'secondary' : 'ghost'}
             size="sm"
-            className="rounded-r-none"
+            className="rounded-r-none w-24 justify-center"
             onClick={() => onTabChange('editor')}
           >
             Editor
@@ -81,7 +81,7 @@ export function ProjectHeader({
           <Button
             variant={activeTab === 'history' ? 'secondary' : 'ghost'}
             size="sm"
-            className="rounded-none border-x"
+            className="rounded-none border-x w-24 justify-center"
             onClick={() => onTabChange('history')}
           >
             <History className="h-4 w-4 mr-1" />
@@ -90,7 +90,7 @@ export function ProjectHeader({
           <Button
             variant={activeTab === 'settings' ? 'secondary' : 'ghost'}
             size="sm"
-            className="rounded-l-none"
+            className="rounded-l-none w-24 justify-center"
             onClick={() => onTabChange('settings')}
           >
             <Settings className="h-4 w-4 mr-1" />
