@@ -147,7 +147,7 @@ export default function DashboardPage() {
           description="무료 체험 크레딧"
           icon={<Clock className="h-4 w-4 text-muted-foreground" />}
           isSmile={isSmile}
-          progress={isLoading ? undefined : { current: stats.remainingCredits, max: 3 }}
+          progress={isLoading ? undefined : { current: stats.remainingCredits, max: 100 }}
         />
       </div>
 
@@ -335,9 +335,6 @@ function StatsCard({
               style={{ width: `${Math.min((progress.current / progress.max) * 100, 100)}%` }}
             />
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            {progress.max - progress.current}회 사용 / {progress.max}회 중
-          </p>
         </div>
       )}
     </div>
