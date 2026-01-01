@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { Plus, FolderKanban, Palette, Clock, Zap, Loader2 } from 'lucide-react';
+import { Plus, FolderKanban, Palette, Clock, Zap, Loader2, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MouseGlowEffect } from '@/components/ui/mouse-glow-effect';
 import { useStyleTheme } from '@/contexts/style-theme-context';
@@ -39,6 +39,7 @@ export default function DashboardPage() {
     recentProjects: [],
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [emailValue, setEmailValue] = useState('');
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -80,17 +81,36 @@ export default function DashboardPage() {
             오늘의 프로젝트 현황을 확인해 보세요.
           </p>
         </div>
-        <Link href="/dashboard/projects/new">
-          <Button className={cn(
-            "gap-2 font-medium transition-all duration-500 shimmer-btn",
-            isSmile
-              ? "bg-foreground text-background hover:bg-foreground/90 rounded-none uppercase text-xs tracking-wider"
-              : "text-white rounded-lg shadow-[0_0_20px_#eee] bg-[length:200%_auto] bg-[linear-gradient(to_right,#83a4d4_0%,#b6fbff_51%,#83a4d4_100%)] hover:bg-[position:right_center]"
-          )}>
-            <Plus className="h-4 w-4" />
-            새 프로젝트
-          </Button>
-        </Link>
+        <div className="w-full max-w-lg mt-2">
+          <div className="flex items-center gap-3">
+            <div className={cn(
+              "relative group flex items-center gap-2 flex-1 px-4 py-3 rounded-2xl transition-all duration-300 focus-within:shadow-lg focus-within:shadow-blue-500/10",
+              isSmile
+                ? "bg-background border-2 border-foreground focus-within:border-foreground"
+                : "bg-white/40 backdrop-blur-xl border border-white/50 shadow-sm focus-within:border-blue-400/50"
+            )}>
+              <Mail className={`w-[18px] h-[18px] transition-colors duration-300 ${emailValue ? 'text-blue-500' : 'text-foreground/30'}`} />
+              <input
+                type="email"
+                placeholder="이메일 주소를 입력하세요"
+                value={emailValue}
+                onChange={(e) => setEmailValue(e.target.value)}
+                className="w-full bg-transparent border-none focus:outline-none focus:ring-0 text-sm placeholder:text-foreground/30"
+              />
+            </div>
+            <button className={cn(
+              "px-6 py-3 text-sm font-medium whitespace-nowrap transition-all duration-200",
+              isSmile
+                ? "bg-foreground text-background hover:bg-foreground/90 uppercase tracking-wider"
+                : "rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 hover:shadow-lg hover:shadow-blue-500/30"
+            )}>
+              구독
+            </button>
+          </div>
+          <p className="text-center text-xs text-foreground/40 mt-3">
+            스팸 없이 주요 업데이트만 보내드립니다
+          </p>
+        </div>
       </div>
 
       {/* Stats Grid */}
@@ -142,10 +162,10 @@ export default function DashboardPage() {
           </p>
           <Link href="/dashboard/projects/new">
             <button className={cn(
-              "w-full px-6 py-3 text-sm font-medium rounded-full transition-all duration-200",
+              "w-full px-6 py-3 text-sm font-medium transition-all duration-200",
               isSmile
                 ? "bg-foreground text-background hover:bg-foreground/90 uppercase tracking-wider"
-                : "bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 hover:shadow-lg hover:shadow-blue-500/30"
+                : "glass-btn bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 hover:shadow-lg hover:shadow-blue-500/30"
             )}>
               시작하기
             </button>
