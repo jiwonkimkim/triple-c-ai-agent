@@ -475,7 +475,11 @@ export function ImageOverlayBlockRenderer({
               style={{
                 left: `${overlayText.style.x}%`,
                 top: `${overlayText.style.y}%`,
-                transform: `translate(-50%, -50%) rotate(${overlayText.style.rotation || 0}deg)`,
+                // textAlign에 따라 변환 기준점 조정: left=왼쪽기준, center=중앙기준, right=오른쪽기준
+                transform: `translate(${
+                  overlayText.style.textAlign === 'left' ? '0' :
+                  overlayText.style.textAlign === 'right' ? '-100%' : '-50%'
+                }, -50%) rotate(${overlayText.style.rotation || 0}deg)`,
                 zIndex: overlayText.zIndex || 0,
                 opacity: (overlayText.style.opacity || 100) / 100,
                 width: overlayText.style.width ? `${overlayText.style.width}%` : 'auto',
@@ -985,7 +989,11 @@ export function ImageOverlayBlockPreview({
             style={{
               left: `${overlayText.style.x}%`,
               top: `${overlayText.style.y}%`,
-              transform: `translate(-50%, -50%) rotate(${overlayText.style.rotation || 0}deg)`,
+              // textAlign에 따라 변환 기준점 조정: left=왼쪽기준, center=중앙기준, right=오른쪽기준
+              transform: `translate(${
+                overlayText.style.textAlign === 'left' ? '0' :
+                overlayText.style.textAlign === 'right' ? '-100%' : '-50%'
+              }, -50%) rotate(${overlayText.style.rotation || 0}deg)`,
               zIndex: overlayText.zIndex || 0,
               opacity: (overlayText.style.opacity || 100) / 100,
               width: overlayText.style.width ? `${overlayText.style.width}%` : 'auto',

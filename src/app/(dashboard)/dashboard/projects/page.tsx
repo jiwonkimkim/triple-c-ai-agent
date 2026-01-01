@@ -561,9 +561,10 @@ function ProjectCard({ project, isSelected, onToggleSelect }: ProjectCardProps) 
   return (
     <>
       <Card
-        className={`group overflow-hidden transition-all hover:shadow-lg ${
+        onClick={onToggleSelect}
+        className={`group overflow-hidden transition-all hover:shadow-lg cursor-pointer ${
           isArchived ? 'opacity-60' : ''
-        } ${isDeleted ? 'opacity-50 border-dashed' : ''} ${isSelected ? 'ring-2 ring-primary' : ''}`}
+        } ${isDeleted ? 'opacity-50 border-dashed' : ''} ${isSelected ? 'ring-2 ring-primary bg-primary/5' : ''}`}
       >
         {/* Thumbnail */}
         <div className="relative aspect-[4/3] bg-muted overflow-hidden">
@@ -582,7 +583,7 @@ function ProjectCard({ project, isSelected, onToggleSelect }: ProjectCardProps) 
           {/* Overlay on hover */}
           {!isDeleted && (
             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-              <Link href={`/dashboard/projects/${project.id}`}>
+              <Link href={`/dashboard/projects/${project.id}`} onClick={(e) => e.stopPropagation()}>
                 <Button size="sm" variant="secondary">
                   <Eye className="h-4 w-4 mr-1" />
                   보기
@@ -591,13 +592,15 @@ function ProjectCard({ project, isSelected, onToggleSelect }: ProjectCardProps) 
             </div>
           )}
 
-          {/* Checkbox */}
+          {/* Selection indicator */}
           <div className="absolute top-2 left-2 z-10">
-            <Checkbox
-              checked={isSelected}
-              onCheckedChange={onToggleSelect}
-              className="bg-white/80 border-white"
-            />
+            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+              isSelected
+                ? 'bg-primary border-primary text-primary-foreground'
+                : 'bg-white/80 border-white/60'
+            }`}>
+              {isSelected && <Check className="h-3 w-3" />}
+            </div>
           </div>
 
           {/* Category badge */}
@@ -784,17 +787,26 @@ function ProjectListItem({ project, isSelected, onToggleSelect }: ProjectCardPro
   return (
     <>
       <div
-        className={`group flex items-center gap-4 p-4 border rounded-lg hover:shadow-sm transition-shadow ${
+        onClick={onToggleSelect}
+        className={`group flex items-center gap-4 p-4 border rounded-lg hover:shadow-sm transition-shadow cursor-pointer ${
           isArchived ? 'opacity-60' : ''
-        } ${isDeleted ? 'opacity-50 border-dashed' : ''} ${isSelected ? 'ring-2 ring-primary' : ''}`}
+        } ${isDeleted ? 'opacity-50 border-dashed' : ''} ${isSelected ? 'ring-2 ring-primary bg-primary/5' : ''}`}
       >
-        <Checkbox checked={isSelected} onCheckedChange={onToggleSelect} />
+        {/* Selection indicator */}
+        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors shrink-0 ${
+          isSelected
+            ? 'bg-primary border-primary text-primary-foreground'
+            : 'bg-background border-muted-foreground/30'
+        }`}>
+          {isSelected && <Check className="h-3 w-3" />}
+        </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             {!isDeleted ? (
               <Link
                 href={`/dashboard/projects/${project.id}`}
+                onClick={(e) => e.stopPropagation()}
                 className="font-medium hover:text-primary transition-colors truncate"
               >
                 {project.title}
@@ -821,12 +833,13 @@ function ProjectListItem({ project, isSelected, onToggleSelect }: ProjectCardPro
           <span>{formatRelativeTime(project.updatedAt)}</span>
         </div>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
+        <div onClick={(e) => e.stopPropagation()}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {isDeleted ? (
               <DropdownMenuItem onClick={() => handleStatusChange('ACTIVE')} disabled={statusMutation.isPending}>
@@ -869,6 +882,7 @@ function ProjectListItem({ project, isSelected, onToggleSelect }: ProjectCardPro
             )}
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
       </div>
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
