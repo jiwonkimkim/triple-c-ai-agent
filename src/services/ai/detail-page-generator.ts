@@ -472,6 +472,7 @@ export async function generateDetailPage(
 
         try {
           const imageModel = input.imageModel || DEFAULT_IMAGE_MODEL;
+          console.log(`[AI] ★★★ Using Image Model: ${imageModel} ★★★`);
 
           // Step 0: URL을 base64 data URL로 변환
           console.log('[AI] Step 0: Converting image URL to base64...');
@@ -501,40 +502,49 @@ export async function generateDetailPage(
                     };
                   }
 
-                  try {
-                    // Image-to-Image: 배경 제거된 제품 이미지 + 프롬프트로 새 이미지 생성
-                    // generateSectionImageFromProduct를 사용하여 keyFeatures, targetAudience 반영
-                    const sectionType = section.type as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
+                  const sectionType = section.type as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
+                  console.log(`[AI I2I] Generating ${sectionType} section (${prompts.length} images)...`);
+                  console.log(`[AI I2I] keyFeatures: ${input.keyFeatures?.slice(0, 2).join(', ')}, target: ${input.targetAudience}`);
 
-                    console.log(`[AI I2I] Generating ${sectionType} with prompt + clean product image...`);
-                    console.log(`[AI I2I] keyFeatures: ${input.keyFeatures?.slice(0, 2).join(', ')}, target: ${input.targetAudience}`);
+                  // 다중 이미지 생성: 모든 프롬프트에 대해 이미지 생성
+                  const generatedImageUrls: string[] = [];
 
-                    const generatedImage = await generateSectionImageFromProduct(
-                      cleanProductImage,  // 배경 제거된 이미지 사용
-                      sectionType,
-                      input.productName,
-                      input.category,
-                      input.brandContext?.imageKeywords?.join(', '),  // additionalPrompt
-                      imageModel,
-                      input.keyFeatures,      // keyFeatures 전달
-                      input.targetAudience    // targetAudience 전달
-                    );
+                  for (let i = 0; i < prompts.length; i++) {
+                    try {
+                      console.log(`[AI I2I] Generating ${sectionType} image ${i + 1}/${prompts.length}...`);
 
-                    if (generatedImage) {
-                      // Cloudinary에 업로드 (설정되어 있으면) 또는 base64 fallback
-                      const uploadResult = await uploadGeneratedImage(generatedImage, {
-                        folder: 'triple-c/sections',
+                      const generatedImage = await generateSectionImageFromProduct(
+                        cleanProductImage,  // 배경 제거된 이미지 사용
                         sectionType,
-                      });
+                        input.productName,
+                        input.category,
+                        input.brandContext?.imageKeywords?.join(', '),  // additionalPrompt
+                        imageModel,
+                        input.keyFeatures,
+                        input.targetAudience
+                      );
 
-                      console.log(`[AI I2I] ${sectionType} section image generated successfully`);
-                      return {
-                        ...section,
-                        imageUrl: uploadResult.url,
-                      };
+                      if (generatedImage) {
+                        // Cloudinary에 업로드 (설정되어 있으면) 또는 base64 fallback
+                        const uploadResult = await uploadGeneratedImage(generatedImage, {
+                          folder: 'triple-c/sections',
+                          sectionType,
+                        });
+                        generatedImageUrls.push(uploadResult.url);
+                        console.log(`[AI I2I] ${sectionType} image ${i + 1} generated successfully`);
+                      }
+                    } catch (imageError) {
+                      console.error(`[AI I2I] ${sectionType} image ${i + 1} failed:`, imageError);
                     }
-                  } catch (sectionError) {
-                    console.error(`[AI I2I] Section ${section.type} failed:`, sectionError);
+                  }
+
+                  // 생성된 이미지가 있으면 결과 반환
+                  if (generatedImageUrls.length > 0) {
+                    return {
+                      ...section,
+                      imageUrl: generatedImageUrls[0],           // 기존 호환성 (첫 번째 이미지)
+                      imageUrls: generatedImageUrls,             // 다중 이미지 배열
+                    };
                   }
 
                   // 실패 시 배경 제거된 제품 이미지 폴백
@@ -577,6 +587,7 @@ export async function generateDetailPage(
 
         try {
           const imageModel = input.imageModel || DEFAULT_IMAGE_MODEL;
+          console.log(`[AI] ★★★ Using Image Model: ${imageModel} ★★★`);
 
           versions = await Promise.all(
             versions.map(async (version) => {
@@ -588,39 +599,51 @@ export async function generateDetailPage(
                     return section;
                   }
 
-                  try {
-                    // 섹션 타입에 맞는 이미지 생성 (MAIN은 1:1, 나머지는 자유 비율)
-                    // keyFeatures, targetAudience도 전달하여 맞춤형 이미지 생성
-                    const sectionType = section.type as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
-                    const imagePrompt = prompts[0]?.imagePrompt || '';
+                  const sectionType = section.type as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
+                  console.log(`[AI T2I] Generating ${sectionType} section (${prompts.length} images)...`);
+                  console.log(`[AI T2I] keyFeatures: ${input.keyFeatures?.slice(0, 2).join(', ')}, target: ${input.targetAudience}`);
 
-                    console.log(`[AI T2I] Generating ${sectionType} section...`);
-                    console.log(`[AI T2I] keyFeatures: ${input.keyFeatures?.slice(0, 2).join(', ')}, target: ${input.targetAudience}`);
+                  // 다중 이미지 생성: 모든 프롬프트에 대해 이미지 생성
+                  const generatedImageUrls: string[] = [];
 
-                    const generatedImage = await generateSectionImageWithGemini(
-                      sectionType,
-                      imagePrompt,
-                      input.productName,
-                      input.category,
-                      imageModel,
-                      input.keyFeatures,      // keyFeatures 전달
-                      input.targetAudience    // targetAudience 전달
-                    );
+                  for (let i = 0; i < prompts.length; i++) {
+                    const prompt = prompts[i];
+                    const imagePrompt = prompt?.imagePrompt || '';
 
-                    if (generatedImage) {
-                      // Cloudinary에 업로드 (설정되어 있으면) 또는 base64 fallback
-                      const uploadResult = await uploadGeneratedImage(generatedImage, {
-                        folder: 'triple-c/sections',
+                    try {
+                      console.log(`[AI T2I] Generating ${sectionType} image ${i + 1}/${prompts.length}...`);
+
+                      const generatedImage = await generateSectionImageWithGemini(
                         sectionType,
-                      });
+                        imagePrompt,
+                        input.productName,
+                        input.category,
+                        imageModel,
+                        input.keyFeatures,
+                        input.targetAudience
+                      );
 
-                      return {
-                        ...section,
-                        imageUrl: uploadResult.url,
-                      };
+                      if (generatedImage) {
+                        // Cloudinary에 업로드 (설정되어 있으면) 또는 base64 fallback
+                        const uploadResult = await uploadGeneratedImage(generatedImage, {
+                          folder: 'triple-c/sections',
+                          sectionType,
+                        });
+                        generatedImageUrls.push(uploadResult.url);
+                        console.log(`[AI T2I] ${sectionType} image ${i + 1} generated successfully`);
+                      }
+                    } catch (imageError) {
+                      console.error(`[AI T2I] ${sectionType} image ${i + 1} failed:`, imageError);
                     }
-                  } catch (sectionError) {
-                    console.error(`[AI T2I] Section ${section.type} failed:`, sectionError);
+                  }
+
+                  // 생성된 이미지가 있으면 결과 반환
+                  if (generatedImageUrls.length > 0) {
+                    return {
+                      ...section,
+                      imageUrl: generatedImageUrls[0],           // 기존 호환성 (첫 번째 이미지)
+                      imageUrls: generatedImageUrls,             // 다중 이미지 배열
+                    };
                   }
 
                   return section;

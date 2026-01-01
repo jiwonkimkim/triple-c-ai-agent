@@ -435,16 +435,7 @@ async function main() {
   for (const template of marketplaceTemplates) {
     await prisma.template.upsert({
       where: { id: template.id },
-      update: {
-        isPublished: template.isPublished,
-        publishedAt: template.publishedAt,
-        price: template.price,
-        description: template.description,
-        tags: template.tags,
-        downloadCount: template.downloadCount,
-        rating: template.rating,
-        ratingCount: template.ratingCount,
-      },
+      update: {}, // 이미 존재하면 업데이트하지 않음
       create: template,
     });
   }
