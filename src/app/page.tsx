@@ -593,35 +593,6 @@ export default function LandingPage() {
                   스팸 없이 주요 업데이트만 보내드립니다
                 </p>
               </motion.div>
-
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.3 }}
-                className={cn(
-                  "text-sm text-muted-foreground mt-6",
-                  isSmile && "uppercase tracking-wider",
-                  isSapporo && "flex items-center justify-center gap-8 text-slate-500",
-                  isFluid && "text-sm font-light opacity-50 mt-8"
-                )}
-              >
-                {isSapporo ? (
-                  <>
-                    <span className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-amber-500" />
-                      3회 무료 체험
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-amber-500" />
-                      카드 등록 불필요
-                    </span>
-                  </>
-                ) : isFluid ? (
-                  "No credit card required. 3 free generations included."
-                ) : (
-                  "신용카드 없이 시작 가능. 무료 생성 3회 제공."
-                )}
-              </motion.p>
             </div>
           </div>
 
