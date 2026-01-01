@@ -604,7 +604,7 @@ function ProjectCard({ project, isSelected, onToggleSelect }: ProjectCardProps) 
           {/* Category badge */}
           {project.category && (
             <Badge
-              className="absolute top-2 right-2 bg-white text-slate-600 font-medium border-0"
+              className="absolute top-2 right-2 bg-white/5 text-slate-600 font-medium border-0"
             >
               {categoryLabels[project.category] || project.category}
             </Badge>
