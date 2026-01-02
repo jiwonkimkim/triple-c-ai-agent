@@ -535,25 +535,43 @@ function ProjectCard({ project, isSelected, onToggleSelect }: ProjectCardProps) 
 
   // 썸네일 이미지 결정: 상세페이지 섹션의 이미지 > productImages > 기본 아이콘
   const getFirstImageFromSections = (): string | undefined => {
-    const sections = project.detailPageVersions?.[0]?.sections;
-    if (!sections || !Array.isArray(sections)) return undefined;
-
-    for (const section of sections) {
-      // Section 타입 (blocks 배열 포함)
-      if (section.blocks && Array.isArray(section.blocks)) {
-        for (const block of section.blocks) {
-          if (block.type === 'image' && block.src) {
-            return block.src;
+    // 최신 버전부터 확인
+    for (const version of project.detailPageVersions || []) {
+      // 1. contentJson에서 이미지 찾기 (에디터 저장 데이터)
+      const contentJson = version.contentJson as any;
+      if (Array.isArray(contentJson) && contentJson.length > 0) {
+        for (const section of contentJson) {
+          if (section.blocks && Array.isArray(section.blocks)) {
+            for (const block of section.blocks) {
+              if ((block.type === 'image' || block.type === 'image-overlay') && block.src) {
+                return block.src;
+              }
+            }
           }
         }
       }
-      // DetailPageSection 타입 (imageUrls 배열 우선)
-      if (section.imageUrls && Array.isArray(section.imageUrls) && section.imageUrls.length > 0) {
-        return section.imageUrls[0];
-      }
-      // DetailPageSection 타입 (imageUrl 필드)
-      if (section.imageUrl) {
-        return section.imageUrl;
+
+      // 2. sections에서 이미지 찾기 (AI 생성 데이터)
+      const sections = version.sections;
+      if (sections && Array.isArray(sections) && sections.length > 0) {
+        for (const section of sections) {
+          // Section 타입 (blocks 배열 포함)
+          if (section.blocks && Array.isArray(section.blocks)) {
+            for (const block of section.blocks) {
+              if (block.type === 'image' && block.src) {
+                return block.src;
+              }
+            }
+          }
+          // DetailPageSection 타입 (imageUrls 배열 우선)
+          if (section.imageUrls && Array.isArray(section.imageUrls) && section.imageUrls.length > 0) {
+            return section.imageUrls[0];
+          }
+          // DetailPageSection 타입 (imageUrl 필드)
+          if (section.imageUrl) {
+            return section.imageUrl;
+          }
+        }
       }
     }
     return undefined;

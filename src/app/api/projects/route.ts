@@ -68,9 +68,10 @@ export async function GET(request: NextRequest) {
             select: {
               id: true,
               sections: true,
+              contentJson: true, // 에디터 저장 데이터도 포함
             },
-            orderBy: { createdAt: 'desc' },
-            take: 1,
+            orderBy: { versionNumber: 'desc' },
+            take: 3, // 최신 버전 몇 개 가져오기
           },
           _count: {
             select: {
