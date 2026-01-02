@@ -40,7 +40,20 @@
       "Bash(npx prisma generate:*)",
       "Bash(cmd //c \"move \"\"C:\\\\Users\\\\user\\\\Desktop\\\\AI심화캠프_패스트캠퍼스\\\\git\\\\Triple_C\\\\instant-math-guide\"\" \"\"C:\\\\Users\\\\user\\\\Desktop\\\\AI심화캠프_패스트캠퍼스\\\\git\\\\\"\"\")",
       "Bash(robocopy:*)",
-      "Bash(dir \"C:\\\\Users\\\\user\\\\Desktop\\\\AI심화캠프_패스트캠퍼스\\\\\")"
+      "Bash(dir \"C:\\\\Users\\\\user\\\\Desktop\\\\AI심화캠프_패스트캠퍼스\\\\\")",
+      "Bash(npx tsx:*)",
+      "Bash(if [ -n \"$CLOUDINARY_CLOUD_NAME\" ])",
+      "Bash(then echo \"CLOUDINARY: 설정됨\")",
+      "Bash(else echo \"CLOUDINARY: 없음\")",
+      "Bash(fi)",
+      "Bash(vercel env pull:*)",
+      "Bash(npx vercel env pull:*)",
+      "Bash(npx vercel link:*)",
+      "Bash(npx dotenv:*)",
+      "Bash(npx prisma studio:*)",
+      "Bash(tasklist:*)",
+      "Bash(wmic process where \"name=''node.exe''\" get processid,commandline)",
+      "WebFetch(domain:triple-c.vercel.app)"
     ],
     "deny": [],
     "ask": []
