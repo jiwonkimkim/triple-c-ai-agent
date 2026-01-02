@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { Plus, FolderKanban, Palette, Clock, Zap, Loader2, Sparkles, Send } from 'lucide-react';
+import { Plus, FolderKanban, Palette, Clock, Zap, Loader2, Sparkles, Send, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MouseGlowEffect } from '@/components/ui/mouse-glow-effect';
 import { useStyleTheme } from '@/contexts/style-theme-context';
@@ -247,9 +247,9 @@ export default function DashboardPage() {
                   <div className="flex items-center gap-4">
                     <div className={cn(
                       "w-10 h-10 flex items-center justify-center",
-                      isSmile ? "bg-foreground/10" : "rounded-xl bg-gradient-to-br from-primary/20 to-primary/40"
+                      isSmile ? "bg-foreground/10" : "rounded-xl bg-gradient-to-br from-blue-500/20 to-indigo-500/40"
                     )}>
-                      <FolderKanban className="h-5 w-5 text-primary" />
+                      <Layers className="h-5 w-5 text-blue-600" />
                     </div>
                     <div>
                       <h4 className="font-medium">{project.title}</h4>
