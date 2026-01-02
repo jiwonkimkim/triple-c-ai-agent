@@ -169,6 +169,22 @@ export async function POST(request: NextRequest) {
     });
     const newProjectVersionNumber = (latestProjectVersion?.versionNumber || 0) + 1;
 
+    // 첫 번째 섹션의 이미지를 썸네일로 사용
+    const firstVersion = versions[0];
+    const sections = firstVersion?.sections || [];
+    let thumbnailUrl: string | null = null;
+
+    for (const section of sections) {
+      const sec = section as { imageUrl?: string; imageUrls?: string[] };
+      if (sec.imageUrls && sec.imageUrls.length > 0) {
+        thumbnailUrl = sec.imageUrls[0];
+        break;
+      } else if (sec.imageUrl) {
+        thumbnailUrl = sec.imageUrl;
+        break;
+      }
+    }
+
     await prisma.projectVersion.create({
       data: {
         projectId: validatedData.projectId,
@@ -179,6 +195,7 @@ export async function POST(request: NextRequest) {
           sections: versions[0]?.sections || [],
           hookMessage: versions[0]?.hookMessage,
         } as unknown as Prisma.InputJsonValue,
+        thumbnail: thumbnailUrl,
         createdById: session.user.id,
       },
     });

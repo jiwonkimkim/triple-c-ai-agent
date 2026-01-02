@@ -547,6 +547,10 @@ function ProjectCard({ project, isSelected, onToggleSelect }: ProjectCardProps) 
           }
         }
       }
+      // DetailPageSection 타입 (imageUrls 배열 우선)
+      if (section.imageUrls && Array.isArray(section.imageUrls) && section.imageUrls.length > 0) {
+        return section.imageUrls[0];
+      }
       // DetailPageSection 타입 (imageUrl 필드)
       if (section.imageUrl) {
         return section.imageUrl;

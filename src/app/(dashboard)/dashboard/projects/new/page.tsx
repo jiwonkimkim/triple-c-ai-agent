@@ -41,25 +41,113 @@ const imageModelOptions = [
 // 개발 모드 확인
 const isDev = process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEV_MODE === 'true';
 
-// 테스트용 샘플 데이터
-const TEST_DATA = {
-  project: {
-    title: '테스트 립스틱 상세페이지',
-    description: '개발 테스트용 프로젝트입니다.',
+// 테스트용 샘플 데이터 (랜덤 선택)
+const TEST_DATA_LIST = [
+  {
+    project: {
+      title: '벨벳 립스틱 상세페이지',
+      description: '매트한 발색의 고급 립스틱 상세페이지입니다.',
+    },
+    product: {
+      productName: '벨벳 매트 립스틱 #로즈베리',
+      category: 'Beauty & Skincare',
+      keyFeatures: [
+        '12시간 지속되는 롱래스팅 포뮬러',
+        '입술 보습 케어 성분 함유',
+        '선명한 발색과 부드러운 밀착력',
+      ],
+      targetAudience: '20-35세 뷰티에 관심있는 여성',
+      copyLength: 'medium' as const,
+      productUrl: '',
+      imageModel: 'gemini-2.5-flash-image' as const,
+    },
   },
-  product: {
-    productName: '벨벳 매트 립스틱 #로즈베리',
-    category: 'Beauty & Skincare',
-    keyFeatures: [
-      '12시간 지속되는 롱래스팅 포뮬러',
-      '입술 보습 케어 성분 함유',
-      '선명한 발색과 부드러운 밀착력',
-    ],
-    targetAudience: '20-35세 뷰티에 관심있는 여성',
-    copyLength: 'medium' as const,
-    productUrl: '',
-    imageModel: 'gemini-2.5-flash-image' as const,
+  {
+    project: {
+      title: '비타민C 세럼 상세페이지',
+      description: '피부 광채를 위한 고농축 세럼입니다.',
+    },
+    product: {
+      productName: '퓨어 비타민C 20% 브라이트닝 세럼',
+      category: 'Beauty & Skincare',
+      keyFeatures: [
+        '순수 비타민C 20% 고농축 함유',
+        '피부 톤 개선 및 광채 부여',
+        '항산화 성분으로 피부 보호',
+        '저자극 안정화 포뮬러',
+      ],
+      targetAudience: '25-45세 피부 톤 개선을 원하는 여성',
+      copyLength: 'medium' as const,
+      productUrl: '',
+      imageModel: 'gemini-2.5-flash-image' as const,
+    },
   },
+  {
+    project: {
+      title: '히알루론산 크림 상세페이지',
+      description: '깊은 보습을 위한 수분 크림입니다.',
+    },
+    product: {
+      productName: '딥 하이드레이션 히알루론산 크림',
+      category: 'Beauty & Skincare',
+      keyFeatures: [
+        '3중 히알루론산 콤플렉스',
+        '72시간 보습 지속력',
+        '피부 장벽 강화',
+        '민감성 피부도 사용 가능',
+      ],
+      targetAudience: '건성/민감성 피부를 가진 20-50대',
+      copyLength: 'long' as const,
+      productUrl: '',
+      imageModel: 'gemini-2.5-flash-image' as const,
+    },
+  },
+  {
+    project: {
+      title: '선크림 상세페이지',
+      description: '가볍고 촉촉한 선케어 제품입니다.',
+    },
+    product: {
+      productName: '에어리 선 에센스 SPF50+ PA++++',
+      category: 'Beauty & Skincare',
+      keyFeatures: [
+        'SPF50+ PA++++ 강력한 자외선 차단',
+        '가벼운 에센스 제형',
+        '백탁 현상 없이 투명하게 밀착',
+        '수분감 있는 촉촉한 마무리',
+      ],
+      targetAudience: '자외선 차단에 관심있는 모든 연령대',
+      copyLength: 'short' as const,
+      productUrl: '',
+      imageModel: 'gemini-2.5-flash-image' as const,
+    },
+  },
+  {
+    project: {
+      title: '클렌징 오일 상세페이지',
+      description: '순하게 메이크업을 지워주는 클렌징 제품입니다.',
+    },
+    product: {
+      productName: '젠틀 딥 클렌징 오일',
+      category: 'Beauty & Skincare',
+      keyFeatures: [
+        '식물성 오일 베이스',
+        '워터프루프 메이크업도 깔끔하게 제거',
+        '세안 후에도 촉촉한 피부',
+        '눈가 자극 최소화 설계',
+      ],
+      targetAudience: '메이크업을 자주 하는 20-40대 여성',
+      copyLength: 'medium' as const,
+      productUrl: '',
+      imageModel: 'gemini-2.5-flash-image' as const,
+    },
+  },
+];
+
+// 랜덤 테스트 데이터 가져오기
+const getRandomTestData = () => {
+  const randomIndex = Math.floor(Math.random() * TEST_DATA_LIST.length);
+  return TEST_DATA_LIST[randomIndex];
 };
 
 export default function NewProjectPage() {
@@ -99,30 +187,32 @@ export default function NewProjectPage() {
     resolver: zodResolver(createProjectSchema),
   });
 
-  // [DEV] 프로젝트 정보 자동 입력
+  // [DEV] 프로젝트 정보 자동 입력 (랜덤)
   const handleAutoFillProject = () => {
-    setValue('title', TEST_DATA.project.title);
-    setValue('description', TEST_DATA.project.description);
+    const testData = getRandomTestData();
+    setValue('title', testData.project.title);
+    setValue('description', testData.project.description);
     toast({
       title: '🧪 테스트 데이터 입력됨',
-      description: '프로젝트 정보가 자동으로 입력되었습니다.',
+      description: `"${testData.project.title}" 데이터가 입력되었습니다.`,
     });
   };
 
-  // [DEV] 제품 정보 자동 입력
+  // [DEV] 제품 정보 자동 입력 (랜덤)
   const handleAutoFillProduct = () => {
+    const testData = getRandomTestData();
     setProductInfo({
-      productName: TEST_DATA.product.productName,
-      category: TEST_DATA.product.category,
-      keyFeatures: TEST_DATA.product.keyFeatures,
-      targetAudience: TEST_DATA.product.targetAudience,
-      copyLength: TEST_DATA.product.copyLength,
-      productUrl: TEST_DATA.product.productUrl,
-      imageModel: TEST_DATA.product.imageModel,
+      productName: testData.product.productName,
+      category: testData.product.category,
+      keyFeatures: testData.product.keyFeatures,
+      targetAudience: testData.product.targetAudience,
+      copyLength: testData.product.copyLength,
+      productUrl: testData.product.productUrl,
+      imageModel: testData.product.imageModel,
     });
     toast({
       title: '🧪 테스트 데이터 입력됨',
-      description: '제품 정보가 자동으로 입력되었습니다.',
+      description: `"${testData.product.productName}" 데이터가 입력되었습니다.`,
     });
   };
 
