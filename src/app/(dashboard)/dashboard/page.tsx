@@ -282,10 +282,15 @@ export default function DashboardPage() {
               첫 번째 프로젝트를 만들어 AI 콘텐츠 생성을 시작해 보세요.
             </p>
             <Link href="/dashboard/projects/new" className="mt-4">
-              <Button>
+              <button className={cn(
+                "px-6 py-3 text-sm font-medium transition-all duration-200 rounded-[50px] flex items-center",
+                isSmile
+                  ? "bg-foreground text-background hover:bg-foreground/90 uppercase tracking-wider"
+                  : "bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 hover:shadow-lg hover:shadow-blue-500/30"
+              )}>
                 <Plus className="mr-2 h-4 w-4" />
                 프로젝트 만들기
-              </Button>
+              </button>
             </Link>
           </div>
         )}

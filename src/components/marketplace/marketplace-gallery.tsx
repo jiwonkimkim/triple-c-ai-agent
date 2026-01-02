@@ -41,6 +41,8 @@ const sortOptions = [
   { value: 'rating', label: '평점순' },
   { value: 'price_low', label: '가격 낮은순' },
   { value: 'price_high', label: '가격 높은순' },
+  { value: 'credits_low', label: '크레딧 낮은순' },
+  { value: 'credits_high', label: '크레딧 높은순' },
 ];
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -171,7 +173,7 @@ export function MarketplaceGallery({
             </SelectContent>
           </Select>
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="w-[160px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
