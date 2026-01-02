@@ -58,6 +58,7 @@ interface Project {
   detailPageVersions?: {
     id: string;
     sections: unknown;
+    contentJson: unknown;
   }[];
   _count: {
     detailPageVersions: number;
