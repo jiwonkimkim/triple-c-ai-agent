@@ -23,76 +23,44 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
+      - name: Build and capture output
         id: build
         run: |
+          set +e
           npm run build 2>&1 | tee build.log
-        continue-on-error: true
+          BUILD_EXIT_CODE=$?
+          echo "exit_code=$BUILD_EXIT_CODE" >> $GITHUB_OUTPUT
+          if [ $BUILD_EXIT_CODE -ne 0 ]; then
+            echo "build_status=failure" >> $GITHUB_OUTPUT
+          else
+            echo "build_status=success" >> $GITHUB_OUTPUT
+          fi
+          exit 0
 
       - name: Send Success to Slack
-        if: steps.build.outcome == 'success'
+        if: steps.build.outputs.build_status == 'success'
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         run: |
-          curl -X POST ${{ secrets.SLACK_WEBHOOK }} \
+          curl -X POST "$SLACK_WEBHOOK" \
           -H 'Content-type: application/json' \
           -d '{
-            "blocks": [
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": ":white_check_mark: *빌드 성공*\n\n*커밋:* `${{ github.event.head_commit.message }}`\n*브랜치:* `${{ github.ref_name }}`\n*작성자:* ${{ github.actor }}"
-                }
-              },
-              {
-                "type": "actions",
-                "elements": [
-                  {
-                    "type": "button",
-                    "text": {"type": "plain_text", "text": "GitHub 보기"},
-                    "url": "${{ github.event.head_commit.url }}"
-                  }
-                ]
-              }
-            ]
+            "text": ":white_check_mark: *빌드 성공*\n\n*커밋:* `${{ github.event.head_commit.message }}`\n*브랜치:* `${{ github.ref_name }}`\n*작성자:* ${{ github.actor }}\n\n<${{ github.event.head_commit.url }}|GitHub에서 보기>"
           }'
 
       - name: Send Failure to Slack
-        if: steps.build.outcome == 'failure'
+        if: steps.build.outputs.build_status == 'failure'
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         run: |
-          # 에러 로그 추출 (마지막 100줄)
-          ERROR_LOG=$(tail -100 build.log | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+          ERROR_LOG=$(tail -80 build.log | head -60)
 
-          curl -X POST ${{ secrets.SLACK_WEBHOOK }} \
+          curl -X POST "$SLACK_WEBHOOK" \
           -H 'Content-type: application/json' \
-          -d '{
-            "blocks": [
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": ":x: *빌드 실패*\n\n*커밋:* `${{ github.event.head_commit.message }}`\n*브랜치:* `${{ github.ref_name }}`\n*작성자:* ${{ github.actor }}"
-                }
-              },
-              {
-                "type": "section",
-                "text": {
-                  "type": "mrkdwn",
-                  "text": "*에러 로그:*\n```'"$ERROR_LOG"'```"
-                }
-              },
-              {
-                "type": "actions",
-                "elements": [
-                  {
-                    "type": "button",
-                    "text": {"type": "plain_text", "text": "GitHub Actions 보기"},
-                    "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-                  }
-                ]
-              }
-            ]
-          }'
+          -d "{
+            \"text\": \":x: *빌드 실패*\n\n*커밋:* \`${{ github.event.head_commit.message }}\`\n*브랜치:* \`${{ github.ref_name }}\`\n*작성자:* ${{ github.actor }}\n\n*에러 로그:*\n\`\`\`${ERROR_LOG}\`\`\`\n\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|GitHub Actions에서 보기>\"
+          }"
 
-      - name: Exit with error if build failed
-        if: steps.build.outcome == 'failure'
+      - name: Fail job if build failed
+        if: steps.build.outputs.build_status == 'failure'
         run: exit 1
