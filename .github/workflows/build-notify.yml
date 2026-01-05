@@ -24,8 +24,10 @@ jobs:
 
       - name: Build
         id: build
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tee build.log
         continue-on-error: true
-        run: npm run build 2>&1 | tee build.log
 
       - name: Send Success to Slack
         if: steps.build.outcome == 'success'
