@@ -60,6 +60,7 @@ jobs:
               }]
             }")
 
+          echo "Slack Response: $RESPONSE"
           TS=$(echo $RESPONSE | jq -r '.ts')
           echo "ts=$TS" >> $GITHUB_OUTPUT
 
