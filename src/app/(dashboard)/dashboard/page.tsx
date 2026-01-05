@@ -26,9 +26,6 @@ interface DashboardStats {
   recentProjects: RecentProject[];
 }
 
-// 일부러 오류 발생 테스트
-const intentionalError: string = 12345;
-
 export default function DashboardPage() {
   const { data: session } = useSession();
   const { styleTheme, isLoaded } = useStyleTheme();
