@@ -45,8 +45,11 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         run: |
-          # 에러 로그 추출 (마지막 25줄)
-          ERROR_LOG=$(tail -25 build.log | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+          # 에러 로그 추출 및 JSON 안전하게 이스케이프
+          ERROR_LOG=$(tail -20 build.log | grep -E "(error|Error|ERROR|failed|Failed|Type error)" | head -10 | jq -Rs .)
+
+          # jq 결과에서 따옴표 제거
+          ERROR_LOG=${ERROR_LOG:1:-1}
 
           curl -X POST "$SLACK_WEBHOOK" \
           -H 'Content-type: application/json' \
