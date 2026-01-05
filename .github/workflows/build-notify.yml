@@ -19,6 +19,50 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Get short SHA
+        id: sha
+        run: echo "short=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
+
+      - name: Send Building notification to Slack
+        id: slack
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        run: |
+          RESPONSE=$(curl -s -X POST "https://slack.com/api/chat.postMessage" \
+            -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+            -H "Content-type: application/json" \
+            -d "{
+              \"channel\": \"$SLACK_CHANNEL_ID\",
+              \"attachments\": [{
+                \"color\": \"#3b82f6\",
+                \"blocks\": [
+                  {
+                    \"type\": \"header\",
+                    \"text\": {\"type\": \"plain_text\", \"text\": \"🔄 Building...\", \"emoji\": true}
+                  },
+                  {
+                    \"type\": \"section\",
+                    \"fields\": [
+                      {\"type\": \"mrkdwn\", \"text\": \"*Status*\n🔵 Building\"},
+                      {\"type\": \"mrkdwn\", \"text\": \"*Environment*\n🚀 Production\"}
+                    ]
+                  },
+                  {
+                    \"type\": \"section\",
+                    \"text\": {\"type\": \"mrkdwn\", \"text\": \"*Source*\n🔀 \`${{ github.ref_name }}\`\n⊙ \`${{ steps.sha.outputs.short }}\` ${{ github.event.head_commit.message }}\"}
+                  },
+                  {
+                    \"type\": \"context\",
+                    \"elements\": [{\"type\": \"mrkdwn\", \"text\": \"👤 ${{ github.actor }}\"}]
+                  }
+                ]
+              }]
+            }")
+
+          TS=$(echo $RESPONSE | jq -r '.ts')
+          echo "ts=$TS" >> $GITHUB_OUTPUT
+
       - name: Install dependencies
         run: npm install
 
@@ -46,96 +90,98 @@ jobs:
             echo "time=${DURATION}s" >> $GITHUB_OUTPUT
           fi
 
-      - name: Send Success to Slack
+      - name: Update Slack - Success
         if: steps.build.outcome == 'success'
         env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
         run: |
-          SHORT_SHA="${{ github.sha }}"
-          SHORT_SHA=${SHORT_SHA:0:7}
+          curl -s -X POST "https://slack.com/api/chat.update" \
+            -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+            -H "Content-type: application/json" \
+            -d "{
+              \"channel\": \"$SLACK_CHANNEL_ID\",
+              \"ts\": \"${{ steps.slack.outputs.ts }}\",
+              \"attachments\": [{
+                \"color\": \"#22c55e\",
+                \"blocks\": [
+                  {
+                    \"type\": \"header\",
+                    \"text\": {\"type\": \"plain_text\", \"text\": \"✅ Build Successful\", \"emoji\": true}
+                  },
+                  {
+                    \"type\": \"section\",
+                    \"fields\": [
+                      {\"type\": \"mrkdwn\", \"text\": \"*Status*\n🟢 Ready\"},
+                      {\"type\": \"mrkdwn\", \"text\": \"*Duration*\n⏱️ ${{ steps.duration.outputs.time }}\"},
+                      {\"type\": \"mrkdwn\", \"text\": \"*Environment*\n🚀 Production\"},
+                      {\"type\": \"mrkdwn\", \"text\": \"*Author*\n👤 ${{ github.actor }}\"}
+                    ]
+                  },
+                  {
+                    \"type\": \"section\",
+                    \"text\": {\"type\": \"mrkdwn\", \"text\": \"*Source*\n🔀 \`${{ github.ref_name }}\`\n⊙ \`${{ steps.sha.outputs.short }}\` ${{ github.event.head_commit.message }}\"}
+                  },
+                  {
+                    \"type\": \"actions\",
+                    \"elements\": [
+                      {\"type\": \"button\", \"text\": {\"type\": \"plain_text\", \"text\": \"🌐 Live Site\"}, \"url\": \"https://triple-c.vercel.app\"},
+                      {\"type\": \"button\", \"text\": {\"type\": \"plain_text\", \"text\": \"📂 GitHub\"}, \"url\": \"${{ github.event.head_commit.url }}\"}
+                    ]
+                  }
+                ]
+              }]
+            }"
 
-          curl -X POST "$SLACK_WEBHOOK" \
-          -H 'Content-type: application/json' \
-          -d "{
-            \"attachments\": [{
-              \"color\": \"#22c55e\",
-              \"blocks\": [
-                {
-                  \"type\": \"header\",
-                  \"text\": {\"type\": \"plain_text\", \"text\": \"✅ Build Successful\", \"emoji\": true}
-                },
-                {
-                  \"type\": \"section\",
-                  \"fields\": [
-                    {\"type\": \"mrkdwn\", \"text\": \"*Status*\n🟢 Ready\"},
-                    {\"type\": \"mrkdwn\", \"text\": \"*Duration*\n⏱️ ${{ steps.duration.outputs.time }}\"},
-                    {\"type\": \"mrkdwn\", \"text\": \"*Environment*\n🚀 Production\"},
-                    {\"type\": \"mrkdwn\", \"text\": \"*Author*\n👤 ${{ github.actor }}\"}
-                  ]
-                },
-                {
-                  \"type\": \"section\",
-                  \"text\": {\"type\": \"mrkdwn\", \"text\": \"*Source*\n🔀 \`${{ github.ref_name }}\`\n⊙ \`${SHORT_SHA}\` ${{ github.event.head_commit.message }}\"}
-                },
-                {
-                  \"type\": \"actions\",
-                  \"elements\": [
-                    {\"type\": \"button\", \"text\": {\"type\": \"plain_text\", \"text\": \"🌐 Live Site\"}, \"url\": \"https://triple-c.vercel.app\"},
-                    {\"type\": \"button\", \"text\": {\"type\": \"plain_text\", \"text\": \"📂 GitHub\"}, \"url\": \"${{ github.event.head_commit.url }}\"}
-                  ]
-                }
-              ]
-            }]
-          }"
-
-      - name: Send Failure to Slack
+      - name: Update Slack - Failure
         if: steps.build.outcome == 'failure'
         env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
         run: |
-          SHORT_SHA="${{ github.sha }}"
-          SHORT_SHA=${SHORT_SHA:0:7}
-
           # ANSI 색상 코드 제거 후 에러 부분 추출
           ERROR_LOG=$(cat build.log | sed 's/\x1b\[[0-9;]*m//g' | grep -A 30 -m 1 "Failed to compile\|Error:" | head -25 | jq -Rs .)
           ERROR_LOG=${ERROR_LOG:1:-1}
 
-          curl -X POST "$SLACK_WEBHOOK" \
-          -H 'Content-type: application/json' \
-          -d "{
-            \"attachments\": [{
-              \"color\": \"#ef4444\",
-              \"blocks\": [
-                {
-                  \"type\": \"header\",
-                  \"text\": {\"type\": \"plain_text\", \"text\": \"❌ Build Failed\", \"emoji\": true}
-                },
-                {
-                  \"type\": \"section\",
-                  \"fields\": [
-                    {\"type\": \"mrkdwn\", \"text\": \"*Status*\n🔴 Error\"},
-                    {\"type\": \"mrkdwn\", \"text\": \"*Duration*\n⏱️ ${{ steps.duration.outputs.time }}\"},
-                    {\"type\": \"mrkdwn\", \"text\": \"*Environment*\n🚀 Production\"},
-                    {\"type\": \"mrkdwn\", \"text\": \"*Author*\n👤 ${{ github.actor }}\"}
-                  ]
-                },
-                {
-                  \"type\": \"section\",
-                  \"text\": {\"type\": \"mrkdwn\", \"text\": \"*Source*\n🔀 \`${{ github.ref_name }}\`\n⊙ \`${SHORT_SHA}\` ${{ github.event.head_commit.message }}\"}
-                },
-                {
-                  \"type\": \"section\",
-                  \"text\": {\"type\": \"mrkdwn\", \"text\": \"*Error Log*\n\`\`\`${ERROR_LOG}\`\`\`\"}
-                },
-                {
-                  \"type\": \"actions\",
-                  \"elements\": [
-                    {\"type\": \"button\", \"text\": {\"type\": \"plain_text\", \"text\": \"🔍 상세 보기\"}, \"url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\", \"style\": \"danger\"}
-                  ]
-                }
-              ]
-            }]
-          }"
+          curl -s -X POST "https://slack.com/api/chat.update" \
+            -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+            -H "Content-type: application/json" \
+            -d "{
+              \"channel\": \"$SLACK_CHANNEL_ID\",
+              \"ts\": \"${{ steps.slack.outputs.ts }}\",
+              \"attachments\": [{
+                \"color\": \"#ef4444\",
+                \"blocks\": [
+                  {
+                    \"type\": \"header\",
+                    \"text\": {\"type\": \"plain_text\", \"text\": \"❌ Build Failed\", \"emoji\": true}
+                  },
+                  {
+                    \"type\": \"section\",
+                    \"fields\": [
+                      {\"type\": \"mrkdwn\", \"text\": \"*Status*\n🔴 Error\"},
+                      {\"type\": \"mrkdwn\", \"text\": \"*Duration*\n⏱️ ${{ steps.duration.outputs.time }}\"},
+                      {\"type\": \"mrkdwn\", \"text\": \"*Environment*\n🚀 Production\"},
+                      {\"type\": \"mrkdwn\", \"text\": \"*Author*\n👤 ${{ github.actor }}\"}
+                    ]
+                  },
+                  {
+                    \"type\": \"section\",
+                    \"text\": {\"type\": \"mrkdwn\", \"text\": \"*Source*\n🔀 \`${{ github.ref_name }}\`\n⊙ \`${{ steps.sha.outputs.short }}\` ${{ github.event.head_commit.message }}\"}
+                  },
+                  {
+                    \"type\": \"section\",
+                    \"text\": {\"type\": \"mrkdwn\", \"text\": \"*Error Log*\n\`\`\`${ERROR_LOG}\`\`\`\"}
+                  },
+                  {
+                    \"type\": \"actions\",
+                    \"elements\": [
+                      {\"type\": \"button\", \"text\": {\"type\": \"plain_text\", \"text\": \"🔍 상세 보기\"}, \"url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\", \"style\": \"danger\"}
+                    ]
+                  }
+                ]
+              }]
+            }"
 
       - name: Fail if build failed
         if: steps.build.outcome == 'failure'
