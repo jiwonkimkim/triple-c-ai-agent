@@ -18,27 +18,20 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
-      - name: Build and capture output
+      - name: Build
         id: build
-        run: |
-          set +e
-          npm run build 2>&1 | tee build.log
-          BUILD_EXIT_CODE=$?
-          echo "exit_code=$BUILD_EXIT_CODE" >> $GITHUB_OUTPUT
-          if [ $BUILD_EXIT_CODE -ne 0 ]; then
-            echo "build_status=failure" >> $GITHUB_OUTPUT
-          else
-            echo "build_status=success" >> $GITHUB_OUTPUT
-          fi
-          exit 0
+        run: npm run build
 
+  notify-success:
+    runs-on: ubuntu-latest
+    needs: build
+    if: success()
+    steps:
       - name: Send Success to Slack
-        if: steps.build.outputs.build_status == 'success'
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         run: |
@@ -48,19 +41,17 @@ jobs:
             "text": ":white_check_mark: *빌드 성공*\n\n*커밋:* `${{ github.event.head_commit.message }}`\n*브랜치:* `${{ github.ref_name }}`\n*작성자:* ${{ github.actor }}\n\n<${{ github.event.head_commit.url }}|GitHub에서 보기>"
           }'
 
+  notify-failure:
+    runs-on: ubuntu-latest
+    needs: build
+    if: failure()
+    steps:
       - name: Send Failure to Slack
-        if: steps.build.outputs.build_status == 'failure'
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         run: |
-          ERROR_LOG=$(tail -80 build.log | head -60)
-
           curl -X POST "$SLACK_WEBHOOK" \
           -H 'Content-type: application/json' \
-          -d "{
-            \"text\": \":x: *빌드 실패*\n\n*커밋:* \`${{ github.event.head_commit.message }}\`\n*브랜치:* \`${{ github.ref_name }}\`\n*작성자:* ${{ github.actor }}\n\n*에러 로그:*\n\`\`\`${ERROR_LOG}\`\`\`\n\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|GitHub Actions에서 보기>\"
-          }"
-
-      - name: Fail job if build failed
-        if: steps.build.outputs.build_status == 'failure'
-        run: exit 1
+          -d '{
+            "text": ":x: *빌드 실패*\n\n*커밋:* `${{ github.event.head_commit.message }}`\n*브랜치:* `${{ github.ref_name }}`\n*작성자:* ${{ github.actor }}\n\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|GitHub Actions에서 에러 확인>"
+          }'
