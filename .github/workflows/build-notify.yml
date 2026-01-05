@@ -38,7 +38,13 @@ jobs:
         run: |
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - ${{ steps.start.outputs.time }}))
-          echo "seconds=${DURATION}s" >> $GITHUB_OUTPUT
+          if [ $DURATION -ge 60 ]; then
+            MINS=$((DURATION / 60))
+            SECS=$((DURATION % 60))
+            echo "time=${MINS}m ${SECS}s" >> $GITHUB_OUTPUT
+          else
+            echo "time=${DURATION}s" >> $GITHUB_OUTPUT
+          fi
 
       - name: Send Success to Slack
         if: steps.build.outcome == 'success'
@@ -62,7 +68,7 @@ jobs:
                   \"type\": \"section\",
                   \"fields\": [
                     {\"type\": \"mrkdwn\", \"text\": \"*Status*\n🟢 Ready\"},
-                    {\"type\": \"mrkdwn\", \"text\": \"*Duration*\n⏱️ ${{ steps.duration.outputs.seconds }}\"},
+                    {\"type\": \"mrkdwn\", \"text\": \"*Duration*\n⏱️ ${{ steps.duration.outputs.time }}\"},
                     {\"type\": \"mrkdwn\", \"text\": \"*Environment*\n🚀 Production\"},
                     {\"type\": \"mrkdwn\", \"text\": \"*Author*\n👤 ${{ github.actor }}\"}
                   ]
@@ -108,7 +114,7 @@ jobs:
                   \"type\": \"section\",
                   \"fields\": [
                     {\"type\": \"mrkdwn\", \"text\": \"*Status*\n🔴 Error\"},
-                    {\"type\": \"mrkdwn\", \"text\": \"*Duration*\n⏱️ ${{ steps.duration.outputs.seconds }}\"},
+                    {\"type\": \"mrkdwn\", \"text\": \"*Duration*\n⏱️ ${{ steps.duration.outputs.time }}\"},
                     {\"type\": \"mrkdwn\", \"text\": \"*Environment*\n🚀 Production\"},
                     {\"type\": \"mrkdwn\", \"text\": \"*Author*\n👤 ${{ github.actor }}\"}
                   ]
