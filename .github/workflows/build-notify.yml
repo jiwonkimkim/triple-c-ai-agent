@@ -22,6 +22,10 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Record start time
+        id: start
+        run: echo "time=$(date +%s)" >> $GITHUB_OUTPUT
+
       - name: Build
         id: build
         run: |
@@ -29,33 +33,43 @@ jobs:
           npm run build 2>&1 | tee build.log
         continue-on-error: true
 
+      - name: Calculate duration
+        id: duration
+        run: |
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - ${{ steps.start.outputs.time }}))
+          echo "seconds=${DURATION}s" >> $GITHUB_OUTPUT
+
       - name: Send Success to Slack
         if: steps.build.outcome == 'success'
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         run: |
+          SHORT_SHA="${{ github.sha }}"
+          SHORT_SHA=${SHORT_SHA:0:7}
+
           curl -X POST "$SLACK_WEBHOOK" \
           -H 'Content-type: application/json' \
-          -d '{
-            "text": ":white_check_mark: *빌드 성공*\n\n*커밋:* `${{ github.event.head_commit.message }}`\n*브랜치:* `${{ github.ref_name }}`\n*작성자:* ${{ github.actor }}\n\n<${{ github.event.head_commit.url }}|GitHub에서 보기>"
-          }'
+          -d "{
+            \"text\": \":white_check_mark: *Build Successful*\n\n*Status:* Ready\n*Duration:* ${{ steps.duration.outputs.seconds }}\n*Environment:* Production\n\n*Source*\n\`${{ github.ref_name }}\`\n\`${SHORT_SHA}\` ${{ github.event.head_commit.message }}\n\n*Author:* ${{ github.actor }}\n\n<https://triple-c.vercel.app|:link: Live Site>  |  <${{ github.event.head_commit.url }}|:octocat: GitHub>\"
+          }"
 
       - name: Send Failure to Slack
         if: steps.build.outcome == 'failure'
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         run: |
-          # ANSI 색상 코드 제거 후 에러 부분 추출
-          # "Failed to compile" 또는 "Error:" 부터 마지막까지 캡처
-          ERROR_LOG=$(cat build.log | sed 's/\x1b\[[0-9;]*m//g' | grep -A 30 -m 1 "Failed to compile\|Error:" | head -25 | jq -Rs .)
+          SHORT_SHA="${{ github.sha }}"
+          SHORT_SHA=${SHORT_SHA:0:7}
 
-          # jq 결과에서 앞뒤 따옴표 제거
+          # ANSI 색상 코드 제거 후 에러 부분 추출
+          ERROR_LOG=$(cat build.log | sed 's/\x1b\[[0-9;]*m//g' | grep -A 30 -m 1 "Failed to compile\|Error:" | head -25 | jq -Rs .)
           ERROR_LOG=${ERROR_LOG:1:-1}
 
           curl -X POST "$SLACK_WEBHOOK" \
           -H 'Content-type: application/json' \
           -d "{
-            \"text\": \":x: *빌드 실패*\n\n*커밋:* \`${{ github.event.head_commit.message }}\`\n*브랜치:* \`${{ github.ref_name }}\`\n*작성자:* ${{ github.actor }}\n\n*에러 로그:*\n\`\`\`${ERROR_LOG}\`\`\`\n\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|GitHub Actions에서 상세 보기>\"
+            \"text\": \":x: *Build Failed*\n\n*Status:* Error\n*Duration:* ${{ steps.duration.outputs.seconds }}\n*Environment:* Production\n\n*Source*\n\`${{ github.ref_name }}\`\n\`${SHORT_SHA}\` ${{ github.event.head_commit.message }}\n\n*Author:* ${{ github.actor }}\n\n*Error Log:*\n\`\`\`${ERROR_LOG}\`\`\`\n\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|:octocat: GitHub Actions 상세 보기>\"
           }"
 
       - name: Fail if build failed
