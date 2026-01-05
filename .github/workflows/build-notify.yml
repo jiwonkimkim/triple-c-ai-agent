@@ -45,10 +45,11 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         run: |
-          # 에러 로그 추출 및 JSON 안전하게 이스케이프
-          ERROR_LOG=$(tail -20 build.log | grep -E "(error|Error|ERROR|failed|Failed|Type error)" | head -10 | jq -Rs .)
+          # ANSI 색상 코드 제거 후 에러 부분 추출
+          # "Failed to compile" 또는 "Error:" 부터 마지막까지 캡처
+          ERROR_LOG=$(cat build.log | sed 's/\x1b\[[0-9;]*m//g' | grep -A 30 -m 1 "Failed to compile\|Error:" | head -25 | jq -Rs .)
 
-          # jq 결과에서 따옴표 제거
+          # jq 결과에서 앞뒤 따옴표 제거
           ERROR_LOG=${ERROR_LOG:1:-1}
 
           curl -X POST "$SLACK_WEBHOOK" \
