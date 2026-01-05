@@ -26,9 +26,6 @@ interface DashboardStats {
   recentProjects: RecentProject[];
 }
 
-// 에러 로그 테스트
-const testError: string = 12345;
-
 export default function DashboardPage() {
   const { data: session } = useSession();
   const { styleTheme, isLoaded } = useStyleTheme();

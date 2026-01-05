@@ -54,13 +54,12 @@ jobs:
                   },
                   {
                     \"type\": \"context\",
-                    \"elements\": [{\"type\": \"mrkdwn\", \"text\": \"👤 ${{ github.actor }}\"}]
+                    \"elements\": [{\"type\": \"mrkdwn\", \"text\": \"by ${{ github.actor }}\"}]
                   }
                 ]
               }]
             }")
 
-          echo "Slack Response: $RESPONSE"
           TS=$(echo $RESPONSE | jq -r '.ts')
           echo "ts=$TS" >> $GITHUB_OUTPUT
 
@@ -116,7 +115,7 @@ jobs:
                       {\"type\": \"mrkdwn\", \"text\": \"*Status*\n🟢 Ready\"},
                       {\"type\": \"mrkdwn\", \"text\": \"*Duration*\n⏱️ ${{ steps.duration.outputs.time }}\"},
                       {\"type\": \"mrkdwn\", \"text\": \"*Environment*\n🚀 Production\"},
-                      {\"type\": \"mrkdwn\", \"text\": \"*Author*\n👤 ${{ github.actor }}\"}
+                      {\"type\": \"mrkdwn\", \"text\": \"*Author*\nby ${{ github.actor }}\"}
                     ]
                   },
                   {
@@ -163,7 +162,7 @@ jobs:
                       {\"type\": \"mrkdwn\", \"text\": \"*Status*\n🔴 Error\"},
                       {\"type\": \"mrkdwn\", \"text\": \"*Duration*\n⏱️ ${{ steps.duration.outputs.time }}\"},
                       {\"type\": \"mrkdwn\", \"text\": \"*Environment*\n🚀 Production\"},
-                      {\"type\": \"mrkdwn\", \"text\": \"*Author*\n👤 ${{ github.actor }}\"}
+                      {\"type\": \"mrkdwn\", \"text\": \"*Author*\nby ${{ github.actor }}\"}
                     ]
                   },
                   {
