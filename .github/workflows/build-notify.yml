@@ -140,8 +140,8 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
         run: |
-          # ANSI 색상 코드 제거 후 에러 부분 추출
-          ERROR_LOG=$(cat build.log | sed 's/\x1b\[[0-9;]*m//g' | grep -A 30 -m 1 "Failed to compile\|Error:" | head -25 | jq -Rs .)
+          # ANSI 색상 코드 제거 후 에러 부분 추출 (여러 에러 포함)
+          ERROR_LOG=$(cat build.log | sed 's/\x1b\[[0-9;]*m//g' | grep -A 5 "Failed to compile\|Error:\|error TS\|Type error" | head -50 | jq -Rs .)
           ERROR_LOG=${ERROR_LOG:1:-1}
 
           curl -s -X POST "https://slack.com/api/chat.update" \
