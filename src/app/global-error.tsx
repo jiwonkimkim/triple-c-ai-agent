@@ -1,5 +1,8 @@
 'use client';
 
+import * as Sentry from "@sentry/nextjs";
+import { useEffect } from "react";
+
 export default function GlobalError({
   error,
   reset,
@@ -7,6 +10,11 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    // Sentry에 에러 전송
+    Sentry.captureException(error);
+  }, [error]);
+
   return (
     <html>
       <body>
@@ -21,6 +29,9 @@ export default function GlobalError({
           <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>
             문제가 발생했습니다
           </h2>
+          <p style={{ color: '#666', marginBottom: '1rem' }}>
+            오류가 자동으로 보고되었습니다.
+          </p>
           <button
             onClick={() => reset()}
             style={{

@@ -1,3 +1,5 @@
+const { withSentryConfig } = require("@sentry/nextjs");
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
@@ -35,4 +37,19 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+module.exports = withSentryConfig(nextConfig, {
+  // Sentry 조직 & 프로젝트
+  org: "triple-c",
+  project: "triple-c",
+
+  // 소스맵 업로드 (에러 위치 정확히 표시)
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+
+  // 성능 최적화
+  hideSourceMaps: true,
+  disableLogger: true,
+
+  // 자동 계측
+  automaticVercelMonitors: true,
+});
