@@ -51,7 +51,35 @@ jobs:
           curl -X POST "$SLACK_WEBHOOK" \
           -H 'Content-type: application/json' \
           -d "{
-            \"text\": \":white_check_mark: *Build Successful*\n\n*Status:* Ready\n*Duration:* ${{ steps.duration.outputs.seconds }}\n*Environment:* Production\n\n*Source*\n\`${{ github.ref_name }}\`\n\`${SHORT_SHA}\` ${{ github.event.head_commit.message }}\n\n*Author:* ${{ github.actor }}\n\n<https://triple-c.vercel.app|:link: Live Site>  |  <${{ github.event.head_commit.url }}|:octocat: GitHub>\"
+            \"attachments\": [{
+              \"color\": \"#22c55e\",
+              \"blocks\": [
+                {
+                  \"type\": \"header\",
+                  \"text\": {\"type\": \"plain_text\", \"text\": \"✅ Build Successful\", \"emoji\": true}
+                },
+                {
+                  \"type\": \"section\",
+                  \"fields\": [
+                    {\"type\": \"mrkdwn\", \"text\": \"*Status*\n🟢 Ready\"},
+                    {\"type\": \"mrkdwn\", \"text\": \"*Duration*\n⏱️ ${{ steps.duration.outputs.seconds }}\"},
+                    {\"type\": \"mrkdwn\", \"text\": \"*Environment*\n🚀 Production\"},
+                    {\"type\": \"mrkdwn\", \"text\": \"*Author*\n👤 ${{ github.actor }}\"}
+                  ]
+                },
+                {
+                  \"type\": \"section\",
+                  \"text\": {\"type\": \"mrkdwn\", \"text\": \"*Source*\n\`${{ github.ref_name }}\` · \`${SHORT_SHA}\`\n${{ github.event.head_commit.message }}\"}
+                },
+                {
+                  \"type\": \"actions\",
+                  \"elements\": [
+                    {\"type\": \"button\", \"text\": {\"type\": \"plain_text\", \"text\": \"🌐 Live Site\"}, \"url\": \"https://triple-c.vercel.app\"},
+                    {\"type\": \"button\", \"text\": {\"type\": \"plain_text\", \"text\": \"📂 GitHub\"}, \"url\": \"${{ github.event.head_commit.url }}\"}
+                  ]
+                }
+              ]
+            }]
           }"
 
       - name: Send Failure to Slack
@@ -69,7 +97,38 @@ jobs:
           curl -X POST "$SLACK_WEBHOOK" \
           -H 'Content-type: application/json' \
           -d "{
-            \"text\": \":x: *Build Failed*\n\n*Status:* Error\n*Duration:* ${{ steps.duration.outputs.seconds }}\n*Environment:* Production\n\n*Source*\n\`${{ github.ref_name }}\`\n\`${SHORT_SHA}\` ${{ github.event.head_commit.message }}\n\n*Author:* ${{ github.actor }}\n\n*Error Log:*\n\`\`\`${ERROR_LOG}\`\`\`\n\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|:octocat: GitHub Actions 상세 보기>\"
+            \"attachments\": [{
+              \"color\": \"#ef4444\",
+              \"blocks\": [
+                {
+                  \"type\": \"header\",
+                  \"text\": {\"type\": \"plain_text\", \"text\": \"❌ Build Failed\", \"emoji\": true}
+                },
+                {
+                  \"type\": \"section\",
+                  \"fields\": [
+                    {\"type\": \"mrkdwn\", \"text\": \"*Status*\n🔴 Error\"},
+                    {\"type\": \"mrkdwn\", \"text\": \"*Duration*\n⏱️ ${{ steps.duration.outputs.seconds }}\"},
+                    {\"type\": \"mrkdwn\", \"text\": \"*Environment*\n🚀 Production\"},
+                    {\"type\": \"mrkdwn\", \"text\": \"*Author*\n👤 ${{ github.actor }}\"}
+                  ]
+                },
+                {
+                  \"type\": \"section\",
+                  \"text\": {\"type\": \"mrkdwn\", \"text\": \"*Source*\n\`${{ github.ref_name }}\` · \`${SHORT_SHA}\`\n${{ github.event.head_commit.message }}\"}
+                },
+                {
+                  \"type\": \"section\",
+                  \"text\": {\"type\": \"mrkdwn\", \"text\": \"*Error Log*\n\`\`\`${ERROR_LOG}\`\`\`\"}
+                },
+                {
+                  \"type\": \"actions\",
+                  \"elements\": [
+                    {\"type\": \"button\", \"text\": {\"type\": \"plain_text\", \"text\": \"🔍 상세 보기\"}, \"url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\", \"style\": \"danger\"}
+                  ]
+                }
+              ]
+            }]
           }"
 
       - name: Fail if build failed
