@@ -175,4 +175,34 @@ export {
   getSectionImagePrompt,
   isMultiImageSection,
   getMaxImageCount,
+  // 섹션별 다양한 배경색 시스템
+  buildSectionPromptWithPalette,
+  buildCategoryPromptWithPalette,
+  generatePageBackgroundMap,
+  buildDetailPageMasterPrompt,
+  getPalette,
+  getRecommendedPalette,
 } from './section-templates';
+
+// ============================================
+// 섹션별 색상 팔레트 시스템
+// ============================================
+export type {
+  PaletteTheme,
+  ColorPalette,
+  BackgroundRole,
+} from './section-color-palette';
+export {
+  COLOR_PALETTES,
+  SECTION_BACKGROUND_ROLES,
+  ROLE_TO_PALETTE_INDEX,
+  recommendPaletteForCategory,
+  recommendPaletteFromProductColor,
+  getSectionBackgroundPrompt,
+  buildPaletteHarmonyPrompt,
+  generateSectionBackgroundMap,
+  injectBackgroundToPrompt,
+  autoSelectPalette,
+  getColorPalette,
+  getAllPalettes,
+} from './section-color-palette';

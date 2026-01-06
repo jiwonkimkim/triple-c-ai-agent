@@ -33,6 +33,14 @@ import {
   COPY_LENGTH_CONFIG,
   getSectionImagePrompt,
   getReferencePrompts, // regenerateSectionImagePrompt에서 사용
+  // ★ 섹션별 다양한 배경색 팔레트 시스템
+  autoSelectPalette,
+  getColorPalette,
+  buildPaletteHarmonyPrompt,
+  buildCategoryPromptWithPalette,
+  generatePageBackgroundMap,
+  type PaletteTheme,
+  type ColorPalette,
   type SectionPosition,
   type OverlayTextContent,
   type ProductVisualReference,
@@ -1596,6 +1604,14 @@ export async function orchestrateDetailPageGeneration(
   console.log(`[Orchestration] Selected visual theme: ${visualTheme.name} (${selectedThemeStyle})`);
   console.log(`[Orchestration] Theme colors: ${visualTheme.backgroundColors.primary}, ${visualTheme.backgroundColors.secondary}`);
 
+  // ★ 0-1-2. 섹션별 다양한 배경색 팔레트 선택 (NEW!)
+  // 올리브영 상세페이지처럼 섹션마다 다른 배경색, 하지만 전체적으로 조화로운 팔레트
+  const selectedPaletteTheme = autoSelectPalette(input.category, input.productName, brandTone);
+  const colorPalette = getColorPalette(selectedPaletteTheme);
+  console.log(`[Orchestration] ★ Selected color palette: ${colorPalette.name} (${selectedPaletteTheme})`);
+  console.log(`[Orchestration] ★ Palette colors: ${colorPalette.colors.map(c => c.hex).join(', ')}`);
+  console.log(`[Orchestration] ★ Palette mood: ${colorPalette.moodKeywords.join(', ')}`);
+
   // 0-2. 제품 외형 참조 생성 (모든 섹션에서 동일한 제품 표시를 위해)
   console.log('[Orchestration] Generating product visual reference for consistency...');
   const visualReference = await generateProductVisualReference(
@@ -1712,6 +1728,18 @@ export async function orchestrateDetailPageGeneration(
 
   console.log('[Orchestration] Reference text for image generation:', referenceTextContent.hookMessage);
 
+  // ★ 3-3-1. 섹션별 배경색 맵 생성 (각 섹션마다 다른 배경색!)
+  const extendedSectionTypes = sectionTypes.map(s => mapToExtendedSectionType(s));
+  const sectionBackgroundMap = generatePageBackgroundMap(extendedSectionTypes, selectedPaletteTheme);
+
+  console.log('[Orchestration] ★ Section background colors:');
+  sectionBackgroundMap.forEach((bg, section) => {
+    console.log(`  - ${section}: ${bg.hex} (${bg.role})`);
+  });
+
+  // 전체 페이지 팔레트 조화 프롬프트
+  const paletteHarmonyPrompt = buildPaletteHarmonyPrompt(colorPalette);
+
   await Promise.all(
     sectionTypes.map(async (sectionType) => {
       const imageCount = adjustedCounts.get(sectionType) || 1;
@@ -1723,6 +1751,12 @@ export async function orchestrateDetailPageGeneration(
       ) || { type: sectionType, title: sectionType, body: '' };
 
       console.log(`[Orchestration] Generating image for ${sectionType} based on text: "${sectionText.title}"`);
+
+      // ★ 해당 섹션의 배경색 가져오기 (팔레트에서)
+      const extendedType = mapToExtendedSectionType(sectionType);
+      const sectionBackground = sectionBackgroundMap.get(extendedType);
+      const backgroundPrompt = sectionBackground?.prompt || 'clean gradient background';
+      const backgroundHex = sectionBackground?.hex || '#FFFFFF';
 
       // 해당 섹션에 대해 imageCount만큼 프롬프트 생성
       const prompts: SectionImagePrompt[] = await Promise.all(
@@ -1755,8 +1789,29 @@ export async function orchestrateDetailPageGeneration(
             ),
           ]);
 
+          // ★★★ 섹션별 다양한 배경색 주입 (핵심!)
+          // 팔레트에서 해당 섹션에 할당된 배경색으로 프롬프트 강화
+          const paletteBackgroundInjection = `
+
+[★ SECTION-SPECIFIC BACKGROUND - ${colorPalette.name} PALETTE]
+BACKGROUND FOR THIS SECTION: ${backgroundPrompt}
+BACKGROUND HEX: ${backgroundHex}
+${paletteHarmonyPrompt}
+
+CRITICAL INSTRUCTION FOR DIVERSE BACKGROUNDS:
+- This section MUST use: ${backgroundPrompt}
+- DO NOT use the same background as other sections
+- Each section in this detail page has a DIFFERENT background color from the ${colorPalette.name} palette
+- Maintain visual HARMONY while ensuring VARIETY between sections
+- The overall mood should be: ${colorPalette.moodKeywords.join(', ')}
+`;
+
+          // 기존 프롬프트에 팔레트 배경색 정보 주입
+          const enhancedImagePrompt = imagePrompt.imagePrompt + paletteBackgroundInjection;
+
           return {
             ...imagePrompt,
+            imagePrompt: enhancedImagePrompt,  // ★ 배경색 강화된 프롬프트
             overlayText,
             imageIndex: index,
             totalImagesInSection: imageCount,
