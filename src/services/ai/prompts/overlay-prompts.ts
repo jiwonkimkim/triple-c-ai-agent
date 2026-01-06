@@ -37,10 +37,25 @@ const SENSORY_KEYWORDS: Record<string, {
     result: ['보호되는', '차단되는', '지속되는', '케어되는'],
   },
   cleansing: {
-    texture: ['부드러운', '폼', '젤', '오일', '밀크', '크리미'],
-    visual: ['맑은', '깨끗한', '투명한', '촉촉한'],
-    feeling: ['상쾌한', '개운한', '순한', '자극없는', '부드러운'],
-    result: ['깨끗한', '말끔한', '산뜻한', '촉촉한', '건강한'],
+    // ★ OCR 데이터 기반 고도화 (랑콤 클라리피끄, 키엘 칼렌듈라)
+    texture: ['부드러운', '폼', '젤', '오일', '밀크', '크리미', '촘촘한 거품', '미세한 거품', '크리미한 젤'],
+    visual: ['맑은', '깨끗한', '투명한', '촉촉한', '브라이트닝', '광채', '매끄러운'],
+    feeling: ['상쾌한', '개운한', '순한', '자극없는', '부드러운', '당기지 않는', '피부 밸런스'],
+    result: ['깨끗한', '말끔한', '산뜻한', '촉촉한', '건강한', '노폐물 제거', '각질 케어', '모공 케어'],
+  },
+  // ★ 추가 카테고리: 헤어
+  hair: {
+    texture: ['부드러운', '실키한', '촉촉한', '가벼운', '윤기나는'],
+    visual: ['윤기', '광택', '풍성한', '건강한', '찰랑거리는'],
+    feeling: ['가벼운', '부드러운', '산뜻한', '청량한', '시원한'],
+    result: ['탄력있는', '건강한', '윤기나는', '손상케어', '두피케어'],
+  },
+  // ★ 추가 카테고리: 바디
+  body: {
+    texture: ['부드러운', '촉촉한', '크리미', '젤', '로션'],
+    visual: ['매끈한', '건강한', '촉촉한', '윤기나는'],
+    feeling: ['부드러운', '산뜻한', '시원한', '보습감'],
+    result: ['탄탄한', '매끈한', '촉촉한', '건강한', '탄력있는'],
   },
 };
 
@@ -85,6 +100,75 @@ const COLOR_CHART_PATTERNS = {
     { en: 'MINK BROWN', ko: '밍크 브라운' },
   ],
   sectionHeaders: ['Color Chart', 'COLORS', 'SHADES', '컬러 라인업'],
+};
+
+// ============================================
+// ★ 카테고리별 실제 통계 패턴 (OCR 데이터 분석 기반)
+// ============================================
+
+const CATEGORY_STATISTICS_PATTERNS: Record<string, {
+  formats: string[];           // 통계 표시 형식
+  ranges: Record<string, { min: number; max: number; unit: string }>;  // 현실적 수치 범위
+  examples: { value: string; label: string }[];  // 실제 예시
+  testPeriod?: string;         // 테스트 기간 표시
+}> = {
+  cleansing: {
+    // ★ 랑콤 클라리피끄, 키엘 칼렌듈라 OCR 기반
+    formats: ['{XX}%', '{XX}H', '+{XX}%', '{X.X}배'],
+    ranges: {
+      satisfaction: { min: 85, max: 98, unit: '%' },
+      hydration: { min: 24, max: 72, unit: 'H' },
+      improvement: { min: 30, max: 50, unit: '%' },
+    },
+    examples: [
+      { value: '79%', label: '립케어 성분' },
+      { value: '24H', label: '지속되는 보습감' },
+      { value: '37.6%', label: '건조함 개선' },
+      { value: '98%', label: '피부 톤이 균일해진 것 같다' },
+      { value: '94%', label: '다크 스팟이 감소된 것 같다' },
+    ],
+    testPeriod: '*{XX}세 여성 {XX}명 대상 {X}주간 진행된 자가 평가 결과',
+  },
+  skincare: {
+    formats: ['{XX}%', '+{XX}%', '{X.X}배', '{XX}H'],
+    ranges: {
+      hydration: { min: 24, max: 72, unit: 'H' },
+      elasticity: { min: 20, max: 50, unit: '%' },
+      brightness: { min: 30, max: 60, unit: '%' },
+    },
+    examples: [
+      { value: '48H', label: '보습 지속' },
+      { value: '+32%', label: '탄력 개선' },
+      { value: '2.5배', label: '흡수력' },
+      { value: '89%', label: '피부결 개선' },
+    ],
+    testPeriod: '*인체적용시험 결과',
+  },
+  makeup: {
+    formats: ['{XX}H', '{XX}%', '{XX}.{X}%'],
+    ranges: {
+      lasting: { min: 12, max: 36, unit: 'H' },
+      coverage: { min: 70, max: 95, unit: '%' },
+      satisfaction: { min: 85, max: 98, unit: '%' },
+    },
+    examples: [
+      { value: '24H', label: '지속력' },
+      { value: '92%', label: '밀착력 만족' },
+      { value: '87.5%', label: '커버력 만족' },
+    ],
+  },
+  suncare: {
+    formats: ['SPF {XX}+', 'PA++++', '{XX}H', '{XX}%'],
+    ranges: {
+      protection: { min: 30, max: 50, unit: 'SPF' },
+      lasting: { min: 8, max: 12, unit: 'H' },
+    },
+    examples: [
+      { value: 'SPF50+', label: '자외선 차단' },
+      { value: 'PA++++', label: '최고 등급' },
+      { value: '12H', label: '지속 보호' },
+    ],
+  },
 };
 
 // ============================================
@@ -520,10 +604,26 @@ const CATEGORY_TEXT_STYLE: Record<string, {
     statFormats: ['SPF XX+', 'PA++++', 'XX시간', 'XX.X%'],
   },
   cleansing: {
-    tone: '깨끗한, 순수한, 부드러운',
+    // ★ OCR 데이터 기반 고도화 (랑콤 클라리피끄, 키엘 칼렌듈라)
+    tone: '깨끗한, 순수한, 부드러운, 피부 밸런스',
     colorScheme: { primary: '#ffffff', secondary: '#e6f3f5', accent: '#7ec8e3' },
-    keywords: ['클렌징', '모공', '각질', '저자극', '약산성', '딥클렌징'],
-    statFormats: ['XX%', 'pH X.X', 'X중', 'XXX%'],
+    keywords: ['클렌징', '모공', '각질', '저자극', '약산성', '딥클렌징', '노폐물', '피부 밸런스', '순한 포뮬러', '거품'],
+    statFormats: ['XX%', 'XXH', '+XX%', 'pH X.X'],
+    // NOTE: sectionTitles, pointPatterns 패턴은 CATEGORY_STATISTICS_PATTERNS에서 관리
+  },
+  // ★ 추가 카테고리: 헤어
+  hair: {
+    tone: '건강한, 윤기나는, 부드러운',
+    colorScheme: { primary: '#ffffff', secondary: '#f5f0e8', accent: '#8b7355' },
+    keywords: ['윤기', '손상케어', '두피', '탈모', '볼륨', '영양'],
+    statFormats: ['XX%', '+XX%', 'XXH'],
+  },
+  // ★ 추가 카테고리: 바디
+  body: {
+    tone: '편안한, 촉촉한, 건강한',
+    colorScheme: { primary: '#ffffff', secondary: '#f0f5e8', accent: '#8fbc8f' },
+    keywords: ['보습', '탄력', '영양', '산뜻', '시원한', '릴랙싱'],
+    statFormats: ['XX%', 'XXH', '+XX%'],
   },
 };
 
@@ -535,26 +635,51 @@ const CATEGORY_TEXT_STYLE: Record<string, {
 // 카테고리 키 결정 헬퍼
 // ============================================
 
-function getCategoryKey(category: string): string {
+export function getCategoryKey(category: string): string {
   const lowerCategory = category.toLowerCase();
-  if (lowerCategory.includes('스킨케어') || lowerCategory.includes('세럼') ||
-      lowerCategory.includes('로션') || lowerCategory.includes('크림') ||
-      lowerCategory.includes('에센스') || lowerCategory.includes('토너')) {
-    return 'skincare';
-  }
-  if (lowerCategory.includes('립') || lowerCategory.includes('메이크업') ||
-      lowerCategory.includes('파운데이션') || lowerCategory.includes('쿠션') ||
-      lowerCategory.includes('아이') || lowerCategory.includes('블러셔')) {
-    return 'makeup';
-  }
-  if (lowerCategory.includes('선') || lowerCategory.includes('자외선') ||
-      lowerCategory.includes('썬')) {
-    return 'suncare';
-  }
+
+  // ★ 클렌징 우선 체크 (스킨케어 > 클렌징 경로 대응)
   if (lowerCategory.includes('클렌') || lowerCategory.includes('세안') ||
-      lowerCategory.includes('폼')) {
+      lowerCategory.includes('폼') || lowerCategory.includes('워시') ||
+      lowerCategory.includes('클렌저') || lowerCategory.includes('리무버')) {
     return 'cleansing';
   }
+
+  // 스킨케어
+  if (lowerCategory.includes('스킨케어') || lowerCategory.includes('세럼') ||
+      lowerCategory.includes('로션') || lowerCategory.includes('크림') ||
+      lowerCategory.includes('에센스') || lowerCategory.includes('토너') ||
+      lowerCategory.includes('앰플') || lowerCategory.includes('마스크')) {
+    return 'skincare';
+  }
+
+  // 메이크업
+  if (lowerCategory.includes('립') || lowerCategory.includes('메이크업') ||
+      lowerCategory.includes('파운데이션') || lowerCategory.includes('쿠션') ||
+      lowerCategory.includes('아이') || lowerCategory.includes('블러셔') ||
+      lowerCategory.includes('틴트') || lowerCategory.includes('팔레트')) {
+    return 'makeup';
+  }
+
+  // 선케어
+  if (lowerCategory.includes('선') || lowerCategory.includes('자외선') ||
+      lowerCategory.includes('썬') || lowerCategory.includes('spf')) {
+    return 'suncare';
+  }
+
+  // ★ 헤어 (신규)
+  if (lowerCategory.includes('헤어') || lowerCategory.includes('샴푸') ||
+      lowerCategory.includes('트리트먼트') || lowerCategory.includes('린스') ||
+      lowerCategory.includes('두피') || lowerCategory.includes('탈모')) {
+    return 'hair';
+  }
+
+  // ★ 바디 (신규)
+  if (lowerCategory.includes('바디') || lowerCategory.includes('핸드') ||
+      lowerCategory.includes('풋') || lowerCategory.includes('보디')) {
+    return 'body';
+  }
+
   return 'skincare';
 }
 
@@ -566,6 +691,97 @@ export interface BlockOverlayOptions {
   totalBlocks?: number;
   /** 변형 힌트 (예: "step 1 of 3", "#21 내추럴베이지") */
   variationHint?: string;
+  /** 이미지 분석 결과 (선택) */
+  imageAnalysis?: {
+    backgroundBrightness?: 'light' | 'dark' | 'mixed';
+    dominantColor?: string;
+    productPosition?: 'left' | 'center' | 'right';
+  };
+}
+
+// ============================================
+// ★ 통계 수치 자동 생성 헬퍼 (OCR 데이터 기반)
+// ============================================
+
+/**
+ * 카테고리에 맞는 현실적인 통계 수치를 생성합니다.
+ * @param categoryKey 카테고리 키 (cleansing, skincare, etc.)
+ * @param count 생성할 통계 개수 (기본 3개)
+ */
+export function generateRealisticStatistics(
+  categoryKey: string,
+  count: number = 3
+): { value: string; label: string }[] {
+  const patterns = CATEGORY_STATISTICS_PATTERNS[categoryKey] || CATEGORY_STATISTICS_PATTERNS.skincare;
+
+  // 실제 예시에서 랜덤하게 선택
+  const shuffled = [...patterns.examples].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+}
+
+/**
+ * 이미지 분석 결과를 기반으로 텍스트 색상을 결정합니다.
+ * @param backgroundBrightness 배경 밝기
+ * @param categoryKey 카테고리 키
+ */
+export function getTextColorsFromImageAnalysis(
+  backgroundBrightness: 'light' | 'dark' | 'mixed',
+  categoryKey: string
+): {
+  headline: string;
+  subheadline: string;
+  body: string;
+  accent: string;
+} {
+  const categoryStyle = CATEGORY_TEXT_STYLE[categoryKey] || CATEGORY_TEXT_STYLE.skincare;
+
+  if (backgroundBrightness === 'dark') {
+    return {
+      headline: '#ffffff',
+      subheadline: '#e0e0e0',
+      body: '#cccccc',
+      accent: categoryStyle.colorScheme.accent,
+    };
+  }
+
+  // light or mixed
+  return {
+    headline: '#333333',
+    subheadline: '#666666',
+    body: '#888888',
+    accent: categoryStyle.colorScheme.accent,
+  };
+}
+
+/**
+ * 제품 위치에 따른 텍스트 안전 영역을 결정합니다.
+ * @param productPosition 제품 위치
+ */
+export function getTextSafeAreaFromProductPosition(
+  productPosition: 'left' | 'center' | 'right' | 'scattered'
+): {
+  headlinePosition: { x: number; align: 'left' | 'center' | 'right' };
+  bodyPosition: { x: number; align: 'left' | 'center' | 'right' };
+} {
+  switch (productPosition) {
+    case 'left':
+      return {
+        headlinePosition: { x: 70, align: 'right' },
+        bodyPosition: { x: 70, align: 'right' },
+      };
+    case 'right':
+      return {
+        headlinePosition: { x: 30, align: 'left' },
+        bodyPosition: { x: 30, align: 'left' },
+      };
+    case 'center':
+    case 'scattered':
+    default:
+      return {
+        headlinePosition: { x: 50, align: 'center' },
+        bodyPosition: { x: 50, align: 'center' },
+      };
+  }
 }
 
 export function buildOverlayTextPrompt(
@@ -590,6 +806,16 @@ export function buildOverlayTextPrompt(
     return buildOverlayTextPrompt('FEATURES', productName, category, keyFeatures, targetAudience, blockOptions);
   }
 
+  // ★ 이미지 분석 기반 스타일 결정
+  const imageAnalysis = blockOptions?.imageAnalysis;
+  const textColors = imageAnalysis?.backgroundBrightness
+    ? getTextColorsFromImageAnalysis(imageAnalysis.backgroundBrightness, categoryKey)
+    : { headline: '#333333', subheadline: '#666666', body: '#888888', accent: categoryStyle.colorScheme.accent };
+
+  const textPosition = imageAnalysis?.productPosition
+    ? getTextSafeAreaFromProductPosition(imageAnalysis.productPosition)
+    : { headlinePosition: { x: 50, align: 'center' as const }, bodyPosition: { x: 50, align: 'center' as const } };
+
   // 블록별 컨텍스트 생성
   const blockContext = blockOptions?.variationHint
     ? `
@@ -602,6 +828,19 @@ ${section === 'HOW_TO_USE' ? `- 사용 순서에 맞는 단계별 설명 (예: "
 ${section === 'FEATURES' && blockOptions.variationHint.includes('#') ? `- 해당 호수/컬러에 맞는 설명 (예: "${blockOptions.variationHint}")` : ''}
 ${section === 'FEATURES' && !blockOptions.variationHint.includes('#') ? `- 해당 컬러 특성 설명 (예: "${blockOptions.variationHint}")` : ''}
 ${section === 'SOCIAL_PROOF' ? `- 해당 증거 유형에 맞는 텍스트 (예: "${blockOptions.variationHint}")` : ''}
+`
+    : '';
+
+  // ★ 이미지 분석 컨텍스트 (이미지가 분석된 경우)
+  const imageAnalysisContext = imageAnalysis
+    ? `
+## ★★★ 이미지 분석 기반 스타일 (자동 결정됨)
+- 배경 밝기: ${imageAnalysis.backgroundBrightness || 'light'}
+- 주요 배경색: ${imageAnalysis.dominantColor || '#ffffff'}
+- 제품 위치: ${imageAnalysis.productPosition || 'center'}
+- 추천 헤드라인 색상: ${textColors.headline}
+- 추천 본문 색상: ${textColors.body}
+- 텍스트 배치: x=${textPosition.headlinePosition.x}%, align=${textPosition.headlinePosition.align}
 `
     : '';
 
@@ -631,7 +870,7 @@ ${section === 'SOCIAL_PROOF' ? `- 해당 증거 유형에 맞는 텍스트 (예:
 ## 섹션: ${section}
 - 목적: ${sectionGuide.purpose}
 - 텍스트 패턴: ${textExamples.pattern}
-${blockContext}
+${blockContext}${imageAnalysisContext}
 ## 카테고리 스타일 (${categoryKey})
 - 톤: ${categoryStyle.tone}
 - 키워드 참고: ${categoryStyle.keywords.join(', ')}
@@ -667,10 +906,11 @@ ${examplesJson}
 - 필요시에만 작성
 - 통계 설명 또는 추가 정보
 
-## 색상 가이드
-- 밝은 배경: "${categoryStyle.colorScheme.primary}" (흰색) 또는 "#333333" (진한 회색)
-- 어두운 배경: "#ffffff" (흰색)
-- 강조색: "${categoryStyle.colorScheme.accent}"
+## 색상 가이드 (★ 이미지 분석 기반 자동 결정)
+- 헤드라인 색상: "${textColors.headline}"
+- 서브헤드라인 색상: "${textColors.subheadline}"
+- 본문 색상: "${textColors.body}"
+- 강조색: "${textColors.accent}"
 
 ## 절대 금지
 - 이모지 사용 금지 (😊, ✨, 💕 등)
@@ -683,21 +923,21 @@ ${section} 섹션에 맞는 오버레이 텍스트를 JSON으로 반환하세요
 {
   "headline": {
     "text": "${section === 'MAIN' ? '{브랜드명}' : section === 'SOCIAL_PROOF' ? 'BENEFIT' : section === 'FEATURES' ? 'Point 01 또는 핵심문장' : '{핵심 가치 한 문장}'}",
-    "x": ${layoutGuide.headline.x},
+    "x": ${textPosition.headlinePosition.x},
     "y": ${layoutGuide.headline.y},
     "fontSize": ${layoutGuide.headline.fontSize},
     "fontWeight": "bold",
-    "color": "#ffffff",
-    "textAlign": "${layoutGuide.headline.align}"
+    "color": "${textColors.headline}",
+    "textAlign": "${textPosition.headlinePosition.align}"
   },
   "subheadline": {
     "text": "${section === 'FEATURES' ? '#{키워드1} #{키워드2} #{키워드3}' : '{서브 설명}'}",
-    "x": ${layoutGuide.subheadline.x},
+    "x": ${textPosition.bodyPosition.x},
     "y": ${layoutGuide.subheadline.y},
     "fontSize": ${layoutGuide.subheadline.fontSize},
     "fontWeight": "medium",
-    "color": "#ffffff",
-    "textAlign": "${layoutGuide.subheadline.align}"
+    "color": "${textColors.subheadline}",
+    "textAlign": "${textPosition.bodyPosition.align}"
   },
   "statistics": [
     {
@@ -706,7 +946,7 @@ ${section} 섹션에 맞는 오버레이 텍스트를 JSON으로 반환하세요
       "y": ${layoutGuide.statistics.y},
       "fontSize": ${layoutGuide.statistics.fontSize},
       "fontWeight": "bold",
-      "color": "#ffffff"
+      "color": "${textColors.headline}"
     },
     {
       "text": "{효과 설명}",
@@ -714,7 +954,7 @@ ${section} 섹션에 맞는 오버레이 텍스트를 JSON으로 반환하세요
       "y": ${layoutGuide.statistics.y + 8},
       "fontSize": 14,
       "fontWeight": "normal",
-      "color": "#ffffff"
+      "color": "${textColors.body}"
     }
   ],
   "body": null,
@@ -1141,7 +1381,233 @@ export function buildTextureOverlay(
 }
 
 // ============================================
+// ★★★ 3차 고도화: 블록별 변형 로직 강화
+// ============================================
+
+/**
+ * 섹션과 블록 인덱스에 따른 자동 변형 힌트 생성
+ * OCR 데이터 기반: 올리브영 상세페이지에서 관찰된 패턴 적용
+ */
+export function generateBlockVariationHint(
+  section: SectionType,
+  blockIndex: number,
+  totalBlocks: number,
+  productFeatures?: string[],
+  categoryKey?: string
+): string {
+  const featureIndex = Math.min(blockIndex, (productFeatures?.length || 1) - 1);
+  const feature = productFeatures?.[featureIndex] || '';
+
+  switch (section) {
+    case 'FEATURES':
+      // OCR 패턴: Point 01, Point 02, Point 03 또는 1. Glacé Glow, 2. Long-wear 형식
+      const featurePatterns = [
+        `Point ${String(blockIndex + 1).padStart(2, '0')} - ${feature || '핵심 효능'}`,
+        `${blockIndex + 1}. ${feature || 'Key Feature'} 포인트`,
+        `BENEFIT ${blockIndex + 1}: ${feature || '주요 효과'}`,
+      ];
+      return featurePatterns[blockIndex % featurePatterns.length];
+
+    case 'HOW_TO_USE':
+      // OCR 패턴: Step 1, Step 2, Step 3, Step 4
+      const stepActions = ['세안 후', '적당량 덜어', '얼굴 전체에', '가볍게 두드려'];
+      const action = stepActions[blockIndex] || `${blockIndex + 1}단계`;
+      return `STEP ${blockIndex + 1} - ${action}`;
+
+    case 'SOCIAL_PROOF':
+      // OCR 패턴: 만족도, 지속력, 개선도, 추천의향
+      const proofTypes = [
+        '만족도 테스트',
+        '지속력 임상',
+        '피부 개선도',
+        '재구매 의향',
+      ];
+      return proofTypes[blockIndex % proofTypes.length];
+
+    case 'PRODUCT_LINEUP':
+      // OCR 패턴: 컬러별 또는 용량별 라인업
+      if (categoryKey === 'makeup') {
+        const colorPatterns = ['웜톤 추천', '쿨톤 추천', '뉴트럴', '시즌 한정'];
+        return `COLOR ${blockIndex + 1} - ${colorPatterns[blockIndex % colorPatterns.length]}`;
+      }
+      return `LINEUP ${blockIndex + 1}`;
+
+    case 'INGREDIENT':
+      // OCR 패턴: 핵심 성분 1, 2, 3
+      const ingredientPatterns = ['주요 성분', '부스팅 성분', '보습 성분', '진정 성분'];
+      return `KEY INGREDIENT ${blockIndex + 1} - ${ingredientPatterns[blockIndex % ingredientPatterns.length]}`;
+
+    case 'TEXTURE':
+      // OCR 패턴: 텍스처 특성
+      const texturePatterns = ['발림성', '흡수력', '마무리감', '지속력'];
+      return `TEXTURE ${blockIndex + 1} - ${texturePatterns[blockIndex % texturePatterns.length]}`;
+
+    default:
+      return `블록 ${blockIndex + 1}/${totalBlocks}`;
+  }
+}
+
+/**
+ * 블록별 스타일 변형 생성
+ * 블록 순서에 따라 레이아웃, 폰트 크기, 색상 강도 등 미세 조정
+ */
+export interface BlockStyleVariation {
+  fontSize: { headline: number; subheadline: number; body: number };
+  position: { headlineY: number; subheadlineY: number };
+  emphasis: 'high' | 'medium' | 'low';
+  colorIntensity: number; // 0.0 ~ 1.0
+}
+
+export function getBlockStyleVariation(
+  blockIndex: number,
+  totalBlocks: number,
+  section: SectionType
+): BlockStyleVariation {
+  // 첫 번째 블록은 가장 강조, 이후 블록은 점점 부드러운 스타일
+  const emphasisLevels: ('high' | 'medium' | 'low')[] = ['high', 'medium', 'low'];
+  const emphasisIndex = Math.min(blockIndex, emphasisLevels.length - 1);
+  const emphasis = emphasisLevels[emphasisIndex];
+
+  // 섹션별 기본 스타일
+  const baseStyles: Record<SectionType, { headline: number; subheadline: number; body: number }> = {
+    MAIN: { headline: 28, subheadline: 20, body: 14 },
+    HERO: { headline: 24, subheadline: 18, body: 14 },
+    FEATURES: { headline: 20, subheadline: 16, body: 12 },
+    SOCIAL_PROOF: { headline: 18, subheadline: 36, body: 12 },
+    HOW_TO_USE: { headline: 14, subheadline: 20, body: 12 },
+    PRODUCT_LINEUP: { headline: 16, subheadline: 14, body: 11 },
+    FAQ: { headline: 16, subheadline: 14, body: 12 },
+    TEXTURE: { headline: 18, subheadline: 22, body: 14 },
+    INGREDIENT: { headline: 14, subheadline: 28, body: 12 },
+    MODEL_SHOT: { headline: 16, subheadline: 14, body: 12 },
+    SKIN_RESULT: { headline: 18, subheadline: 16, body: 14 },
+    MATERIAL: { headline: 16, subheadline: 20, body: 12 },
+    LIFESTYLE: { headline: 18, subheadline: 16, body: 12 },
+    SPECS: { headline: 14, subheadline: 12, body: 11 },
+    INFO_TABLE: { headline: 14, subheadline: 12, body: 11 },
+    CTA: { headline: 20, subheadline: 16, body: 14 },
+    CUSTOM: { headline: 18, subheadline: 16, body: 12 },
+  };
+
+  const baseFontSize = baseStyles[section] || baseStyles.FEATURES;
+
+  // 블록 인덱스에 따른 미세 조정 (첫 블록이 가장 크게, 이후 약간씩 감소)
+  const sizeReduction = blockIndex * 2;
+
+  return {
+    fontSize: {
+      headline: Math.max(baseFontSize.headline - sizeReduction, 12),
+      subheadline: Math.max(baseFontSize.subheadline - sizeReduction, 11),
+      body: Math.max(baseFontSize.body - sizeReduction / 2, 10),
+    },
+    position: {
+      headlineY: 5 + (blockIndex * 2), // 블록마다 약간 아래로
+      subheadlineY: 15 + (blockIndex * 2),
+    },
+    emphasis,
+    colorIntensity: 1.0 - (blockIndex * 0.1), // 첫 블록 100%, 이후 점점 감소
+  };
+}
+
+/**
+ * 블록별 통계 분배
+ * 전체 통계를 블록 수에 맞게 분배하여 각 블록에 고유한 통계 제공
+ */
+export function distributeStatisticsToBlocks(
+  categoryKey: string,
+  totalBlocks: number,
+  totalStats: number = 6
+): { value: string; label: string }[][] {
+  // 카테고리별 전체 통계 생성
+  const allStats = generateRealisticStatistics(categoryKey, totalStats);
+
+  // 블록별로 분배 (각 블록에 1-2개씩)
+  const statsPerBlock = Math.max(1, Math.floor(totalStats / totalBlocks));
+  const result: { value: string; label: string }[][] = [];
+
+  for (let i = 0; i < totalBlocks; i++) {
+    const startIdx = i * statsPerBlock;
+    const endIdx = Math.min(startIdx + statsPerBlock, allStats.length);
+    result.push(allStats.slice(startIdx, endIdx));
+  }
+
+  return result;
+}
+
+/**
+ * 완전한 블록 오버레이 옵션 생성
+ * 블록 인덱스만으로 모든 변형 정보를 자동 생성
+ */
+export function buildCompleteBlockOptions(
+  blockIndex: number,
+  totalBlocks: number,
+  section: SectionType,
+  productFeatures?: string[],
+  categoryKey?: string,
+  imageAnalysis?: BlockOverlayOptions['imageAnalysis']
+): BlockOverlayOptions {
+  const variationHint = generateBlockVariationHint(
+    section,
+    blockIndex,
+    totalBlocks,
+    productFeatures,
+    categoryKey
+  );
+
+  return {
+    blockIndex,
+    totalBlocks,
+    variationHint,
+    imageAnalysis,
+  };
+}
+
+/**
+ * 블록별 강조 포인트 생성 (OCR 패턴 기반)
+ * 섹션과 블록 순서에 따른 강조 요소 결정
+ */
+export function getBlockEmphasisPoint(
+  section: SectionType,
+  blockIndex: number,
+  categoryKey: string
+): { emphasisType: 'statistic' | 'headline' | 'visual' | 'action'; value?: string } {
+  // OCR 분석 결과: 섹션별 강조 패턴
+  const emphasisPatterns: Record<SectionType, ('statistic' | 'headline' | 'visual' | 'action')[]> = {
+    MAIN: ['headline', 'visual', 'headline'],
+    HERO: ['headline', 'statistic', 'visual'],
+    FEATURES: ['statistic', 'headline', 'statistic'],
+    SOCIAL_PROOF: ['statistic', 'statistic', 'statistic'],
+    HOW_TO_USE: ['action', 'action', 'action', 'action'],
+    PRODUCT_LINEUP: ['visual', 'visual', 'visual'],
+    FAQ: ['headline', 'headline', 'headline'],
+    TEXTURE: ['visual', 'headline', 'visual'],
+    INGREDIENT: ['statistic', 'headline', 'statistic'],
+    MODEL_SHOT: ['visual', 'visual', 'visual'],
+    SKIN_RESULT: ['statistic', 'visual', 'statistic'],
+    MATERIAL: ['headline', 'visual', 'headline'],
+    LIFESTYLE: ['visual', 'headline', 'visual'],
+    SPECS: ['statistic', 'statistic', 'statistic'],
+    INFO_TABLE: ['headline', 'headline', 'headline'],
+    CTA: ['action', 'headline', 'action'],
+    CUSTOM: ['headline', 'visual', 'headline'],
+  };
+
+  const patterns = emphasisPatterns[section] || ['headline', 'headline', 'headline'];
+  const emphasisType = patterns[blockIndex % patterns.length];
+
+  // 통계 강조인 경우 샘플 값 생성
+  if (emphasisType === 'statistic') {
+    const stats = generateRealisticStatistics(categoryKey, 1);
+    return { emphasisType, value: stats[0]?.value };
+  }
+
+  return { emphasisType };
+}
+
+// ============================================
 // Export 상수들
+// NOTE: 함수들은 이미 export function으로 선언되어 있으므로
+//       여기서는 상수들만 export합니다
 // ============================================
 
 export {
@@ -1152,6 +1618,17 @@ export {
   SECTION_LAYOUT_GUIDE,
   SECTION_TEXT_EXAMPLES,
   CATEGORY_TEXT_STYLE,
-  getCategoryKey,
-  // TEXT_STYLE_GUIDE와 getColorSchemeForBackground는 이미 위에서 export됨
+  // ★ OCR 데이터 기반 통계 패턴 (신규)
+  CATEGORY_STATISTICS_PATTERNS,
 };
+
+// 함수들은 위에서 export function으로 이미 export됨:
+// - getCategoryKey
+// - generateRealisticStatistics
+// - getTextColorsFromImageAnalysis
+// - getTextSafeAreaFromProductPosition
+// - generateBlockVariationHint
+// - getBlockStyleVariation
+// - distributeStatisticsToBlocks
+// - buildCompleteBlockOptions
+// - getBlockEmphasisPoint
