@@ -40,6 +40,9 @@ import {
   buildPaletteHarmonyPrompt,
   buildCategoryPromptWithPalette,
   generatePageBackgroundMap,
+  // ★ 인덱스 기반 이미지 프롬프트 시스템 (NEW!)
+  getSectionImagePromptByIndex,
+  hasIndexedPrompts,
   type PaletteTheme,
   type ColorPalette,
   type SectionPosition,
@@ -1117,10 +1120,11 @@ export async function generateSectionImagePromptFromText(
   productName: string,
   category: string,
   keyFeatures: string[],
-  targetAudience: string,
+  _targetAudience: string,
   brandStyle?: string,
   visualReference?: ProductVisualReference,
-  visualTheme?: VisualTheme
+  visualTheme?: VisualTheme,
+  indexBasedPrompt?: string  // ★ 인덱스별 특화 프롬프트 (NEW!)
 ): Promise<SectionImagePrompt> {
   const sectionType = sectionText.type as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
   const position = mapSectionTypeToPosition(sectionType);
@@ -1188,13 +1192,28 @@ export async function generateSectionImagePromptFromText(
   // 8. 섹션별 특화 연출
   const sectionVisualization = buildSectionVisualizationGuide(sectionType, keyMessages);
 
-  // 9. 최종 프롬프트 조합
+  // ★★★ 9. 인덱스 기반 프롬프트 적용 (NEW!) ★★★
+  // indexBasedPrompt가 있으면 해당 프롬프트를 최우선으로 사용
+  // "ONE IMAGE = ONE FOCUS" 원칙을 강제하는 핵심 부분
+  const indexedPromptSection = indexBasedPrompt
+    ? `[★★★ INDEX-SPECIFIC PROMPT - HIGHEST PRIORITY ★★★]
+${indexBasedPrompt}
+
+[CRITICAL: SINGLE FOCUS RULE]
+- This image MUST show ONLY ONE concept as specified above
+- Do NOT combine multiple shots/steps/comparisons in one image
+- Each image block is for ONE specific concept only
+`
+    : '';
+
+  // 10. 최종 프롬프트 조합
   const imagePrompt = [
     productConsistencyPrefix,
     themePrefix,
     productAppearance,
     productColors,
-    textBasedVisualization,  // ★ 텍스트 기반 시각화 지시 (핵심!)
+    indexedPromptSection,     // ★★★ 인덱스별 프롬프트 (최우선!)
+    textBasedVisualization,   // 텍스트 기반 시각화 지시
     sectionVisualization,     // 섹션별 특화 연출
     baseTemplatePrompt,
     qualityKeywords,
@@ -1202,7 +1221,7 @@ export async function generateSectionImagePromptFromText(
     `--negative ${negativePrompt}`
   ].filter(Boolean).join(', ');
 
-  console.log(`[Orchestration] Generated TEXT-DRIVEN prompt for ${sectionType}`);
+  console.log(`[Orchestration] Generated TEXT-DRIVEN prompt for ${sectionType}${indexBasedPrompt ? ' (with INDEXED prompt)' : ''}`);
 
   return {
     sectionType,
@@ -1255,12 +1274,17 @@ export async function generateOverlayText(
   category: string,
   keyFeatures: string[],
   targetAudience: string,
-  blockOptions?: BlockOverlayOptions
+  blockOptions?: BlockOverlayOptions,
+  indexedOverlayGuide?: string  // ★ 인덱스별 오버레이 가이드 (NEW!)
 ): Promise<OverlayTextContent | undefined> {
   const gemini = getGeminiClient();
   if (!gemini) return undefined;
 
-  const prompt = buildOverlayTextPrompt(sectionType, productName, category, keyFeatures, targetAudience, blockOptions);
+  // ★ blockOptions와 indexedOverlayGuide 모두 지원
+  const basePrompt = buildOverlayTextPrompt(sectionType, productName, category, keyFeatures, targetAudience, blockOptions);
+  const prompt = indexedOverlayGuide
+    ? `${basePrompt}\n\n[★ INDEX-SPECIFIC OVERLAY GUIDE - USE THIS AS PRIMARY REFERENCE]\nRecommended text for this specific image: "${indexedOverlayGuide}"\nIncorporate this message into the overlay text structure.`
+    : basePrompt;
 
   try {
     const response = await gemini.models.generateContent({
@@ -1760,6 +1784,12 @@ export async function orchestrateDetailPageGeneration(
       const backgroundPrompt = sectionBackground?.prompt || 'clean gradient background';
       const backgroundHex = sectionBackground?.hex || '#FFFFFF';
 
+      // ★ 인덱스 기반 프롬프트 사용 여부 확인 (NEW!)
+      const useIndexedPrompts = hasIndexedPrompts(extendedType, input.category);
+      if (useIndexedPrompts) {
+        console.log(`[Orchestration] ★ Using INDEXED prompts for ${sectionType} (category: ${input.category})`);
+      }
+
       // 해당 섹션에 대해 imageCount만큼 프롬프트 생성
       const prompts: SectionImagePrompt[] = await Promise.all(
         Array.from({ length: imageCount }, async (_, index) => {
@@ -1767,6 +1797,26 @@ export async function orchestrateDetailPageGeneration(
           const variationHint = imageCount > 1
             ? generateVariationHint(sectionType, index, imageCount, input.category, sectionInfo?.overlayTextGuide)
             : undefined;
+
+          // ★★★ 인덱스 기반 프롬프트 시스템 적용 (NEW!) ★★★
+          // indexedPrompts가 있는 섹션은 각 이미지별로 다른 컨셉의 프롬프트 사용
+          let indexBasedPromptInfo: { prompt: string; overlayGuide: string; conceptType: string } | null = null;
+          if (useIndexedPrompts) {
+            const indexed = getSectionImagePromptByIndex(
+              extendedType,
+              input.category,
+              index,
+              input.productName
+            );
+            if (indexed.hasIndexedPrompt) {
+              indexBasedPromptInfo = {
+                prompt: indexed.prompt,
+                overlayGuide: indexed.overlayGuide,
+                conceptType: indexed.conceptType,
+              };
+              console.log(`[Orchestration]   → Image ${index}: ${indexed.conceptType}`);
+            }
+          }
 
           // ★ 텍스트 기반 이미지 프롬프트 생성 + overlayText 항상 생성
           // overlayText는 generateImages와 관계없이 항상 생성 (텍스트와 함께 제공)
@@ -1780,7 +1830,8 @@ export async function orchestrateDetailPageGeneration(
               input.targetAudience,
               brandStyle,
               visualReference,
-              visualTheme
+              visualTheme,
+              indexBasedPromptInfo?.prompt  // ★ 인덱스별 프롬프트 전달 (NEW!)
             ),
             // ★ overlayText는 블록별로 다르게 생성 (variationHint 반영!)
             generateOverlayText(
@@ -1793,7 +1844,8 @@ export async function orchestrateDetailPageGeneration(
                 blockIndex: index,
                 totalBlocks: imageCount,
                 variationHint,
-              }
+              },
+              indexBasedPromptInfo?.overlayGuide  // ★ 인덱스별 오버레이 가이드 전달 (NEW!)
             ),
           ]);
 

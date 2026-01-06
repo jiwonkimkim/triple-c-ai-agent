@@ -33,15 +33,36 @@ export type ExtendedSectionType =
 // 카테고리별 특화 프롬프트 타입
 // ============================================
 
+/**
+ * 인덱스별 개별 이미지 프롬프트
+ * 다중 이미지 섹션에서 각 이미지별로 다른 컨셉 적용
+ */
+export interface IndexedImagePrompt {
+  /** 이미지 인덱스 (0부터 시작) */
+  index: number;
+  /** 이미지 컨셉/타입 (예: "face-closeup", "shade-#21", "step-1") */
+  conceptType: string;
+  /** 이미지 프롬프트 (해당 인덱스 전용) */
+  prompt: string;
+  /** 오버레이 텍스트 가이드 */
+  overlayGuide: string;
+}
+
 export interface CategorySpecificPrompt {
   /** 카테고리 키워드 (매칭용) */
   categoryKeywords: string[];
-  /** 특화된 이미지 프롬프트 */
+  /** 특화된 이미지 프롬프트 (기본/폴백) */
   imagePrompt: string;
   /** 이미지 수 (해당 카테고리에서 권장되는 이미지 개수) */
   suggestedImageCount: number;
-  /** 텍스트 오버레이 가이드 */
+  /** 텍스트 오버레이 가이드 (기본) */
   overlayTextGuide: string;
+  /**
+   * ★ 인덱스별 개별 프롬프트 (NEW!)
+   * 각 이미지마다 다른 컨셉의 프롬프트 제공
+   * 예: 립 컬러 4개면 각 인덱스별로 다른 컬러 프롬프트
+   */
+  indexedPrompts?: IndexedImagePrompt[];
 }
 
 // ============================================
@@ -373,22 +394,24 @@ NO text in image.`,
       },
       {
         categoryKeywords: ['립', '틴트', '립스틱', '립글로스'],
-        imagePrompt: `Lip COLOR SWATCH block image for Korean beauty detail page.
+        imagePrompt: `[★ CRITICAL: ONE IMAGE = ONE COLOR - 이 이미지는 단 하나의 립 컬러만 보여줍니다]
 
-[ONE BLOCK = ONE COLOR]
-Generate SEPARATE image for each shade:
-- Each lip color = individual block image
-- Show on actual Korean model lips
+Korean beauty lip product SINGLE COLOR swatch image.
+
+[SINGLE FOCUS RULE]
+- This image shows ONLY ONE lip color
+- Do NOT combine multiple colors in one image
+- Each color gets its own separate image block
 
 [THIS IMAGE SHOWS]
-Close-up of Korean female model's lips with product applied.
+Close-up of Korean female model's lips with ONE shade applied.
 - Full lip or gradient lip application
 - Color payoff clearly visible
 - Texture visible (glossy/velvet/matte)
 
 [COMPOSITION]
 - Lip close-up, chin to nose bottom
-- Lips centered
+- Lips centered, one color only
 - Clean soft pink or nude background
 - Side 30% empty for color name text
 
@@ -396,13 +419,75 @@ Close-up of Korean female model's lips with product applied.
 - Korean beauty lip swatch aesthetic
 - Soft ring light effect
 - Plump, healthy looking lips
-- Trendy K-beauty gradient lip or full lip
+- Trendy K-beauty gradient lip
 
 [KEYWORDS: 선명한 발색, 착색력, 생기, 지속력, 촉촉함]
 
-NO text in image.`,
+CRITICAL: NO text, NO multiple colors, ONE shade only.`,
         suggestedImageCount: 6,
-        overlayTextGuide: '각 블록: #01 피그무드 / 웜톤 MLBB 컬러 / 데일리 추천',
+        overlayTextGuide: '컬러명 + 톤 추천 (예: #01 피그무드 / 웜톤 MLBB)',
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'color-coral',
+            prompt: `[ONE IMAGE = ONE COLOR: 코랄/피치 계열]
+Korean model lips close-up with CORAL/PEACH shade applied.
+Warm, fresh, spring-like coral color. Gradient or full lip.
+Soft pink background. Korean beauty aesthetic.
+ONLY this one coral shade. NO other colors. NO text.`,
+            overlayGuide: '#01 코랄피치 / 화사한 봄 컬러',
+          },
+          {
+            index: 1,
+            conceptType: 'color-rose',
+            prompt: `[ONE IMAGE = ONE COLOR: 로즈/핑크 계열]
+Korean model lips close-up with ROSE/PINK shade applied.
+Romantic, feminine rose pink color. Gradient or full lip.
+Soft pink background. Korean beauty aesthetic.
+ONLY this one rose shade. NO other colors. NO text.`,
+            overlayGuide: '#02 로즈핑크 / 로맨틱 데일리',
+          },
+          {
+            index: 2,
+            conceptType: 'color-mlbb',
+            prompt: `[ONE IMAGE = ONE COLOR: MLBB 누드 계열]
+Korean model lips close-up with MLBB (My Lips But Better) shade applied.
+Natural, everyday nude-pink color. Your-lips-but-better look.
+Soft nude background. Korean beauty aesthetic.
+ONLY this one MLBB shade. NO other colors. NO text.`,
+            overlayGuide: '#03 누드로즈 / 데일리 MLBB',
+          },
+          {
+            index: 3,
+            conceptType: 'color-red',
+            prompt: `[ONE IMAGE = ONE COLOR: 레드/버건디 계열]
+Korean model lips close-up with RED/BURGUNDY shade applied.
+Bold, confident, classic red or deep burgundy color.
+Soft background. Korean beauty aesthetic.
+ONLY this one red shade. NO other colors. NO text.`,
+            overlayGuide: '#04 레드벨벳 / 시크한 포인트',
+          },
+          {
+            index: 4,
+            conceptType: 'color-orange',
+            prompt: `[ONE IMAGE = ONE COLOR: 오렌지/브릭 계열]
+Korean model lips close-up with ORANGE/BRICK shade applied.
+Trendy, warm-toned orange or terracotta brick color.
+Soft background. Korean beauty aesthetic.
+ONLY this one orange shade. NO other colors. NO text.`,
+            overlayGuide: '#05 브릭오렌지 / 트렌디 웜톤',
+          },
+          {
+            index: 5,
+            conceptType: 'color-berry',
+            prompt: `[ONE IMAGE = ONE COLOR: 베리/플럼 계열]
+Korean model lips close-up with BERRY/PLUM shade applied.
+Rich, luxurious berry or plum color with depth.
+Soft background. Korean beauty aesthetic.
+ONLY this one berry shade. NO other colors. NO text.`,
+            overlayGuide: '#06 베리플럼 / 고급스러운 무드',
+          },
+        ],
       },
       {
         categoryKeywords: ['아이섀도우', '아이메이크업', '팔레트'],
@@ -793,29 +878,14 @@ NO text in image.`,
     categorySpecificPrompts: [
       {
         categoryKeywords: ['스킨케어', '세럼', '에센스', '크림', '토너', '로션'],
-        imagePrompt: `Skincare BEFORE-AFTER result for Korean beauty detail page.
+        imagePrompt: `[★ CRITICAL: ONE IMAGE = ONE COMPARISON TYPE - 이 이미지는 단 하나의 비교 타입만 보여줍니다]
 
-[BEFORE-AFTER IMAGES]
-Generate comparison images showing:
+Skincare BEFORE-AFTER result for Korean beauty detail page.
 
-1. 보습/수분 BEFORE-AFTER:
-BEFORE: Dry, dull skin with visible flakiness
-AFTER: Hydrated, dewy, plump skin
-- Same Korean model cheek close-up
-- Consistent lighting and angle
-- Clear moisture improvement visible
-
-2. 피부결 BEFORE-AFTER:
-BEFORE: Rough texture, visible pores, uneven
-AFTER: Smooth, refined texture, minimized pores
-- Skin texture clearly visible in both
-- Natural improvement, not plastic
-
-3. 광채/톤 BEFORE-AFTER:
-BEFORE: Dull, tired-looking skin
-AFTER: Radiant, glowing, bright skin
-- Light reflecting off healthy skin
-- Natural brightness, not filtered
+[SINGLE FOCUS RULE]
+- This image shows ONLY ONE before-after comparison
+- Do NOT combine multiple comparison types in one image
+- Each comparison concept gets its own separate image block
 
 [COMPOSITION]
 - Split screen or side-by-side
@@ -831,26 +901,46 @@ AFTER: Radiant, glowing, bright skin
 
 [KEYWORDS: 보습, 수분, 광채, 탄력, 피부결 개선]
 
-NO text in image.`,
+CRITICAL: ONE comparison type only. NO combining multiple types. NO text in image.`,
         suggestedImageCount: 2,
         overlayTextGuide: 'BEFORE → AFTER / 4주 사용 결과 / 수분량 92% 증가 / 피부결 개선 89%',
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'moisture-hydration',
+            prompt: `[ONE IMAGE = ONE COMPARISON: 보습/수분 비포애프터]
+Skincare MOISTURE BEFORE-AFTER comparison only.
+BEFORE (LEFT): Dry, dull skin with visible flakiness
+AFTER (RIGHT): Hydrated, dewy, plump skin
+Same Korean model cheek close-up. Consistent lighting and angle.
+Clear moisture improvement visible. Cream/white background.
+ONLY moisture comparison. NO other skin concerns. NO text.`,
+            overlayGuide: '수분량 92% 증가 / 촉촉한 피부로',
+          },
+          {
+            index: 1,
+            conceptType: 'texture-pores',
+            prompt: `[ONE IMAGE = ONE COMPARISON: 피부결 비포애프터]
+Skincare TEXTURE BEFORE-AFTER comparison only.
+BEFORE (LEFT): Rough texture, visible pores, uneven
+AFTER (RIGHT): Smooth, refined texture, minimized pores
+Same Korean model skin close-up. Skin texture clearly visible.
+Natural improvement, not plastic. Cream/white background.
+ONLY texture comparison. NO moisture/glow focus. NO text.`,
+            overlayGuide: '피부결 개선 89% / 매끄러운 피부',
+          },
+        ],
       },
       {
         categoryKeywords: ['쿠션', '파운데이션', '베이스메이크업'],
-        imagePrompt: `Foundation BEFORE-AFTER coverage result for Korean beauty detail page.
+        imagePrompt: `[★ CRITICAL: ONE IMAGE = ONE COMPARISON TYPE - 이 이미지는 단 하나의 비교 타입만 보여줍니다]
 
-[BEFORE-AFTER IMAGES]
-1. 커버력 BEFORE-AFTER:
-BEFORE: Bare skin with redness, blemishes, dark spots visible
-AFTER: Natural coverage, skin looks even and healthy
-- Same face/cheek area
-- Product creating natural "your skin but better" look
+Foundation BEFORE-AFTER coverage result for Korean beauty detail page.
 
-2. 지속력 BEFORE-AFTER:
-BEFORE: Fresh application at 0 hour
-AFTER: After 8-12 hours wear
-- Still looks fresh, not cakey or separated
-- Natural finish maintained
+[SINGLE FOCUS RULE]
+- This image shows ONLY ONE before-after comparison
+- Do NOT combine coverage and longevity in one image
+- Each comparison concept gets its own separate image block
 
 [COMPOSITION]
 - Korean model face
@@ -861,31 +951,50 @@ AFTER: After 8-12 hours wear
 [STYLE]
 - Korean base makeup result aesthetic
 - Natural coverage visible
-- Skin texture still visible through makeup
 - Professional beauty photography
 
 [KEYWORDS: 커버력, 지속력, 자연스러움, 피부 표현, 무너짐 없는]
 
-NO text in image.`,
+CRITICAL: ONE comparison type only. NO combining multiple tests. NO text in image.`,
         suggestedImageCount: 2,
         overlayTextGuide: 'BEFORE → AFTER / 자연스러운 커버력 / 12시간 지속력 테스트',
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'coverage-test',
+            prompt: `[ONE IMAGE = ONE COMPARISON: 커버력 비포애프터]
+Foundation COVERAGE BEFORE-AFTER comparison only.
+BEFORE (LEFT): Bare skin with redness, blemishes, dark spots
+AFTER (RIGHT): Natural coverage, skin looks even and healthy
+Same face/cheek area. "Your skin but better" concept.
+Natural finish visible. Soft beige background.
+ONLY coverage comparison. NO longevity test. NO text.`,
+            overlayGuide: '자연스러운 커버력 / 결점 커버',
+          },
+          {
+            index: 1,
+            conceptType: 'longevity-test',
+            prompt: `[ONE IMAGE = ONE COMPARISON: 지속력 비포애프터]
+Foundation LONGEVITY BEFORE-AFTER comparison only.
+BEFORE (LEFT): Fresh application at 0 hour
+AFTER (RIGHT): After 8-12 hours wear still fresh
+No cakey or separated appearance. Natural finish maintained.
+Skin texture visible. Soft beige background.
+ONLY longevity test. NO coverage comparison. NO text.`,
+            overlayGuide: '12시간 지속력 / 무너짐 없이',
+          },
+        ],
       },
       {
         categoryKeywords: ['립', '틴트', '립스틱'],
-        imagePrompt: `Lip product BEFORE-AFTER result for Korean beauty detail page.
+        imagePrompt: `[★ CRITICAL: ONE IMAGE = ONE COMPARISON TYPE - 이 이미지는 단 하나의 비교 타입만 보여줍니다]
 
-[BEFORE-AFTER IMAGES]
-1. 발색 BEFORE-AFTER:
-BEFORE: Bare lips
-AFTER: Product applied with full color payoff
-- Close-up lip shot
-- Color and texture clearly visible
+Lip product BEFORE-AFTER result for Korean beauty detail page.
 
-2. 지속력 BEFORE-AFTER:
-BEFORE: Fresh application
-AFTER: After eating/drinking/hours of wear
-- Color retention visible
-- No feathering or fading
+[SINGLE FOCUS RULE]
+- This image shows ONLY ONE before-after comparison
+- Do NOT combine color payoff and longevity in one image
+- Each comparison concept gets its own separate image block
 
 [COMPOSITION]
 - Korean model lips close-up
@@ -899,25 +1008,46 @@ AFTER: After eating/drinking/hours of wear
 
 [KEYWORDS: 발색, 지속력, 착색력, 촉촉함]
 
-NO text in image.`,
+CRITICAL: ONE comparison type only. NO combining multiple tests. NO text in image.`,
         suggestedImageCount: 2,
         overlayTextGuide: 'BEFORE → AFTER / 선명한 발색 / 8시간 지속력',
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'color-payoff',
+            prompt: `[ONE IMAGE = ONE COMPARISON: 발색 비포애프터]
+Lip product COLOR BEFORE-AFTER comparison only.
+BEFORE (LEFT): Bare lips, natural lip color
+AFTER (RIGHT): Product applied with full color payoff
+Close-up lip shot. Color and texture clearly visible.
+Pink/nude background. Korean lip product aesthetic.
+ONLY color comparison. NO longevity test. NO text.`,
+            overlayGuide: '선명한 발색 / 풀 컬러 페이오프',
+          },
+          {
+            index: 1,
+            conceptType: 'longevity-test',
+            prompt: `[ONE IMAGE = ONE COMPARISON: 지속력 비포애프터]
+Lip product LONGEVITY BEFORE-AFTER comparison only.
+BEFORE (LEFT): Fresh application
+AFTER (RIGHT): After eating/drinking/hours of wear
+Color retention visible. No feathering or fading.
+Pink/nude background. Korean lip product aesthetic.
+ONLY longevity test. NO color comparison. NO text.`,
+            overlayGuide: '8시간 지속력 / 먹고 마셔도 그대로',
+          },
+        ],
       },
       {
         categoryKeywords: ['선케어', '선크림'],
-        imagePrompt: `Suncare BEFORE-AFTER result for Korean beauty detail page.
+        imagePrompt: `[★ CRITICAL: ONE IMAGE = ONE COMPARISON TYPE - 이 이미지는 단 하나의 비교 타입만 보여줍니다]
 
-[BEFORE-AFTER IMAGES]
-1. 백탁 테스트 BEFORE-AFTER:
-BEFORE: Product application moment
-AFTER: Fully absorbed, no white cast
-- Same skin area
-- Natural skin tone visible after
+Suncare BEFORE-AFTER result for Korean beauty detail page.
 
-2. 톤업 효과 BEFORE-AFTER:
-BEFORE: Bare skin tone
-AFTER: Brightened, even skin tone
-- Natural glow, not chalky
+[SINGLE FOCUS RULE]
+- This image shows ONLY ONE before-after comparison
+- Do NOT combine white cast test and tone-up in one image
+- Each comparison concept gets its own separate image block
 
 [COMPOSITION]
 - Korean model skin
@@ -931,9 +1061,35 @@ AFTER: Brightened, even skin tone
 
 [KEYWORDS: 무백탁, 톤업, 자연스러운, 가벼운]
 
-NO text in image.`,
+CRITICAL: ONE comparison type only. NO combining multiple tests. NO text in image.`,
         suggestedImageCount: 2,
         overlayTextGuide: 'BEFORE → AFTER / 무백탁 포뮬러 / 자연스러운 톤업',
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'no-white-cast',
+            prompt: `[ONE IMAGE = ONE COMPARISON: 백탁 테스트 비포애프터]
+Suncare WHITE CAST BEFORE-AFTER comparison only.
+BEFORE (LEFT): Product application moment, white visible
+AFTER (RIGHT): Fully absorbed, no white cast
+Same skin area. Natural skin tone visible after.
+Bright clean background. Korean suncare aesthetic.
+ONLY white cast test. NO tone-up comparison. NO text.`,
+            overlayGuide: '무백탁 포뮬러 / 자연스러운 흡수',
+          },
+          {
+            index: 1,
+            conceptType: 'tone-up-effect',
+            prompt: `[ONE IMAGE = ONE COMPARISON: 톤업 효과 비포애프터]
+Suncare TONE-UP BEFORE-AFTER comparison only.
+BEFORE (LEFT): Bare skin tone
+AFTER (RIGHT): Brightened, even skin tone
+Natural glow, not chalky. Light reflecting healthily.
+Bright clean background. Korean suncare aesthetic.
+ONLY tone-up comparison. NO white cast test. NO text.`,
+            overlayGuide: '자연스러운 톤업 / 환한 피부',
+          },
+        ],
       },
     ],
   },
@@ -985,28 +1141,20 @@ NO text in image.`,
     categorySpecificPrompts: [
       {
         categoryKeywords: ['스킨케어', '세럼', '에센스', '크림', '토너', '로션'],
-        imagePrompt: `Korean female model SKINCARE beauty shot for detail page.
+        imagePrompt: `[★ CRITICAL: ONE IMAGE = ONE SHOT TYPE - 이 이미지는 단 하나의 샷 타입만 보여줍니다]
+
+Korean female model SKINCARE beauty shot for detail page.
+
+[SINGLE FOCUS RULE]
+- This image shows ONLY ONE shot type
+- Do NOT combine multiple shots in one image
+- Each shot concept gets its own separate image block
 
 [MODEL]
 - Korean female, 20s-30s
 - Glowing, dewy skin (촉촉한 광채 피부)
 - Natural no-makeup or minimal makeup look
 - Healthy, hydrated skin appearance
-
-[SHOTS TO GENERATE]
-1. FACE CLOSE-UP:
-   - Cheek/face showing dewy, glowing skin
-   - Natural light highlighting skin quality
-   - Soft focus on skin texture
-
-2. HALF PORTRAIT:
-   - Model touching face gently
-   - Serene, relaxed expression
-   - Skincare routine feeling
-
-3. PRODUCT USAGE (optional):
-   - Model applying product
-   - Dropper/pump dispensing scene
 
 [COMPOSITION]
 - Soft cream/white/light blue background
@@ -1021,35 +1169,50 @@ NO text in image.`,
 
 [KEYWORDS: 보습, 광채, 촉촉, 건강한 피부]
 
-NO text in image.`,
+CRITICAL: ONE shot type only. NO combining multiple concepts.`,
         suggestedImageCount: 2,
-        overlayTextGuide: '피부 컨셉 문구 (예: "매일 아침 빛나는 피부", "촉촉함이 오래가는")',
+        overlayTextGuide: '피부 컨셉 문구 (예: "매일 아침 빛나는 피부")',
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'face-closeup',
+            prompt: `[ONE IMAGE = ONE SHOT: 피부 클로즈업]
+Korean female model FACE CLOSE-UP shot only.
+Cheek/face showing dewy, glowing "glass skin".
+Natural light highlighting skin quality and texture.
+Soft cream background. Korean skincare aesthetic.
+ONLY face close-up. NO full portrait. NO product in hand. NO text.`,
+            overlayGuide: '촉촉한 광채 피부 / 수분 가득',
+          },
+          {
+            index: 1,
+            conceptType: 'half-portrait',
+            prompt: `[ONE IMAGE = ONE SHOT: 하프 포트레이트]
+Korean female model HALF PORTRAIT shot only.
+Model gently touching face with serene expression.
+Skincare routine feeling, relaxed morning mood.
+Soft cream background. Korean skincare aesthetic.
+ONLY half portrait. NO extreme close-up. NO product application. NO text.`,
+            overlayGuide: '매일 아침 빛나는 피부',
+          },
+        ],
       },
       {
         categoryKeywords: ['립', '틴트', '립스틱', '립글로스'],
-        imagePrompt: `Korean female model LIP beauty shot for detail page.
+        imagePrompt: `[★ CRITICAL: ONE IMAGE = ONE SHOT TYPE - 이 이미지는 단 하나의 샷 타입만 보여줍니다]
+
+Korean female model LIP beauty shot for detail page.
+
+[SINGLE FOCUS RULE]
+- This image shows ONLY ONE shot type
+- Do NOT combine multiple shots in one image
+- Each shot concept gets its own separate image block
 
 [MODEL]
 - Korean female, 20s-30s
 - Beautiful lip shape
 - Trendy K-beauty lip makeup
 - Natural, healthy appearance
-
-[SHOTS TO GENERATE]
-1. LIP FOCUS PORTRAIT:
-   - Lower face focus (nose to chin)
-   - Lips with product applied
-   - Color payoff clearly visible
-
-2. FULL FACE BEAUTY:
-   - Full face with lip product as focus
-   - Coordinated eye makeup
-   - Trendy K-beauty look
-
-3. PROFILE/ANGLE SHOT:
-   - Side or 3/4 angle
-   - Lip shape and color visible
-   - Editorial beauty vibe
 
 [COMPOSITION]
 - Soft pink/nude/cream background
@@ -1064,34 +1227,50 @@ NO text in image.`,
 
 [KEYWORDS: 발색, 생기, 촉촉함, 지속력]
 
-NO text in image.`,
+CRITICAL: ONE shot type only. NO combining multiple angles. NO text.`,
         suggestedImageCount: 2,
         overlayTextGuide: '립 컨셉 문구 (예: "생기 가득한 입술", "트렌디한 데일리 립")',
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'lip-focus-closeup',
+            prompt: `[ONE IMAGE = ONE SHOT: 입술 클로즈업]
+Korean female model LIP CLOSE-UP shot only.
+Lower face focus (nose to chin) showing lips with product applied.
+Color payoff and texture clearly visible. Soft pink background.
+Korean lip brand aesthetic (Romand, Peripera style).
+ONLY lip close-up. NO full face. NO profile shot. NO text.`,
+            overlayGuide: '선명한 발색 / 촉촉한 입술',
+          },
+          {
+            index: 1,
+            conceptType: 'full-face-beauty',
+            prompt: `[ONE IMAGE = ONE SHOT: 풀페이스 뷰티]
+Korean female model FULL FACE beauty shot only.
+Complete K-beauty makeup look with lip product as focal point.
+Coordinated eye makeup, natural skin. Trendy youthful vibe.
+Soft pink/cream background. Korean lip brand aesthetic.
+ONLY full face. NO extreme close-up. NO profile angle. NO text.`,
+            overlayGuide: '트렌디한 데일리 립',
+          },
+        ],
       },
       {
         categoryKeywords: ['쿠션', '파운데이션', '베이스메이크업'],
-        imagePrompt: `Korean female model BASE MAKEUP beauty shot for detail page.
+        imagePrompt: `[★ CRITICAL: ONE IMAGE = ONE SHOT TYPE - 이 이미지는 단 하나의 샷 타입만 보여줍니다]
+
+Korean female model BASE MAKEUP beauty shot for detail page.
+
+[SINGLE FOCUS RULE]
+- This image shows ONLY ONE shot type
+- Do NOT combine multiple shots in one image
+- Each shot concept gets its own separate image block
 
 [MODEL]
 - Korean female, 20s-30s
 - Flawless base makeup appearance
 - Natural, skin-like finish
 - Not cakey or heavy looking
-
-[SHOTS TO GENERATE]
-1. SKIN CLOSE-UP:
-   - Cheek/face showing base makeup finish
-   - Dewy or semi-matte finish visible
-   - Pores minimized but natural
-
-2. FULL FACE BEAUTY:
-   - Complete makeup look
-   - Base as star, other makeup minimal
-   - "Your skin but better" concept
-
-3. BEFORE-AFTER FEEL:
-   - Natural, perfected skin appearance
-   - Coverage visible but natural
 
 [COMPOSITION]
 - Soft beige/cream background
@@ -1102,34 +1281,52 @@ NO text in image.`,
 - Korean base makeup aesthetic
 - Natural, skin-like coverage
 - "Glass skin" or "Chok-chok" finish
-- Professional beauty photography
 
 [KEYWORDS: 커버력, 지속력, 자연스러움, 피부 표현]
 
-NO text in image.`,
+CRITICAL: ONE shot type only. NO combining multiple concepts. NO text.`,
         suggestedImageCount: 2,
         overlayTextGuide: '베이스 컨셉 문구 (예: "마치 피부처럼", "하루 종일 무너짐 없이")',
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'skin-closeup',
+            prompt: `[ONE IMAGE = ONE SHOT: 피부 클로즈업]
+Korean female model SKIN CLOSE-UP shot only.
+Cheek/face showing base makeup finish. Dewy or semi-matte visible.
+Pores minimized but natural. "Your skin but better" concept.
+Soft beige background. Korean base makeup aesthetic.
+ONLY skin close-up. NO full face portrait. NO text.`,
+            overlayGuide: '마치 피부처럼 / 자연스러운 커버력',
+          },
+          {
+            index: 1,
+            conceptType: 'full-face-beauty',
+            prompt: `[ONE IMAGE = ONE SHOT: 풀페이스 뷰티]
+Korean female model FULL FACE beauty shot only.
+Complete makeup look with base as star, other makeup minimal.
+Natural, perfected skin appearance. Coverage visible but natural.
+Soft cream background. Korean base makeup aesthetic.
+ONLY full face. NO extreme close-up. NO text.`,
+            overlayGuide: '하루 종일 무너짐 없이',
+          },
+        ],
       },
       {
         categoryKeywords: ['아이메이크업', '아이섀도우', '마스카라'],
-        imagePrompt: `Korean female model EYE MAKEUP beauty shot for detail page.
+        imagePrompt: `[★ CRITICAL: ONE IMAGE = ONE SHOT TYPE - 이 이미지는 단 하나의 샷 타입만 보여줍니다]
+
+Korean female model EYE MAKEUP beauty shot for detail page.
+
+[SINGLE FOCUS RULE]
+- This image shows ONLY ONE shot type
+- Do NOT combine multiple shots in one image
+- Each shot concept gets its own separate image block
 
 [MODEL]
 - Korean female, 20s-30s
 - Beautiful eye shape
 - Trendy K-beauty eye makeup
-- Various eye looks
-
-[SHOTS TO GENERATE]
-1. EYE CLOSE-UP:
-   - Eye area focus
-   - Eyeshadow/mascara visible
-   - Color payoff and blending clear
-
-2. HALF FACE:
-   - Eyes as focus, lips minimal
-   - Showing complete eye look
-   - Different angles
 
 [COMPOSITION]
 - Neutral/cream background
@@ -1140,34 +1337,53 @@ NO text in image.`,
 - Korean eye makeup aesthetic
 - Natural to glam looks
 - Soft, flattering lighting
-- Trendy eye makeup trends
 
 [KEYWORDS: 발색, 블렌딩, 지속력, 다양한 연출]
 
-NO text in image.`,
+CRITICAL: ONE shot type only. NO combining multiple angles. NO text.`,
         suggestedImageCount: 2,
         overlayTextGuide: '아이 컨셉 문구 (예: "다양한 무드 연출", "선명한 발색")',
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'eye-closeup',
+            prompt: `[ONE IMAGE = ONE SHOT: 아이 클로즈업]
+Korean female model EYE CLOSE-UP shot only.
+Eye area focus showing eyeshadow/mascara clearly visible.
+Color payoff and blending clear. Korean eye makeup aesthetic.
+Neutral/cream background. Soft flattering lighting.
+ONLY eye close-up. NO full face. NO text.`,
+            overlayGuide: '선명한 발색 / 자연스러운 블렌딩',
+          },
+          {
+            index: 1,
+            conceptType: 'half-face',
+            prompt: `[ONE IMAGE = ONE SHOT: 하프 페이스]
+Korean female model HALF FACE shot only.
+Eyes as focus, lips minimal. Showing complete eye look.
+Trendy K-beauty eye makeup. Natural to glam vibe.
+Neutral/cream background. Professional beauty photography.
+ONLY half face. NO extreme close-up. NO text.`,
+            overlayGuide: '다양한 무드 연출',
+          },
+        ],
       },
       {
         categoryKeywords: ['선케어', '선크림'],
-        imagePrompt: `Korean female model SUNCARE beauty shot for detail page.
+        imagePrompt: `[★ CRITICAL: ONE IMAGE = ONE SHOT TYPE - 이 이미지는 단 하나의 샷 타입만 보여줍니다]
+
+Korean female model SUNCARE beauty shot for detail page.
+
+[SINGLE FOCUS RULE]
+- This image shows ONLY ONE shot type
+- Do NOT combine multiple shots in one image
+- Each shot concept gets its own separate image block
 
 [MODEL]
 - Korean female, 20s-30s
 - Fresh, healthy appearance
 - Outdoor-ready or sun-protected feeling
 - Natural glow
-
-[SHOTS TO GENERATE]
-1. FRESH FACE:
-   - Bright, protected skin look
-   - No white cast visible
-   - Tone-up effect if applicable
-
-2. OUTDOOR VIBE:
-   - Sunny, fresh feeling
-   - Model in bright setting
-   - Confident, protected appearance
 
 [COMPOSITION]
 - Bright white/yellow-tinted background
@@ -1181,9 +1397,33 @@ NO text in image.`,
 
 [KEYWORDS: 자외선 차단, 톤업, 촉촉한, 가벼운]
 
-NO text in image.`,
+CRITICAL: ONE shot type only. NO combining multiple concepts. NO text.`,
         suggestedImageCount: 2,
         overlayTextGuide: '선케어 컨셉 문구 (예: "자외선 걱정 없이", "매일의 피부 보호")',
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'fresh-face',
+            prompt: `[ONE IMAGE = ONE SHOT: 프레시 페이스]
+Korean female model FRESH FACE shot only.
+Bright, protected skin look. No white cast visible.
+Tone-up effect if applicable. Glowing healthy skin.
+Bright white background. Korean suncare aesthetic.
+ONLY fresh face. NO outdoor scene. NO text.`,
+            overlayGuide: '자연스러운 톤업 / 무백탁',
+          },
+          {
+            index: 1,
+            conceptType: 'outdoor-vibe',
+            prompt: `[ONE IMAGE = ONE SHOT: 아웃도어 바이브]
+Korean female model OUTDOOR VIBE shot only.
+Sunny, fresh feeling. Model in bright outdoor setting.
+Confident, protected appearance. Sun-protected confidence.
+Yellow-tinted bright background. Fresh energetic mood.
+ONLY outdoor vibe. NO studio close-up. NO text.`,
+            overlayGuide: '자외선 걱정 없이 / 매일의 피부 보호',
+          },
+        ],
       },
     ],
   },
@@ -1775,36 +2015,14 @@ NO text in image.`,
     categorySpecificPrompts: [
       {
         categoryKeywords: ['스킨케어', '세럼', '에센스', '크림', '토너', '앰플'],
-        imagePrompt: `Skincare STEP-BY-STEP APPLICATION series for Korean beauty detail page.
+        imagePrompt: `[★ CRITICAL: ONE IMAGE = ONE STEP - 이 이미지는 단 하나의 단계만 보여줍니다]
 
-[IMAGE SET - Generate one image per step]
+Skincare STEP-BY-STEP APPLICATION for Korean beauty detail page.
 
-STEP 1: DISPENSE (적정량 덜기)
-- Hand holding product, dispensing appropriate amount
-- Dropper releasing serum drops, pump dispensing cream, etc.
-- Show recommended amount (coin-size, 2-3 drops, pea-size)
-- Clean, bright background
-
-STEP 2: WARM/PREPARE (손에서 데우기)
-- Product on fingertips or palms
-- Warming gesture - rubbing palms together gently
-- Product texture visible
-
-STEP 3: APPLY (얼굴에 도포)
-- Korean female model applying product to face
-- Specific application area shown (cheeks, forehead, chin)
-- Gentle patting or smoothing motion
-- Natural, healthy skin
-
-STEP 4: ABSORPTION (흡수시키기)
-- Patting motion on face for absorption
-- Or: Gentle massage in circular motions
-- Product absorbing into skin
-
-STEP 5: FINISH (마무리)
-- Final result - glowing, hydrated skin
-- Model's face showing product benefits
-- Fresh, healthy complexion
+[SINGLE STEP RULE]
+- This image shows ONLY ONE step
+- Do NOT combine multiple steps in one image
+- Each step gets its own separate image block
 
 [STYLE]
 - Korean skincare routine tutorial aesthetic
@@ -1814,46 +2032,75 @@ STEP 5: FINISH (마무리)
 
 [QUALITY]
 - 8K, skin texture and product visible
-- No text in image`,
+- No text in image
+
+CRITICAL: ONE step only. NO combining multiple steps. NO text.`,
         suggestedImageCount: 4,
         overlayTextGuide: `STEP 1: 스포이드로 2-3방울 덜어주세요
 STEP 2: 손바닥에서 체온으로 데워주세요
 STEP 3: 얼굴 중앙에서 바깥쪽으로 펴 발라주세요
 STEP 4: 손바닥으로 가볍게 눌러 흡수시켜주세요`,
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'step-1-dispense',
+            prompt: `[ONE IMAGE = STEP 1: 적정량 덜기]
+Skincare DISPENSE step only.
+Hand holding product, dispensing appropriate amount.
+Dropper releasing serum drops OR pump dispensing cream.
+Show recommended amount (coin-size, 2-3 drops, pea-size).
+Clean bright background. Korean skincare aesthetic.
+ONLY dispense step. NO application. NO face. NO text.`,
+            overlayGuide: 'STEP 1: 스포이드로 2-3방울 덜어주세요',
+          },
+          {
+            index: 1,
+            conceptType: 'step-2-warm',
+            prompt: `[ONE IMAGE = STEP 2: 손에서 데우기]
+Skincare WARMING step only.
+Product on fingertips or palms.
+Warming gesture - rubbing palms together gently.
+Product texture visible on hands.
+Clean bright background. Korean skincare aesthetic.
+ONLY warming step. NO dispense. NO face application. NO text.`,
+            overlayGuide: 'STEP 2: 손바닥에서 체온으로 데워주세요',
+          },
+          {
+            index: 2,
+            conceptType: 'step-3-apply',
+            prompt: `[ONE IMAGE = STEP 3: 얼굴에 도포]
+Skincare APPLICATION step only.
+Korean female model applying product to face.
+Specific application area (cheeks, forehead, chin).
+Gentle patting or smoothing motion. Natural skin.
+Clean white background. Korean skincare aesthetic.
+ONLY application step. NO dispense. NO absorption. NO text.`,
+            overlayGuide: 'STEP 3: 얼굴 중앙에서 바깥쪽으로 펴 발라주세요',
+          },
+          {
+            index: 3,
+            conceptType: 'step-4-absorb',
+            prompt: `[ONE IMAGE = STEP 4: 흡수시키기]
+Skincare ABSORPTION step only.
+Patting motion on face for absorption.
+Gentle massage in circular motions.
+Product absorbing into skin. Glowing result.
+Clean white background. Korean skincare aesthetic.
+ONLY absorption step. NO dispense. NO application. NO text.`,
+            overlayGuide: 'STEP 4: 손바닥으로 가볍게 눌러 흡수시켜주세요',
+          },
+        ],
       },
       {
         categoryKeywords: ['쿠션', '파운데이션', '베이스메이크업'],
-        imagePrompt: `Foundation/Cushion APPLICATION STEPS series for Korean beauty detail page.
+        imagePrompt: `[★ CRITICAL: ONE IMAGE = ONE STEP - 이 이미지는 단 하나의 단계만 보여줍니다]
 
-[IMAGE SET]
+Foundation/Cushion APPLICATION for Korean beauty detail page.
 
-STEP 1: PREPARE (스킨케어 마무리)
-- Clean, prepped skin ready for makeup
-- Or: Primer application final step
-
-STEP 2: PRODUCT PICKUP (제품 묻히기)
-- Puff/sponge pressing into cushion or picking up foundation
-- Show appropriate amount on applicator
-- Product texture on puff visible
-
-STEP 3: STAMP APPLICATION (스탬핑)
-- Puff stamping/pressing onto face (not dragging)
-- Start from center of face, stamp outward
-- Korean "stamp" technique demonstration
-
-STEP 4: BLEND (블렌딩)
-- Blending edges, hairline, jawline
-- Seamless finish demonstration
-- Natural-looking coverage
-
-STEP 5: BUILD COVERAGE (커버 추가 - optional)
-- Additional layer on areas needing more coverage
-- Under-eye, around nose, blemish spots
-- Buildable coverage concept
-
-STEP 6: SET (세팅)
-- Setting with powder or setting spray
-- Or: Final dewy/natural finish result
+[SINGLE STEP RULE]
+- This image shows ONLY ONE step
+- Do NOT combine multiple steps in one image
+- Each step gets its own separate image block
 
 [STYLE]
 - Korean makeup tutorial aesthetic
@@ -1862,42 +2109,71 @@ STEP 6: SET (세팅)
 
 [QUALITY]
 - 8K, makeup application clearly visible
-- No text in image`,
+- No text in image
+
+CRITICAL: ONE step only. NO combining multiple steps. NO text.`,
         suggestedImageCount: 4,
         overlayTextGuide: `STEP 1: 스킨케어로 피부를 정돈해주세요
 STEP 2: 퍼프에 적당량을 묻혀주세요
 STEP 3: 얼굴 중앙부터 바깥쪽으로 톡톡 스탬핑해주세요
 STEP 4: 헤어라인과 턱선을 자연스럽게 블렌딩해주세요`,
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'step-1-prep',
+            prompt: `[ONE IMAGE = STEP 1: 피부 정돈]
+Foundation SKIN PREP step only.
+Clean, prepped skin ready for makeup.
+Or primer application final step. Fresh face.
+Beige/cream background. Korean makeup aesthetic.
+ONLY prep step. NO product pickup. NO application. NO text.`,
+            overlayGuide: 'STEP 1: 스킨케어로 피부를 정돈해주세요',
+          },
+          {
+            index: 1,
+            conceptType: 'step-2-pickup',
+            prompt: `[ONE IMAGE = STEP 2: 제품 묻히기]
+Foundation PRODUCT PICKUP step only.
+Puff/sponge pressing into cushion or foundation.
+Show appropriate amount on applicator.
+Product texture on puff visible. Close-up shot.
+ONLY pickup step. NO face application. NO text.`,
+            overlayGuide: 'STEP 2: 퍼프에 적당량을 묻혀주세요',
+          },
+          {
+            index: 2,
+            conceptType: 'step-3-stamp',
+            prompt: `[ONE IMAGE = STEP 3: 스탬핑]
+Foundation STAMP APPLICATION step only.
+Puff stamping/pressing onto face (not dragging).
+Start from center of face. Korean "stamp" technique.
+Model face with puff. Beige background.
+ONLY stamping step. NO blending. NO finish. NO text.`,
+            overlayGuide: 'STEP 3: 얼굴 중앙부터 바깥쪽으로 톡톡 스탬핑해주세요',
+          },
+          {
+            index: 3,
+            conceptType: 'step-4-blend',
+            prompt: `[ONE IMAGE = STEP 4: 블렌딩]
+Foundation BLENDING step only.
+Blending edges, hairline, jawline.
+Seamless finish demonstration. Natural coverage.
+Model face showing natural finish. Beige background.
+ONLY blending step. NO stamping. NO setting. NO text.`,
+            overlayGuide: 'STEP 4: 헤어라인과 턱선을 자연스럽게 블렌딩해주세요',
+          },
+        ],
       },
       {
         categoryKeywords: ['립', '틴트', '립스틱', '립글로스'],
-        imagePrompt: `Lip product APPLICATION STEPS series for Korean beauty detail page.
+        imagePrompt: `[★ CRITICAL: ONE IMAGE = ONE STEP - 이 이미지는 단 하나의 단계만 보여줍니다]
 
-[IMAGE SET]
+Lip product APPLICATION for Korean beauty detail page.
 
-STEP 1: LIP PREP (입술 준비)
-- Clean, exfoliated lips
-- Or: Lip balm application for hydration
-
-STEP 2: APPLY INNER LIP (안쪽 발색)
-- Applying product to inner lip area first
-- Korean gradient lip technique start
-- Precise application with applicator
-
-STEP 3: BLEND OUTWARD (바깥으로 블렌딩)
-- Blending/pressing lips together
-- Or: Finger tapping for gradient effect
-- Seamless gradient from center
-
-STEP 4: BUILD COLOR (발색 강도 조절)
-- Additional application for bolder look
-- Or: Keeping gradient for natural look
-- Final color payoff visible
-
-STEP 5: FINAL LOOK (완성)
-- Beautiful finished lip look
-- Natural or bold depending on style
-- Model's lips looking healthy and vibrant
+[SINGLE STEP RULE]
+- This image shows ONLY ONE step
+- Do NOT combine multiple steps in one image
+- Each step gets its own separate image block
 
 [STYLE]
 - Korean lip makeup tutorial aesthetic
@@ -1907,41 +2183,71 @@ STEP 5: FINAL LOOK (완성)
 [QUALITY]
 - 8K macro photography
 - Lip texture and color clearly visible
-- No text in image`,
+- No text in image
+
+CRITICAL: ONE step only. NO combining multiple steps. NO text.`,
         suggestedImageCount: 4,
         overlayTextGuide: `STEP 1: 입술 각질을 정리하고 보습해주세요
 STEP 2: 입술 안쪽 중앙에 제품을 발라주세요
 STEP 3: 손가락으로 바깥쪽으로 톡톡 두드려 그라데이션해주세요
 STEP 4: 원하는 발색까지 레이어링해주세요`,
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'step-1-prep',
+            prompt: `[ONE IMAGE = STEP 1: 입술 준비]
+Lip PREP step only.
+Clean, exfoliated lips. Or lip balm for hydration.
+Natural, soft lip texture visible.
+Pink/neutral background. Korean lip aesthetic.
+ONLY prep step. NO product application. NO color. NO text.`,
+            overlayGuide: 'STEP 1: 입술 각질을 정리하고 보습해주세요',
+          },
+          {
+            index: 1,
+            conceptType: 'step-2-inner-apply',
+            prompt: `[ONE IMAGE = STEP 2: 안쪽 발색]
+Lip INNER APPLICATION step only.
+Applying product to inner lip area first.
+Korean gradient lip technique start.
+Precise application with applicator visible.
+ONLY inner application. NO blending. NO final look. NO text.`,
+            overlayGuide: 'STEP 2: 입술 안쪽 중앙에 제품을 발라주세요',
+          },
+          {
+            index: 2,
+            conceptType: 'step-3-blend',
+            prompt: `[ONE IMAGE = STEP 3: 그라데이션]
+Lip BLENDING step only.
+Finger tapping for gradient effect.
+Or blending/pressing lips together.
+Seamless gradient from center visible.
+ONLY blending step. NO inner apply. NO final. NO text.`,
+            overlayGuide: 'STEP 3: 손가락으로 바깥쪽으로 톡톡 두드려 그라데이션해주세요',
+          },
+          {
+            index: 3,
+            conceptType: 'step-4-finish',
+            prompt: `[ONE IMAGE = STEP 4: 완성]
+Lip FINISHED LOOK only.
+Beautiful completed lip look.
+Full color payoff visible. Healthy vibrant lips.
+Natural or bold depending on product.
+ONLY final look. NO application in progress. NO text.`,
+            overlayGuide: 'STEP 4: 원하는 발색까지 레이어링해주세요',
+          },
+        ],
       },
       {
         categoryKeywords: ['마스크팩', '시트마스크'],
-        imagePrompt: `Sheet Mask APPLICATION STEPS series for Korean beauty detail page.
+        imagePrompt: `[★ CRITICAL: ONE IMAGE = ONE STEP - 이 이미지는 단 하나의 단계만 보여줍니다]
 
-[IMAGE SET]
+Sheet Mask APPLICATION for Korean beauty detail page.
 
-STEP 1: CLEANSE (세안)
-- Clean, freshly washed face
-- Skin ready for mask
-
-STEP 2: UNFOLD & ALIGN (마스크 펼치기)
-- Unfolding sheet mask
-- Aligning with facial features (eyes, nose, mouth holes)
-
-STEP 3: APPLY & SMOOTH (밀착시키기)
-- Pressing mask onto face
-- Smoothing out air bubbles
-- Ensuring good contact with skin
-
-STEP 4: WAIT (시간 두기)
-- Relaxing with mask on
-- Timer concept (15-20 minutes)
-- Enjoying self-care moment
-
-STEP 5: REMOVE & PAT (제거 및 흡수)
-- Removing mask gently
-- Patting remaining essence into skin
-- Glowing result
+[SINGLE STEP RULE]
+- This image shows ONLY ONE step
+- Do NOT combine multiple steps in one image
+- Each step gets its own separate image block
 
 [STYLE]
 - Korean skincare routine aesthetic
@@ -1950,39 +2256,71 @@ STEP 5: REMOVE & PAT (제거 및 흡수)
 
 [QUALITY]
 - 8K, clear demonstration
-- No text in image`,
+- No text in image
+
+CRITICAL: ONE step only. NO combining multiple steps. NO text.`,
         suggestedImageCount: 4,
         overlayTextGuide: `STEP 1: 세안 후 토너로 피부결을 정돈해주세요
 STEP 2: 마스크를 펼쳐 눈, 코, 입에 맞춰 올려주세요
 STEP 3: 공기가 들어가지 않게 얼굴에 밀착시켜주세요
 STEP 4: 15-20분 후 마스크를 벗기고 남은 에센스를 흡수시켜주세요`,
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'step-1-prep',
+            prompt: `[ONE IMAGE = STEP 1: 피부 준비]
+Sheet Mask SKIN PREP step only.
+Clean, freshly washed face. Skin ready for mask.
+Or toner application for skin prep.
+White/spa background. Korean skincare aesthetic.
+ONLY prep step. NO mask application. NO text.`,
+            overlayGuide: 'STEP 1: 세안 후 토너로 피부결을 정돈해주세요',
+          },
+          {
+            index: 1,
+            conceptType: 'step-2-unfold',
+            prompt: `[ONE IMAGE = STEP 2: 마스크 펼치기]
+Sheet Mask UNFOLD & ALIGN step only.
+Unfolding sheet mask from package.
+Aligning with facial features (eyes, nose, mouth holes).
+Hands holding unfolded mask. White background.
+ONLY unfold step. NO on-face. NO finish. NO text.`,
+            overlayGuide: 'STEP 2: 마스크를 펼쳐 눈, 코, 입에 맞춰 올려주세요',
+          },
+          {
+            index: 2,
+            conceptType: 'step-3-apply',
+            prompt: `[ONE IMAGE = STEP 3: 밀착시키기]
+Sheet Mask APPLICATION step only.
+Pressing mask onto face smoothly.
+Smoothing out air bubbles with fingers.
+Model with mask being applied. Spa setting.
+ONLY application step. NO relaxing. NO removal. NO text.`,
+            overlayGuide: 'STEP 3: 공기가 들어가지 않게 얼굴에 밀착시켜주세요',
+          },
+          {
+            index: 3,
+            conceptType: 'step-4-finish',
+            prompt: `[ONE IMAGE = STEP 4: 제거 및 흡수]
+Sheet Mask REMOVAL & ABSORPTION step only.
+Removing mask gently OR patting essence.
+Glowing, hydrated skin result visible.
+Model's fresh face after mask. Spa setting.
+ONLY removal/finish step. NO application. NO text.`,
+            overlayGuide: 'STEP 4: 15-20분 후 마스크를 벗기고 남은 에센스를 흡수시켜주세요',
+          },
+        ],
       },
       {
         categoryKeywords: ['선케어', '선크림'],
-        imagePrompt: `Sunscreen APPLICATION STEPS series for Korean beauty detail page.
+        imagePrompt: `[★ CRITICAL: ONE IMAGE = ONE STEP - 이 이미지는 단 하나의 단계만 보여줍니다]
 
-[IMAGE SET]
+Sunscreen APPLICATION for Korean beauty detail page.
 
-STEP 1: AMOUNT (적정량)
-- Dispensing sunscreen - two-finger rule or coin-sized amount
-- Showing generous, adequate amount
-
-STEP 2: DOT APPLICATION (점 찍기)
-- Dotting sunscreen on forehead, cheeks, nose, chin
-- Distribution points on face
-
-STEP 3: SPREAD (펴바르기)
-- Spreading evenly across face
-- Outward spreading motions
-- Full coverage
-
-STEP 4: NECK & EARS (목과 귀)
-- Extending to neck, behind ears
-- Often-missed areas coverage
-
-STEP 5: REAPPLICATION REMINDER (덧바르기 - optional)
-- Reapplying after 2-3 hours concept
-- Outdoor/activity context
+[SINGLE STEP RULE]
+- This image shows ONLY ONE step
+- Do NOT combine multiple steps in one image
+- Each step gets its own separate image block
 
 [STYLE]
 - Fresh, outdoor-ready feeling
@@ -1991,12 +2329,60 @@ STEP 5: REAPPLICATION REMINDER (덧바르기 - optional)
 
 [QUALITY]
 - 8K, texture and application visible
-- No text in image`,
+- No text in image
+
+CRITICAL: ONE step only. NO combining multiple steps. NO text.`,
         suggestedImageCount: 4,
         overlayTextGuide: `STEP 1: 검지, 중지 두 마디 정도의 양을 덜어주세요
 STEP 2: 이마, 양볼, 코, 턱에 점을 찍어주세요
 STEP 3: 안쪽에서 바깥쪽으로 고르게 펴 발라주세요
 STEP 4: 목과 귀 뒤도 잊지 말고 발라주세요`,
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'step-1-amount',
+            prompt: `[ONE IMAGE = STEP 1: 적정량]
+Sunscreen DISPENSING step only.
+Two-finger rule or coin-sized amount of product.
+Showing generous, adequate amount on hand.
+Clean bright background. Korean suncare aesthetic.
+ONLY dispense step. NO face. NO application. NO text.`,
+            overlayGuide: 'STEP 1: 검지, 중지 두 마디 정도의 양을 덜어주세요',
+          },
+          {
+            index: 1,
+            conceptType: 'step-2-dot',
+            prompt: `[ONE IMAGE = STEP 2: 점 찍기]
+Sunscreen DOT APPLICATION step only.
+Dotting sunscreen on forehead, cheeks, nose, chin.
+Distribution points visible on face.
+Korean female model. Bright background.
+ONLY dot step. NO spreading. NO blending. NO text.`,
+            overlayGuide: 'STEP 2: 이마, 양볼, 코, 턱에 점을 찍어주세요',
+          },
+          {
+            index: 2,
+            conceptType: 'step-3-spread',
+            prompt: `[ONE IMAGE = STEP 3: 펴바르기]
+Sunscreen SPREADING step only.
+Spreading evenly across face.
+Outward spreading motions. Full coverage.
+Korean female model. Bright sunny background.
+ONLY spreading step. NO dot. NO neck. NO text.`,
+            overlayGuide: 'STEP 3: 안쪽에서 바깥쪽으로 고르게 펴 발라주세요',
+          },
+          {
+            index: 3,
+            conceptType: 'step-4-neck',
+            prompt: `[ONE IMAGE = STEP 4: 목과 귀]
+Sunscreen NECK & EARS step only.
+Extending sunscreen to neck and behind ears.
+Often-missed areas getting coverage.
+Korean female model. Bright background.
+ONLY neck/ears step. NO face application. NO text.`,
+            overlayGuide: 'STEP 4: 목과 귀 뒤도 잊지 말고 발라주세요',
+          },
+        ],
       },
     ],
   },
@@ -3108,4 +3494,171 @@ export function getPalette(paletteTheme: PaletteTheme): ColorPalette {
  */
 export function getRecommendedPalette(category: string, productName?: string): PaletteTheme {
   return autoSelectPalette(category, productName);
+}
+
+// ============================================
+// 인덱스 기반 이미지 프롬프트 시스템
+// ============================================
+
+/**
+ * 섹션 타입, 카테고리, 이미지 인덱스에 맞는 특정 프롬프트 가져오기
+ *
+ * 다중 이미지 섹션에서 각 이미지별로 다른 컨셉의 프롬프트를 반환
+ * indexedPrompts가 없으면 기본 imagePrompt 반환
+ *
+ * @param sectionType 섹션 타입
+ * @param category 카테고리 (예: '스킨케어', '립')
+ * @param imageIndex 이미지 인덱스 (0부터 시작)
+ * @param productName 제품명 (플레이스홀더 치환용)
+ * @returns 해당 인덱스에 맞는 프롬프트 및 오버레이 가이드
+ */
+export function getSectionImagePromptByIndex(
+  sectionType: ExtendedSectionType,
+  category: string,
+  imageIndex: number,
+  productName?: string
+): {
+  prompt: string;
+  overlayGuide: string;
+  conceptType: string;
+  hasIndexedPrompt: boolean;
+} {
+  const template = SECTION_TEMPLATES[sectionType];
+  if (!template) {
+    return {
+      prompt: '',
+      overlayGuide: '',
+      conceptType: 'default',
+      hasIndexedPrompt: false,
+    };
+  }
+
+  // 카테고리 특화 프롬프트 찾기
+  const categorySpecific = getCategorySpecificPrompt(sectionType, category);
+
+  if (categorySpecific) {
+    // indexedPrompts가 있는지 확인
+    if (categorySpecific.indexedPrompts && categorySpecific.indexedPrompts.length > 0) {
+      // 해당 인덱스에 맞는 프롬프트 찾기
+      const indexedPrompt = categorySpecific.indexedPrompts.find(p => p.index === imageIndex);
+
+      if (indexedPrompt) {
+        let prompt = indexedPrompt.prompt;
+        if (productName) {
+          prompt = prompt.replace(/{product}/g, productName);
+        }
+
+        return {
+          prompt,
+          overlayGuide: indexedPrompt.overlayGuide,
+          conceptType: indexedPrompt.conceptType,
+          hasIndexedPrompt: true,
+        };
+      }
+
+      // 인덱스가 범위를 벗어나면 순환 (모듈로 연산)
+      const wrappedIndex = imageIndex % categorySpecific.indexedPrompts.length;
+      const wrappedPrompt = categorySpecific.indexedPrompts[wrappedIndex];
+
+      let prompt = wrappedPrompt.prompt;
+      if (productName) {
+        prompt = prompt.replace(/{product}/g, productName);
+      }
+
+      return {
+        prompt,
+        overlayGuide: wrappedPrompt.overlayGuide,
+        conceptType: wrappedPrompt.conceptType,
+        hasIndexedPrompt: true,
+      };
+    }
+
+    // indexedPrompts가 없으면 기본 imagePrompt 사용
+    let prompt = categorySpecific.imagePrompt;
+    if (productName) {
+      prompt = prompt.replace(/{product}/g, productName);
+    }
+
+    return {
+      prompt,
+      overlayGuide: categorySpecific.overlayTextGuide,
+      conceptType: 'default',
+      hasIndexedPrompt: false,
+    };
+  }
+
+  // 카테고리 특화 프롬프트가 없으면 기본 템플릿 사용
+  let prompt = template.imagePromptTemplate;
+  if (productName) {
+    prompt = prompt.replace(/{product}/g, productName);
+  }
+
+  return {
+    prompt,
+    overlayGuide: '',
+    conceptType: 'default',
+    hasIndexedPrompt: false,
+  };
+}
+
+/**
+ * 섹션의 모든 인덱스별 프롬프트 목록 가져오기
+ *
+ * @param sectionType 섹션 타입
+ * @param category 카테고리
+ * @param productName 제품명
+ * @returns 모든 인덱스별 프롬프트 배열
+ */
+export function getAllIndexedPromptsForSection(
+  sectionType: ExtendedSectionType,
+  category: string,
+  productName?: string
+): Array<{
+  index: number;
+  prompt: string;
+  overlayGuide: string;
+  conceptType: string;
+}> {
+  const categorySpecific = getCategorySpecificPrompt(sectionType, category);
+
+  if (!categorySpecific || !categorySpecific.indexedPrompts) {
+    // indexedPrompts가 없으면 빈 배열 반환
+    return [];
+  }
+
+  return categorySpecific.indexedPrompts.map(ip => {
+    let prompt = ip.prompt;
+    if (productName) {
+      prompt = prompt.replace(/{product}/g, productName);
+    }
+
+    return {
+      index: ip.index,
+      prompt,
+      overlayGuide: ip.overlayGuide,
+      conceptType: ip.conceptType,
+    };
+  });
+}
+
+/**
+ * 섹션에 indexedPrompts가 있는지 확인
+ */
+export function hasIndexedPrompts(
+  sectionType: ExtendedSectionType,
+  category: string
+): boolean {
+  const categorySpecific = getCategorySpecificPrompt(sectionType, category);
+  return !!(categorySpecific?.indexedPrompts && categorySpecific.indexedPrompts.length > 0);
+}
+
+/**
+ * 인덱스별 프롬프트 개수 가져오기
+ */
+export function getIndexedPromptCount(
+  sectionType: ExtendedSectionType,
+  category: string
+): number {
+  const categorySpecific = getCategorySpecificPrompt(sectionType, category);
+  return categorySpecific?.indexedPrompts?.length ?? 0;
 }

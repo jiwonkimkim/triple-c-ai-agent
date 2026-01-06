@@ -162,6 +162,8 @@ export type {
   ExtendedSectionType,
   SectionTemplate,
   CategorySectionConfig,
+  IndexedImagePrompt,
+  CategorySpecificPrompt,
 } from './section-templates';
 export {
   SECTION_TEMPLATES,
@@ -183,6 +185,11 @@ export {
   buildDetailPageMasterPrompt,
   getPalette,
   getRecommendedPalette,
+  // 인덱스 기반 이미지 프롬프트 시스템
+  getSectionImagePromptByIndex,
+  getAllIndexedPromptsForSection,
+  hasIndexedPrompts,
+  getIndexedPromptCount,
 } from './section-templates';
 
 // ============================================
