@@ -24,7 +24,7 @@ export default withAuth(
         const { pathname } = req.nextUrl;
 
         // Public routes
-        const publicRoutes = ['/', '/login', '/signup', '/verify-email', '/forgot-password'];
+        const publicRoutes = ['/', '/login', '/signup', '/verify-email', '/forgot-password', '/sd-test'];
         if (publicRoutes.some((route) => pathname === route)) {
           return true;
         }
@@ -36,6 +36,11 @@ export default withAuth(
 
         // Marketplace browsing is public (GET only)
         if (pathname === '/api/marketplace/templates') {
+          return true;
+        }
+
+        // ComfyUI/SD generation API (for testing)
+        if (pathname.startsWith('/api/generate/sd')) {
           return true;
         }
 

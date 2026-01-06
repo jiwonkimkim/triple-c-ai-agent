@@ -136,6 +136,12 @@ export default function ProjectDetailPage() {
                 description: '변경 사항이 저장되었습니다.',
               });
             }}
+            // 재생성에 필요한 프로젝트 정보
+            productName={project.productName}
+            category={project.category}
+            keyFeatures={project.keyFeatures}
+            targetAudience={project.targetAudience}
+            imageModel={project.imageModel}
           />
         )}
 

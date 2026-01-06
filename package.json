@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbo",
+    "dev:all": "/Users/admin/Desktop/ComfyUI/venv/bin/python /Users/admin/Desktop/ComfyUI/main.py --force-fp16 & next dev --turbo",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

@@ -10,6 +10,7 @@ import {
   preprocessProductImage,
   base64ToDataUrl,
   isGeminiConfigured,
+  isSDModel,
   GeminiImageModel,
   DEFAULT_IMAGE_MODEL,
   urlToBase64DataUrl,
@@ -335,10 +336,51 @@ export async function generateDetailPage(
   // Development mode fallback: return mock data if no valid API keys
   if (shouldUseMockGeneration()) {
     console.log('[DEV] Using mock detail page generation - mock mode enabled or no valid API keys');
-    const mockVersions = [
+    let mockVersions: DetailPageVersion[] = [
       generateMockDetailPage(input, 0),
       generateMockDetailPage(input, 1),
     ];
+
+    // Mock 모드에서도 SD/Flux 이미지 생성 시도 (ComfyUI 사용)
+    if (input.generateImages && isSDModel(input.imageModel || DEFAULT_IMAGE_MODEL)) {
+      console.log('[DEV] Mock mode but SD model requested - attempting ComfyUI image generation');
+      try {
+        const imageModel = input.imageModel || DEFAULT_IMAGE_MODEL;
+        mockVersions = await Promise.all(
+          mockVersions.map(async (version) => {
+            const updatedSections = await Promise.all(
+              version.sections.map(async (section) => {
+                try {
+                  const generatedImage = await generateSectionImageWithGemini(
+                    section.type as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ',
+                    `${input.productName} ${section.title || ''} promotional image`,
+                    input.productName,
+                    input.category,
+                    imageModel,
+                    input.keyFeatures,
+                    input.targetAudience
+                  );
+                  if (generatedImage) {
+                    const uploadResult = await uploadGeneratedImage(generatedImage, {
+                      folder: 'triple-c/sections',
+                      sectionType: section.type,
+                    });
+                    return { ...section, imageUrl: uploadResult.url };
+                  }
+                } catch (imgErr) {
+                  console.error(`[DEV] Failed to generate image for ${section.type}:`, imgErr);
+                }
+                return section;
+              })
+            );
+            return { ...version, sections: updatedSections };
+          })
+        );
+        console.log('[DEV] SD image generation in mock mode completed');
+      } catch (err) {
+        console.error('[DEV] SD image generation failed:', err);
+      }
+    }
 
     // Mock 모드에서도 프롬프트 정보 포함 (개발자 참고용) - 생성 결과 포함
     if (includeDevPrompts && mockVersions.length > 0) {
@@ -600,73 +642,80 @@ export async function generateDetailPage(
           const imageModel = input.imageModel || DEFAULT_IMAGE_MODEL;
           console.log(`[AI] ★★★ Using Image Model: ${imageModel} ★★★`);
 
-          versions = await Promise.all(
-            versions.map(async (version) => {
-              const updatedSections = await Promise.all(
-                version.sections.map(async (section) => {
-                  const prompts = section.imagePrompts || (section.imagePrompt ? [section.imagePrompt] : []);
+          // ============================================
+          // 순차 생성: 이미지를 1장씩 순서대로 생성 (타임아웃 방지)
+          // ============================================
+          let totalGenerated = 0;
+          const totalSections = versions.reduce((sum, v) => sum + v.sections.length, 0);
 
-                  if (prompts.length === 0) {
-                    return section;
+          for (let versionIndex = 0; versionIndex < versions.length; versionIndex++) {
+            const version = versions[versionIndex];
+            const updatedSections: typeof version.sections = [];
+
+            for (let sectionIndex = 0; sectionIndex < version.sections.length; sectionIndex++) {
+              const section = version.sections[sectionIndex];
+              const prompts = section.imagePrompts || (section.imagePrompt ? [section.imagePrompt] : []);
+
+              if (prompts.length === 0) {
+                updatedSections.push(section);
+                continue;
+              }
+
+              const sectionType = section.type as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
+              totalGenerated++;
+              console.log(`[AI T2I] [${totalGenerated}/${totalSections}] Generating ${sectionType} section...`);
+
+              // 다중 이미지 생성: 모든 프롬프트에 대해 이미지 생성
+              const generatedImageUrls: string[] = [];
+
+              for (let i = 0; i < prompts.length; i++) {
+                const prompt = prompts[i];
+                const imagePrompt = prompt?.imagePrompt || '';
+
+                try {
+                  console.log(`[AI T2I] Generating ${sectionType} image ${i + 1}/${prompts.length}...`);
+
+                  const generatedImage = await generateSectionImageWithGemini(
+                    sectionType,
+                    imagePrompt,
+                    input.productName,
+                    input.category,
+                    imageModel,
+                    input.keyFeatures,
+                    input.targetAudience
+                  );
+
+                  if (generatedImage) {
+                    // Cloudinary에 업로드 (설정되어 있으면) 또는 base64 fallback
+                    const uploadResult = await uploadGeneratedImage(generatedImage, {
+                      folder: 'triple-c/sections',
+                      sectionType,
+                    });
+                    generatedImageUrls.push(uploadResult.url);
+                    console.log(`[AI T2I] ${sectionType} image ${i + 1} generated successfully`);
                   }
+                } catch (imageError) {
+                  console.error(`[AI T2I] ${sectionType} image ${i + 1} failed:`, imageError);
+                }
+              }
 
-                  const sectionType = section.type as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
-                  console.log(`[AI T2I] Generating ${sectionType} section (${prompts.length} images)...`);
-                  console.log(`[AI T2I] keyFeatures: ${input.keyFeatures?.slice(0, 2).join(', ')}, target: ${input.targetAudience}`);
+              // 생성된 이미지가 있으면 결과 반환
+              if (generatedImageUrls.length > 0) {
+                updatedSections.push({
+                  ...section,
+                  imageUrl: generatedImageUrls[0],           // 기존 호환성 (첫 번째 이미지)
+                  imageUrls: generatedImageUrls,             // 다중 이미지 배열
+                });
+              } else {
+                updatedSections.push(section);
+              }
+            }
 
-                  // 다중 이미지 생성: 모든 프롬프트에 대해 이미지 생성
-                  const generatedImageUrls: string[] = [];
-
-                  for (let i = 0; i < prompts.length; i++) {
-                    const prompt = prompts[i];
-                    const imagePrompt = prompt?.imagePrompt || '';
-
-                    try {
-                      console.log(`[AI T2I] Generating ${sectionType} image ${i + 1}/${prompts.length}...`);
-
-                      const generatedImage = await generateSectionImageWithGemini(
-                        sectionType,
-                        imagePrompt,
-                        input.productName,
-                        input.category,
-                        imageModel,
-                        input.keyFeatures,
-                        input.targetAudience
-                      );
-
-                      if (generatedImage) {
-                        // Cloudinary에 업로드 (설정되어 있으면) 또는 base64 fallback
-                        const uploadResult = await uploadGeneratedImage(generatedImage, {
-                          folder: 'triple-c/sections',
-                          sectionType,
-                        });
-                        generatedImageUrls.push(uploadResult.url);
-                        console.log(`[AI T2I] ${sectionType} image ${i + 1} generated successfully`);
-                      }
-                    } catch (imageError) {
-                      console.error(`[AI T2I] ${sectionType} image ${i + 1} failed:`, imageError);
-                    }
-                  }
-
-                  // 생성된 이미지가 있으면 결과 반환
-                  if (generatedImageUrls.length > 0) {
-                    return {
-                      ...section,
-                      imageUrl: generatedImageUrls[0],           // 기존 호환성 (첫 번째 이미지)
-                      imageUrls: generatedImageUrls,             // 다중 이미지 배열
-                    };
-                  }
-
-                  return section;
-                })
-              );
-
-              return {
-                ...version,
-                sections: updatedSections,
-              };
-            })
-          );
+            versions[versionIndex] = {
+              ...version,
+              sections: updatedSections,
+            };
+          }
 
           const totalImages = versions[0]?.sections.reduce((sum, s) => {
             return sum + (s.imageUrls?.length || (s.imageUrl ? 1 : 0));

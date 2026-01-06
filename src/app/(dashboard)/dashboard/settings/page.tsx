@@ -250,6 +250,66 @@ export default function SettingsPage() {
   // Language
   const [language, setLanguage] = useState('ko');
 
+  // AI Image Generator
+  const [imageGenerator, setImageGenerator] = useState<'auto' | 'gemini' | 'sdxl-base' | 'sd35-medium'>('auto');
+  const [comfyUIAvailable, setComfyUIAvailable] = useState(false);
+
+  // Translator
+  const [translator, setTranslator] = useState<'ollama' | 'gemini'>('ollama');
+  const [ollamaAvailable, setOllamaAvailable] = useState(false);
+
+  // Check ComfyUI availability
+  const checkComfyUIStatus = useCallback(async () => {
+    try {
+      const res = await fetch('/api/generate/image');
+      if (res.ok) {
+        const data = await res.json();
+        setComfyUIAvailable(data.generators?.['sdxl-base'] || data.generators?.['sd35-medium'] || false);
+      }
+    } catch {
+      setComfyUIAvailable(false);
+    }
+  }, []);
+
+  // Check Ollama availability
+  const checkOllamaStatus = useCallback(async () => {
+    try {
+      const res = await fetch('http://localhost:11434/api/tags');
+      setOllamaAvailable(res.ok);
+    } catch {
+      setOllamaAvailable(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkComfyUIStatus();
+    checkOllamaStatus();
+    // Load saved generator preference
+    const saved = localStorage.getItem('imageGenerator');
+    if (saved) setImageGenerator(saved as typeof imageGenerator);
+    // Load saved translator preference
+    const savedTranslator = localStorage.getItem('translator');
+    if (savedTranslator) setTranslator(savedTranslator as typeof translator);
+  }, [checkComfyUIStatus, checkOllamaStatus]);
+
+  const handleGeneratorChange = (value: typeof imageGenerator) => {
+    setImageGenerator(value);
+    localStorage.setItem('imageGenerator', value);
+    toast({
+      title: '설정 저장됨',
+      description: `이미지 생성기가 ${value === 'auto' ? '자동' : value === 'gemini' ? 'Gemini' : value === 'sdxl-base' ? 'SDXL Base' : 'SD 3.5'}으로 변경되었습니다.`,
+    });
+  };
+
+  const handleTranslatorChange = (value: typeof translator) => {
+    setTranslator(value);
+    localStorage.setItem('translator', value);
+    toast({
+      title: '설정 저장됨',
+      description: `번역기가 ${value === 'ollama' ? 'Ollama (로컬)' : 'Gemini (API)'}로 변경되었습니다.`,
+    });
+  };
+
   // Security
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -1031,6 +1091,181 @@ export default function SettingsPage() {
                           <SelectItem value="zh">中文</SelectItem>
                         </SelectContent>
                       </Select>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Zap className="h-5 w-5 text-primary" />
+                        AI 이미지 생성기
+                      </CardTitle>
+                      <CardDescription>이미지 생성에 사용할 AI 모델을 선택합니다.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className={cn(
+                          'h-2 w-2 rounded-full',
+                          comfyUIAvailable ? 'bg-green-500' : 'bg-red-500'
+                        )} />
+                        <span className="text-sm text-muted-foreground">
+                          로컬 ComfyUI: {comfyUIAvailable ? '연결됨' : '연결 안됨'}
+                        </span>
+                        <Button variant="ghost" size="sm" onClick={checkComfyUIStatus}>
+                          새로고침
+                        </Button>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 max-w-xl">
+                        {[
+                          {
+                            value: 'auto',
+                            label: '자동',
+                            description: 'ComfyUI 가능시 SDXL, 아니면 Gemini',
+                            icon: Zap,
+                          },
+                          {
+                            value: 'gemini',
+                            label: 'Gemini',
+                            description: 'Google Gemini API (클라우드)',
+                            icon: Sparkles,
+                          },
+                          {
+                            value: 'sdxl-base',
+                            label: 'SDXL Base',
+                            description: '로컬 ComfyUI (고품질, ~1-2분)',
+                            icon: Zap,
+                            requiresComfyUI: true,
+                          },
+                          {
+                            value: 'sd35-medium',
+                            label: 'SD 3.5 Medium',
+                            description: '로컬 ComfyUI (고품질, ~4-5분)',
+                            icon: Sparkles,
+                            requiresComfyUI: true,
+                          },
+                        ].map((gen) => (
+                          <motion.button
+                            key={gen.value}
+                            onClick={() => handleGeneratorChange(gen.value as typeof imageGenerator)}
+                            disabled={gen.requiresComfyUI && !comfyUIAvailable}
+                            whileHover={{ scale: gen.requiresComfyUI && !comfyUIAvailable ? 1 : 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className={cn(
+                              'relative flex flex-col items-start gap-2 p-4 rounded-xl border-2 transition-all text-left',
+                              imageGenerator === gen.value
+                                ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10'
+                                : 'border-border hover:border-primary/50',
+                              gen.requiresComfyUI && !comfyUIAvailable && 'opacity-50 cursor-not-allowed'
+                            )}
+                          >
+                            <div className="flex items-center gap-2">
+                              <gen.icon className="h-5 w-5 text-primary" />
+                              <span className="font-semibold">{gen.label}</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">{gen.description}</p>
+                            {imageGenerator === gen.value && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="absolute -top-1 -right-1 h-5 w-5 bg-primary rounded-full flex items-center justify-center"
+                              >
+                                <Check className="h-3 w-3 text-primary-foreground" />
+                              </motion.div>
+                            )}
+                          </motion.button>
+                        ))}
+                      </div>
+
+                      {!comfyUIAvailable && (
+                        <p className="text-sm text-muted-foreground mt-4">
+                          로컬 모델을 사용하려면 ComfyUI와 함께 실행하세요:<br />
+                          <code className="text-xs bg-muted px-2 py-1 rounded">
+                            npm run dev:all
+                          </code>
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Globe className="h-5 w-5 text-primary" />
+                        한→영 번역기
+                      </CardTitle>
+                      <CardDescription>로컬 이미지 생성 시 한글을 영어로 번역하는 방식을 선택합니다.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className={cn(
+                          'h-2 w-2 rounded-full',
+                          ollamaAvailable ? 'bg-green-500' : 'bg-red-500'
+                        )} />
+                        <span className="text-sm text-muted-foreground">
+                          Ollama: {ollamaAvailable ? '연결됨' : '연결 안됨'}
+                        </span>
+                        <Button variant="ghost" size="sm" onClick={checkOllamaStatus}>
+                          새로고침
+                        </Button>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 max-w-xl">
+                        {[
+                          {
+                            value: 'ollama',
+                            label: 'Ollama (로컬)',
+                            description: '무료 / 무제한 / Qwen3:8b',
+                            icon: Zap,
+                            requiresOllama: true,
+                          },
+                          {
+                            value: 'gemini',
+                            label: 'Gemini (API)',
+                            description: '빠름 / API 비용 발생',
+                            icon: Sparkles,
+                          },
+                        ].map((trans) => (
+                          <motion.button
+                            key={trans.value}
+                            onClick={() => handleTranslatorChange(trans.value as typeof translator)}
+                            disabled={trans.requiresOllama && !ollamaAvailable}
+                            whileHover={{ scale: trans.requiresOllama && !ollamaAvailable ? 1 : 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className={cn(
+                              'relative flex flex-col items-start gap-2 p-4 rounded-xl border-2 transition-all text-left',
+                              translator === trans.value
+                                ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10'
+                                : 'border-border hover:border-primary/50',
+                              trans.requiresOllama && !ollamaAvailable && 'opacity-50 cursor-not-allowed'
+                            )}
+                          >
+                            <div className="flex items-center gap-2">
+                              <trans.icon className="h-5 w-5 text-primary" />
+                              <span className="font-semibold">{trans.label}</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">{trans.description}</p>
+                            {translator === trans.value && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="absolute -top-1 -right-1 h-5 w-5 bg-primary rounded-full flex items-center justify-center"
+                              >
+                                <Check className="h-3 w-3 text-primary-foreground" />
+                              </motion.div>
+                            )}
+                          </motion.button>
+                        ))}
+                      </div>
+
+                      {!ollamaAvailable && (
+                        <p className="text-sm text-muted-foreground mt-4">
+                          Ollama를 사용하려면 먼저 실행하세요:<br />
+                          <code className="text-xs bg-muted px-2 py-1 rounded">
+                            ollama serve
+                          </code>
+                        </p>
+                      )}
                     </CardContent>
                   </Card>
                 </motion.div>

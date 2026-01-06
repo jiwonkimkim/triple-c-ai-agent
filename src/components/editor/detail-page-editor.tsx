@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { useEditorStore, type Section, type EditorBlock } from '@/stores/editor-store';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { useToast } from '@/hooks/use-toast';
+import { useSectionRegeneration } from '@/hooks/use-section-regeneration';
 import { EditorToolbar } from './editor-toolbar';
 import { EditorSection } from './editor-section';
 import { Button } from '@/components/ui/button';
@@ -67,6 +68,12 @@ interface DetailPageEditorProps {
   versionId?: string;
   initialSections?: Section[];
   onSaveSuccess?: () => void;
+  // 재생성에 필요한 프로젝트 정보
+  productName?: string;
+  category?: string;
+  keyFeatures?: string[];
+  targetAudience?: string;
+  imageModel?: string;
 }
 
 const previewWidths = {
@@ -80,11 +87,20 @@ export function DetailPageEditor({
   versionId,
   initialSections,
   onSaveSuccess,
+  productName,
+  category,
+  keyFeatures,
+  targetAudience,
+  imageModel,
 }: DetailPageEditorProps) {
   const { toast } = useToast();
   const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [regeneratingBlockId, setRegeneratingBlockId] = useState<string | null>(null);
+
+  // 섹션별 이미지 재생성 hook
+  const { isRegenerating, regenerateSectionImage } = useSectionRegeneration();
 
   // AI Chat state
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -570,6 +586,47 @@ export function DetailPageEditor({
     [sections.length, reorderSections]
   );
 
+  // 블록 이미지 재생성 핸들러
+  const handleRegenerateBlock = useCallback(
+    async (blockId: string, sectionId: string, sectionType: 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ', selectedModel: string) => {
+      if (!productName || !category || !versionId) {
+        toast({
+          variant: 'destructive',
+          title: '재생성 불가',
+          description: '프로젝트 정보가 부족합니다. 설정에서 제품 정보를 입력해주세요.',
+        });
+        return;
+      }
+
+      setRegeneratingBlockId(blockId);
+
+      try {
+        const newImageUrl = await regenerateSectionImage({
+          projectId,
+          versionId,
+          sectionId,
+          sectionType,
+          productName,
+          category,
+          keyFeatures,
+          targetAudience,
+          imageModel: selectedModel, // 선택한 모델 사용
+        });
+
+        if (newImageUrl) {
+          // 해당 블록의 이미지 URL 업데이트
+          const section = sections.find(s => s.blocks.some(b => b.id === blockId));
+          if (section) {
+            updateBlock(section.id, blockId, { src: newImageUrl });
+          }
+        }
+      } finally {
+        setRegeneratingBlockId(null);
+      }
+    },
+    [projectId, versionId, productName, category, keyFeatures, targetAudience, sections, updateBlock, regenerateSectionImage, toast]
+  );
+
   const handleExport = useCallback(
     async (format: 'html' | 'json') => {
       try {
@@ -1024,6 +1081,18 @@ export function DetailPageEditor({
                             onUpdateBlock={(blockId, updates) => updateBlock(section.id, blockId, updates)}
                             onDeleteBlock={(blockId) => deleteBlock(section.id, blockId)}
                             onReorderBlocks={(start, end) => reorderBlocks(section.id, start, end)}
+                            // 재생성 관련 props
+                            regenerationContext={productName && category && versionId ? {
+                              projectId,
+                              versionId,
+                              productName,
+                              category,
+                              keyFeatures,
+                              targetAudience,
+                              imageModel,
+                            } : undefined}
+                            regeneratingBlockId={regeneratingBlockId}
+                            onRegenerateBlock={(blockId, sectionType, selectedModel) => handleRegenerateBlock(blockId, section.id, sectionType, selectedModel)}
                           />
                           {/* 각 섹션 아래 섹션 추가 버튼 - MAIN 섹션 바로 아래는 숨김 */}
                           {!isMain && (

@@ -19,8 +19,8 @@ interface RegenerateDialogProps {
   onOpenChange: (open: boolean) => void;
   project: ProjectData | undefined;
   isRegenerating: boolean;
-  selectedModel: 'gemini-2.5-flash-image' | 'gemini-3-pro-image-preview';
-  onModelChange: (model: 'gemini-2.5-flash-image' | 'gemini-3-pro-image-preview') => void;
+  selectedModel: 'sd35-medium' | 'sdxl-base';
+  onModelChange: (model: 'sd35-medium' | 'sdxl-base') => void;
   onRegenerate: () => void;
 }
 
@@ -78,7 +78,7 @@ export function RegenerateDialog({
                     value={option.value}
                     checked={selectedModel === option.value}
                     onChange={(e) =>
-                      onModelChange(e.target.value as 'gemini-2.5-flash-image' | 'gemini-3-pro-image-preview')
+                      onModelChange(e.target.value as 'sd35-medium' | 'sdxl-base')
                     }
                     className="sr-only"
                   />

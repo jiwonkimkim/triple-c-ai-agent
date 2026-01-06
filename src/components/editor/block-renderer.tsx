@@ -10,7 +10,7 @@ import {
   ListBlock,
   QuoteBlock,
 } from './blocks';
-import { ImageOverlayBlockRenderer } from './image-overlay-block';
+import { ImageOverlayBlockRenderer, type SectionRegenerationContext } from './image-overlay-block';
 import type { EditorBlock, ImageOverlayBlock as ImageOverlayBlockType } from '@/stores/editor-store';
 
 interface BlockRendererProps {
@@ -19,9 +19,22 @@ interface BlockRendererProps {
   isMain?: boolean;  // MAIN 섹션 여부 - 1:1 비율 적용
   onSelect: () => void;
   onUpdate: (updates: Partial<EditorBlock>) => void;
+  // 재생성 관련 props (선택적)
+  regenerationContext?: SectionRegenerationContext;
+  isRegenerating?: boolean;
+  onRegenerate?: (selectedModel: string) => void;
 }
 
-export function BlockRenderer({ block, isSelected, isMain = false, onSelect, onUpdate }: BlockRendererProps) {
+export function BlockRenderer({
+  block,
+  isSelected,
+  isMain = false,
+  onSelect,
+  onUpdate,
+  regenerationContext,
+  isRegenerating,
+  onRegenerate,
+}: BlockRendererProps) {
   switch (block.type) {
     case 'heading':
       return (
@@ -61,6 +74,9 @@ export function BlockRenderer({ block, isSelected, isMain = false, onSelect, onU
           isMain={isMain}
           onSelect={onSelect}
           onUpdate={onUpdate}
+          regenerationContext={regenerationContext}
+          isRegenerating={isRegenerating}
+          onRegenerate={onRegenerate}
         />
       );
 
@@ -122,3 +138,6 @@ export function BlockRenderer({ block, isSelected, isMain = false, onSelect, onU
       );
   }
 }
+
+// Re-export for convenience
+export type { SectionRegenerationContext };

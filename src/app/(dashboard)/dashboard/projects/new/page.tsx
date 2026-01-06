@@ -34,8 +34,8 @@ const copyLengthOptions = [
 ];
 
 const imageModelOptions = [
-  { value: 'gemini-2.5-flash-image', label: '기본 (Flash)', description: '빠른 이미지 생성' },
-  { value: 'gemini-3-pro-image-preview', label: '프로 (Pro)', description: '고품질 이미지 생성' },
+  { value: 'sd35-medium', label: 'SD 3.5 Medium', description: '로컬 고품질 생성 (~4-5분)' },
+  { value: 'sdxl-base', label: 'SDXL Base', description: '로컬 고품질 생성 (~1-2분)' },
 ];
 
 // 개발 모드 확인
@@ -59,7 +59,7 @@ const TEST_DATA_LIST = [
       targetAudience: '20-35세 뷰티에 관심있는 여성',
       copyLength: 'medium' as const,
       productUrl: '',
-      imageModel: 'gemini-2.5-flash-image' as const,
+      imageModel: 'sd35-medium' as const,
     },
   },
   {
@@ -79,7 +79,7 @@ const TEST_DATA_LIST = [
       targetAudience: '25-45세 피부 톤 개선을 원하는 여성',
       copyLength: 'medium' as const,
       productUrl: '',
-      imageModel: 'gemini-2.5-flash-image' as const,
+      imageModel: 'sd35-medium' as const,
     },
   },
   {
@@ -99,7 +99,7 @@ const TEST_DATA_LIST = [
       targetAudience: '건성/민감성 피부를 가진 20-50대',
       copyLength: 'long' as const,
       productUrl: '',
-      imageModel: 'gemini-2.5-flash-image' as const,
+      imageModel: 'sd35-medium' as const,
     },
   },
   {
@@ -119,7 +119,7 @@ const TEST_DATA_LIST = [
       targetAudience: '자외선 차단에 관심있는 모든 연령대',
       copyLength: 'short' as const,
       productUrl: '',
-      imageModel: 'gemini-2.5-flash-image' as const,
+      imageModel: 'sd35-medium' as const,
     },
   },
   {
@@ -139,7 +139,7 @@ const TEST_DATA_LIST = [
       targetAudience: '메이크업을 자주 하는 20-40대 여성',
       copyLength: 'medium' as const,
       productUrl: '',
-      imageModel: 'gemini-2.5-flash-image' as const,
+      imageModel: 'sd35-medium' as const,
     },
   },
 ];
@@ -167,7 +167,7 @@ export default function NewProjectPage() {
     targetAudience: string;
     copyLength: 'short' | 'medium' | 'long';
     productUrl: string;
-    imageModel: 'gemini-2.5-flash-image' | 'gemini-3-pro-image-preview';
+    imageModel: 'sd35-medium' | 'sdxl-base';
   }>({
     productName: '',
     category: '',
@@ -175,7 +175,7 @@ export default function NewProjectPage() {
     targetAudience: '',
     copyLength: 'medium',
     productUrl: '',
-    imageModel: 'gemini-2.5-flash-image',
+    imageModel: 'sd35-medium',
   });
 
   const {
@@ -810,7 +810,7 @@ export default function NewProjectPage() {
                         onChange={(e) =>
                           setProductInfo((prev) => ({
                             ...prev,
-                            imageModel: e.target.value as 'gemini-2.5-flash-image' | 'gemini-3-pro-image-preview',
+                            imageModel: e.target.value as 'sd35-medium' | 'sdxl-base',
                           }))
                         }
                         className="sr-only"

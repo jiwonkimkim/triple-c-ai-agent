@@ -1,4 +1,14 @@
 import { GoogleGenAI } from '@google/genai';
+import {
+  getComfyUIService,
+  ModelType,
+  buildPrompt,
+  buildPromptAsync,
+  getModelBuilder,
+  isLocalModel,
+  type SectionType,
+  type PromptInput,
+} from '@/lib/services/comfyui';
 
 // Singleton Gemini client
 let geminiClient: GoogleGenAI | null = null;
@@ -17,18 +27,26 @@ function getGeminiClient(): GoogleGenAI {
   return geminiClient;
 }
 
-// Gemini 이미지 생성 지원 모델
-// - gemini-2.5-flash-image: Image-to-Image 지원 (Nano Banana), 빠른 속도, 1024px
-// - gemini-3-pro-image-preview: Image-to-Image 지원 (Nano Banana Pro), 고품질, 4K
-// - gemini-2.0-flash-exp: Text/Vision 모델 (Image-to-Image 미지원)
+// 이미지 생성 지원 모델
+// - sd35-medium: ComfyUI 로컬 SD 3.5 Medium (~4-5분)
+// - sdxl-base: ComfyUI 로컬 SDXL Base (~1-2분)
+// - gemini-2.5-flash-image: Gemini Image-to-Image (클라우드)
 export type GeminiImageModel =
+  | 'sd35-medium'
+  | 'sdxl-base'
   | 'gemini-2.0-flash-exp'
   | 'gemini-2.5-flash-preview-05-20'
   | 'gemini-2.5-flash-image'
   | 'gemini-3-pro-image-preview';
 
-// Image-to-Image를 지원하는 모델 (기본값으로 사용)
-export const DEFAULT_IMAGE_MODEL: GeminiImageModel = 'gemini-2.5-flash-image';
+// SD/Flux 모델인지 확인 (로컬 모델)
+// 레지스트리의 isLocalModel과 동일, 하위 호환성 유지
+export function isSDModel(model: GeminiImageModel): boolean {
+  return isLocalModel(model);
+}
+
+// 기본 모델: SD 3.5 Medium (로컬, ~4-5분/이미지)
+export const DEFAULT_IMAGE_MODEL: GeminiImageModel = 'sd35-medium';
 export type ImageAspectRatio = '1:1' | '16:9' | '9:16' | '4:3' | '3:4';
 
 export interface GeminiGenerateImageOptions {
@@ -53,9 +71,14 @@ export async function generateImageWithGemini(
 ): Promise<GeminiGeneratedImage[]> {
   const {
     prompt,
-    model = 'gemini-2.5-flash-image',
+    model = DEFAULT_IMAGE_MODEL,
     aspectRatio,
   } = options;
+
+  // SD 모델이면 ComfyUI로 라우팅
+  if (isSDModel(model)) {
+    return generateImageWithComfyUI(prompt, model as 'sd35-medium' | 'sdxl-base', aspectRatio);
+  }
 
   const client = getGeminiClient();
   const results: GeminiGeneratedImage[] = [];
@@ -103,6 +126,93 @@ export async function generateImageWithGemini(
     return results;
   } catch (error) {
     console.error('[Gemini] Image generation error:', error);
+    throw error;
+  }
+}
+
+// ComfyUI를 통한 SD/SDXL 이미지 생성
+async function generateImageWithComfyUI(
+  prompt: string,
+  model: 'sd35-medium' | 'sdxl-base',
+  aspectRatio?: ImageAspectRatio,
+  negativePrompt?: string
+): Promise<GeminiGeneratedImage[]> {
+  const comfyui = getComfyUIService();
+
+  // 비율에 따른 크기 계산
+  let width = 1024;
+  let height = 1024;
+  if (aspectRatio === '16:9') {
+    width = 1024;
+    height = 576;
+  } else if (aspectRatio === '9:16') {
+    width = 576;
+    height = 1024;
+  } else if (aspectRatio === '4:3') {
+    width = 1024;
+    height = 768;
+  } else if (aspectRatio === '3:4') {
+    width = 768;
+    height = 1024;
+  }
+
+  // SDXL은 25 steps/cfg 7, SD 3.5는 20 steps/cfg 4.5
+  const steps = model === 'sdxl-base' ? 25 : 20;
+  const cfg = model === 'sdxl-base' ? 7 : 4.5;
+
+  // 네거티브 프롬프트: 전달된 값 사용, 없으면 기본값
+  const finalNegativePrompt = negativePrompt || 'text, typography, letters, watermark, blurry, low quality, distorted, deformed';
+
+  console.log(`[ComfyUI] Generating image with model: ${model}, size: ${width}x${height}`);
+  console.log(`[ComfyUI] Prompt: ${prompt.substring(0, 150)}...`);
+  if (finalNegativePrompt) {
+    console.log(`[ComfyUI] Negative: ${finalNegativePrompt.substring(0, 80)}...`);
+  }
+
+  try {
+    const isAvailable = await comfyui.isAvailable();
+    if (!isAvailable) {
+      throw new Error('ComfyUI 서버가 실행 중이지 않습니다.');
+    }
+
+    const result = await comfyui.generate({
+      prompt,
+      negativePrompt: finalNegativePrompt,
+      width,
+      height,
+      steps,
+      cfg,
+      model: model as ModelType,
+    });
+
+    if (!result.success || !result.imageUrl) {
+      throw new Error(result.error || '이미지 생성 실패');
+    }
+
+    console.log(`[ComfyUI] Image generated successfully, time: ${result.executionTime}ms`);
+
+    // imageUrl이 base64 data URL이면 추출, 아니면 URL 그대로 반환
+    if (result.imageUrl.startsWith('data:')) {
+      const matches = result.imageUrl.match(/^data:([^;]+);base64,(.+)$/);
+      if (matches) {
+        return [{
+          base64Data: matches[2],
+          mimeType: matches[1],
+        }];
+      }
+    }
+
+    // URL인 경우 fetch해서 base64로 변환
+    const response = await fetch(result.imageUrl);
+    const buffer = await response.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString('base64');
+
+    return [{
+      base64Data: base64,
+      mimeType: 'image/png',
+    }];
+  } catch (error) {
+    console.error('[ComfyUI] Image generation error:', error);
     throw error;
   }
 }
@@ -332,6 +442,7 @@ function extractIngredientObjects(productName: string, category: string): string
  * 섹션 타입별 Text-to-Image 생성
  * - MAIN: 1:1 정사각형, 제품 정보 기반 맞춤 오브제 포함
  * - 나머지: 자유 비율
+ * - SD 모델: 전용 프롬프트 시스템 사용
  */
 export async function generateSectionImageWithGemini(
   sectionType: 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ',
@@ -345,6 +456,48 @@ export async function generateSectionImageWithGemini(
   // MAIN 섹션은 1:1, 나머지는 자유 비율
   const aspectRatio: ImageAspectRatio | undefined = sectionType === 'MAIN' ? '1:1' : undefined;
 
+  // ========================================
+  // 로컬 모델 (SD/Flux): 레지스트리 기반 프롬프트 시스템
+  // ========================================
+  if (isLocalModel(model)) {
+    console.log(`[Local T2I] Generating ${sectionType} with ${model} optimized prompt`);
+
+    // 프롬프트 입력 구성
+    const promptInput: PromptInput = {
+      sectionType: sectionType as SectionType,
+      productName,
+      category,
+      background: 'neutral',
+      keyFeatures,
+      includeHuman: false,
+    };
+
+    // 레지스트리에서 모델 빌더 가져와서 프롬프트 생성 (한글 번역 포함)
+    const prompt = await buildPromptAsync(model, promptInput);
+
+    console.log(`[Local T2I] Model: ${model}`);
+    console.log(`[Local T2I] Positive: ${prompt.positive.substring(0, 150)}...`);
+    if (prompt.negative) {
+      console.log(`[Local T2I] Negative: ${prompt.negative.substring(0, 80)}...`);
+    }
+
+    const images = await generateImageWithComfyUI(
+      prompt.positive,
+      model as 'sd35-medium' | 'sdxl-base',
+      aspectRatio,
+      prompt.negative
+    );
+
+    if (images.length === 0) {
+      throw new Error(`No image generated for ${sectionType}`);
+    }
+
+    return images[0];
+  }
+
+  // ========================================
+  // Gemini 모델: 기존 로직 유지
+  // ========================================
   // MAIN 섹션에 제품 정보 기반 맞춤 오브제 추가
   let enhancedPrompt = imagePrompt;
   if (sectionType === 'MAIN' && !imagePrompt.toLowerCase().includes('decorative')) {
