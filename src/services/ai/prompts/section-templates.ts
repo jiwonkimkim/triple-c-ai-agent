@@ -391,6 +391,73 @@ Horizontal stripe swatch showing:
 NO text in image.`,
         suggestedImageCount: 5,
         overlayTextGuide: '각 블록: #21 내추럴베이지 / 보통 피부톤에 추천 / 자연스러운 피부 표현',
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'shade-13-ivory',
+            prompt: `[ONE IMAGE = ONE SHADE: #13 아이보리]
+Foundation/Cushion SHADE #13 IVORY swatch only.
+Korean female model's inner forearm with #13 Ivory shade swatch.
+LIGHTEST shade - for very fair, porcelain skin tones.
+Single horizontal stripe swatch showing true ivory/pink undertone color.
+Clean cream background. Korean beauty swatch aesthetic.
+Soft daylight lighting. Natural healthy skin.
+ONLY #13 shade. NO other shades. NO text in image.`,
+            overlayGuide: '#13 아이보리 / 밝은 피부 / 핑크 언더톤',
+          },
+          {
+            index: 1,
+            conceptType: 'shade-17-light-beige',
+            prompt: `[ONE IMAGE = ONE SHADE: #17 라이트베이지]
+Foundation/Cushion SHADE #17 LIGHT BEIGE swatch only.
+Korean female model's inner forearm with #17 Light Beige shade swatch.
+LIGHT shade - for fair to light skin tones.
+Single horizontal stripe swatch showing light beige with neutral undertone.
+Clean cream background. Korean beauty swatch aesthetic.
+Soft daylight lighting. Natural healthy skin.
+ONLY #17 shade. NO other shades. NO text in image.`,
+            overlayGuide: '#17 라이트베이지 / 밝은~보통 피부 / 뉴트럴 톤',
+          },
+          {
+            index: 2,
+            conceptType: 'shade-21-natural-beige',
+            prompt: `[ONE IMAGE = ONE SHADE: #21 내추럴베이지 - 베스트셀러]
+Foundation/Cushion SHADE #21 NATURAL BEIGE swatch only.
+Korean female model's inner forearm with #21 Natural Beige shade swatch.
+BESTSELLER shade - most popular for medium skin tones.
+Single horizontal stripe swatch showing natural beige, "your skin but better".
+Clean cream background. Korean beauty swatch aesthetic.
+Soft daylight lighting. Natural healthy skin.
+ONLY #21 shade. NO other shades. NO text in image.`,
+            overlayGuide: '#21 내추럴베이지 / 보통 피부 / 베스트셀러',
+          },
+          {
+            index: 3,
+            conceptType: 'shade-23-medium-beige',
+            prompt: `[ONE IMAGE = ONE SHADE: #23 미디엄베이지]
+Foundation/Cushion SHADE #23 MEDIUM BEIGE swatch only.
+Korean female model's inner forearm with #23 Medium Beige shade swatch.
+MEDIUM shade - for medium to tan skin tones.
+Single horizontal stripe swatch showing warm medium beige color.
+Clean cream background. Korean beauty swatch aesthetic.
+Soft daylight lighting. Natural healthy skin.
+ONLY #23 shade. NO other shades. NO text in image.`,
+            overlayGuide: '#23 미디엄베이지 / 보통~어두운 피부 / 웜톤',
+          },
+          {
+            index: 4,
+            conceptType: 'shade-25-warm-beige',
+            prompt: `[ONE IMAGE = ONE SHADE: #25 웜베이지]
+Foundation/Cushion SHADE #25 WARM BEIGE swatch only.
+Korean female model's inner forearm with #25 Warm Beige shade swatch.
+DEEP shade - for tan to deep skin tones.
+Single horizontal stripe swatch showing warm, golden beige color.
+Clean cream background. Korean beauty swatch aesthetic.
+Soft daylight lighting. Natural healthy skin.
+ONLY #25 shade. NO other shades. NO text in image.`,
+            overlayGuide: '#25 웜베이지 / 어두운 피부 / 골든 언더톤',
+          },
+        ],
       },
       {
         categoryKeywords: ['립', '틴트', '립스틱', '립글로스'],
@@ -625,6 +692,84 @@ NO text in image.`,
         suggestedImageCount: 4,
         overlayTextGuide: 'SPF50+ PA++++ / 무백탁 포뮬러 / 자연스러운 톤업',
       },
+      {
+        categoryKeywords: ['마스크팩', '시트마스크', '마스크', '팩', '패치'],
+        imagePrompt: `[★ CRITICAL: ONE IMAGE = ONE BENEFIT - 이 이미지는 단 하나의 효능만 보여줍니다]
+
+Mask Pack BENEFIT block images for Korean beauty detail page.
+
+[SINGLE FOCUS RULE]
+- This image shows ONLY ONE benefit type
+- Do NOT combine multiple benefits in one image
+- Each benefit gets its own separate image block
+
+[COMPOSITION]
+- Clean white/cream/soft blue background
+- Text space at side 30% OR bottom 25%
+- Single benefit focus per image
+
+[STYLE]
+- Korean sheet mask detail page aesthetic
+- Fresh, hydrating, spa-like feeling
+- Clinical yet beautiful
+- Professional beauty photography
+
+[KEYWORDS: 보습, 진정, 탄력, 광채, 피부결 개선, 수분 폭탄]
+
+CRITICAL: ONE benefit only. NO combining multiple benefits. NO text in image.`,
+        suggestedImageCount: 4,
+        overlayTextGuide: '각 블록: 집중 보습 / 피부 진정 / 탄력 부스팅 / 환한 광채',
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'hydration',
+            prompt: `[ONE IMAGE = ONE BENEFIT: 보습]
+Mask Pack HYDRATION benefit visualization only.
+Water droplets, dewy moisture concept on skin.
+Sheet mask essence dripping with hydration.
+Fresh, water-filled, moisturizing feeling.
+Clean white/blue background. Korean mask pack aesthetic.
+ONLY hydration benefit. NO calming. NO brightening. NO text.`,
+            overlayGuide: '집중 보습 / 수분 폭탄 마스크',
+          },
+          {
+            index: 1,
+            conceptType: 'calming',
+            prompt: `[ONE IMAGE = ONE BENEFIT: 진정]
+Mask Pack CALMING benefit visualization only.
+Soothing, cooling sensation concept.
+Green/mint tones, centella/aloe imagery.
+Calm, relieved, sensitive skin-friendly feeling.
+Soft green/white background. Korean mask pack aesthetic.
+ONLY calming benefit. NO hydration. NO brightening. NO text.`,
+            overlayGuide: '피부 진정 / 민감 피부도 OK',
+          },
+          {
+            index: 2,
+            conceptType: 'firming',
+            prompt: `[ONE IMAGE = ONE BENEFIT: 탄력]
+Mask Pack FIRMING benefit visualization only.
+Lifted, firm, bouncy skin concept.
+Elastic, youthful skin texture.
+Anti-aging, collagen boost feeling.
+Cream/gold background. Korean mask pack aesthetic.
+ONLY firming benefit. NO hydration. NO calming. NO text.`,
+            overlayGuide: '탄력 부스팅 / 탱탱한 피부',
+          },
+          {
+            index: 3,
+            conceptType: 'brightening',
+            prompt: `[ONE IMAGE = ONE BENEFIT: 광채]
+Mask Pack BRIGHTENING benefit visualization only.
+Glowing, radiant, luminous skin concept.
+Light reflecting off healthy bright skin.
+Vitamin C or niacinamide glow feeling.
+Bright white/yellow background. Korean mask pack aesthetic.
+ONLY brightening benefit. NO hydration. NO firming. NO text.`,
+            overlayGuide: '환한 광채 / 칙칙함 케어',
+          },
+        ],
+      },
     ],
   },
 
@@ -696,6 +841,59 @@ NO text in image.`,
         imagePrompt: `Foundation/cushion texture close-up. Product spread showing coverage and finish. On skin or neutral surface. Show blendability. Korean beauty base makeup aesthetic. No text in image.`,
         suggestedImageCount: 2,
         overlayTextGuide: '제형 특징 (예: "자연스러운 피부 표현", "가벼운 밀착력")',
+      },
+      {
+        categoryKeywords: ['마스크팩', '시트마스크', '마스크', '팩', '패치'],
+        imagePrompt: `[★ CRITICAL: ONE IMAGE = ONE TEXTURE TYPE - 이 이미지는 단 하나의 텍스처만 보여줍니다]
+
+Mask Pack TEXTURE close-up for Korean beauty detail page.
+
+[SINGLE FOCUS RULE]
+- This image shows ONLY ONE texture aspect
+- Do NOT combine sheet and essence in same focus
+- Each texture type gets its own separate image block
+
+[STYLE]
+- Korean sheet mask texture aesthetic
+- Fresh, hydrating, luxurious feeling
+- Close-up macro photography
+- No text in image
+
+CRITICAL: ONE texture type only. NO combining multiple aspects. NO text.`,
+        suggestedImageCount: 2,
+        overlayTextGuide: '시트 재질 / 에센스 점도',
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'sheet-material',
+            prompt: `[ONE IMAGE = ONE TEXTURE: 시트 재질]
+Mask Pack SHEET MATERIAL texture only.
+Close-up of sheet mask fabric texture:
+- Microfiber: ultra-fine, soft, skin-like
+- Hydrogel: transparent, jiggly, cooling
+- Cotton: natural, breathable weave
+- Tencel: smooth, biodegradable feel
+Sheet material clearly visible, luxurious quality.
+Clean white background. Korean mask pack aesthetic.
+ONLY sheet texture. NO essence. NO face. NO text.`,
+            overlayGuide: '마이크로파이버 시트 / 피부 밀착',
+          },
+          {
+            index: 1,
+            conceptType: 'essence-texture',
+            prompt: `[ONE IMAGE = ONE TEXTURE: 에센스 점도]
+Mask Pack ESSENCE texture only.
+Essence dripping from sheet mask showing viscosity:
+- Watery: light, quick absorption
+- Gel: medium, bouncy texture
+- Creamy: rich, nourishing consistency
+- Milky: soft, gentle formula
+Essence texture clearly visible, luxurious amount.
+Clean white/blue background. Korean mask pack aesthetic.
+ONLY essence texture. NO sheet material focus. NO text.`,
+            overlayGuide: '고농축 에센스 / 촉촉한 보습',
+          },
+        ],
       },
     ],
   },
@@ -1091,6 +1289,61 @@ ONLY tone-up comparison. NO white cast test. NO text.`,
           },
         ],
       },
+      {
+        categoryKeywords: ['마스크팩', '시트마스크', '마스크', '팩', '패치'],
+        imagePrompt: `[★ CRITICAL: ONE IMAGE = ONE COMPARISON TYPE - 이 이미지는 단 하나의 비교 타입만 보여줍니다]
+
+Mask Pack BEFORE-AFTER result for Korean beauty detail page.
+
+[SINGLE FOCUS RULE]
+- This image shows ONLY ONE before-after comparison
+- Do NOT combine multiple skin benefits in one image
+- Each comparison concept gets its own separate image block
+
+[COMPOSITION]
+- Korean model skin close-up
+- Split screen or side-by-side
+- Cream/white/soft blue background
+- Bottom 25% for result statistics text
+
+[STYLE]
+- Korean mask pack result aesthetic
+- Spa-like, fresh, hydrated
+- Believable improvement
+- Professional dermatology documentation style
+
+[KEYWORDS: 수분, 진정, 탄력, 광채, 피부결 개선]
+
+CRITICAL: ONE comparison type only. NO combining multiple results. NO text in image.`,
+        suggestedImageCount: 2,
+        overlayTextGuide: 'BEFORE → AFTER / 15분 사용 결과 / 수분량 150% 증가 / 피부 진정 효과',
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'hydration-result',
+            prompt: `[ONE IMAGE = ONE COMPARISON: 수분 비포애프터]
+Mask Pack HYDRATION BEFORE-AFTER comparison only.
+BEFORE (LEFT): Dry, dull, dehydrated skin
+AFTER (RIGHT): Plump, dewy, hydrated skin
+Same Korean model cheek close-up. Consistent lighting.
+Clear moisture improvement visible. Cream/white background.
+ONLY hydration result. NO firming. NO brightening. NO text.`,
+            overlayGuide: '수분량 150% 증가 / 촉촉한 피부로',
+          },
+          {
+            index: 1,
+            conceptType: 'glow-result',
+            prompt: `[ONE IMAGE = ONE COMPARISON: 광채 비포애프터]
+Mask Pack GLOW BEFORE-AFTER comparison only.
+BEFORE (LEFT): Dull, tired, lackluster skin
+AFTER (RIGHT): Glowing, radiant, luminous skin
+Same Korean model face. Light reflecting off healthy skin.
+Clear brightening improvement. Cream/white background.
+ONLY glow result. NO hydration. NO firming. NO text.`,
+            overlayGuide: '환한 광채 피부 / 칙칙함 개선',
+          },
+        ],
+      },
     ],
   },
 
@@ -1425,6 +1678,67 @@ ONLY outdoor vibe. NO studio close-up. NO text.`,
           },
         ],
       },
+      {
+        categoryKeywords: ['마스크팩', '시트마스크', '마스크', '팩', '패치'],
+        imagePrompt: `[★ CRITICAL: ONE IMAGE = ONE SHOT TYPE - 이 이미지는 단 하나의 샷 타입만 보여줍니다]
+
+Korean female model MASK PACK beauty shot for detail page.
+
+[SINGLE FOCUS RULE]
+- This image shows ONLY ONE shot type
+- Do NOT combine wearing and result shots
+- Each shot concept gets its own separate image block
+
+[MODEL]
+- Korean female, 20s-30s
+- Sheet mask on face (wearing shot) OR
+- Glowing skin after removal (result shot)
+- Relaxed, spa-like expression
+
+[COMPOSITION]
+- Soft white/blue/cream background
+- Text space at side 25% OR bottom 20%
+- Spa-like, relaxing atmosphere
+
+[STYLE]
+- Korean sheet mask brand aesthetic
+- Self-care, pampering feeling
+- Soft, calming lighting
+- Fresh, hydrated appearance
+
+[KEYWORDS: 셀프케어, 수분충전, 릴렉싱, 광채]
+
+CRITICAL: ONE shot type only. NO combining multiple concepts. NO text.`,
+        suggestedImageCount: 2,
+        overlayTextGuide: '마스크 착용샷 / 사용 후 광채 피부',
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'wearing-shot',
+            prompt: `[ONE IMAGE = ONE SHOT: 마스크 착용]
+Korean female model MASK WEARING shot only.
+Model with sheet mask on face, relaxed expression.
+Eyes closed or looking at camera through mask.
+Self-care, spa moment, pampering feeling.
+Clean soft blue/white background. Calming atmosphere.
+Korean mask pack brand aesthetic.
+ONLY wearing shot. NO bare face. NO result shot. NO text.`,
+            overlayGuide: '셀프케어 타임 / 집에서 스파처럼',
+          },
+          {
+            index: 1,
+            conceptType: 'result-shot',
+            prompt: `[ONE IMAGE = ONE SHOT: 사용 후 결과]
+Korean female model AFTER MASK RESULT shot only.
+Model with bare face after mask removal.
+Glowing, dewy, hydrated skin visible.
+Satisfied, refreshed expression. Glass skin appearance.
+Soft cream background. Korean mask pack aesthetic.
+ONLY result shot. NO mask wearing. NO application. NO text.`,
+            overlayGuide: '사용 후 촉촉 광채 피부',
+          },
+        ],
+      },
     ],
   },
 
@@ -1666,6 +1980,62 @@ ONLY outdoor vibe. NO studio close-up. NO text.`,
 - No text in image`,
         suggestedImageCount: 4,
         overlayTextGuide: '각 이미지에 특징 표기: 완벽 커버력, 24시간 지속력, 촉촉 광채 피부표현, 무결점 피부 등',
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'coverage',
+            prompt: `[ONE IMAGE = ONE BENEFIT: 커버력]
+Foundation/Cushion COVERAGE demonstration only.
+Korean female model face showing BEFORE-AFTER coverage concept.
+LEFT/BEFORE: Visible skin imperfections (redness, dark spots, blemishes)
+RIGHT/AFTER: Same area with flawless coverage, skin looks even
+Split-face or side-by-side comparison. Natural believable coverage.
+Clean beige background. Korean base makeup aesthetic.
+ONLY coverage demonstration. NO longevity test. NO finish showcase. NO text.`,
+            overlayGuide: '완벽 커버력 / 결점 커버',
+          },
+          {
+            index: 1,
+            conceptType: 'longevity',
+            prompt: `[ONE IMAGE = ONE BENEFIT: 지속력]
+Foundation/Cushion LONGEVITY demonstration only.
+Time-comparison concept: Morning application vs. Evening (8-12 hours later).
+Korean female model face showing makeup still fresh after hours of wear.
+No cakey texture, no separation, no creasing. Fresh finish maintained.
+Subtle clock/time visual element in corner (optional).
+Clean beige background. Korean base makeup aesthetic.
+ONLY longevity demonstration. NO coverage test. NO finish showcase. NO text.`,
+            overlayGuide: '24시간 지속력 / 무너짐 없이',
+          },
+          {
+            index: 2,
+            conceptType: 'skin-finish',
+            prompt: `[ONE IMAGE = ONE BENEFIT: 피부 표현]
+Foundation/Cushion SKIN FINISH showcase only.
+Korean female model cheek close-up showing finish type clearly.
+Choose ONE finish to demonstrate:
+- DEWY: Light reflecting off cheekbones, healthy glowing sheen
+- SEMI-MATTE: Natural skin-like finish, "your skin but better"
+- MATTE: Poreless smooth appearance, oil-controlled
+Macro skin photography showing texture quality.
+Clean beige background. Korean base makeup aesthetic.
+ONLY skin finish showcase. NO coverage test. NO longevity test. NO text.`,
+            overlayGuide: '촉촉 광채 피부표현 / 자연스러운 마무리',
+          },
+          {
+            index: 3,
+            conceptType: 'lightweight',
+            prompt: `[ONE IMAGE = ONE BENEFIT: 가벼운 착용감]
+Foundation/Cushion LIGHTWEIGHT FEEL visualization only.
+Korean female model face showing comfortable, breathable makeup wear.
+Visual metaphor: feather near skin, or airy light feeling concept.
+Thin, natural layer visible - not cakey or heavy looking.
+Side-profile or 3/4 angle showing natural, comfortable appearance.
+Clean beige background. Korean base makeup aesthetic.
+ONLY lightweight feel concept. NO coverage. NO longevity. NO text.`,
+            overlayGuide: '무결점 피부 / 가벼운 착용감',
+          },
+        ],
       },
       {
         categoryKeywords: ['립', '틴트', '립스틱', '립글로스'],
@@ -1710,6 +2080,61 @@ ONLY outdoor vibe. NO studio close-up. NO text.`,
 - No text in image`,
         suggestedImageCount: 4,
         overlayTextGuide: '각 이미지에 성분/효과 표기: 무화과 추출물 함유, 히알루론산 보습, 벨벳 텍스처, 립케어 효과 등',
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'color-ingredient',
+            prompt: `[ONE IMAGE = ONE CONCEPT: 컬러 성분]
+Lip product COLOR INGREDIENT visualization only.
+Fresh fruit or flower matching shade name (fig, cherry, rose, peach, berry).
+Artistic arrangement: sliced fruit/flower petals + lip product swatch.
+Matching colors between ingredient and product. Fresh, appetizing feeling.
+Soft pink/coral background. Korean lip product aesthetic.
+ONLY color ingredient visual. NO texture. NO lip care. NO text.`,
+            overlayGuide: '무화과 추출물 함유 / 자연 유래 컬러',
+          },
+          {
+            index: 1,
+            conceptType: 'moisturizing-ingredient',
+            prompt: `[ONE IMAGE = ONE CONCEPT: 보습 성분]
+Lip product MOISTURIZING INGREDIENT visualization only.
+Key moisturizing ingredient visual:
+- Hyaluronic acid: water droplets, hydration splash concept
+- Shea butter: creamy butter texture swirl
+- Vitamin E: golden oil drops, nourishing
+Ingredient near lip product or small lip swatch.
+Soft pink background. Korean lip product aesthetic.
+ONLY moisturizing ingredient. NO texture. NO color concept. NO text.`,
+            overlayGuide: '히알루론산 보습 / 촉촉한 입술 케어',
+          },
+          {
+            index: 2,
+            conceptType: 'texture-closeup',
+            prompt: `[ONE IMAGE = ONE CONCEPT: 텍스처]
+Lip product TEXTURE close-up only.
+Macro shot of lip product texture clearly showing finish type:
+- GLOSSY: Mirror-like shine, light reflection, wet look
+- VELVET: Soft-focus, plush, cushiony texture
+- MATTE: Smooth, powdery, sophisticated finish
+Product smear on glass or bullet close-up showing texture.
+Soft pink background. Korean lip product aesthetic.
+ONLY texture showcase. NO ingredients. NO lip care. NO text.`,
+            overlayGuide: '벨벳 텍스처 / 부드러운 발림성',
+          },
+          {
+            index: 3,
+            conceptType: 'lip-care-benefit',
+            prompt: `[ONE IMAGE = ONE CONCEPT: 립케어 효과]
+Lip product LIP CARE BENEFIT visualization only.
+Before-after showing lip improvement:
+- BEFORE: Dry, chapped lips
+- AFTER: Nourished, plump, healthy lips
+Or: Plumping effect visualization with glossy, full lips.
+Korean model lips close-up. Pink/nude background.
+ONLY lip care benefit. NO color ingredient. NO texture. NO text.`,
+            overlayGuide: '립케어 효과 / 건조함 케어',
+          },
+        ],
       },
       {
         categoryKeywords: ['스킨케어', '세럼', '에센스', '크림', '토너', '앰플'],
@@ -1751,6 +2176,69 @@ ONLY outdoor vibe. NO studio close-up. NO text.`,
 - No text in image`,
         suggestedImageCount: 4,
         overlayTextGuide: '각 이미지에 성분명 + 효능: 히알루론산 5중 복합체, 비타민C 10% 고농축, 병풀 추출물 진정 효과 등',
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'hero-ingredient',
+            prompt: `[ONE IMAGE = ONE CONCEPT: 히어로 성분]
+Skincare HERO INGREDIENT visualization only.
+Main active ingredient beautifully visualized:
+- Hyaluronic acid: water droplets, hydration splash
+- Vitamin C: fresh citrus slices, bright yellow/orange
+- CICA/Centella: green cica leaves, calming
+- Niacinamide: clean, bright, scientific vial
+- Retinol: golden serum drops, anti-aging luxury
+Ingredient arranged with product bottle or serum drops.
+Clean white/soft blue background. Korean skincare aesthetic.
+ONLY hero ingredient. NO texture. NO concentration. NO text.`,
+            overlayGuide: '히알루론산 5중 복합체 / 핵심 성분',
+          },
+          {
+            index: 1,
+            conceptType: 'texture-showcase',
+            prompt: `[ONE IMAGE = ONE CONCEPT: 텍스처 쇼케이스]
+Skincare TEXTURE showcase only.
+Product texture on glass petri dish or skin surface.
+Consistency clearly visible:
+- GEL: Clear, jiggly, fresh
+- CREAM: Rich, smooth swirl
+- WATER: Light, flowing droplets
+- OIL: Golden, glossy drops
+Scientific yet beautiful presentation.
+Clean white background. Korean skincare aesthetic.
+ONLY texture showcase. NO ingredient visual. NO results. NO text.`,
+            overlayGuide: '가벼운 워터 텍스처 / 빠른 흡수',
+          },
+          {
+            index: 2,
+            conceptType: 'concentration-potency',
+            prompt: `[ONE IMAGE = ONE CONCEPT: 고농축 성분]
+Skincare CONCENTRATION/POTENCY visualization only.
+High concentration concept:
+- Percentage visual metaphor (10%, 15%, 20% feeling)
+- Dropper releasing concentrated serum drops
+- Potent, effective, clinical yet premium feeling
+- Dense, concentrated formula visualization
+Scientific vial or dropper close-up.
+Clean white/blue background. Korean skincare aesthetic.
+ONLY concentration concept. NO ingredient. NO result. NO text.`,
+            overlayGuide: '비타민C 10% 고농축 / 고함량 처방',
+          },
+          {
+            index: 3,
+            conceptType: 'skin-benefit-result',
+            prompt: `[ONE IMAGE = ONE CONCEPT: 피부 결과]
+Skincare SKIN BENEFIT RESULT visualization only.
+Before-after skin improvement:
+- BEFORE: Dull, tired, problematic skin
+- AFTER: Glowing, hydrated, clear skin
+Or abstract healthy skin texture close-up.
+Korean model skin or artistic skin representation.
+Cream/white background. Korean skincare aesthetic.
+ONLY skin result. NO ingredients. NO texture. NO text.`,
+            overlayGuide: '사용 후 환한 피부 / 눈에 보이는 효과',
+          },
+        ],
       },
       {
         categoryKeywords: ['선케어', '선크림', '자외선'],
@@ -1783,6 +2271,48 @@ ONLY outdoor vibe. NO studio close-up. NO text.`,
 - No text in image`,
         suggestedImageCount: 3,
         overlayTextGuide: '각 이미지에 특징: SPF50+ PA++++ 자외선 차단, 무백탁 톤업, 워터프루프 등',
+        indexedPrompts: [
+          {
+            index: 0,
+            conceptType: 'uv-protection',
+            prompt: `[ONE IMAGE = ONE CONCEPT: 자외선 차단]
+Suncare UV PROTECTION visualization only.
+UV ray concept with protective barrier/shield visual.
+Sun rays being blocked by invisible shield metaphor.
+Scientific diagram feel but beautiful and approachable.
+Clean skin protected from UV, healthy appearance.
+Bright sunny yellow/white background. Korean suncare aesthetic.
+ONLY UV protection concept. NO texture. NO water resistance. NO text.`,
+            overlayGuide: 'SPF50+ PA++++ / 강력한 자외선 차단',
+          },
+          {
+            index: 1,
+            conceptType: 'texture-finish',
+            prompt: `[ONE IMAGE = ONE CONCEPT: 텍스처 & 피니쉬]
+Suncare TEXTURE and FINISH demonstration only.
+Product swatch on Korean model arm or face showing:
+- No white cast: natural skin tone visible
+- Tone-up effect: subtle brightening
+- Lightweight, non-greasy finish
+Texture spreading smoothly on skin.
+Bright white/cream background. Korean suncare aesthetic.
+ONLY texture/finish. NO UV protection. NO water test. NO text.`,
+            overlayGuide: '무백탁 포뮬러 / 자연스러운 톤업',
+          },
+          {
+            index: 2,
+            conceptType: 'water-resistance',
+            prompt: `[ONE IMAGE = ONE CONCEPT: 내수성/지속력]
+Suncare WATER/SWEAT RESISTANCE demonstration only.
+Water droplets beading on skin with sunscreen applied.
+Active outdoor feeling, product staying intact.
+Fresh, protective, confident mood.
+Or sweat-proof demonstration during activity.
+Bright sunny background. Korean suncare aesthetic.
+ONLY water resistance. NO UV concept. NO texture test. NO text.`,
+            overlayGuide: '워터프루프 / 물과 땀에 강한',
+          },
+        ],
       },
     ],
   },
