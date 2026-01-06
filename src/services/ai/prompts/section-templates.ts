@@ -2874,3 +2874,227 @@ export function getMaxImageCount(sectionType: ExtendedSectionType): number {
   const template = SECTION_TEMPLATES[sectionType];
   return template?.maxImageCount ?? 1;
 }
+
+// ============================================
+// 섹션별 다양한 배경색 시스템 연동
+// ============================================
+
+import {
+  type PaletteTheme,
+  type ColorPalette,
+  COLOR_PALETTES,
+  SECTION_BACKGROUND_ROLES,
+  ROLE_TO_PALETTE_INDEX,
+  autoSelectPalette,
+  buildPaletteHarmonyPrompt,
+} from './section-color-palette';
+
+/**
+ * 섹션별 다양한 배경색을 포함한 향상된 이미지 프롬프트 빌드
+ *
+ * @param template 섹션 템플릿
+ * @param productName 제품명
+ * @param palette 색상 팔레트
+ * @param sectionIndex 전체 상세페이지에서 해당 섹션의 순서 (다양성 확보용)
+ * @param contextOrMaterial 추가 컨텍스트 (성분, 사용 상황 등)
+ */
+export function buildSectionPromptWithPalette(
+  template: SectionTemplate,
+  productName: string,
+  palette: ColorPalette,
+  sectionIndex: number = 0,
+  contextOrMaterial?: string
+): string {
+  // 섹션 역할에 맞는 배경색 선택
+  const role = SECTION_BACKGROUND_ROLES[template.type];
+  const colorIndices = ROLE_TO_PALETTE_INDEX[role];
+  const selectedIndex = colorIndices[sectionIndex % colorIndices.length];
+  const selectedColor = palette.colors[selectedIndex];
+
+  // 기본 템플릿 프롬프트 가져오기
+  let prompt = template.imagePromptTemplate;
+
+  // 플레이스홀더 치환
+  prompt = prompt.replace(/{product}/g, productName);
+  prompt = prompt.replace(/{background}/g, selectedColor.promptDescription);
+
+  if (contextOrMaterial) {
+    prompt = prompt.replace(/{material}/g, contextOrMaterial);
+    prompt = prompt.replace(/{context}/g, contextOrMaterial);
+  } else {
+    prompt = prompt.replace(/{material}/g, 'premium quality');
+    prompt = prompt.replace(/{context}/g, 'modern living');
+  }
+
+  // 팔레트 조화 정보 추가
+  const harmonyNote = `
+
+[SECTION BACKGROUND: ${selectedColor.promptDescription}]
+[PALETTE HARMONY: ${palette.name}]
+This image is part of a cohesive ${palette.name} detail page.
+Use background: ${selectedColor.promptDescription} (${selectedColor.hex})
+Mood keywords: ${palette.moodKeywords.join(', ')}
+
+IMPORTANT: This section uses a DIFFERENT background than other sections, but all backgrounds belong to the same harmonious ${palette.name} palette for visual cohesion.
+`;
+
+  return prompt + harmonyNote;
+}
+
+/**
+ * 카테고리 특화 프롬프트에 팔레트 적용
+ */
+export function buildCategoryPromptWithPalette(
+  sectionType: ExtendedSectionType,
+  category: string,
+  productName: string,
+  palette: ColorPalette,
+  sectionIndex: number = 0
+): { prompt: string; suggestedImageCount: number; overlayTextGuide?: string; backgroundColor: string } {
+  const template = SECTION_TEMPLATES[sectionType];
+  const categorySpecific = getCategorySpecificPrompt(sectionType, category);
+
+  // 섹션 역할에 맞는 배경색 선택
+  const role = SECTION_BACKGROUND_ROLES[sectionType];
+  const colorIndices = ROLE_TO_PALETTE_INDEX[role];
+  const selectedIndex = colorIndices[sectionIndex % colorIndices.length];
+  const selectedColor = palette.colors[selectedIndex];
+
+  if (categorySpecific) {
+    // 카테고리 특화 프롬프트 사용
+    let prompt = categorySpecific.imagePrompt;
+    prompt = prompt.replace(/{product}/g, productName);
+    prompt = prompt.replace(/{background}/g, selectedColor.promptDescription);
+
+    // 팔레트 조화 정보 추가
+    prompt += `
+
+[SECTION BACKGROUND: ${selectedColor.promptDescription}]
+[PALETTE: ${palette.name}]
+Background color for this section: ${selectedColor.hex}
+Maintain visual harmony with the overall ${palette.name} palette.
+`;
+
+    return {
+      prompt,
+      suggestedImageCount: categorySpecific.suggestedImageCount,
+      overlayTextGuide: categorySpecific.overlayTextGuide,
+      backgroundColor: selectedColor.hex,
+    };
+  }
+
+  // 기본 프롬프트 사용
+  const prompt = buildSectionPromptWithPalette(template, productName, palette, sectionIndex);
+  return {
+    prompt,
+    suggestedImageCount: template.multiImage ? template.maxImageCount : 1,
+    overlayTextGuide: undefined,
+    backgroundColor: selectedColor.hex,
+  };
+}
+
+/**
+ * 전체 상세페이지용 섹션별 배경색 맵 생성
+ * 각 섹션에 다른 배경색을 할당하되 팔레트 내에서 조화롭게
+ */
+export function generatePageBackgroundMap(
+  sections: ExtendedSectionType[],
+  paletteTheme: PaletteTheme
+): Map<ExtendedSectionType, { hex: string; prompt: string; role: string }> {
+  const palette = COLOR_PALETTES[paletteTheme];
+  const result = new Map<ExtendedSectionType, { hex: string; prompt: string; role: string }>();
+
+  // 역할별 사용 카운터 (같은 역할이라도 다른 색상 사용)
+  const roleUsageCount: Record<string, number> = {};
+
+  for (const section of sections) {
+    const role = SECTION_BACKGROUND_ROLES[section];
+    if (!roleUsageCount[role]) roleUsageCount[role] = 0;
+
+    const colorIndices = ROLE_TO_PALETTE_INDEX[role];
+    const usageIndex = roleUsageCount[role];
+    const selectedIndex = colorIndices[usageIndex % colorIndices.length];
+    const selectedColor = palette.colors[selectedIndex];
+
+    result.set(section, {
+      hex: selectedColor.hex,
+      prompt: selectedColor.promptDescription,
+      role,
+    });
+
+    roleUsageCount[role]++;
+  }
+
+  return result;
+}
+
+/**
+ * 전체 상세페이지 생성용 마스터 프롬프트 빌드
+ * 모든 섹션에 대해 조화로운 배경색 배분
+ */
+export function buildDetailPageMasterPrompt(
+  category: string,
+  productName: string,
+  sections: ExtendedSectionType[],
+  paletteTheme?: PaletteTheme
+): {
+  paletteTheme: PaletteTheme;
+  palette: ColorPalette;
+  harmonyPrompt: string;
+  sectionPrompts: Map<ExtendedSectionType, {
+    prompt: string;
+    backgroundColor: string;
+    suggestedImageCount: number;
+  }>;
+} {
+  // 팔레트 자동 선택 또는 지정된 팔레트 사용
+  const selectedPaletteTheme = paletteTheme || autoSelectPalette(category, productName);
+  const palette = COLOR_PALETTES[selectedPaletteTheme];
+
+  // 전체 페이지 조화 프롬프트
+  const harmonyPrompt = buildPaletteHarmonyPrompt(palette);
+
+  // 섹션별 프롬프트 생성
+  const sectionPrompts = new Map<ExtendedSectionType, {
+    prompt: string;
+    backgroundColor: string;
+    suggestedImageCount: number;
+  }>();
+
+  sections.forEach((sectionType, index) => {
+    const result = buildCategoryPromptWithPalette(
+      sectionType,
+      category,
+      productName,
+      palette,
+      index
+    );
+
+    sectionPrompts.set(sectionType, {
+      prompt: result.prompt,
+      backgroundColor: result.backgroundColor,
+      suggestedImageCount: result.suggestedImageCount,
+    });
+  });
+
+  return {
+    paletteTheme: selectedPaletteTheme,
+    palette,
+    harmonyPrompt,
+    sectionPrompts,
+  };
+}
+
+/**
+ * 팔레트 가져오기 헬퍼
+ */
+export function getPalette(paletteTheme: PaletteTheme): ColorPalette {
+  return COLOR_PALETTES[paletteTheme];
+}
+
+/**
+ * 카테고리에서 추천 팔레트 가져오기
+ */
+export function getRecommendedPalette(category: string, productName?: string): PaletteTheme {
+  return autoSelectPalette(category, productName);
+}
