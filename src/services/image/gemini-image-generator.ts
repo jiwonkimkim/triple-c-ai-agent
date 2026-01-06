@@ -830,31 +830,36 @@ export async function generateSectionImageFromProduct(
       ? `Emphasize: ${keyFeatures[0]}`
       : 'Highlight product quality';
 
-    mainPrompt = `Create a premium e-commerce thumbnail for "${productName}".
+    mainPrompt = `Create a KOREAN E-COMMERCE DETAIL PAGE THUMBNAIL for "${productName}".
 
 USE THE PROVIDED PRODUCT IMAGE as reference - include this exact product in the new composition.
 
-[VISUAL STYLE]
-High-end beauty campaign aesthetic, editorial magazine quality, aspirational luxury feel.
-Clean minimalist background with soft gradient that complements the product colors.
+[KOREAN DETAIL PAGE STYLE - 올리브영/쿠팡 스타일]
+- Premium beauty product thumbnail style (한국 뷰티 상세페이지)
+- Clean, bright, aspirational aesthetic that Korean consumers love
+- Magazine editorial meets e-commerce quality
+- Soft gradient background complementing product colors
 
 [CREATIVE COMPOSITION]
-Design a fresh, visually striking thumbnail featuring the provided product.
-- Product as the hero (40-50% of frame), can be angled or styled creatively
-- Arrange with decorative objects: ${ingredientObjects.join(', ')}
-- Add atmospheric elements: ${moodSelection.selected.join(', ')}
-- Create depth with layered composition (foreground, product, background)
+Design a visually striking thumbnail featuring the provided product.
+- Product as HERO (50-60% of frame), sharp focus, eye-catching
+- Product placement: CENTER or slightly UPPER-CENTER
+- Decorative objects (15-20%): ${ingredientObjects.join(', ')}
+- Atmospheric elements (10-15%): ${moodSelection.selected.join(', ')}
+- Create depth with layered composition (foreground → product → background)
+- Leave CLEAN SPACE at top (20%) for text overlay (slogan area)
 
 [STYLING DIRECTION]
 Target aesthetic: ${audienceStyle}
 ${featureHighlight}
+Korean beauty trend: 글로우, 투명감, 프리미엄
 
 [TECHNICAL REQUIREMENTS]
-- Soft, diffused lighting with gentle highlights and shadows
-- Shallow depth of field with bokeh background
+- Soft, diffused studio lighting with gentle rim light
+- Shallow depth of field, soft bokeh background
 - Rich, vibrant colors with professional color grading
-- Premium commercial photography that triggers desire to purchase
-- Fresh, modern e-commerce thumbnail style`;
+- Premium commercial photography that triggers purchase desire
+- 8K resolution, photorealistic, no text in image`;
   }
 
   // 섹션별 스타일 프롬프트 - 제품 이미지를 참조하여 각각 다른 구성 생성
@@ -862,55 +867,64 @@ ${featureHighlight}
   const sectionPrompts: Record<string, string> = {
     MAIN: mainPrompt,
 
-    HERO: `Create a dramatic hero shot using the provided product as reference.
-[UNIQUE COMPOSITION - HERO STYLE]
-- Product placement: UPPER CENTER of frame (30-40% from top)
+    HERO: `Create KOREAN E-COMMERCE HERO IMAGE using the provided product as reference.
+[KOREAN DETAIL PAGE - HERO STYLE 히어로 섹션]
+- Product placement: UPPER CENTER (30-40% from top)
 - Product size: LARGE, commanding presence (55-65% of frame)
 - Angle: FRONT-FACING with subtle 10-degree tilt
-- Background: Dramatic gradient from dark top to light bottom
+- Background: Dramatic gradient (soft cream to white, Korean beauty style)
 - Lighting: Strong rim lighting from behind, soft fill from front
-- Add elegant bokeh lights in background for depth
-Luxury beauty brand aesthetic.${keyFeatures ? ` Emphasize: ${keyFeatures[0]}` : ''}`,
+- Add elegant bokeh lights for depth (Korean 광채 feel)
+- Space for brand name and slogan at TOP and BOTTOM
+Premium Korean beauty brand aesthetic, 올리브영 스타일.${keyFeatures ? ` Emphasize: ${keyFeatures[0]}` : ''}
+8K, photorealistic, no text in image.`,
 
-    FEATURES: `Create a feature highlight image using the provided product as reference.
-[UNIQUE COMPOSITION - FEATURES STYLE]
-- Product placement: LEFT SIDE of frame (positioned at 25-35% from left)
-- Product size: MEDIUM (35-45% of frame), leaving space for feature visualization
-- Angle: 45-DEGREE ANGLE showing product details
-- Background: Clean white/cream gradient
-- Add floating ingredient particles or icons on the RIGHT side
+    FEATURES: `Create KOREAN E-COMMERCE FEATURES IMAGE using the provided product as reference.
+[KOREAN DETAIL PAGE - FEATURES STYLE 특징 섹션]
+- Product placement: LEFT SIDE (25-35% from left)
+- Product size: MEDIUM (35-45% of frame)
+- Angle: 45-DEGREE showing product details
+- Background: Clean white/cream gradient (Korean clean aesthetic)
+- RIGHT SIDE: Large clean space for feature icons and text overlay
 - Show product texture/quality details clearly
-Modern, clean aesthetic.${keyFeatures ? ` Feature focus: ${keyFeatures.slice(0, 2).join(', ')}` : ''}`,
+- Add subtle ingredient visualization near product
+Modern, clean Korean beauty aesthetic.${keyFeatures ? ` Feature: ${keyFeatures.slice(0, 2).join(', ')}` : ''}
+8K, photorealistic, no text in image.`,
 
-    SOCIAL_PROOF: `Create a testimonial/review style image using the provided product as reference.
-[UNIQUE COMPOSITION - SOCIAL PROOF STYLE]
-- Product placement: BOTTOM RIGHT corner (positioned at 65-75% from left, 60-70% from top)
-- Product size: SMALLER, humble presence (25-35% of frame)
+    SOCIAL_PROOF: `Create KOREAN E-COMMERCE SOCIAL PROOF IMAGE using the provided product as reference.
+[KOREAN DETAIL PAGE - SOCIAL PROOF STYLE 후기/리뷰 섹션]
+- Product placement: BOTTOM RIGHT (65-75% from left, 60-70% from top)
+- Product size: SMALLER (25-35% of frame)
 - Angle: SLIGHT TOP-DOWN view (15-20 degrees)
-- Background: Warm, inviting neutral tones with soft vignette
-- Large empty space in upper-left for quote/testimonial overlay
-- Soft, natural lighting that feels authentic
-Professional, trustworthy aesthetic.${targetAudience ? ` Target: ${targetAudience}` : ''}`,
+- Background: Warm, inviting neutral tones (Korean 신뢰감)
+- UPPER-LEFT: Large empty space for testimonial/statistics overlay
+- Soft, natural lighting that feels authentic and trustworthy
+Professional, trustworthy Korean e-commerce aesthetic.${targetAudience ? ` Target: ${targetAudience}` : ''}
+8K, photorealistic, no text in image.`,
 
-    HOW_TO_USE: `Create a how-to-use tutorial image using the provided product as reference.
-[UNIQUE COMPOSITION - HOW TO USE STYLE]
-- Product placement: CENTER-RIGHT (positioned at 55-65% from left)
+    HOW_TO_USE: `Create KOREAN E-COMMERCE HOW-TO-USE IMAGE using the provided product as reference.
+[KOREAN DETAIL PAGE - HOW TO USE STYLE 사용법 섹션]
+- Product placement: CENTER-RIGHT (55-65% from left)
 - Product size: MEDIUM-LARGE (40-50% of frame)
 - Angle: SIDE PROFILE view showing application angle
-- Background: Bright, clean white with subtle shadows
-- Show hands or application context nearby (suggested, not holding product)
-- Bright, clinical yet friendly lighting
-Clean instructional composition.`,
+- Background: Bright, clean white (clinical yet friendly)
+- Suggest hands or application context (not holding, nearby)
+- Bright, even lighting for clear instructional purpose
+- LEFT SIDE: Space for step-by-step text overlay (STEP 1, 2, 3)
+Clean Korean beauty tutorial aesthetic.
+8K, photorealistic, no text in image.`,
 
-    FAQ: `Create a product information image using the provided product as reference.
-[UNIQUE COMPOSITION - FAQ STYLE]
-- Product placement: LOWER CENTER (positioned at 50% from left, 55-65% from top)
+    FAQ: `Create KOREAN E-COMMERCE FAQ/INFO IMAGE using the provided product as reference.
+[KOREAN DETAIL PAGE - FAQ STYLE 정보 섹션]
+- Product placement: LOWER CENTER (50% from left, 55-65% from top)
 - Product size: MEDIUM (35-45% of frame)
 - Angle: STRAIGHT-ON front view for clear identification
-- Background: Simple gradient with space for Q&A text at top
+- Background: Simple gradient with large space for Q&A at top
 - Professional, informative studio lighting
-- Clean, minimal styling with no distracting elements
-Professional showcase style.`,
+- Clean, minimal styling (Korean 미니멀)
+- TOP AREA: Large clean space for FAQ text overlay
+Professional Korean e-commerce showcase style.
+8K, photorealistic, no text in image.`,
   };
 
   const basePrompt = sectionPrompts[sectionType] || sectionPrompts['HERO'];

@@ -1191,23 +1191,162 @@ NO text in image.`,
   SPECS: {
     type: 'SPECS',
     name: '사양 다이어그램',
-    purpose: '제품 크기, 치수, 상세 사양 시각화',
+    purpose: '제품 크기, 치수, 상세 사양을 시각적으로 명확하게 전달 - 구매 결정에 필요한 정보 제공',
     recommendedLayout: 'split-left',
-    imagePromptTemplate: `technical product diagram of {product}, product shown from optimal angle to display dimensions, clean {background} background, dimension indicator lines and arrows pointing to key measurements, technical drawing style with clean aesthetics, space for size labels and measurements, professional product specification diagram, detail page specs section`,
-    requiredVisuals: ['product-angle', 'dimension-lines', 'measurement-labels'],
-    optionalVisuals: ['scale-reference', 'cutaway-view'],
+    imagePromptTemplate: `Premium PRODUCT SPECIFICATIONS photography for Korean e-commerce detail page.
+
+[COMPOSITION - Technical Yet Beautiful]
+- "{product}" displayed at optimal angle showing full dimensions
+- Clean {background} gradient background (light gray to white)
+- Product positioned with breathing room for measurement annotations
+- Clear visual hierarchy: Product as hero, specs as supporting info
+
+[LAYOUT FOR SPECS OVERLAY - Korean Detail Page Style]
+- LEFT 40%: Product image, slightly angled to show depth
+- RIGHT 60%: Large clean space for specification table
+- Clean horizontal divider line between product and specs area
+- Grid-ready layout for measurement data
+
+[VISUAL SPEC ELEMENTS - Space for Overlay]
+- Subtle dotted/dashed indicator lines pointing to key dimensions
+- Small arrow heads at measurement points
+- Clean measurement label areas (height, width, depth, weight)
+- Comparison size reference area (vs. hand, vs. common object)
+
+[PRODUCT ANGLES]
+- Main angle: 3/4 view showing length, width, depth
+- Optional inset: Top-down view for footprint size
+- Optional inset: Side profile for height
+
+[STYLE]
+- Technical drawing meets premium product photography
+- Clean, professional, trustworthy aesthetic
+- Korean beauty/tech detail page specification style
+- Minimalist with purposeful measurement indicators
+
+[QUALITY]
+- 8K resolution, sharp product details visible
+- Even studio lighting, no harsh shadows
+- Clean edges for dimension line overlay
+- No text in image - measurements added as overlay`,
+    requiredVisuals: ['product-multi-angle', 'dimension-indicator-space', 'measurement-areas', 'clean-background'],
+    optionalVisuals: ['scale-reference', 'cutaway-view', 'comparison-object', 'top-view-inset'],
     textOverlay: {
       headline: true,
       subheadline: false,
       body: false,
-      bullets: false,
+      bullets: true,
       numbers: true,
-      icons: false,
+      icons: true,
     },
     generateImage: true,
     defaultOrder: 2,
     multiImage: false,
     maxImageCount: 1,
+    categorySpecificPrompts: [
+      {
+        categoryKeywords: ['스킨케어', '세럼', '에센스', '크림', '토너', '앰플'],
+        imagePrompt: `Skincare SPECS photography for Korean beauty detail page.
+
+[PRODUCT DISPLAY]
+- "{product}" bottle/jar/tube displayed elegantly
+- Show product volume indicator (ml/g)
+- Clean minimal background with soft gradient
+
+[SPEC VISUALIZATION AREAS]
+- Height: Product standing upright, vertical measurement space
+- Width: Horizontal measurement at widest point
+- Net Content: ml/g indicator area near product
+- Comparison: Small hand silhouette for size reference
+
+[SKINCARE-SPECIFIC INFO AREAS]
+- Usage period indication (개월 분량)
+- Daily usage amount visualization
+- Dropper/pump dispense amount area
+
+[STYLE]
+- Clean, clinical yet luxurious
+- Trustworthy specification aesthetic
+- Korean skincare detail page style
+
+[QUALITY]
+- 8K, product details crisp and clear
+- No text - all specs as overlay`,
+        suggestedImageCount: 1,
+        overlayTextGuide: `제품 사양:
+- 용량: 50ml / 30ml
+- 크기: 높이 OOcm x 가로 OOcm
+- 사용 기간: 약 2개월 분량
+- 1회 사용량: 스포이드 1회 (약 0.5ml)`,
+      },
+      {
+        categoryKeywords: ['립', '틴트', '립스틱', '립글로스'],
+        imagePrompt: `Lip product SPECS photography for Korean beauty detail page.
+
+[PRODUCT DISPLAY]
+- "{product}" displayed both closed and open
+- Show applicator tip detail
+- Clean minimal background
+
+[SPEC VISUALIZATION]
+- Closed product dimensions
+- Open product showing applicator length
+- Applicator tip close-up for texture reference
+
+[LIP-SPECIFIC INFO AREAS]
+- Total product weight
+- Net content (g/ml)
+- Applicator type indicator
+
+[STYLE]
+- Feminine yet informative
+- Korean lip product detail page aesthetic
+
+[QUALITY]
+- 8K, applicator details visible
+- No text in image`,
+        suggestedImageCount: 1,
+        overlayTextGuide: `제품 사양:
+- 용량: 3.5g
+- 크기: 높이 OOcm
+- 어플리케이터: 퍼지팁/도우풋
+- 발림성: 부드러움`,
+      },
+      {
+        categoryKeywords: ['쿠션', '파운데이션', '베이스메이크업', '팩트'],
+        imagePrompt: `Cushion/Foundation SPECS photography for Korean beauty detail page.
+
+[PRODUCT DISPLAY]
+- "{product}" compact shown closed and open
+- Puff/applicator displayed alongside
+- Refill compatibility indicator area
+
+[SPEC VISUALIZATION]
+- Compact dimensions (closed)
+- Mirror size when open
+- Puff dimensions
+
+[CUSHION-SPECIFIC INFO AREAS]
+- Net content (g)
+- SPF/PA indicator area
+- Shade range indicator
+- Refill availability
+
+[STYLE]
+- Premium compact product aesthetic
+- Korean cushion detail page style
+
+[QUALITY]
+- 8K, compact details crisp
+- No text in image`,
+        suggestedImageCount: 1,
+        overlayTextGuide: `제품 사양:
+- 용량: 본품 15g + 리필 15g
+- 크기: 직경 OOcm x 높이 OOcm
+- SPF50+ PA++++
+- 리필 구매 가능`,
+      },
+    ],
   },
 
   MATERIAL: {
@@ -2173,23 +2312,142 @@ A. 밀착력이 좋아 묻어남이 적습니다.`,
   INFO_TABLE: {
     type: 'INFO_TABLE',
     name: '제품 정보표',
-    purpose: '상세 제품 정보, 규격, 제조사 정보 등',
+    purpose: '법적 필수 정보, 제조사, 성분, 사용 주의사항 등 - 구매 신뢰도 향상 및 법적 요건 충족',
     recommendedLayout: 'split-left',
-    imagePromptTemplate: `product information display of {product}, small product image on side, clean {background} background, large space for product specification table, organized information layout, professional product detail aesthetic, e-commerce info table section style`,
-    requiredVisuals: ['product-small', 'table-area', 'organized-layout'],
-    optionalVisuals: ['brand-logo', 'qr-code-area'],
+    imagePromptTemplate: `Premium PRODUCT INFORMATION TABLE photography for Korean e-commerce detail page.
+
+[COMPOSITION - Clean Information Layout]
+- Small "{product}" image on LEFT side (20-25% of width)
+- Large clean {background} area on RIGHT (75-80%) for information table overlay
+- Subtle horizontal line dividers for table row areas
+- Professional, trustworthy document-style aesthetic
+
+[LAYOUT FOR INFO TABLE - Korean Regulatory Style]
+- Product thumbnail: Small, elegant, angled slightly
+- Table area: Clean grid-ready space
+- Table rows should accommodate:
+  * 제품명 (Product Name)
+  * 용량/중량 (Volume/Weight)
+  * 제조사/판매사 (Manufacturer/Seller)
+  * 제조국 (Country of Origin)
+  * 사용기한/제조일자 (Expiry/Manufacturing Date)
+  * 전성분 (Full Ingredients)
+  * 사용방법 (How to Use)
+  * 사용시 주의사항 (Precautions)
+  * 품질보증기준 (Quality Assurance)
+  * 고객상담실 (Customer Service)
+
+[VISUAL STYLE]
+- Clean, official document aesthetic
+- Light gray or white background
+- Subtle border/frame for table area
+- Korean beauty/cosmetic info table style (올리브영, 쿠팡 스타일)
+
+[TRUST ELEMENTS - Space for Overlay]
+- Certification badge areas (small, subtle)
+- QR code space for product verification
+- Customer service contact area
+
+[QUALITY]
+- 8K, clean and professional
+- Product clearly identifiable
+- No text in image - all info as overlay
+- Grid-aligned layout for text overlay`,
+    requiredVisuals: ['product-thumbnail', 'large-table-area', 'grid-layout', 'clean-dividers'],
+    optionalVisuals: ['brand-logo-small', 'qr-code-area', 'certification-badge-space'],
     textOverlay: {
       headline: true,
       subheadline: false,
-      body: false,
-      bullets: false,
+      body: true,
+      bullets: true,
       numbers: true,
-      icons: false,
+      icons: true,
     },
     generateImage: true,
     defaultOrder: 8,
     multiImage: false,
     maxImageCount: 1,
+    categorySpecificPrompts: [
+      {
+        categoryKeywords: ['스킨케어', '세럼', '에센스', '크림', '토너', '앰플', '화장품', '뷰티'],
+        imagePrompt: `Cosmetic PRODUCT INFO TABLE photography for Korean beauty detail page.
+
+[COMPOSITION]
+- Small "{product}" on left (20%)
+- Large clean table area on right (80%)
+- Soft gradient background (light gray to white)
+
+[COSMETIC INFO TABLE AREAS]
+- 화장품법 필수 기재 사항 공간
+- 전성분 목록 영역 (scrollable area style)
+- 피부 타입별 주의사항 영역
+- 알러지 유발 성분 표시 영역
+
+[STYLE]
+- Clean, clinical, trustworthy
+- Korean cosmetic regulation compliant style
+- Professional product information aesthetic
+
+[QUALITY]
+- 8K, product clear and identifiable
+- No text - overlay ready`,
+        suggestedImageCount: 1,
+        overlayTextGuide: `[제품 정보]
+- 제품명: OO 에센스
+- 용량: 50ml
+- 제조사: (주)OO코스메틱
+- 제조국: 대한민국
+- 사용기한: 제조일로부터 36개월
+
+[전성분]
+정제수, 글리세린, 나이아신아마이드...
+
+[사용시 주의사항]
+- 사용 중 붉은 반점 등 이상 시 사용 중지
+- 눈에 들어갔을 때 즉시 씻어낼 것
+
+[품질보증]
+본 제품은 공정거래위원회 고시...
+
+[고객상담실] 1588-XXXX`,
+      },
+      {
+        categoryKeywords: ['립', '틴트', '립스틱', '메이크업', '쿠션', '파운데이션'],
+        imagePrompt: `Makeup PRODUCT INFO TABLE photography for Korean beauty detail page.
+
+[COMPOSITION]
+- "{product}" displayed small on left
+- Clean table area dominating right side
+- Feminine yet professional background
+
+[MAKEUP INFO TABLE AREAS]
+- 화장품법 기재 사항
+- 색상/호수 정보
+- 성분 및 알러지 정보
+- 개봉 후 사용 기간
+
+[STYLE]
+- Clean, professional info table style
+- Korean makeup product detail page
+
+[QUALITY]
+- 8K, professional
+- No text in image`,
+        suggestedImageCount: 1,
+        overlayTextGuide: `[제품 정보]
+- 제품명: OO 틴트 #01 로즈코랄
+- 용량: 3.5g
+- 제조사: (주)OO뷰티
+- 사용기한: 개봉 후 12개월
+
+[전성분]
+...
+
+[사용시 주의사항]
+- 입술에 상처가 있는 경우 사용 금지
+- 직사광선을 피해 보관`,
+      },
+    ],
   },
 
   CTA: {

@@ -14,7 +14,6 @@
 import { GoogleGenAI } from '@google/genai';
 import { v4 as uuidv4 } from 'uuid';
 import {
-  getReferencePrompts,
   getVisualStyleKeywords,
   mapSectionTypeToPosition,
   SECTION_COMPOSITION_GUIDE,
@@ -33,6 +32,7 @@ import {
   // 이미지 개수 관련
   COPY_LENGTH_CONFIG,
   getSectionImagePrompt,
+  getReferencePrompts, // regenerateSectionImagePrompt에서 사용
   type SectionPosition,
   type OverlayTextContent,
   type ProductVisualReference,
@@ -222,7 +222,6 @@ export async function generateSectionImagePrompt(
   visualTheme?: VisualTheme
 ): Promise<SectionImagePrompt> {
   const position = mapSectionTypeToPosition(sectionType);
-  const referencePrompts = getReferencePrompts(category, position);
   const visualKeywords = getVisualStyleKeywords(category);
   const compositionGuide = SECTION_COMPOSITION_GUIDE[position];
 
@@ -230,12 +229,12 @@ export async function generateSectionImagePrompt(
   const noTextInstruction = 'absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only';
 
   // 제품 일관성 지시문 (모든 섹션에서 동일한 제품 표시)
-  const productConsistencyInstruction = buildProductConsistencyText(productName, category, visualReference);
+  const productConsistencyPrefix = `[CRITICAL - PRODUCT CONSISTENCY: The exact same "${productName}" must appear identically in all images with consistent design, shape, color, texture and packaging]`;
 
-  // 섹션 템플릿 기반 프롬프트
+  // 섹션 템플릿 기반 프롬프트 - 직접 사용! (AI 재생성 없이)
   const extendedSectionType = mapToExtendedSectionType(sectionType);
   const sectionTemplate = getSectionTemplate(extendedSectionType);
-  const templatePrompt = buildSectionTemplatePrompt(
+  const baseTemplatePrompt = buildSectionTemplatePrompt(
     sectionTemplate,
     productName,
     visualTheme?.backgroundColors.gradient || 'clean gradient',
@@ -245,141 +244,59 @@ export async function generateSectionImagePrompt(
   // 네거티브 프롬프트
   const negativePrompt = buildNegativePrompt(['quality', 'style', 'content', 'composition'], category);
 
-  // 참조 프롬프트에서 영감을 받아 새 프롬프트 생성
-  const gemini = getGeminiClient();
+  // 비주얼 테마 지시문
+  const themePrefix = visualTheme
+    ? `[VISUAL THEME: ${visualTheme.consistencyPrompt}] [BACKGROUND: ${visualTheme.backgroundColors.gradient || visualTheme.backgroundColors.primary}] [LIGHTING: ${visualTheme.lighting.style}]`
+    : '[VISUAL THEME: clean minimal style with soft neutral background]';
+
+  // 제품 외형 참조
+  const productAppearance = visualReference?.appearance
+    ? `[PRODUCT APPEARANCE: ${visualReference.appearance}]`
+    : '';
+  const productColors = visualReference?.colorScheme
+    ? `[COLOR SCHEME: ${visualReference.colorScheme}]`
+    : '';
+
+  // 품질 키워드
+  const qualityKeywords = '8K resolution, photorealistic, professional commercial photography, high-end advertising quality, sharp focus, premium product visualization';
+  const styleKeywords = visualKeywords.slice(0, 4).join(', ');
 
   let imagePrompt: string;
 
-  // MAIN 섹션 전용: 제품명 기반 맞춤 오브제 + 분위기 오브제 가이드
-  const mainSectionGuide = sectionType === 'MAIN' ? `
-## 🎨 MAIN 썸네일 특별 지시 (매우 중요!)
-이 섹션은 상세페이지 진입 전 첫인상을 결정하는 메인 썸네일입니다.
+  // ===== 새로운 접근법: 템플릿 직접 사용 + AI는 오브제/분위기만 생성 =====
 
-### 1. 실제 재료 오브제 (INGREDIENT OBJECTS) - 15-20%, 베이스/전면
-제품명 "${productName}" 분석하여 실제 성분/재료 배치:
-- "로즈/rose/장미" → 장미 꽃잎
-- "베리/berry" → 딸기, 라즈베리, 블루베리
-- "허니/꿀" → 꿀, 벌집
-- "그린티/녹차" → 녹차잎
-- "시트러스/레몬/오렌지" → 과일 슬라이스
-- "라벤더" → 라벤더
-- "민트" → 민트잎
-- "알로에" → 알로에 젤/잎
-- "진주/pearl" → 진주
-- 해당 없으면 → ${category} 관련 재료
+  // 1. AI로 제품명 기반 오브제/분위기 생성 (또는 규칙 기반 폴백)
+  const brandTone = brandStyle?.includes('luxury') ? 'luxury'
+    : brandStyle?.includes('natural') ? 'natural'
+    : brandStyle?.includes('clean') ? 'clean'
+    : brandStyle?.includes('trendy') ? 'trendy'
+    : brandStyle?.includes('derma') ? 'derma'
+    : undefined;
 
-### 2. 분위기 오브제 (MOOD OBJECTS) - 10-15%, 배경/측면
-제품 무드에 맞는 1-2개 분위기 요소:
-- 로맨틱/페미닌: 실크 패브릭, 드라이플라워, 리본
-- 프레시/내추럴: 물방울, 이슬, 녹색 잎
-- 럭셔리/프리미엄: 벨벳, 크리스탈, 메탈릭
-- 클린/미니멀: 흰 돌, 기하학적 형태
-- 따뜻한/아늑한: 따뜻한 톤 패브릭, 우드
-- 시원한/상쾌한: 얼음, 물 스플래시
+  const enhancements = await generateDecorativeEnhancements(productName, category, brandTone);
+  console.log(`[Orchestration] Decorative enhancements for ${sectionType}:`, enhancements);
 
-### 3. 구성
-- 제품 = 주인공 (50-60%, 중앙, 선명)
-- 재료 오브제 (15-20%, 베이스/전면)
-- 분위기 오브제 (10-15%, 배경/측면)
-` : '';
+  // 2. 템플릿 + 오브제 + 테마 조합
+  const decorativeObjectsClause = `[DECORATIVE ELEMENTS: ${enhancements.ingredientObjects}, ${enhancements.moodObjects}]`;
+  const moodClause = `[MOOD: ${enhancements.moodKeywords}]`;
 
-  if (gemini) {
-    // AI를 사용하여 맞춤형 프롬프트 생성
-    const promptGenerationRequest = `
-당신은 AI 이미지 생성(Gemini Imagen, DALL-E) 전문 프롬프트 엔지니어입니다.
-상업용 제품 상세페이지에 사용될 고품질 이미지 생성 프롬프트를 작성해주세요.
-${mainSectionGuide}
-## 제품 정보
-- 제품명: ${productName}
-- 카테고리: ${category}
-- 핵심 특징: ${keyFeatures.join(', ')}
-- 타겟 고객: ${targetAudience}
-${brandStyle ? `- 브랜드 스타일: ${brandStyle}` : ''}
-${visualReference?.appearance ? `- 제품 외형 상세: ${visualReference.appearance}` : ''}
-${visualReference?.colorScheme ? `- 색상 구성: ${visualReference.colorScheme}` : ''}
-${visualReference?.packageShape ? `- 패키지/용기 형태: ${visualReference.packageShape}` : ''}
+  // 3. 최종 프롬프트 조합 (템플릿 직접 사용!)
+  // 구조: [일관성] [테마] [제품외형] [템플릿(핵심!)] [오브제] [분위기] [품질] --negative [제외]
+  imagePrompt = [
+    productConsistencyPrefix,
+    themePrefix,
+    productAppearance,
+    productColors,
+    baseTemplatePrompt,  // 섹션 템플릿 프롬프트 직접 사용!
+    decorativeObjectsClause,
+    moodClause,
+    styleKeywords,
+    qualityKeywords,
+    noTextInstruction,
+    `--negative ${negativePrompt}`
+  ].filter(Boolean).join(', ');
 
-## ⚠️ 중요: 제품 일관성 (CRITICAL)
-${productConsistencyInstruction}
-
-## 🎨 비주얼 테마 (모든 섹션에 동일하게 적용)
-${visualTheme ? `
-- 테마명: ${visualTheme.name}
-- 배경색: ${visualTheme.backgroundColors.primary} (주), ${visualTheme.backgroundColors.secondary} (보조)
-- 그라데이션: ${visualTheme.backgroundColors.gradient || '없음'}
-- 조명: ${visualTheme.lighting.style}
-- 분위기: ${visualTheme.moodKeywords.slice(0, 5).join(', ')}
-- 일관성 지시: ${visualTheme.consistencyPrompt}
-` : '기본 클린 미니멀 스타일'}
-
-## 섹션 정보 (${sectionType})
-- 위치/역할: ${position}
-- 레이아웃 가이드: ${compositionGuide.layout}
-- 제품 배치: ${compositionGuide.productPlacement}
-- 텍스트 배치 (텍스트는 별도 오버레이): ${compositionGuide.textPlacement}
-- 라이팅: ${compositionGuide.lighting}
-- 분위기: ${compositionGuide.mood}
-
-## 섹션 템플릿 참조
-${templatePrompt}
-
-## 참조 프롬프트 예시 (올리브영 베스트셀러 기반)
-${referencePrompts.map((p, i) => `${i + 1}. ${p}`).join('\n')}
-
-## 비주얼 스타일 키워드
-${visualKeywords.join(', ')}
-
-## Gemini Imagen 최적화 프롬프트 작성 가이드라인
-1. **구체적인 시각적 묘사**: 제품의 외형, 질감, 재질, 광택을 상세히 기술
-2. **조명과 그림자**: 스튜디오 조명, 자연광, 림 라이팅, 소프트박스 등 구체적 조명 설정
-3. **구도와 앵글**: 카메라 앵글(eye-level, bird's eye, low angle), 구도(rule of thirds, centered) 명시
-4. **배경과 환경**: 그라데이션 배경, 스튜디오 세팅, 미니멀 배경 등 상세 설명 (비주얼 테마와 일치시킬 것)
-5. **분위기와 스타일**: luxury, premium, minimalist, clean, elegant 등 스타일 키워드
-6. **기술적 품질**: 8K, photorealistic, professional photography, commercial quality 등 품질 키워드
-7. **색상 팔레트**: 제품과 조화로운 배경 색상, 비주얼 테마의 색상 가이드 활용
-
-## 네거티브 프롬프트 (제외할 요소)
-${negativePrompt}
-
-## 필수 규칙
-1. 이미지에 텍스트, 글자, 로고, 워터마크가 절대 포함되면 안 됩니다 (텍스트는 별도 오버레이)
-2. 텍스트가 들어갈 영역은 깨끗하게 비워두세요 (상단 30%, 하단 20% 등)
-3. 영어로 작성해주세요 (Gemini Imagen 최적화)
-4. 150-300 단어 사이의 상세한 프롬프트를 작성해주세요
-5. **모든 섹션에서 동일한 제품이 일관되게 표시되어야 합니다**
-6. **모든 섹션에서 동일한 배경색과 조명 스타일(비주얼 테마)을 유지해야 합니다**
-
-## 출력 형식
-- 프롬프트만 반환 (설명이나 마크다운 없이)
-- 프롬프트 구조: [제품 일관성 지시] [테마/배경 지시] [섹션 콘텐츠] [품질/스타일 키워드] --negative [제외 요소]
-- 콤마로 구분된 키워드/구문 형식
-`;
-
-    try {
-      const response = await gemini.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: promptGenerationRequest,
-      });
-
-      imagePrompt = response.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-
-      // 제품 일관성 지시가 없으면 추가
-      if (!imagePrompt.toLowerCase().includes('same product') && !imagePrompt.toLowerCase().includes('consistent product')) {
-        imagePrompt = `[PRODUCT CONSISTENCY: Same exact "${productName}" product throughout all images] ${imagePrompt}`;
-      }
-
-      // 텍스트 제외 지시가 없으면 추가
-      if (!imagePrompt.toLowerCase().includes('no text')) {
-        imagePrompt = `${imagePrompt}, ${noTextInstruction}`;
-      }
-    } catch (error) {
-      console.error('[Orchestration] Failed to generate prompt with AI, using fallback:', error);
-      imagePrompt = buildFallbackImagePrompt(sectionType, productName, category, keyFeatures, brandStyle, position, visualKeywords, visualReference, visualTheme);
-    }
-  } else {
-    // AI 없이 규칙 기반 프롬프트 생성
-    imagePrompt = buildFallbackImagePrompt(sectionType, productName, category, keyFeatures, brandStyle, position, visualKeywords, visualReference, visualTheme);
-  }
+  console.log(`[Orchestration] Generated prompt for ${sectionType} using DIRECT TEMPLATE approach`);
 
   return {
     sectionType,
@@ -412,6 +329,158 @@ function buildProductConsistencyText(
   }
 
   return instruction;
+}
+
+// ============================================
+// 오브제/분위기 생성기 (AI 보조)
+// AI는 전체 프롬프트가 아닌 추가 요소만 생성
+// ============================================
+
+interface DecorativeEnhancements {
+  ingredientObjects: string;  // 제품명 기반 재료 오브제
+  moodObjects: string;        // 분위기 오브제
+  moodKeywords: string;       // 분위기 키워드
+}
+
+/**
+ * 제품명과 카테고리를 분석하여 오브제/분위기 요소만 생성
+ * 전체 프롬프트 재생성 없이 보조 요소만 AI가 추천
+ */
+async function generateDecorativeEnhancements(
+  productName: string,
+  category: string,
+  brandTone?: string
+): Promise<DecorativeEnhancements> {
+  const gemini = getGeminiClient();
+
+  // AI가 없으면 규칙 기반으로 생성
+  if (!gemini) {
+    return generateRuleBasedEnhancements(productName, category, brandTone);
+  }
+
+  const prompt = `제품명 "${productName}" (카테고리: ${category})을 분석하여 이미지에 추가할 오브제와 분위기 요소를 추천해주세요.
+${brandTone ? `브랜드 톤: ${brandTone}` : ''}
+
+다음 JSON 형식으로만 응답하세요:
+{
+  "ingredientObjects": "제품 성분/재료 관련 오브제 (영어, 2-3개, 예: fresh rose petals, honey drip)",
+  "moodObjects": "분위기 오브제 (영어, 1-2개, 예: soft silk fabric, water droplets)",
+  "moodKeywords": "분위기 키워드 (영어, 3-4개, 예: romantic, feminine, luxurious)"
+}
+
+규칙:
+- 제품명에서 성분을 추출하여 관련 오브제 추천 (예: 로즈→장미꽃잎, 허니→꿀)
+- 브랜드 톤에 맞는 분위기 오브제 추천
+- 반드시 영어로 작성
+- JSON만 반환`;
+
+  try {
+    const response = await gemini.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+    });
+
+    const text = response.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+
+    // JSON 파싱
+    let jsonStr = text;
+    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      jsonStr = jsonMatch[1];
+    }
+
+    const result = JSON.parse(jsonStr) as DecorativeEnhancements;
+    console.log('[Orchestration] AI generated decorative enhancements:', result);
+    return result;
+  } catch (error) {
+    console.error('[Orchestration] Failed to generate decorative enhancements, using fallback:', error);
+    return generateRuleBasedEnhancements(productName, category, brandTone);
+  }
+}
+
+/**
+ * 규칙 기반 오브제/분위기 생성 (AI 없을 때 폴백)
+ */
+function generateRuleBasedEnhancements(
+  productName: string,
+  category: string,
+  brandTone?: string
+): DecorativeEnhancements {
+  // 제품명에서 성분 키워드 추출
+  const ingredientMap: Record<string, string> = {
+    '로즈': 'fresh rose petals, pink rose buds',
+    'rose': 'fresh rose petals, pink rose buds',
+    '장미': 'fresh rose petals, pink rose buds',
+    '베리': 'fresh berries (strawberry, raspberry)',
+    'berry': 'fresh berries (strawberry, raspberry)',
+    '허니': 'golden honey drip, honeycomb',
+    'honey': 'golden honey drip, honeycomb',
+    '꿀': 'golden honey drip, honeycomb',
+    '그린티': 'fresh green tea leaves',
+    'green tea': 'fresh green tea leaves',
+    '녹차': 'fresh green tea leaves',
+    '시트러스': 'citrus slices with water droplets',
+    'citrus': 'citrus slices with water droplets',
+    '레몬': 'fresh lemon slices',
+    '오렌지': 'orange slices with zest',
+    '라벤더': 'lavender sprigs',
+    'lavender': 'lavender sprigs',
+    '민트': 'fresh mint leaves',
+    'mint': 'fresh mint leaves',
+    '알로에': 'aloe vera gel, fresh aloe leaves',
+    'aloe': 'aloe vera gel, fresh aloe leaves',
+    '진주': 'pearl beads, iridescent pearls',
+    'pearl': 'pearl beads, iridescent pearls',
+    '골드': 'gold leaf flakes, golden accents',
+    'gold': 'gold leaf flakes, golden accents',
+    '히알루론': 'crystal clear water droplets, hydrating gel texture',
+    '세라마이드': 'smooth creamy texture, barrier visualization',
+    '비타민': 'citrus elements, bright fresh ingredients',
+    '콜라겐': 'bouncy gel texture, plump skin visualization',
+  };
+
+  // 브랜드 톤에 따른 분위기 오브제
+  const moodMap: Record<string, { objects: string; keywords: string }> = {
+    luxury: { objects: 'velvet fabric, crystal accents, gold elements', keywords: 'luxurious, sophisticated, premium, elegant' },
+    clean: { objects: 'white pebbles, geometric shapes, minimal props', keywords: 'clean, minimal, pure, simple' },
+    natural: { objects: 'wooden elements, green leaves, natural textures', keywords: 'natural, organic, fresh, earthy' },
+    trendy: { objects: 'holographic elements, bold colors, modern props', keywords: 'trendy, youthful, bold, dynamic' },
+    derma: { objects: 'clinical white surface, scientific elements', keywords: 'clinical, professional, trustworthy, scientific' },
+  };
+
+  // 제품명에서 성분 찾기
+  let ingredientObjects = '';
+  const productLower = productName.toLowerCase();
+  for (const [key, value] of Object.entries(ingredientMap)) {
+    if (productLower.includes(key.toLowerCase())) {
+      ingredientObjects = value;
+      break;
+    }
+  }
+
+  // 성분을 못 찾으면 카테고리 기반 기본값
+  if (!ingredientObjects) {
+    const categoryDefaults: Record<string, string> = {
+      '스킨케어': 'water droplets, botanical elements',
+      '에센스': 'serum drops, glass texture',
+      '크림': 'creamy swirl texture, soft elements',
+      '토너': 'water splash, fresh droplets',
+      '선케어': 'sunlight rays, summer elements',
+      '립': 'glossy texture, color pigments',
+      '쿠션': 'soft puff, cushion texture',
+      '메이크업': 'makeup brushes, color palette',
+    };
+    ingredientObjects = categoryDefaults[category] || 'premium cosmetic elements';
+  }
+
+  // 브랜드 톤에 따른 분위기
+  const mood = moodMap[brandTone || 'clean'] || moodMap.clean;
+
+  return {
+    ingredientObjects,
+    moodObjects: mood.objects,
+    moodKeywords: mood.keywords,
+  };
 }
 
 // ============================================
