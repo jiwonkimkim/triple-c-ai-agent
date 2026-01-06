@@ -142,7 +142,7 @@ function buildSectionContent(
   visualKeywords: string,
   categoryVisual: string
 ): string {
-  const contents: Record<SectionType, string> = {
+  const contents: Partial<Record<SectionType, string>> = {
     // MAIN: 올리브영 메인 썸네일 스타일 - 상세페이지 진입 전 제품 슬로건 이미지
     // 특징: 제품 패키지 크게 중심, 올영PICK/어워즈 배지, 프로모션 슬로건, 컬러풀 배경, 증정품 표시
     MAIN: `Oliveyoung Korean beauty e-commerce product thumbnail style, ${productAppearance} ${category} product packaging as hero element floating prominently in center-right with 3D depth effect and dramatic scale (product appears 2-3x larger than normal), dynamic 15-degree tilted angle, VIBRANT eye-catching gradient background (choose one: hot pink to sky blue diagonal gradient OR mint green to white soft gradient OR coral orange to baby pink gradient OR electric blue to purple gradient), product casting soft shadow below, small bonus gift items (mini sizes travel kits samples) arranged bottom-left corner at 30% scale, golden award ribbon icon and circular badge shapes floating top-left area as decorative elements only, celebration mood with subtle sparkle particles and light bokeh effects scattered around product, hyper-saturated colors with high contrast, glossy reflective product surface catching studio light, clean modern K-beauty advertising aesthetic, professional commercial product photography, 4:5 aspect ratio composition optimized for mobile shopping thumbnail, CRITICAL: ABSOLUTELY NO TEXT NO LETTERS NO NUMBERS NO WORDS NO KOREAN NO ENGLISH CHARACTERS ON IMAGE - pure visual only, ${visualKeywords}, ${categoryVisual}`,
@@ -160,7 +160,7 @@ function buildSectionContent(
     CUSTOM: `${productAppearance} professional product photography, ${category} product showcase, clean composition, studio lighting, ${visualKeywords}, ${categoryVisual}`,
   };
 
-  return contents[section] || contents.CUSTOM;
+  return contents[section] || contents.CUSTOM || `${productAppearance} professional product photography, ${category} product showcase, clean composition, studio lighting, ${visualKeywords}, ${categoryVisual}`;
 }
 
 /**

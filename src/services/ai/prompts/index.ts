@@ -32,6 +32,8 @@ export type {
   NegativePromptCategory,
   NegativePromptConfig,
   ImageCompositionConfig,
+  // 이미지 분석 결과 (오버레이 스타일 결정용)
+  ImageAnalysisResult,
 } from './types';
 
 // ============================================

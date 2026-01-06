@@ -264,7 +264,7 @@ export interface SectionThemeGuide {
   textArea: string;
 }
 
-export const SECTION_THEME_GUIDES: Record<SectionType, SectionThemeGuide> = {
+export const SECTION_THEME_GUIDES: Partial<Record<SectionType, SectionThemeGuide>> = {
   MAIN: {
     sectionType: 'MAIN',
     backgroundUsage: 'Use primary background color with subtle gradient, product as focal point',
@@ -371,12 +371,12 @@ export function getVisualTheme(themeStyle: ThemeStyle): VisualTheme {
  * 테마 기반 이미지 프롬프트 확장 생성
  */
 export function buildThemePromptExtension(theme: VisualTheme, sectionType: SectionType): string {
-  const sectionGuide = SECTION_THEME_GUIDES[sectionType];
+  const sectionGuide = SECTION_THEME_GUIDES[sectionType] || SECTION_THEME_GUIDES.FEATURES;
 
   const backgroundPrompt = `Background: ${theme.backgroundColors.gradient || `solid ${theme.backgroundColors.primary}`}`;
   const lightingPrompt = `Lighting: ${theme.lighting.style}`;
   const moodPrompt = `Mood: ${theme.moodKeywords.slice(0, 4).join(', ')}`;
-  const placementPrompt = `Layout: ${sectionGuide.productPlacement}`;
+  const placementPrompt = `Layout: ${sectionGuide?.productPlacement || 'Product centered in frame'}`;
   const consistencyPrompt = `[VISUAL CONSISTENCY: ${theme.consistencyPrompt}]`;
 
   return `${consistencyPrompt} ${backgroundPrompt}. ${lightingPrompt}. ${moodPrompt}. ${placementPrompt}.`;

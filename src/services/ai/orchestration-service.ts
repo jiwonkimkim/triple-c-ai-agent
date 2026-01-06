@@ -38,6 +38,7 @@ import {
   type ProductVisualReference,
   type VisualTheme,
   type ExtendedSectionType,
+  type ImageAnalysisResult,
 } from './prompts';
 
 // ============================================
@@ -1274,6 +1275,234 @@ export async function generateOverlayText(
 }
 
 // ============================================
+// 이미지 분석 함수 (오버레이 스타일 결정용)
+// ============================================
+
+/**
+ * 생성된 이미지를 분석하여 오버레이 텍스트 스타일 결정에 필요한 정보 추출
+ * - 배경 밝기 분석 → 텍스트 색상 결정
+ * - 안전 영역 탐지 → 텍스트 위치 결정
+ * - 제품 위치 파악 → 텍스트 배치 피하기
+ */
+export async function analyzeImageForOverlay(
+  imageData: string | Buffer  // base64 또는 Buffer
+): Promise<ImageAnalysisResult | undefined> {
+  const gemini = getGeminiClient();
+  if (!gemini) return undefined;
+
+  // base64 문자열로 변환
+  const base64Image = Buffer.isBuffer(imageData)
+    ? imageData.toString('base64')
+    : imageData.replace(/^data:image\/\w+;base64,/, '');
+
+  const prompt = `당신은 이미지 분석 전문가입니다. 이 상세페이지 이미지를 분석하여 오버레이 텍스트 스타일을 결정하세요.
+
+분석 항목:
+1. 배경 밝기: 전체적으로 밝은지(light), 어두운지(dark), 혼합인지(mixed)
+2. 주요 배경색: hex 색상 코드
+3. 텍스트 안전 영역: 제품이 없어서 텍스트를 배치할 수 있는 빈 공간들
+   - 위치: top-left, top-center, top-right, center-left, center, center-right, bottom-left, bottom-center, bottom-right
+   - 크기: small, medium, large
+   - 해당 영역의 밝기
+4. 제품 위치: left, center, right, scattered 중 하나
+5. 전체 분위기: premium, natural, vibrant, clinical, minimal 중 하나
+
+JSON 형식으로 응답:
+{
+  "backgroundBrightness": "light" | "dark" | "mixed",
+  "dominantColor": "#ffffff",
+  "safeZones": [
+    {"position": "top-left", "size": "medium", "brightness": "light"},
+    {"position": "bottom-center", "size": "large", "brightness": "dark"}
+  ],
+  "recommendedTextColors": {
+    "headline": "#333333",
+    "subheadline": "#666666",
+    "body": "#888888",
+    "cta": "#d4a5a5"
+  },
+  "productPosition": "center",
+  "mood": "premium"
+}`;
+
+  try {
+    const response = await gemini.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: prompt },
+            {
+              inlineData: {
+                mimeType: 'image/png',
+                data: base64Image
+              }
+            }
+          ]
+        }
+      ]
+    });
+
+    const text = response.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+
+    // JSON 파싱
+    let jsonStr = text;
+    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      jsonStr = jsonMatch[1];
+    }
+
+    const result = JSON.parse(jsonStr) as ImageAnalysisResult;
+    console.log('[Orchestration] Image analysis result:', result);
+    return result;
+  } catch (error) {
+    console.error('[Orchestration] Failed to analyze image:', error);
+    // 기본값 반환 (분석 실패 시)
+    return {
+      backgroundBrightness: 'light',
+      dominantColor: '#ffffff',
+      safeZones: [
+        { position: 'top-center', size: 'medium', brightness: 'light' },
+        { position: 'bottom-center', size: 'medium', brightness: 'light' }
+      ],
+      recommendedTextColors: {
+        headline: '#333333',
+        subheadline: '#666666',
+        body: '#888888',
+        cta: '#d4a5a5'
+      },
+      productPosition: 'center',
+      mood: 'premium'
+    };
+  }
+}
+
+/**
+ * 이미지 분석 결과를 기반으로 오버레이 텍스트 생성 (개선 버전)
+ */
+export async function generateOverlayTextWithAnalysis(
+  sectionType: 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ',
+  productName: string,
+  category: string,
+  keyFeatures: string[],
+  targetAudience: string,
+  imageAnalysis: ImageAnalysisResult
+): Promise<OverlayTextContent | undefined> {
+  const gemini = getGeminiClient();
+  if (!gemini) return undefined;
+
+  // 분석 결과에서 안전 영역과 색상 추출
+  const primarySafeZone = imageAnalysis.safeZones[0];
+  const secondarySafeZone = imageAnalysis.safeZones[1];
+
+  // 위치를 x, y 좌표로 변환
+  const positionToCoords = (pos: string): { x: number; y: number } => {
+    const map: Record<string, { x: number; y: number }> = {
+      'top-left': { x: 15, y: 10 },
+      'top-center': { x: 50, y: 10 },
+      'top-right': { x: 85, y: 10 },
+      'center-left': { x: 15, y: 50 },
+      'center': { x: 50, y: 50 },
+      'center-right': { x: 85, y: 50 },
+      'bottom-left': { x: 15, y: 85 },
+      'bottom-center': { x: 50, y: 85 },
+      'bottom-right': { x: 85, y: 85 },
+    };
+    return map[pos] || { x: 50, y: 50 };
+  };
+
+  const headlinePos = positionToCoords(primarySafeZone?.position || 'top-center');
+  const subheadlinePos = positionToCoords(secondarySafeZone?.position || primarySafeZone?.position || 'top-center');
+
+  const prompt = `당신은 한국 이커머스 상세페이지 카피라이터입니다.
+
+## 제품 정보
+- 제품명: ${productName}
+- 카테고리: ${category}
+- 핵심 특징: ${keyFeatures.join(', ')}
+- 타겟 고객: ${targetAudience}
+- 섹션 타입: ${sectionType}
+
+## 이미지 분석 결과 (스타일 적용 필수!)
+- 배경 밝기: ${imageAnalysis.backgroundBrightness}
+- 배경색: ${imageAnalysis.dominantColor}
+- 분위기: ${imageAnalysis.mood}
+- 텍스트 추천 색상:
+  - 헤드라인: ${imageAnalysis.recommendedTextColors.headline}
+  - 서브헤드: ${imageAnalysis.recommendedTextColors.subheadline}
+  - 본문: ${imageAnalysis.recommendedTextColors.body}
+  - CTA: ${imageAnalysis.recommendedTextColors.cta}
+- 안전 영역: ${imageAnalysis.safeZones.map(z => z.position).join(', ')}
+
+## 작성 규칙
+1. 텍스트 색상은 반드시 위 분석 결과의 추천 색상 사용
+2. 텍스트 위치는 안전 영역 내에 배치
+3. 한국 이커머스 상세페이지 스타일 (올리브영 참조)
+
+JSON 형식으로 응답:
+{
+  "headline": {
+    "text": "헤드라인 텍스트 (5-10자)",
+    "x": ${headlinePos.x},
+    "y": ${headlinePos.y},
+    "fontSize": 48,
+    "fontWeight": "bold",
+    "color": "${imageAnalysis.recommendedTextColors.headline}",
+    "textAlign": "center"
+  },
+  "subheadline": {
+    "text": "서브헤드 (10-20자)",
+    "x": ${subheadlinePos.x},
+    "y": ${subheadlinePos.y + 8},
+    "fontSize": 24,
+    "fontWeight": "medium",
+    "color": "${imageAnalysis.recommendedTextColors.subheadline}",
+    "textAlign": "center"
+  },
+  "statistics": [
+    {
+      "text": "92%",
+      "x": 50,
+      "y": 70,
+      "fontSize": 56,
+      "fontWeight": "bold",
+      "color": "${imageAnalysis.recommendedTextColors.headline}"
+    }
+  ],
+  "cta": {
+    "text": "CTA 문구 (5-10자)",
+    "x": 50,
+    "y": 90,
+    "fontSize": 20,
+    "fontWeight": "semibold",
+    "color": "${imageAnalysis.recommendedTextColors.cta}",
+    "textAlign": "center"
+  }
+}`;
+
+  try {
+    const response = await gemini.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+    });
+
+    const text = response.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+
+    let jsonStr = text;
+    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      jsonStr = jsonMatch[1];
+    }
+
+    return JSON.parse(jsonStr) as OverlayTextContent;
+  } catch (error) {
+    console.error('[Orchestration] Failed to generate overlay text with analysis:', error);
+    return undefined;
+  }
+}
+
+// ============================================
 // 제품 외형 설명 생성기 (일관성을 위해)
 // ============================================
 
@@ -1429,12 +1658,9 @@ export async function orchestrateDetailPageGeneration(
     }
   };
 
-  // 2. 두 버전의 텍스트 콘텐츠 생성
-  console.log('[Orchestration] Generating text content for 2 versions...');
-  const [textContent1, textContent2] = await Promise.all([
-    generateTextContent(0),
-    generateTextContent(1),
-  ]);
+  // 2. 텍스트 콘텐츠 생성 (1버전만 - UI에서 버전 선택 기능 없으므로)
+  console.log('[Orchestration] Generating text content...');
+  const textContent1 = await generateTextContent(0);
 
   // 3. ★ 텍스트 기반 이미지 프롬프트 생성 (NEW: 스토리 → 이미지)
   // 텍스트 콘텐츠를 먼저 분석하여 그에 맞는 이미지 생성
@@ -1592,10 +1818,8 @@ export async function orchestrateDetailPageGeneration(
     };
   };
 
-  const results = [
-    buildResult(textContent1),
-    buildResult(textContent2),
-  ];
+  // 1버전만 반환 (UI에서 버전 선택 기능 없으므로)
+  const results = [buildResult(textContent1)];
 
   console.log('[Orchestration] Detail page generation completed');
 

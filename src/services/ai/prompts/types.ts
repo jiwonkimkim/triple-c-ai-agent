@@ -96,6 +96,44 @@ export function getOverlayStatistics(items: OverlayStatisticItem[] | string[] | 
 }
 
 // ============================================
+// 이미지 분석 결과 (오버레이 스타일 결정용)
+// ============================================
+
+/** 이미지 분석 결과 - 오버레이 텍스트 스타일 결정에 사용 */
+export interface ImageAnalysisResult {
+  /** 배경 밝기 (light/dark/mixed) */
+  backgroundBrightness: 'light' | 'dark' | 'mixed';
+
+  /** 주요 배경색 (hex) */
+  dominantColor: string;
+
+  /** 텍스트 안전 영역 (제품이 없는 빈 공간) */
+  safeZones: {
+    position: 'top-left' | 'top-center' | 'top-right' |
+              'center-left' | 'center' | 'center-right' |
+              'bottom-left' | 'bottom-center' | 'bottom-right';
+    /** 영역 크기 (small/medium/large) */
+    size: 'small' | 'medium' | 'large';
+    /** 해당 영역의 밝기 */
+    brightness: 'light' | 'dark';
+  }[];
+
+  /** 추천 텍스트 색상 (밝은 배경 → 어두운 텍스트, 어두운 배경 → 밝은 텍스트) */
+  recommendedTextColors: {
+    headline: string;      // hex color
+    subheadline: string;
+    body: string;
+    cta: string;
+  };
+
+  /** 제품 위치 (텍스트 배치 피하기 위함) */
+  productPosition: 'left' | 'center' | 'right' | 'scattered';
+
+  /** 전체적인 분위기 */
+  mood: 'premium' | 'natural' | 'vibrant' | 'clinical' | 'minimal';
+}
+
+// ============================================
 // 카피 길이 설정
 // ============================================
 
@@ -111,7 +149,25 @@ export interface CopyLengthConfig {
 // 섹션 타입
 // ============================================
 
-export type SectionType = 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ' | 'CUSTOM';
+export type SectionType =
+  | 'MAIN'           // 메인 히어로 섹션
+  | 'HERO'           // 히어로 (메인과 유사)
+  | 'FEATURES'       // 특징/기능 섹션
+  | 'SOCIAL_PROOF'   // 소셜 프루프 (리뷰, 테스트 결과)
+  | 'HOW_TO_USE'     // 사용법
+  | 'FAQ'            // FAQ
+  | 'CUSTOM'         // 커스텀 섹션
+  // 2차 고도화: 추가 섹션 타입
+  | 'PRODUCT_LINEUP' // 제품 라인업/컬러차트
+  | 'INGREDIENT'     // 성분 강조
+  | 'TEXTURE'        // 텍스처/제형
+  | 'CTA'            // 구매 유도 (Call to Action)
+  | 'MODEL_SHOT'     // 모델 샷
+  | 'SKIN_RESULT'    // 피부 결과
+  | 'MATERIAL'       // 소재/원료
+  | 'LIFESTYLE'      // 라이프스타일
+  | 'SPECS'          // 스펙/사양
+  | 'INFO_TABLE';    // 정보 테이블
 
 export type SectionPosition = 'intro' | 'features' | 'proof' | 'usage' | 'closing';
 

@@ -105,7 +105,7 @@ export const LAYOUT_PRESETS: Record<LayoutStyle, DetailPageLayoutPreset> = {
 // 섹션별 권장 레이아웃 매핑
 // ============================================
 
-export const SECTION_LAYOUT_RECOMMENDATIONS: Record<SectionType, LayoutStyle[]> = {
+export const SECTION_LAYOUT_RECOMMENDATIONS: Partial<Record<SectionType, LayoutStyle[]>> = {
   MAIN: ['hero-centered', 'hero-bottom', 'floating', 'lifestyle'],
   HERO: ['hero-centered', 'hero-bottom', 'floating', 'lifestyle'],
   FEATURES: ['split-left', 'split-right', 'grid', 'floating'],
@@ -367,7 +367,7 @@ export function getLayoutPreset(layoutStyle: LayoutStyle): DetailPageLayoutPrese
  * 섹션 타입에 맞는 권장 레이아웃 목록 가져오기
  */
 export function getRecommendedLayouts(sectionType: SectionType): LayoutStyle[] {
-  return SECTION_LAYOUT_RECOMMENDATIONS[sectionType] || SECTION_LAYOUT_RECOMMENDATIONS.CUSTOM;
+  return SECTION_LAYOUT_RECOMMENDATIONS[sectionType] || SECTION_LAYOUT_RECOMMENDATIONS.CUSTOM || ['hero-centered', 'split-left', 'split-right'];
 }
 
 /**

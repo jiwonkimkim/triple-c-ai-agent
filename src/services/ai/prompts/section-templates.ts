@@ -2708,7 +2708,7 @@ export function getSectionTemplate(sectionType: ExtendedSectionType): SectionTem
  * 기존 SectionType을 ExtendedSectionType으로 매핑
  */
 export function mapToExtendedSectionType(sectionType: SectionType): ExtendedSectionType {
-  const mapping: Record<SectionType, ExtendedSectionType> = {
+  const mapping: Partial<Record<SectionType, ExtendedSectionType>> = {
     'MAIN': 'MAIN',       // MAIN은 독립적인 썸네일 섹션
     'HERO': 'HERO',
     'FEATURES': 'FEATURES',
@@ -2716,8 +2716,19 @@ export function mapToExtendedSectionType(sectionType: SectionType): ExtendedSect
     'HOW_TO_USE': 'HOW_TO_USE',
     'FAQ': 'FAQ',
     'CUSTOM': 'FEATURES', // 기본값
+    // 2차 고도화: 추가된 섹션 타입 매핑
+    'PRODUCT_LINEUP': 'PRODUCT_LINEUP',
+    'INGREDIENT': 'INGREDIENT',
+    'TEXTURE': 'TEXTURE',
+    'CTA': 'FEATURES',       // CTA는 FEATURES로 매핑
+    'MODEL_SHOT': 'MODEL_SHOT',
+    'SKIN_RESULT': 'SKIN_RESULT',
+    'MATERIAL': 'MATERIAL',
+    'LIFESTYLE': 'LIFESTYLE',
+    'SPECS': 'SPECS',
+    'INFO_TABLE': 'INFO_TABLE',
   };
-  return mapping[sectionType];
+  return mapping[sectionType] || 'FEATURES';
 }
 
 /**
