@@ -122,6 +122,7 @@ export {
 // ============================================
 // 오버레이 텍스트 프롬프트
 // ============================================
+export type { BlockOverlayOptions } from './overlay-prompts';
 export {
   buildOverlayTextPrompt,
 } from './overlay-prompts';

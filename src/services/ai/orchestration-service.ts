@@ -20,6 +20,7 @@ import {
   buildEnhancedSystemPrompt,
   buildEnhancedUserPrompt,
   buildOverlayTextPrompt,
+  type BlockOverlayOptions,
   // 비주얼 테마 시스템
   autoSelectTheme,
   getVisualTheme,
@@ -1253,12 +1254,13 @@ export async function generateOverlayText(
   productName: string,
   category: string,
   keyFeatures: string[],
-  targetAudience: string
+  targetAudience: string,
+  blockOptions?: BlockOverlayOptions
 ): Promise<OverlayTextContent | undefined> {
   const gemini = getGeminiClient();
   if (!gemini) return undefined;
 
-  const prompt = buildOverlayTextPrompt(sectionType, productName, category, keyFeatures, targetAudience);
+  const prompt = buildOverlayTextPrompt(sectionType, productName, category, keyFeatures, targetAudience, blockOptions);
 
   try {
     const response = await gemini.models.generateContent({
@@ -1768,6 +1770,7 @@ export async function orchestrateDetailPageGeneration(
 
           // ★ 텍스트 기반 이미지 프롬프트 생성 + overlayText 항상 생성
           // overlayText는 generateImages와 관계없이 항상 생성 (텍스트와 함께 제공)
+          // ★★★ 블록별 다른 오버레이 텍스트 생성 (variationHint 전달!)
           const [imagePrompt, overlayText] = await Promise.all([
             generateSectionImagePromptFromText(
               sectionText,           // ★ 텍스트 내용 전달!
@@ -1779,13 +1782,18 @@ export async function orchestrateDetailPageGeneration(
               visualReference,
               visualTheme
             ),
-            // ★ overlayText는 항상 생성 (텍스트 생성 결과와 함께 제공)
+            // ★ overlayText는 블록별로 다르게 생성 (variationHint 반영!)
             generateOverlayText(
               sectionType,
               input.productName,
               input.category,
               input.keyFeatures,
-              input.targetAudience
+              input.targetAudience,
+              {
+                blockIndex: index,
+                totalBlocks: imageCount,
+                variationHint,
+              }
             ),
           ]);
 

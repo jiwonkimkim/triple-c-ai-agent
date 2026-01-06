@@ -558,12 +558,23 @@ function getCategoryKey(category: string): string {
   return 'skincare';
 }
 
+/** 블록별 오버레이 옵션 */
+export interface BlockOverlayOptions {
+  /** 블록 인덱스 (0부터 시작) */
+  blockIndex?: number;
+  /** 해당 섹션의 총 블록 수 */
+  totalBlocks?: number;
+  /** 변형 힌트 (예: "step 1 of 3", "#21 내추럴베이지") */
+  variationHint?: string;
+}
+
 export function buildOverlayTextPrompt(
   section: SectionType,
   productName: string,
   category: string,
   keyFeatures: string[],
-  targetAudience: string
+  targetAudience: string,
+  blockOptions?: BlockOverlayOptions
 ): string {
   const categoryPattern = getCategoryPattern(category);
   const sectionGuide = SECTION_STORY_GUIDE[section as keyof typeof SECTION_STORY_GUIDE];
@@ -576,8 +587,23 @@ export function buildOverlayTextPrompt(
   const sensoryWords = SENSORY_KEYWORDS[categoryKey];
 
   if (!sectionGuide) {
-    return buildOverlayTextPrompt('FEATURES', productName, category, keyFeatures, targetAudience);
+    return buildOverlayTextPrompt('FEATURES', productName, category, keyFeatures, targetAudience, blockOptions);
   }
+
+  // 블록별 컨텍스트 생성
+  const blockContext = blockOptions?.variationHint
+    ? `
+## ★★★ 블록별 컨텍스트 (중요!)
+이 이미지는 섹션 내 ${blockOptions.totalBlocks || 1}개 블록 중 ${(blockOptions.blockIndex || 0) + 1}번째입니다.
+블록 특성: ${blockOptions.variationHint}
+
+이 블록에 맞는 고유한 오버레이 텍스트를 작성하세요:
+${section === 'HOW_TO_USE' ? `- 사용 순서에 맞는 단계별 설명 (예: "STEP ${(blockOptions.blockIndex || 0) + 1}", "${blockOptions.variationHint}")` : ''}
+${section === 'FEATURES' && blockOptions.variationHint.includes('#') ? `- 해당 호수/컬러에 맞는 설명 (예: "${blockOptions.variationHint}")` : ''}
+${section === 'FEATURES' && !blockOptions.variationHint.includes('#') ? `- 해당 컬러 특성 설명 (예: "${blockOptions.variationHint}")` : ''}
+${section === 'SOCIAL_PROOF' ? `- 해당 증거 유형에 맞는 텍스트 (예: "${blockOptions.variationHint}")` : ''}
+`
+    : '';
 
   // 실제 예시 포맷팅 (여러 예시 포함)
   const examplesJson = textExamples.examples.map((ex, i) =>
@@ -605,7 +631,7 @@ export function buildOverlayTextPrompt(
 ## 섹션: ${section}
 - 목적: ${sectionGuide.purpose}
 - 텍스트 패턴: ${textExamples.pattern}
-
+${blockContext}
 ## 카테고리 스타일 (${categoryKey})
 - 톤: ${categoryStyle.tone}
 - 키워드 참고: ${categoryStyle.keywords.join(', ')}
