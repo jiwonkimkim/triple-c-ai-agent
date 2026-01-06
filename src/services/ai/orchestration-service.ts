@@ -1013,6 +1013,229 @@ Add 1-2 mood elements matching product vibe:
 }
 
 // ============================================
+// 텍스트 기반 이미지 프롬프트 생성기 (스토리 → 이미지)
+// ============================================
+
+interface SectionTextContent {
+  type: string;
+  title?: string;
+  body: string;
+}
+
+interface ExtractedKeyMessages {
+  mainMessage: string;        // 핵심 메시지 (예: "72시간 보습")
+  emotionalTone: string;      // 감성 톤 (예: "신뢰감", "프리미엄", "자연친화적")
+  visualKeywords: string[];   // 시각화할 키워드 (예: ["물방울", "촉촉한", "윤기"])
+  targetScene: string;        // 연출 장면 (예: "스파 분위기", "클리니컬", "일상")
+}
+
+/**
+ * 섹션 텍스트에서 핵심 메시지와 시각화 키워드 추출
+ */
+async function extractKeyMessagesFromText(
+  sectionText: SectionTextContent,
+  productName: string,
+  category: string,
+  brandTone?: string
+): Promise<ExtractedKeyMessages> {
+  const gemini = getGeminiClient();
+
+  // 기본값 (AI 없을 때)
+  const defaultMessages: ExtractedKeyMessages = {
+    mainMessage: sectionText.title || productName,
+    emotionalTone: 'professional, trustworthy',
+    visualKeywords: ['clean', 'premium', 'elegant'],
+    targetScene: 'professional studio setting',
+  };
+
+  if (!gemini) {
+    return defaultMessages;
+  }
+
+  const prompt = `텍스트를 분석하여 이미지로 표현할 핵심 요소를 추출하세요.
+
+## 섹션 텍스트
+- 타입: ${sectionText.type}
+- 제목: ${sectionText.title || '없음'}
+- 본문: ${sectionText.body}
+
+## 제품 정보
+- 제품명: ${productName}
+- 카테고리: ${category}
+${brandTone ? `- 브랜드 톤: ${brandTone}` : ''}
+
+## 추출 요청 (JSON)
+{
+  "mainMessage": "핵심 메시지 1개 (영어, 예: 72-hour hydration, dermatologist tested)",
+  "emotionalTone": "감성 톤 (영어, 예: luxurious, clinical, natural, youthful)",
+  "visualKeywords": ["시각화할 키워드 3-5개 (영어, 예: water droplets, dewy skin, fresh glow)"],
+  "targetScene": "연출 장면 (영어, 예: spa atmosphere, clinical laboratory, morning routine)"
+}
+
+텍스트에서 언급된 수치, 효과, 감성을 시각적 요소로 변환해주세요.
+JSON만 반환하세요.`;
+
+  try {
+    const response = await gemini.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+    });
+
+    const text = response.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+
+    let jsonStr = text;
+    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      jsonStr = jsonMatch[1];
+    }
+
+    const result = JSON.parse(jsonStr) as ExtractedKeyMessages;
+    console.log(`[Orchestration] Extracted key messages for ${sectionText.type}:`, result);
+    return result;
+  } catch (error) {
+    console.error('[Orchestration] Failed to extract key messages:', error);
+    return defaultMessages;
+  }
+}
+
+/**
+ * 텍스트 내용을 기반으로 이미지 프롬프트 생성
+ * 스토리(텍스트)가 먼저, 그에 맞는 이미지 생성
+ */
+export async function generateSectionImagePromptFromText(
+  sectionText: SectionTextContent,
+  productName: string,
+  category: string,
+  keyFeatures: string[],
+  targetAudience: string,
+  brandStyle?: string,
+  visualReference?: ProductVisualReference,
+  visualTheme?: VisualTheme
+): Promise<SectionImagePrompt> {
+  const sectionType = sectionText.type as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
+  const position = mapSectionTypeToPosition(sectionType);
+  const compositionGuide = SECTION_COMPOSITION_GUIDE[position];
+
+  // 1. 텍스트에서 핵심 메시지 추출
+  const keyMessages = await extractKeyMessagesFromText(
+    sectionText,
+    productName,
+    category,
+    brandStyle
+  );
+
+  console.log(`[Orchestration] Building image prompt from text for ${sectionType}`);
+  console.log(`[Orchestration] Main message: ${keyMessages.mainMessage}`);
+  console.log(`[Orchestration] Visual keywords: ${keyMessages.visualKeywords.join(', ')}`);
+
+  // 2. 기본 지시문
+  const noTextInstruction = 'absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only';
+  const productConsistencyPrefix = `[CRITICAL - PRODUCT CONSISTENCY: The exact same "${productName}" must appear identically in all images with consistent design, shape, color, texture and packaging]`;
+  const qualityKeywords = '8K resolution, photorealistic, professional commercial photography, high-end advertising quality, sharp focus, premium product visualization';
+
+  // 3. 비주얼 테마 지시문
+  const themePrefix = visualTheme
+    ? `[VISUAL THEME: ${visualTheme.consistencyPrompt}] [BACKGROUND: ${visualTheme.backgroundColors.gradient || visualTheme.backgroundColors.primary}] [LIGHTING: ${visualTheme.lighting.style}]`
+    : '[VISUAL THEME: clean minimal style with soft neutral background]';
+
+  // 4. 제품 외형 참조
+  const productAppearance = visualReference?.appearance
+    ? `[PRODUCT APPEARANCE: ${visualReference.appearance}]`
+    : '';
+  const productColors = visualReference?.colorScheme
+    ? `[COLOR SCHEME: ${visualReference.colorScheme}]`
+    : '';
+
+  // 5. 섹션 템플릿 기반 프롬프트
+  const extendedSectionType = mapToExtendedSectionType(sectionType);
+  const sectionTemplate = getSectionTemplate(extendedSectionType);
+  const baseTemplatePrompt = buildSectionTemplatePrompt(
+    sectionTemplate,
+    productName,
+    visualTheme?.backgroundColors.gradient || 'clean gradient',
+    keyFeatures[0]
+  );
+
+  // 6. 네거티브 프롬프트
+  const negativePrompt = buildNegativePrompt(['quality', 'style', 'content', 'composition'], category);
+
+  // 7. ★ 텍스트 기반 핵심 메시지 시각화 지시 ★
+  // 중요: 텍스트를 이미지에 렌더링하지 않고, 시각적 메타포로만 표현
+  const textBasedVisualization = `[TEXT-DRIVEN VISUALIZATION - NO TEXT RENDERING, ONLY VISUAL METAPHORS:
+    CONCEPT TO VISUALIZE (NOT as text, but as visual elements): "${keyMessages.mainMessage}"
+    EMOTIONAL ATMOSPHERE: ${keyMessages.emotionalTone}
+    VISUAL ELEMENTS & PROPS: ${keyMessages.visualKeywords.join(', ')}
+    SCENE SETTING: ${keyMessages.targetScene}
+
+    CRITICAL RULES:
+    - DO NOT render any text, words, letters, or typography in the image
+    - Instead, EXPRESS the message through visual metaphors only
+    - Example: "72-hour hydration" → show water droplets, dewy surface, moisture texture
+    - Example: "clinical tested" → show clean laboratory setting, medical aesthetic
+    - Example: "natural ingredients" → show fresh botanicals, organic elements
+    - The viewer should FEEL the message through imagery, not READ it]`;
+
+  // 8. 섹션별 특화 연출
+  const sectionVisualization = buildSectionVisualizationGuide(sectionType, keyMessages);
+
+  // 9. 최종 프롬프트 조합
+  const imagePrompt = [
+    productConsistencyPrefix,
+    themePrefix,
+    productAppearance,
+    productColors,
+    textBasedVisualization,  // ★ 텍스트 기반 시각화 지시 (핵심!)
+    sectionVisualization,     // 섹션별 특화 연출
+    baseTemplatePrompt,
+    qualityKeywords,
+    noTextInstruction,
+    `--negative ${negativePrompt}`
+  ].filter(Boolean).join(', ');
+
+  console.log(`[Orchestration] Generated TEXT-DRIVEN prompt for ${sectionType}`);
+
+  return {
+    sectionType,
+    position,
+    imagePrompt,
+    compositionGuide,
+  };
+}
+
+/**
+ * 섹션별 텍스트 시각화 가이드
+ */
+function buildSectionVisualizationGuide(
+  sectionType: string,
+  keyMessages: ExtractedKeyMessages
+): string {
+  const visualElements = keyMessages.visualKeywords.join(', ');
+
+  switch (sectionType) {
+    case 'MAIN':
+      return `[MAIN THUMBNAIL VISUALIZATION: Hero product shot with ${visualElements}, conveying "${keyMessages.mainMessage}", ${keyMessages.emotionalTone} mood, eye-catching composition for product listing thumbnail]`;
+
+    case 'HERO':
+      return `[HERO SECTION VISUALIZATION: Emotional product introduction with ${visualElements}, atmosphere: ${keyMessages.targetScene}, tone: ${keyMessages.emotionalTone}, large product hero with aspirational styling]`;
+
+    case 'FEATURES':
+      return `[FEATURES VISUALIZATION: Technical showcase with ${visualElements}, visualizing "${keyMessages.mainMessage}", ingredient/technology highlight, scientific yet elegant composition]`;
+
+    case 'SOCIAL_PROOF':
+      return `[SOCIAL PROOF VISUALIZATION: Trust-building imagery with ${visualElements}, clinical/professional setting: ${keyMessages.targetScene}, before-after or test result visualization, ${keyMessages.emotionalTone} credibility]`;
+
+    case 'HOW_TO_USE':
+      return `[USAGE VISUALIZATION: Step-by-step tutorial with ${visualElements}, scene: ${keyMessages.targetScene}, clear application demonstration, instructional yet aesthetically pleasing]`;
+
+    case 'FAQ':
+      return `[FAQ/CTA VISUALIZATION: Product collection with ${visualElements}, final impression: ${keyMessages.emotionalTone}, purchase-encouraging composition, brand lineup or gift set arrangement]`;
+
+    default:
+      return `[SECTION VISUALIZATION: ${visualElements}, mood: ${keyMessages.emotionalTone}]`;
+  }
+}
+
+// ============================================
 // 오버레이 텍스트 생성기
 // ============================================
 
@@ -1213,10 +1436,10 @@ export async function orchestrateDetailPageGeneration(
     generateTextContent(1),
   ]);
 
-  // 3. 각 섹션별 다중 이미지 프롬프트 생성
-  // MAIN: 메인 썸네일 (올리브영 스타일 - 상세페이지 진입 전 제품 슬로건 이미지)
-  // HERO: 상세페이지 첫 번째 섹션
-  console.log('[Orchestration] Generating section image prompts with copyLength-based counts...');
+  // 3. ★ 텍스트 기반 이미지 프롬프트 생성 (NEW: 스토리 → 이미지)
+  // 텍스트 콘텐츠를 먼저 분석하여 그에 맞는 이미지 생성
+  console.log('[Orchestration] ★ TEXT-DRIVEN IMAGE GENERATION: Analyzing text content to generate matching images...');
+
   const sectionTypes: Array<'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ'> = [
     'MAIN', 'HERO', 'FEATURES', 'SOCIAL_PROOF', 'HOW_TO_USE', 'FAQ'
   ];
@@ -1246,15 +1469,34 @@ export async function orchestrateDetailPageGeneration(
   const totalImages = Array.from(adjustedCounts.values()).reduce((sum, c) => sum + c, 0);
   console.log(`[Orchestration] Image counts by section (total: ${totalImages}):`, Object.fromEntries(adjustedCounts));
 
-  // 3-3. 각 섹션별 다중 이미지 프롬프트 생성
-  // - 동일한 visualReference 전달로 제품 일관성 유지
-  // - 동일한 visualTheme 전달로 배경/조명/분위기 일관성 유지
+  // 3-3. ★ 텍스트 기반 이미지 프롬프트 생성 (NEW!)
+  // - 첫 번째 버전 텍스트를 기반으로 이미지 프롬프트 생성
+  // - 텍스트 내용을 분석하여 해당 메시지에 맞는 이미지 생성
   const imagePromptsMap = new Map<string, SectionImagePrompt[]>();
+
+  // 기준 텍스트: 첫 번째 버전 (또는 폴백)
+  const referenceTextContent = textContent1 || {
+    hookMessage: `${input.productName} - 최고의 선택`,
+    sections: sectionTypes.map(type => ({
+      type,
+      title: type,
+      body: `${input.productName} ${type} 섹션`,
+    })),
+  };
+
+  console.log('[Orchestration] Reference text for image generation:', referenceTextContent.hookMessage);
 
   await Promise.all(
     sectionTypes.map(async (sectionType) => {
       const imageCount = adjustedCounts.get(sectionType) || 1;
       const sectionInfo = sectionImageCounts.find(s => s.sectionType === sectionType);
+
+      // 해당 섹션의 텍스트 내용 찾기
+      const sectionText = referenceTextContent.sections.find(
+        (s: SectionTextContent) => s.type === sectionType
+      ) || { type: sectionType, title: sectionType, body: '' };
+
+      console.log(`[Orchestration] Generating image for ${sectionType} based on text: "${sectionText.title}"`);
 
       // 해당 섹션에 대해 imageCount만큼 프롬프트 생성
       const prompts: SectionImagePrompt[] = await Promise.all(
@@ -1264,9 +1506,11 @@ export async function orchestrateDetailPageGeneration(
             ? generateVariationHint(sectionType, index, imageCount, input.category, sectionInfo?.overlayTextGuide)
             : undefined;
 
+          // ★ 텍스트 기반 이미지 프롬프트 생성 + overlayText 항상 생성
+          // overlayText는 generateImages와 관계없이 항상 생성 (텍스트와 함께 제공)
           const [imagePrompt, overlayText] = await Promise.all([
-            generateSectionImagePrompt(
-              sectionType,
+            generateSectionImagePromptFromText(
+              sectionText,           // ★ 텍스트 내용 전달!
               input.productName,
               input.category,
               input.keyFeatures,
@@ -1275,13 +1519,14 @@ export async function orchestrateDetailPageGeneration(
               visualReference,
               visualTheme
             ),
-            input.generateImages ? generateOverlayText(
+            // ★ overlayText는 항상 생성 (텍스트 생성 결과와 함께 제공)
+            generateOverlayText(
               sectionType,
               input.productName,
               input.category,
               input.keyFeatures,
               input.targetAudience
-            ) : undefined,
+            ),
           ]);
 
           return {
@@ -1303,7 +1548,7 @@ export async function orchestrateDetailPageGeneration(
   imagePromptsMap.forEach((prompts, sectionType) => {
     promptCounts[sectionType] = prompts.length;
   });
-  console.log('[Orchestration] ★★★ Multi-image prompts per section:', JSON.stringify(promptCounts));
+  console.log('[Orchestration] ★★★ TEXT-DRIVEN image prompts per section:', JSON.stringify(promptCounts));
 
   // 4. 결과 조합 (다중 이미지 프롬프트 포함)
   const buildResult = (textContent: { hookMessage: string; sections: Array<{ type: string; title?: string; body: string }> } | null): OrchestrationResult => {

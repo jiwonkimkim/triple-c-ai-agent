@@ -205,6 +205,25 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       });
     }
 
+    // ★ 오버레이 텍스트 항목 타입 (위치 + 스타일 포함)
+    interface OverlayTextItem {
+      text?: string;
+      x?: number;
+      y?: number;
+      fontSize?: number;
+      fontWeight?: string;
+      color?: string;
+      textAlign?: string;
+    }
+    interface OverlayStatisticItem {
+      text: string;
+      x?: number;
+      y?: number;
+      fontSize?: number;
+      fontWeight?: string;
+      color?: string;
+    }
+
     // Convert sections to editor sections format (each AI section becomes an editor section) - fallback for first load
     const aiSections = latestVersion.sections as Array<{
       id: string;
@@ -214,6 +233,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       order: number;
       imageUrl?: string;
       imageUrls?: string[];  // 다중 이미지 지원
+      overlayText?: {        // ★ AI 생성 오버레이 텍스트 (위치 + 스타일 포함)
+        headline?: OverlayTextItem | string;
+        subheadline?: OverlayTextItem | string;
+        body?: OverlayTextItem | string;
+        statistics?: (OverlayStatisticItem | string)[];
+        cta?: OverlayTextItem | string;
+      };
     }>;
 
     if (aiSections && aiSections.length > 0) {
@@ -288,6 +314,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
         let zIndex = 1;
 
+        // ★ AI가 생성한 overlayText가 있으면 우선 사용 (위치 + 스타일 포함)
+        const aiOverlayText = section.overlayText as {
+          headline?: OverlayTextItem | string;
+          subheadline?: OverlayTextItem | string;
+          body?: OverlayTextItem | string;
+          statistics?: (OverlayStatisticItem | string)[];
+          cta?: OverlayTextItem | string;
+        } | undefined;
+
         // 섹션 타입별 제품 위치 및 텍스트 안전 영역 정의
         // 제품 영역을 피해서 텍스트 배치
         const sectionType = section.type;
@@ -346,80 +381,234 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           },
         };
 
-        // Add title as headline
-        if (section.title) {
-          overlayTexts.push({
-            id: `${section.id}-title`,
-            type: 'headline',
-            content: section.title,
-            style: {
-              x: textPosition.headline.x,
-              y: textPosition.headline.y,
-              fontSize: isMain ? 32 : 28,
-              fontWeight: 'bold',
-              fontFamily: 'Pretendard, sans-serif',
-              color: '#ffffff',
-              textShadow: true,
-              textAlign: textPosition.headline.align,
-              opacity: 100,
-              rotation: 0,
-              width: isMain ? 35 : 80,  // 기본 너비 설정 (화면 안에서 줄바꿈)
-            },
-            zIndex: zIndex++,
-          });
+        // ★ AI가 생성한 overlayText가 있으면 우선 사용 (위치 + 스타일 포함)
+        // 헬퍼 함수: OverlayTextItem 또는 string에서 값 추출 (항상 일관된 타입 반환)
+        interface TextValueResult {
+          text: string;
+          hasStyle: boolean;
+          x?: number;
+          y?: number;
+          fontSize?: number;
+          fontWeight?: string;
+          color?: string;
+          textAlign?: string;
         }
+        const getTextValue = (item: { text?: string; x?: number; y?: number; fontSize?: number; fontWeight?: string; color?: string; textAlign?: string } | string | undefined | null): TextValueResult | null => {
+          if (!item) return null;
+          if (typeof item === 'string') {
+            return { text: item, hasStyle: false };
+          }
+          return {
+            text: item.text || '',
+            hasStyle: true,
+            x: item.x,
+            y: item.y,
+            fontSize: item.fontSize,
+            fontWeight: item.fontWeight,
+            color: item.color,
+            textAlign: item.textAlign,
+          };
+        };
 
-        // Add body as subheadline or body text
-        if (section.body) {
-          // body가 배열인 경우 문자열로 변환
-          const bodyText = Array.isArray(section.body)
-            ? section.body.join('\n')
-            : String(section.body);
-          // Split body into multiple lines if too long
-          const bodyLines = bodyText.split('\n').filter(line => line.trim());
-
-          if (bodyLines.length === 1 && bodyLines[0].length < 50) {
-            // Short text - single subheadline
+        if (aiOverlayText) {
+          // headline (AI 생성 또는 section.title)
+          const headlineData = getTextValue(aiOverlayText.headline) || (section.title ? { text: section.title, hasStyle: false } : null);
+          if (headlineData) {
             overlayTexts.push({
-              id: `${section.id}-body`,
-              type: 'subheadline',
-              content: bodyText,
+              id: `${section.id}-headline`,
+              type: 'headline',
+              content: headlineData.text || '',
               style: {
-                x: textPosition.body.x,
-                y: textPosition.body.y,
-                fontSize: isMain ? 18 : 16,
-                fontWeight: 'medium',
+                x: headlineData.x ?? textPosition.headline.x,
+                y: headlineData.y ?? textPosition.headline.y,
+                fontSize: headlineData.fontSize ?? (isMain ? 32 : 28),
+                fontWeight: (headlineData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'bold',
                 fontFamily: 'Pretendard, sans-serif',
-                color: '#ffffff',
+                color: headlineData.color ?? '#ffffff',
                 textShadow: true,
-                textAlign: textPosition.body.align,
+                textAlign: (headlineData.textAlign as 'left' | 'center' | 'right') ?? textPosition.headline.align,
                 opacity: 100,
                 rotation: 0,
-                width: isMain ? 35 : 70,  // 기본 너비 설정 (화면 안에서 줄바꿈)
+                width: isMain ? 35 : 80,
               },
               zIndex: zIndex++,
             });
-          } else {
-            // Longer text - body type, position at bottom
+          }
+
+          // subheadline (AI 생성)
+          const subheadlineData = getTextValue(aiOverlayText.subheadline);
+          if (subheadlineData) {
+            overlayTexts.push({
+              id: `${section.id}-subheadline`,
+              type: 'subheadline',
+              content: subheadlineData.text || '',
+              style: {
+                x: subheadlineData.x ?? textPosition.body.x,
+                y: subheadlineData.y ?? (textPosition.headline.y + 12),
+                fontSize: subheadlineData.fontSize ?? (isMain ? 18 : 16),
+                fontWeight: (subheadlineData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'medium',
+                fontFamily: 'Pretendard, sans-serif',
+                color: subheadlineData.color ?? '#ffffff',
+                textShadow: true,
+                textAlign: (subheadlineData.textAlign as 'left' | 'center' | 'right') ?? textPosition.body.align,
+                opacity: 100,
+                rotation: 0,
+                width: isMain ? 35 : 70,
+              },
+              zIndex: zIndex++,
+            });
+          }
+
+          // body (AI 생성 또는 section.body)
+          const bodyData = getTextValue(aiOverlayText.body);
+          const bodyFallback: TextValueResult | null = !bodyData && section.body
+            ? { text: Array.isArray(section.body) ? section.body.join('\n') : String(section.body), hasStyle: false }
+            : null;
+          const finalBodyData = bodyData || bodyFallback;
+          if (finalBodyData) {
             overlayTexts.push({
               id: `${section.id}-body`,
               type: 'body',
-              content: bodyText,
+              content: finalBodyData.text || '',
               style: {
-                x: textPosition.body.x,
-                y: isMain ? 40 : 85,
-                fontSize: 14,
-                fontWeight: 'normal',
+                x: finalBodyData.x ?? textPosition.body.x,
+                y: finalBodyData.y ?? (isMain ? 40 : 85),
+                fontSize: finalBodyData.fontSize ?? 14,
+                fontWeight: (finalBodyData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'normal',
                 fontFamily: 'Pretendard, sans-serif',
-                color: '#ffffff',
+                color: finalBodyData.color ?? '#ffffff',
                 textShadow: true,
-                textAlign: textPosition.body.align,
+                textAlign: (finalBodyData.textAlign as 'left' | 'center' | 'right') ?? textPosition.body.align,
                 opacity: 100,
                 rotation: 0,
-                width: isMain ? 35 : 80,  // 기본 너비 설정 (화면 안에서 줄바꿈)
+                width: isMain ? 35 : 80,
               },
               zIndex: zIndex++,
             });
+          }
+
+          // statistics (AI 생성) - 위치/스타일 포함 가능
+          if (aiOverlayText.statistics && aiOverlayText.statistics.length > 0) {
+            aiOverlayText.statistics.forEach((stat, idx) => {
+              // statData를 일관된 타입으로 변환
+              const statData: { text: string; x?: number; y?: number; fontSize?: number; fontWeight?: string; color?: string } =
+                typeof stat === 'string' ? { text: stat } : { text: stat.text || '', x: stat.x, y: stat.y, fontSize: stat.fontSize, fontWeight: stat.fontWeight, color: stat.color };
+              overlayTexts.push({
+                id: `${section.id}-stat-${idx}`,
+                type: 'statistic',
+                content: statData.text || '',
+                style: {
+                  x: statData.x ?? 50,
+                  y: statData.y ?? (50 + (idx * 15)),
+                  fontSize: statData.fontSize ?? 48,
+                  fontWeight: (statData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'bold',
+                  fontFamily: 'Pretendard, sans-serif',
+                  color: statData.color ?? '#ffffff',
+                  textShadow: true,
+                  textAlign: 'center',
+                  opacity: 100,
+                  rotation: 0,
+                },
+                zIndex: zIndex++,
+              });
+            });
+          }
+
+          // cta (AI 생성) - 위치/스타일 포함 가능
+          const ctaData = getTextValue(aiOverlayText.cta);
+          if (ctaData) {
+            overlayTexts.push({
+              id: `${section.id}-cta`,
+              type: 'cta',
+              content: ctaData.text || '',
+              style: {
+                x: ctaData.x ?? 50,
+                y: ctaData.y ?? 90,
+                fontSize: ctaData.fontSize ?? 16,
+                fontWeight: (ctaData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'semibold',
+                fontFamily: 'Pretendard, sans-serif',
+                color: ctaData.color ?? '#ffffff',
+                textShadow: true,
+                textAlign: 'center',
+                opacity: 100,
+                rotation: 0,
+              },
+              zIndex: zIndex++,
+            });
+          }
+        } else {
+          // 폴백: 기존 방식 (section.title, section.body 사용)
+          // Add title as headline
+          if (section.title) {
+            overlayTexts.push({
+              id: `${section.id}-title`,
+              type: 'headline',
+              content: section.title,
+              style: {
+                x: textPosition.headline.x,
+                y: textPosition.headline.y,
+                fontSize: isMain ? 32 : 28,
+                fontWeight: 'bold',
+                fontFamily: 'Pretendard, sans-serif',
+                color: '#ffffff',
+                textShadow: true,
+                textAlign: textPosition.headline.align,
+                opacity: 100,
+                rotation: 0,
+                width: isMain ? 35 : 80,
+              },
+              zIndex: zIndex++,
+            });
+          }
+
+          // Add body as subheadline or body text
+          if (section.body) {
+            const bodyText = Array.isArray(section.body)
+              ? section.body.join('\n')
+              : String(section.body);
+            const bodyLines = bodyText.split('\n').filter(line => line.trim());
+
+            if (bodyLines.length === 1 && bodyLines[0].length < 50) {
+              overlayTexts.push({
+                id: `${section.id}-body`,
+                type: 'subheadline',
+                content: bodyText,
+                style: {
+                  x: textPosition.body.x,
+                  y: textPosition.body.y,
+                  fontSize: isMain ? 18 : 16,
+                  fontWeight: 'medium',
+                  fontFamily: 'Pretendard, sans-serif',
+                  color: '#ffffff',
+                  textShadow: true,
+                  textAlign: textPosition.body.align,
+                  opacity: 100,
+                  rotation: 0,
+                  width: isMain ? 35 : 70,
+                },
+                zIndex: zIndex++,
+              });
+            } else {
+              overlayTexts.push({
+                id: `${section.id}-body`,
+                type: 'body',
+                content: bodyText,
+                style: {
+                  x: textPosition.body.x,
+                  y: isMain ? 40 : 85,
+                  fontSize: 14,
+                  fontWeight: 'normal',
+                  fontFamily: 'Pretendard, sans-serif',
+                  color: '#ffffff',
+                  textShadow: true,
+                  textAlign: textPosition.body.align,
+                  opacity: 100,
+                  rotation: 0,
+                  width: isMain ? 35 : 80,
+                },
+                zIndex: zIndex++,
+              });
+            }
           }
         }
 

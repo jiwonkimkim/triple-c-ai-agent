@@ -18,6 +18,7 @@ import { uploadGeneratedImage } from '@/services/image/image-upload-service';
 import {
   buildEnhancedSystemPrompt,
   buildEnhancedUserPrompt,
+  OverlayTextContent,
 } from './prompts';
 import {
   orchestrateDetailPageGeneration,
@@ -54,6 +55,8 @@ interface GenerateDetailPageInput {
   imageModel?: GeminiImageModel;
 }
 
+// OverlayTextContent는 ./prompts/types.ts에서 import (위치 + 스타일 정보 포함)
+
 interface DetailPageSection {
   id: string;
   type: 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ' | 'CUSTOM';
@@ -64,6 +67,7 @@ interface DetailPageSection {
   imageUrls?: string[];                 // 다중 이미지 URL 배열
   imagePrompt?: SectionImagePrompt;     // 기존 호환성 (첫 번째 프롬프트)
   imagePrompts?: SectionImagePrompt[];  // 다중 이미지 프롬프트 배열
+  overlayText?: OverlayTextContent;     // ★ AI 생성 오버레이 텍스트 (이미지 위 자동 배치)
 }
 
 interface DetailPageVersion {
@@ -390,18 +394,25 @@ export async function generateDetailPage(
       generateImages: input.generateImages,
     });
 
-    // OrchestrationResult를 DetailPageVersion으로 변환 (다중 이미지 프롬프트 포함)
+    // OrchestrationResult를 DetailPageVersion으로 변환 (다중 이미지 프롬프트 + overlayText 포함)
     let versions: DetailPageVersion[] = orchestrationResults.map((result) => ({
       hookMessage: result.hookMessage,
-      sections: result.sections.map((section) => ({
-        id: section.id,
-        type: section.type as DetailPageSection['type'],
-        title: section.title,
-        body: section.body,
-        order: section.order,
-        imagePrompt: section.imagePrompt,
-        imagePrompts: section.imagePrompts,  // 다중 이미지 프롬프트 배열
-      })),
+      sections: result.sections.map((section) => {
+        // 첫 번째 이미지 프롬프트에서 overlayText 추출
+        const firstPrompt = section.imagePrompts?.[0] || section.imagePrompt;
+        const overlayText = firstPrompt?.overlayText;
+
+        return {
+          id: section.id,
+          type: section.type as DetailPageSection['type'],
+          title: section.title,
+          body: section.body,
+          order: section.order,
+          imagePrompt: section.imagePrompt,
+          imagePrompts: section.imagePrompts,  // 다중 이미지 프롬프트 배열
+          overlayText,                          // ★ AI 생성 오버레이 텍스트 포함!
+        };
+      }),
     }));
 
     // ============================================

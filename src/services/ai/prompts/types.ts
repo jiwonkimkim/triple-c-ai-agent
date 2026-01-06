@@ -45,20 +45,54 @@ export interface ProductVisualReference {
 }
 
 // ============================================
-// 오버레이 텍스트 콘텐츠
+// 오버레이 텍스트 콘텐츠 (위치 + 스타일 포함)
 // ============================================
 
+/** 텍스트 항목 스타일 (위치, 폰트, 색상 등) */
+export interface OverlayTextItem {
+  text: string;
+  x: number;           // 위치 (% 기준, 0-100)
+  y: number;           // 위치 (% 기준, 0-100)
+  fontSize: number;    // px 단위
+  fontWeight: 'normal' | 'medium' | 'semibold' | 'bold';
+  color: string;       // hex color (예: "#ffffff")
+  textAlign?: 'left' | 'center' | 'right';
+}
+
+/** 통계 항목 (숫자 강조용) */
+export interface OverlayStatisticItem {
+  text: string;
+  x: number;
+  y: number;
+  fontSize: number;
+  fontWeight: 'normal' | 'medium' | 'semibold' | 'bold';
+  color: string;
+}
+
 export interface OverlayTextContent {
-  /** 대제목 (5-10자) */
-  headline?: string;
+  /** 대제목 (5-10자) - 위치와 스타일 포함 */
+  headline?: OverlayTextItem | string;  // 하위 호환성을 위해 string도 허용
   /** 부제목 (10-20자) */
-  subheadline?: string;
+  subheadline?: OverlayTextItem | string;
   /** 본문 (20-50자) */
-  body?: string;
+  body?: OverlayTextItem | string;
   /** 수치/통계 (예: "92%", "3.5배") */
-  statistics?: string[];
+  statistics?: OverlayStatisticItem[] | string[];
   /** 행동 유도 문구 (5-10자) */
-  cta?: string;
+  cta?: OverlayTextItem | string;
+}
+
+/** 헬퍼: OverlayTextItem에서 텍스트만 추출 */
+export function getOverlayText(item: OverlayTextItem | string | undefined): string | undefined {
+  if (!item) return undefined;
+  if (typeof item === 'string') return item;
+  return item.text;
+}
+
+/** 헬퍼: 통계 배열에서 텍스트만 추출 */
+export function getOverlayStatistics(items: OverlayStatisticItem[] | string[] | undefined): string[] | undefined {
+  if (!items || items.length === 0) return undefined;
+  return items.map(item => typeof item === 'string' ? item : item.text);
 }
 
 // ============================================
