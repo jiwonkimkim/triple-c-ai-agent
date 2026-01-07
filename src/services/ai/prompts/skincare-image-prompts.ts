@@ -348,9 +348,11 @@ export function buildSkincareImagePrompt(
   const efficacyData = SKINCARE_EFFICACY_KEYWORDS[primaryEfficacy];
   const efficacyVisual = efficacyData.visual.join(', ');
 
-  // 블록 변형 적용
+  // 블록 변형 적용 (섹션이 없으면 기본값 사용)
   const blockVariations = SKINCARE_SECTION_BLOCKS[section];
-  const blockVariation = blockVariations[Math.min(blockIndex, blockVariations.length - 1)];
+  const blockVariation = blockVariations
+    ? blockVariations[Math.min(blockIndex, blockVariations.length - 1)]
+    : null;
   const blockModifier = blockVariation?.promptModifier || '';
 
   // 제품 참조 정보
