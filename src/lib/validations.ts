@@ -92,6 +92,8 @@ export const generateDetailPageSchema = z.object({
   productImages: z.array(z.string().min(1)).optional().default([]),
   productName: z.string().min(1, 'Product name is required').max(100, 'Product name is too long'),
   category: z.string().min(1, 'Category is required'),
+  // 뷰티 서브 카테고리 (스킨케어, 선케어, 립, 마스카라, 마스크팩 등)
+  subCategory: z.enum(['skincare', 'suncare', 'lip', 'mascara', 'maskpack', 'cushion', 'eyeshadow', 'cleanser', 'other_beauty']).optional(),
   keyFeatures: z.array(z.string().min(1)).min(1, 'At least one key feature is required'),
   targetAudience: z.string().optional().default('일반 소비자'),
   copyLength: z.enum(['short', 'medium', 'long']),

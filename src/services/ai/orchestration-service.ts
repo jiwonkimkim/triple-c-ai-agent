@@ -43,6 +43,12 @@ import {
   // ★ 인덱스 기반 이미지 프롬프트 시스템 (NEW!)
   getSectionImagePromptByIndex,
   hasIndexedPrompts,
+  // ★★★ 뷰티 서브 카테고리 통합 프롬프트 시스템 (NEW!)
+  buildUnifiedImagePrompt,
+  hasAdvancedPromptSystem,
+  isBeautyCategory,
+  type BeautySubCategory,
+  type UnifiedPromptOptions,
   type PaletteTheme,
   type ColorPalette,
   type SectionPosition,
@@ -69,6 +75,7 @@ export interface GenerationInput {
   productImages: string[];
   productName: string;
   category: string;
+  subCategory?: BeautySubCategory;  // ★ 뷰티 서브 카테고리 (스킨케어, 선케어, 립, 마스카라, 마스크팩 등)
   keyFeatures: string[];
   targetAudience: string;
   copyLength: 'short' | 'medium' | 'long';
@@ -1124,11 +1131,65 @@ export async function generateSectionImagePromptFromText(
   brandStyle?: string,
   visualReference?: ProductVisualReference,
   visualTheme?: VisualTheme,
-  indexBasedPrompt?: string  // ★ 인덱스별 특화 프롬프트 (NEW!)
+  indexBasedPrompt?: string,  // ★ 인덱스별 특화 프롬프트
+  subCategory?: BeautySubCategory,  // ★★★ 뷰티 서브 카테고리 (NEW!)
+  blockIndex: number = 0  // ★ 블록 인덱스 (서브 카테고리 프롬프트용)
 ): Promise<SectionImagePrompt> {
   const sectionType = sectionText.type as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
   const position = mapSectionTypeToPosition(sectionType);
   const compositionGuide = SECTION_COMPOSITION_GUIDE[position];
+
+  // ★★★ 뷰티 서브 카테고리 고도화 프롬프트 시스템 적용 (NEW!) ★★★
+  // 서브 카테고리가 지정되고, 고도화된 프롬프트 시스템이 있으면 해당 시스템 사용
+  if (subCategory && hasAdvancedPromptSystem(subCategory) && isBeautyCategory(category)) {
+    console.log(`[Orchestration] ★★★ Using ADVANCED prompt system for ${subCategory} (${sectionType}, block ${blockIndex})`);
+
+    // 통합 프롬프트 빌더 옵션 구성
+    const unifiedOptions: UnifiedPromptOptions = {
+      productName,
+      subCategory,
+      keyFeatures,
+      brandStyle,
+    };
+
+    // 서브 카테고리별 고도화 프롬프트 생성
+    const advancedPrompt = buildUnifiedImagePrompt(sectionType, unifiedOptions, blockIndex);
+
+    if (advancedPrompt) {
+      // 기본 품질 및 일관성 지시문
+      const noTextInstruction = 'absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only';
+      const productConsistencyPrefix = `[CRITICAL - PRODUCT CONSISTENCY: The exact same "${productName}" must appear identically in all images]`;
+      const qualityKeywords = '8K resolution, photorealistic, professional commercial photography, high-end advertising quality';
+      const negativePrompt = buildNegativePrompt(['quality', 'style', 'content', 'composition'], category);
+
+      // 비주얼 테마 지시문
+      const themePrefix = visualTheme
+        ? `[VISUAL THEME: ${visualTheme.consistencyPrompt}] [BACKGROUND: ${visualTheme.backgroundColors.gradient || visualTheme.backgroundColors.primary}]`
+        : '';
+
+      // 최종 프롬프트 조합
+      const finalPrompt = [
+        productConsistencyPrefix,
+        themePrefix,
+        `[★★★ ADVANCED ${subCategory.toUpperCase()} PROMPT ★★★]`,
+        advancedPrompt,
+        qualityKeywords,
+        noTextInstruction,
+        `--negative ${negativePrompt}`
+      ].filter(Boolean).join(', ');
+
+      console.log(`[Orchestration] ★ Generated ADVANCED prompt for ${subCategory}/${sectionType}/block${blockIndex}`);
+
+      return {
+        sectionType,
+        position,
+        imagePrompt: finalPrompt,
+        compositionGuide,
+      };
+    }
+  }
+
+  // ===== 기존 프롬프트 생성 로직 (서브 카테고리 없거나 지원 안 되는 경우) =====
 
   // 1. 텍스트에서 핵심 메시지 추출
   const keyMessages = await extractKeyMessagesFromText(
@@ -1831,7 +1892,9 @@ export async function orchestrateDetailPageGeneration(
               brandStyle,
               visualReference,
               visualTheme,
-              indexBasedPromptInfo?.prompt  // ★ 인덱스별 프롬프트 전달 (NEW!)
+              indexBasedPromptInfo?.prompt,  // ★ 인덱스별 프롬프트 전달
+              input.subCategory,             // ★★★ 뷰티 서브 카테고리 (NEW!)
+              index                          // ★ 블록 인덱스
             ),
             // ★ overlayText는 블록별로 다르게 생성 (variationHint 반영!)
             generateOverlayText(

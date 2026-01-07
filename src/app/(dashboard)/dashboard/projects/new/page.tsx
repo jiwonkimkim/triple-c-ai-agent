@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { createProjectSchema, type CreateProjectInput } from '@/lib/validations';
 import { BrandSelect } from '@/components/brands';
+import { BEAUTY_SUBCATEGORY_META, type BeautySubCategory } from '@/services/ai/prompts';
 
 const categories = [
   { value: 'Fashion', label: '패션' },
@@ -41,7 +42,7 @@ const imageModelOptions = [
 // 개발 모드 확인
 const isDev = process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEV_MODE === 'true';
 
-// 테스트용 샘플 데이터 (랜덤 선택)
+// 테스트용 샘플 데이터 (랜덤 선택) - 서브 카테고리 포함
 const TEST_DATA_LIST = [
   {
     project: {
@@ -51,6 +52,7 @@ const TEST_DATA_LIST = [
     product: {
       productName: '벨벳 매트 립스틱 #로즈베리',
       category: 'Beauty & Skincare',
+      subCategory: 'lip' as const,
       keyFeatures: [
         '12시간 지속되는 롱래스팅 포뮬러',
         '입술 보습 케어 성분 함유',
@@ -70,6 +72,7 @@ const TEST_DATA_LIST = [
     product: {
       productName: '퓨어 비타민C 20% 브라이트닝 세럼',
       category: 'Beauty & Skincare',
+      subCategory: 'skincare' as const,
       keyFeatures: [
         '순수 비타민C 20% 고농축 함유',
         '피부 톤 개선 및 광채 부여',
@@ -90,6 +93,7 @@ const TEST_DATA_LIST = [
     product: {
       productName: '딥 하이드레이션 히알루론산 크림',
       category: 'Beauty & Skincare',
+      subCategory: 'skincare' as const,
       keyFeatures: [
         '3중 히알루론산 콤플렉스',
         '72시간 보습 지속력',
@@ -110,6 +114,7 @@ const TEST_DATA_LIST = [
     product: {
       productName: '에어리 선 에센스 SPF50+ PA++++',
       category: 'Beauty & Skincare',
+      subCategory: 'suncare' as const,
       keyFeatures: [
         'SPF50+ PA++++ 강력한 자외선 차단',
         '가벼운 에센스 제형',
@@ -130,6 +135,7 @@ const TEST_DATA_LIST = [
     product: {
       productName: '젠틀 딥 클렌징 오일',
       category: 'Beauty & Skincare',
+      subCategory: '' as const,  // 클렌징은 아직 지원 안 됨
       keyFeatures: [
         '식물성 오일 베이스',
         '워터프루프 메이크업도 깔끔하게 제거',
@@ -163,6 +169,7 @@ export default function NewProjectPage() {
   const [productInfo, setProductInfo] = useState<{
     productName: string;
     category: string;
+    subCategory: BeautySubCategory | '';
     keyFeatures: string[];
     targetAudience: string;
     copyLength: 'short' | 'medium' | 'long';
@@ -171,6 +178,7 @@ export default function NewProjectPage() {
   }>({
     productName: '',
     category: '',
+    subCategory: '',
     keyFeatures: [''],
     targetAudience: '',
     copyLength: 'medium',
@@ -204,6 +212,7 @@ export default function NewProjectPage() {
     setProductInfo({
       productName: testData.product.productName,
       category: testData.product.category,
+      subCategory: testData.product.subCategory,
       keyFeatures: testData.product.keyFeatures,
       targetAudience: testData.product.targetAudience,
       copyLength: testData.product.copyLength,
@@ -421,6 +430,7 @@ export default function NewProjectPage() {
         body: JSON.stringify({
           productName: productInfo.productName,
           category: productInfo.category,
+          subCategory: productInfo.subCategory || undefined,
           keyFeatures: filteredFeatures,
           targetAudience: productInfo.targetAudience || '일반 소비자',
           copyLength: productInfo.copyLength,
@@ -449,6 +459,7 @@ export default function NewProjectPage() {
           productImages: imageUrls,
           productName: productInfo.productName,
           category: productInfo.category,
+          subCategory: productInfo.subCategory || undefined,
           keyFeatures: filteredFeatures,
           targetAudience: productInfo.targetAudience || '일반 소비자',
           copyLength: productInfo.copyLength,
@@ -684,7 +695,12 @@ export default function NewProjectPage() {
                   <Select
                     value={productInfo.category}
                     onValueChange={(value) =>
-                      setProductInfo((prev) => ({ ...prev, category: value }))
+                      setProductInfo((prev) => ({
+                        ...prev,
+                        category: value,
+                        // 카테고리 변경 시 서브 카테고리 초기화
+                        subCategory: value === 'Beauty & Skincare' ? prev.subCategory : '',
+                      }))
                     }
                   >
                     <SelectTrigger>
@@ -700,6 +716,36 @@ export default function NewProjectPage() {
                   </Select>
                 </div>
               </div>
+
+              {/* 뷰티 카테고리 선택 시 서브 카테고리 표시 */}
+              {productInfo.category === 'Beauty & Skincare' && (
+                <div className="space-y-2">
+                  <Label>뷰티 서브 카테고리</Label>
+                  <Select
+                    value={productInfo.subCategory}
+                    onValueChange={(value) =>
+                      setProductInfo((prev) => ({ ...prev, subCategory: value as BeautySubCategory }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="서브 카테고리 선택 (선택사항)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {BEAUTY_SUBCATEGORY_META.filter(sub => sub.isAvailable).map((sub) => (
+                        <SelectItem key={sub.value} value={sub.value}>
+                          <div className="flex items-center gap-2">
+                            <span>{sub.label}</span>
+                            <span className="text-xs text-muted-foreground">({sub.description})</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    서브 카테고리를 선택하면 해당 제품 유형에 최적화된 이미지가 생성됩니다.
+                  </p>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label>상품 URL (선택)</Label>

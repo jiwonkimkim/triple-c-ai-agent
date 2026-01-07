@@ -28,6 +28,7 @@ import {
   SectionImagePrompt,
   OrchestrationResult,
 } from './orchestration-service';
+import type { BeautySubCategory } from './prompts';
 
 // Groq client (OpenAI-compatible API)
 const groq = new OpenAI({
@@ -48,6 +49,7 @@ interface GenerateDetailPageInput {
   productImages: string[];
   productName: string;
   category: string;
+  subCategory?: BeautySubCategory;  // ★ 뷰티 서브 카테고리 (스킨케어, 선케어, 립, 마스카라, 마스크팩 등)
   keyFeatures: string[];
   targetAudience: string;
   copyLength: 'short' | 'medium' | 'long';
@@ -429,6 +431,7 @@ export async function generateDetailPage(
       productImages: input.productImages,
       productName: input.productName,
       category: input.category,
+      subCategory: input.subCategory,  // ★ 뷰티 서브 카테고리 전달
       keyFeatures: input.keyFeatures,
       targetAudience: input.targetAudience,
       copyLength: input.copyLength,

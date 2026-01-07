@@ -235,3 +235,146 @@ export {
   getColorPalette,
   getAllPalettes,
 } from './section-color-palette';
+
+// ============================================
+// 스킨케어 카테고리 전용 이미지 프롬프트 (고도화)
+// ============================================
+export type {
+  SkincareDetailSectionType,
+  SkincareSubCategory,
+  SectionBlockVariation,
+  SkincareImagePromptOptions,
+} from './skincare-image-prompts';
+export {
+  SKINCARE_EFFICACY_KEYWORDS,
+  SKINCARE_SECTION_BLOCKS,
+  SKINCARE_SECTION_BASE_PROMPTS,
+  SUBCATEGORY_VISUAL_MODIFIERS,
+  buildSkincareImagePrompt,
+  buildSkincareFullPromptSet,
+  buildSkincareSectionPrompts,
+  getEfficacyVisualModifiers,
+  getEfficacyColorPalette,
+} from './skincare-image-prompts';
+
+// ============================================
+// 선케어 카테고리 전용 이미지 프롬프트 (고도화)
+// ============================================
+export type {
+  SuncareDetailSectionType,
+  SuncareSubCategory,
+  SPFLevel,
+  PALevel,
+  SunProtectionLevel,
+  SuncareSectionBlockVariation,
+  SuncareImagePromptOptions,
+} from './suncare-image-prompts';
+export {
+  SUNCARE_FEATURE_KEYWORDS,
+  SUNCARE_FREE_SYSTEMS,
+  SUNCARE_SECTION_BLOCKS,
+  SUNCARE_SECTION_BASE_PROMPTS,
+  SUNCARE_SUBCATEGORY_MODIFIERS,
+  SPF_VISUAL_INTENSITY,
+  buildSuncareImagePrompt,
+  buildSuncareFullPromptSet,
+  buildSuncareSectionPrompts,
+  getProtectionVisualIntensity,
+  getSuncareColorPalette,
+  getSeasonalModifier,
+} from './suncare-image-prompts';
+
+// ============================================
+// 립 메이크업 카테고리 전용 이미지 프롬프트 (고도화)
+// ============================================
+export type {
+  LipDetailSectionType,
+  LipSubCategory,
+  LipFinish,
+  LipSectionBlockVariation,
+  LipImagePromptOptions,
+} from './lip-image-prompts';
+export {
+  LIP_COLOR_PALETTE,
+  LIP_FEATURE_KEYWORDS,
+  LIP_SECTION_BLOCKS,
+  LIP_SECTION_BASE_PROMPTS,
+  LIP_SUBCATEGORY_MODIFIERS,
+  LIP_FINISH_MODIFIERS,
+  buildLipImagePrompt,
+  buildLipFullPromptSet,
+  buildLipSectionPrompts,
+  getLipColorInfo,
+  getLipFinishColorPalette,
+  getModelColorToneModifier,
+} from './lip-image-prompts';
+
+// ============================================
+// 마스카라 카테고리 전용 이미지 프롬프트 (고도화)
+// ============================================
+export type {
+  MascaraDetailSectionType,
+  MascaraType,
+  WandType,
+  MascaraSectionBlockVariation,
+  MascaraImagePromptOptions,
+} from './mascara-image-prompts';
+export {
+  MASCARA_FEATURE_KEYWORDS,
+  MASCARA_MOOD_KEYWORDS,
+  MASCARA_COLOR_PALETTE,
+  MASCARA_SECTION_BLOCKS,
+  MASCARA_SECTION_BASE_PROMPTS,
+  MASCARA_TYPE_MODIFIERS,
+  WAND_TYPE_MODIFIERS,
+  buildMascaraImagePrompt,
+  buildMascaraFullPromptSet,
+  buildMascaraSectionPrompts,
+  getRecommendedMoodForType,
+  getMascaraColorInfo,
+  getRecommendedWandForType,
+} from './mascara-image-prompts';
+
+// ============================================
+// 마스크팩 카테고리 전용 이미지 프롬프트 (고도화)
+// ============================================
+export type {
+  MaskPackDetailSectionType,
+  MaskPackType,
+  MaskIngredient,
+  MaskPackSectionBlockVariation,
+  MaskPackImagePromptOptions,
+} from './maskpack-image-prompts';
+export {
+  MASK_INGREDIENT_DATA,
+  MASKPACK_FEATURE_KEYWORDS,
+  MASKPACK_SECTION_BLOCKS,
+  MASKPACK_SECTION_BASE_PROMPTS,
+  MASKPACK_TYPE_MODIFIERS,
+  buildMaskPackImagePrompt,
+  buildMaskPackFullPromptSet,
+  buildMaskPackSectionPrompts,
+  getIngredientColorPalette,
+  getIngredientVisualKeywords,
+  getIngredientMood,
+  buildIngredientSectionPrompt,
+} from './maskpack-image-prompts';
+
+// ============================================
+// 뷰티 서브 카테고리 통합 시스템
+// ============================================
+export type {
+  BeautySubCategory,
+  SubCategoryMeta,
+  BeautyDetailSectionType,
+  UnifiedPromptOptions,
+} from './beauty-subcategory';
+export {
+  BEAUTY_SUBCATEGORY_META,
+  getSubCategorySections,
+  detectSubCategoryFromProductName,
+  buildUnifiedImagePrompt,
+  buildUnifiedSectionPrompts,
+  hasAdvancedPromptSystem,
+  isBeautyCategory,
+} from './beauty-subcategory';

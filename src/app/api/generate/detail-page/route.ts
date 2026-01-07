@@ -130,6 +130,7 @@ export async function POST(request: NextRequest) {
       productImages: validatedData.productImages,
       productName: validatedData.productName,
       category: validatedData.category,
+      subCategory: validatedData.subCategory,  // ★ 뷰티 서브 카테고리 (스킨케어, 선케어, 립 등)
       keyFeatures: validatedData.keyFeatures,
       targetAudience: validatedData.targetAudience || '일반 소비자',
       copyLength: validatedData.copyLength,
