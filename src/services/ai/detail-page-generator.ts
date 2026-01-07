@@ -522,6 +522,7 @@ export async function generateDetailPage(
 
                   // 다중 이미지 생성: 모든 프롬프트에 대해 이미지 생성
                   const generatedImageUrls: string[] = [];
+                  const updatedPrompts = [...prompts]; // 최종 프롬프트 저장용
 
                   for (let i = 0; i < prompts.length; i++) {
                     try {
@@ -545,6 +546,15 @@ export async function generateDetailPage(
                           sectionType,
                         });
                         generatedImageUrls.push(uploadResult.url);
+
+                        // ★ 최종 사용된 프롬프트로 업데이트 (revisedPrompt가 있으면)
+                        if (generatedImage.revisedPrompt && updatedPrompts[i]) {
+                          updatedPrompts[i] = {
+                            ...updatedPrompts[i],
+                            imagePrompt: generatedImage.revisedPrompt,
+                          };
+                        }
+
                         console.log(`[AI I2I] ${sectionType} image ${i + 1} generated successfully`);
                       }
                     } catch (imageError) {
@@ -552,12 +562,13 @@ export async function generateDetailPage(
                     }
                   }
 
-                  // 생성된 이미지가 있으면 결과 반환
+                  // 생성된 이미지가 있으면 결과 반환 (최종 프롬프트 포함)
                   if (generatedImageUrls.length > 0) {
                     return {
                       ...section,
                       imageUrl: generatedImageUrls[0],           // 기존 호환성 (첫 번째 이미지)
                       imageUrls: generatedImageUrls,             // 다중 이미지 배열
+                      imagePrompts: updatedPrompts,              // ★ 최종 프롬프트로 업데이트
                     };
                   }
 
@@ -619,6 +630,7 @@ export async function generateDetailPage(
 
                   // 다중 이미지 생성: 모든 프롬프트에 대해 이미지 생성
                   const generatedImageUrls: string[] = [];
+                  const updatedPrompts = [...prompts]; // 최종 프롬프트 저장용
 
                   for (let i = 0; i < prompts.length; i++) {
                     const prompt = prompts[i];
@@ -644,6 +656,15 @@ export async function generateDetailPage(
                           sectionType,
                         });
                         generatedImageUrls.push(uploadResult.url);
+
+                        // ★ 최종 사용된 프롬프트로 업데이트 (revisedPrompt가 있으면)
+                        if (generatedImage.revisedPrompt && updatedPrompts[i]) {
+                          updatedPrompts[i] = {
+                            ...updatedPrompts[i],
+                            imagePrompt: generatedImage.revisedPrompt,
+                          };
+                        }
+
                         console.log(`[AI T2I] ${sectionType} image ${i + 1} generated successfully`);
                       }
                     } catch (imageError) {
@@ -651,12 +672,13 @@ export async function generateDetailPage(
                     }
                   }
 
-                  // 생성된 이미지가 있으면 결과 반환
+                  // 생성된 이미지가 있으면 결과 반환 (최종 프롬프트 포함)
                   if (generatedImageUrls.length > 0) {
                     return {
                       ...section,
                       imageUrl: generatedImageUrls[0],           // 기존 호환성 (첫 번째 이미지)
                       imageUrls: generatedImageUrls,             // 다중 이미지 배열
+                      imagePrompts: updatedPrompts,              // ★ 최종 프롬프트로 업데이트
                     };
                   }
 

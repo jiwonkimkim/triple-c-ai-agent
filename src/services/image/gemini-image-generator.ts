@@ -422,7 +422,11 @@ ${featureHighlight || 'Highlight product quality and premium feel'}
     throw new Error(`No image generated for ${sectionType}`);
   }
 
-  return images[0];
+  // 최종 사용된 프롬프트를 revisedPrompt로 반환
+  return {
+    ...images[0],
+    revisedPrompt: enhancedPrompt,
+  };
 }
 
 /**
@@ -954,7 +958,11 @@ OUTPUT: High-quality commercial photography, 8K resolution, no text on image.`;
     throw new Error(`No image generated for ${sectionType} section`);
   }
 
-  return images[0];
+  // 최종 사용된 프롬프트를 revisedPrompt로 반환
+  return {
+    ...images[0],
+    revisedPrompt: fullPrompt,
+  };
 }
 
 /**
