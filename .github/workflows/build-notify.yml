@@ -93,8 +93,10 @@ jobs:
 
       - name: Trigger Vercel Deploy
         if: steps.build.outcome == 'success' && github.event_name == 'push'
+        env:
+          VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
         run: |
-          curl -X POST "https://api.vercel.com/v1/integrations/deploy/prj_o6VU3gIhYbgPiK0Nk5l9KLYQfjfI/NTOvMhYtFa"
+          curl -X POST "$VERCEL_DEPLOY_HOOK"
           echo "✅ Vercel deploy triggered"
 
       - name: Update Slack - Success
