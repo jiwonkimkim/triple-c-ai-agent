@@ -16,7 +16,7 @@ export interface ProjectData {
   copyLength?: 'short' | 'medium' | 'long';
   productUrl?: string;
   productImages?: string[];
-  imageModel?: 'sd35-medium' | 'sdxl-base';
+  imageModel?: 'gemini-2.5-flash-image' | 'gemini-3-pro-image-preview';
   detailPageVersions: Array<{
     id: string;
     versionNumber: number;
@@ -38,7 +38,7 @@ export interface SettingsFormState {
   copyLength: 'short' | 'medium' | 'long';
   productUrl: string;
   productImages: string[];
-  imageModel: 'sd35-medium' | 'sdxl-base';
+  imageModel: 'gemini-2.5-flash-image' | 'gemini-3-pro-image-preview';
 }
 
 export interface CategoryOption {
@@ -53,7 +53,7 @@ export interface CopyLengthOption {
 }
 
 export interface ImageModelOption {
-  value: 'sd35-medium' | 'sdxl-base';
+  value: 'gemini-2.5-flash-image' | 'gemini-3-pro-image-preview';
   label: string;
   description: string;
 }
@@ -75,8 +75,8 @@ export const COPY_LENGTH_OPTIONS: CopyLengthOption[] = [
 ];
 
 export const IMAGE_MODEL_OPTIONS: ImageModelOption[] = [
-  { value: 'sd35-medium', label: 'SD 3.5 Medium', description: '로컬 고품질 생성 (~4-5분)' },
-  { value: 'sdxl-base', label: 'SDXL Base', description: '로컬 고품질 생성 (~1-2분)' },
+  { value: 'gemini-2.5-flash-image', label: '기본 (Flash)', description: '빠른 이미지 생성' },
+  { value: 'gemini-3-pro-image-preview', label: '프로 (Pro)', description: '고품질 이미지 생성' },
 ];
 
 export type { VersionSnapshot };

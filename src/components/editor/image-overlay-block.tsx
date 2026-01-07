@@ -41,23 +41,8 @@ import {
   AlignRight,
   Bold,
   Upload,
-  RefreshCw,
-  Loader2,
 } from 'lucide-react';
 import type { ImageOverlayBlock, OverlayText, OverlayTextStyle } from '@/stores/editor-store';
-
-// 섹션 재생성에 필요한 컨텍스트 정보
-export interface SectionRegenerationContext {
-  projectId: string;
-  versionId: string;
-  sectionId: string;
-  sectionType: 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
-  productName: string;
-  category: string;
-  keyFeatures?: string[];
-  targetAudience?: string;
-  imageModel?: string;
-}
 
 interface ImageOverlayBlockRendererProps {
   block: ImageOverlayBlock & { id: string };
@@ -65,10 +50,6 @@ interface ImageOverlayBlockRendererProps {
   isMain?: boolean;  // MAIN 섹션 여부 - 1:1 비율 적용
   onSelect: () => void;
   onUpdate: (updates: Partial<ImageOverlayBlock>) => void;
-  // 재생성 관련 props (선택적)
-  regenerationContext?: SectionRegenerationContext;
-  isRegenerating?: boolean;
-  onRegenerate?: (selectedModel: string) => void;
 }
 
 // 폰트 옵션 (카테고리별 분류)
@@ -170,9 +151,6 @@ export function ImageOverlayBlockRenderer({
   isMain = false,
   onSelect,
   onUpdate,
-  regenerationContext,
-  isRegenerating = false,
-  onRegenerate,
 }: ImageOverlayBlockRendererProps) {
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
   const [showImageSettings, setShowImageSettings] = useState(false);
@@ -634,54 +612,6 @@ export function ImageOverlayBlockRenderer({
       {/* 상단 도구 버튼 */}
       {isSelected && (
         <div className="absolute top-2 right-2 flex gap-1">
-          {/* 이미지 재생성 드롭다운 */}
-          {onRegenerate && regenerationContext && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="h-8 px-2 gap-1 bg-gradient-to-r from-purple-500/90 to-pink-500/90 hover:from-purple-600 hover:to-pink-600 text-white border-0"
-                  disabled={isRegenerating}
-                  title="AI로 이미지 재생성"
-                >
-                  {isRegenerating ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4" />
-                  )}
-                  <span className="text-xs">{isRegenerating ? '생성중...' : '재생성'}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRegenerate('sdxl-base');
-                  }}
-                  disabled={isRegenerating}
-                >
-                  <div className="flex flex-col">
-                    <span className="font-medium">SDXL Base</span>
-                    <span className="text-xs text-muted-foreground">빠른 생성 (~1-2분)</span>
-                  </div>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRegenerate('sd35-medium');
-                  }}
-                  disabled={isRegenerating}
-                >
-                  <div className="flex flex-col">
-                    <span className="font-medium">SD 3.5 Medium</span>
-                    <span className="text-xs text-muted-foreground">고품질 생성 (~4-5분)</span>
-                  </div>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-
           {/* 레이어 패널 토글 */}
           <Button
             variant={showLayerPanel ? 'default' : 'secondary'}

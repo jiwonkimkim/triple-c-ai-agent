@@ -296,7 +296,7 @@ model Project {
   copyLength     String?       @default("medium") @map("copy_length")
   productUrl     String?       @map("product_url")
   productImages  String[]      @default([]) @map("product_images")
-  imageModel     String?       @default("flux-schnell") @map("image_model")
+  imageModel     String?       @default("gemini-2.5-flash-image") @map("image_model")
 
   // Relations
   owner              User                @relation(fields: [ownerId], references: [id])

@@ -21,8 +21,8 @@ export function useRegeneration(
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [lastDevPrompts, setLastDevPrompts] = useState<DevPromptInfo | null>(null);
-  const [selectedModel, setSelectedModel] = useState<'sd35-medium' | 'sdxl-base'>(
-    (settingsForm.imageModel as 'sd35-medium' | 'sdxl-base') || 'sd35-medium'
+  const [selectedModel, setSelectedModel] = useState<'gemini-2.5-flash-image' | 'gemini-3-pro-image-preview'>(
+    settingsForm.imageModel || 'gemini-2.5-flash-image'
   );
 
   // settingsForm.imageModel이 변경되면 selectedModel도 업데이트

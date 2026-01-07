@@ -14,7 +14,7 @@ const initialSettingsForm: SettingsFormState = {
   copyLength: 'medium',
   productUrl: '',
   productImages: [],
-  imageModel: 'sd35-medium',
+  imageModel: 'gemini-2.5-flash-image',
 };
 
 export function useProjectSettings(project: ProjectData | undefined, projectId: string) {
@@ -37,7 +37,7 @@ export function useProjectSettings(project: ProjectData | undefined, projectId: 
         copyLength: project.copyLength || 'medium',
         productUrl: project.productUrl || '',
         productImages: project.productImages || [],
-        imageModel: project.imageModel as 'sd35-medium' | 'sdxl-base' || 'sd35-medium',
+        imageModel: project.imageModel || 'gemini-2.5-flash-image',
       });
     }
   }, [project]);

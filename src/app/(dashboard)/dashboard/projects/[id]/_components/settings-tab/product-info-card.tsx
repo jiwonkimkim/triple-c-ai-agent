@@ -188,7 +188,7 @@ export function ProductInfoCard({
                   checked={settingsForm.imageModel === option.value}
                   onChange={(e) =>
                     onUpdate({
-                      imageModel: e.target.value as 'sd35-medium' | 'sdxl-base',
+                      imageModel: e.target.value as 'gemini-2.5-flash-image' | 'gemini-3-pro-image-preview',
                     })
                   }
                   className="sr-only"

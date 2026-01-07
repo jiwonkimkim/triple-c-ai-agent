@@ -257,7 +257,7 @@ export async function POST(request: NextRequest) {
         copyLength: validatedData.copyLength || 'medium',
         productUrl: validatedData.productUrl || null,
         productImages: validatedData.productImages || [],
-        imageModel: validatedData.imageModel || 'sdxl-base',
+        imageModel: validatedData.imageModel || 'gemini-2.5-flash-image',
       },
       include: {
         brandProfile: {

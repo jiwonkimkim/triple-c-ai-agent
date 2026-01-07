@@ -1,74 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { getComfyUIService, ModelType } from '@/lib/services/comfyui';
 
 export const dynamic = 'force-dynamic';
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || '');
 
-type ImageGenerator = 'gemini' | 'imagen' | 'sd35-medium' | 'sdxl-base' | 'auto';
-
-// 스타일별 프롬프트 보강
-const stylePrompts: Record<string, string> = {
-  'product': 'professional product photography, clean white background, studio lighting, high quality, commercial style',
-  'lifestyle': 'lifestyle photography, natural lighting, warm tones, authentic, candid moment',
-  'minimal': 'minimalist design, clean, simple, modern, white space, elegant',
-  'vibrant': 'vibrant colors, bold, energetic, dynamic, eye-catching',
-  'luxury': 'luxury style, premium, elegant, sophisticated, high-end, refined',
-  'natural': 'natural, organic, earthy tones, sustainable, eco-friendly aesthetic',
-  'cosmetic': 'luxury cosmetic product photography, soft gradient background, sparkling bokeh, floating 3D effect, commercial beauty advertisement',
-};
-
-// ComfyUI (SD 3.5 / Flux)로 이미지 생성
-async function generateWithComfyUI(
-  prompt: string,
-  model: ModelType,
-  width: number = 1024,
-  height: number = 1024
-) {
-  const comfyui = getComfyUIService();
-
-  const isAvailable = await comfyui.isAvailable();
-  if (!isAvailable) {
-    throw new Error('ComfyUI 서버가 실행 중이지 않습니다. ComfyUI를 먼저 시작해주세요.');
-  }
-
-  // SDXL은 적은 steps, SD 3.5는 더 많은 steps
-  const steps = model === 'sdxl-base' ? 25 : 20;
-  const cfg = model === 'sdxl-base' ? 7 : 4.5;
-
-  const result = await comfyui.generate({
-    prompt,
-    negativePrompt: 'ugly, blurry, low quality, distorted, deformed',
-    width,
-    height,
-    steps,
-    cfg,
-    model,
-  });
-
-  if (!result.success) {
-    throw new Error(result.error || '이미지 생성 실패');
-  }
-
-  return {
-    imageUrl: result.imageUrl,
-    generator: model,
-    executionTime: result.executionTime,
-  };
-}
-
-// Gemini 2.0 Flash로 이미지 생성
+// Gemini 2.0 Flash로 이미지 생성 (Experimental - 이미지 생성 지원)
 async function generateImageWithGemini2(prompt: string) {
   const apiKey = process.env.GOOGLE_AI_API_KEY;
+
+  // Gemini 2.0 Flash Experimental (이미지 생성 지원)
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
 
   const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: `Generate an image: ${prompt}` }] }],
-      generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
+      contents: [{
+        parts: [{
+          text: `Generate an image: ${prompt}`
+        }]
+      }],
+      generationConfig: {
+        responseModalities: ['TEXT', 'IMAGE'],
+      }
     }),
   });
 
@@ -80,14 +37,16 @@ async function generateImageWithGemini2(prompt: string) {
   return response.json();
 }
 
-// Imagen 3 API 호출
+// Imagen 3 API 호출 (백업용)
 async function generateImageWithImagen(prompt: string, aspectRatio: string = '1:1') {
   const apiKey = process.env.GOOGLE_AI_API_KEY;
   const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${apiKey}`;
 
   const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify({
       instances: [{ prompt }],
       parameters: {
@@ -107,50 +66,9 @@ async function generateImageWithImagen(prompt: string, aspectRatio: string = '1:
   return response.json();
 }
 
-// 프롬프트 보강 (Gemini 사용)
-async function enhancePrompt(prompt: string): Promise<string> {
-  try {
-    if (!process.env.GOOGLE_AI_API_KEY) {
-      return prompt; // API 키 없으면 원본 반환
-    }
-
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
-    const result = await model.generateContent(`
-      You are an expert at creating image generation prompts.
-      Convert this request into a detailed English prompt for high-quality image generation.
-      Only output the prompt, no explanations.
-      Keep it under 200 characters.
-
-      Request: ${prompt}
-    `);
-    return result.response.text().trim();
-  } catch {
-    return prompt; // 실패시 원본 반환
-  }
-}
-
-// aspectRatio를 width/height로 변환
-function getImageDimensions(aspectRatio: string): { width: number; height: number } {
-  const ratioMap: Record<string, { width: number; height: number }> = {
-    '1:1': { width: 1024, height: 1024 },
-    '4:3': { width: 1024, height: 768 },
-    '3:4': { width: 768, height: 1024 },
-    '16:9': { width: 1024, height: 576 },
-    '9:16': { width: 576, height: 1024 },
-    '4:5': { width: 896, height: 1120 }, // 모바일 썸네일 최적화
-  };
-  return ratioMap[aspectRatio] || { width: 1024, height: 1024 };
-}
-
 export async function POST(request: NextRequest) {
   try {
-    const {
-      prompt,
-      style,
-      aspectRatio = '1:1',
-      generator = 'auto' as ImageGenerator,
-      enhanceWithAI = true,
-    } = await request.json();
+    const { prompt, style, aspectRatio = '1:1' } = await request.json();
 
     if (!prompt) {
       return NextResponse.json(
@@ -159,147 +77,124 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!process.env.GOOGLE_AI_API_KEY) {
+      return NextResponse.json(
+        { error: 'Google AI API 키가 설정되지 않았습니다.' },
+        { status: 500 }
+      );
+    }
+
     // 스타일에 따른 프롬프트 보강
     let enhancedPrompt = prompt;
-    if (style && stylePrompts[style]) {
-      enhancedPrompt = `${prompt}, ${stylePrompts[style]}`;
+    if (style) {
+      const stylePrompts: Record<string, string> = {
+        'product': 'professional product photography, clean white background, studio lighting, high quality, commercial style',
+        'lifestyle': 'lifestyle photography, natural lighting, warm tones, authentic, candid moment',
+        'minimal': 'minimalist design, clean, simple, modern, white space, elegant',
+        'vibrant': 'vibrant colors, bold, energetic, dynamic, eye-catching',
+        'luxury': 'luxury style, premium, elegant, sophisticated, high-end, refined',
+        'natural': 'natural, organic, earthy tones, sustainable, eco-friendly aesthetic',
+      };
+
+      if (stylePrompts[style]) {
+        enhancedPrompt = `${prompt}, ${stylePrompts[style]}`;
+      }
     }
 
-    // AI로 프롬프트 보강 (선택적)
-    if (enhanceWithAI) {
-      enhancedPrompt = await enhancePrompt(enhancedPrompt);
+    // Gemini로 프롬프트 보강
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    const promptResult = await model.generateContent(`
+      You are an expert at creating image generation prompts.
+      Convert this request into a detailed English prompt for high-quality image generation.
+      Only output the prompt, no explanations.
+      Keep it under 200 characters.
+
+      Request: ${enhancedPrompt}
+    `);
+
+    const detailedPrompt = promptResult.response.text().trim();
+
+    // 1차 시도: Gemini 2.0 Flash로 이미지 생성
+    try {
+      console.log('Trying Gemini 2.0 Flash for image generation...');
+      const geminiResult = await generateImageWithGemini2(detailedPrompt);
+
+      // Gemini 2.0 응답에서 이미지 추출
+      const candidates = geminiResult.candidates || [];
+      if (candidates.length > 0) {
+        const parts = candidates[0].content?.parts || [];
+
+        // 이미지 파트 찾기
+        for (const part of parts) {
+          if (part.inlineData && part.inlineData.mimeType?.startsWith('image/')) {
+            const base64Image = part.inlineData.data;
+            const mimeType = part.inlineData.mimeType;
+            const imageUrl = `data:${mimeType};base64,${base64Image}`;
+
+            return NextResponse.json({
+              success: true,
+              data: {
+                originalPrompt: prompt,
+                enhancedPrompt: detailedPrompt,
+                style,
+                aspectRatio,
+                imageUrl,
+                mimeType,
+                generator: 'gemini-2.0-flash',
+              }
+            });
+          }
+        }
+      }
+
+      console.log('Gemini 2.0 did not return an image, trying Imagen 3...');
+    } catch (geminiError) {
+      console.error('Gemini 2.0 Flash error:', geminiError);
+      console.log('Falling back to Imagen 3...');
     }
 
-    const { width, height } = getImageDimensions(aspectRatio);
+    // 2차 시도: Imagen 3로 이미지 생성
+    try {
+      const imagenResult = await generateImageWithImagen(detailedPrompt, aspectRatio);
 
-    // Generator 선택 로직
-    let selectedGenerator: ImageGenerator = generator;
-
-    if (generator === 'auto') {
-      // auto: ComfyUI 사용 가능하면 SDXL, 아니면 Gemini
-      const comfyui = getComfyUIService();
-      const comfyAvailable = await comfyui.isAvailable();
-      selectedGenerator = comfyAvailable ? 'sdxl-base' : 'gemini';
-    }
-
-    // SD 3.5 또는 SDXL로 생성
-    if (selectedGenerator === 'sd35-medium' || selectedGenerator === 'sdxl-base') {
-      try {
-        const result = await generateWithComfyUI(
-          enhancedPrompt,
-          selectedGenerator as ModelType,
-          width,
-          height
-        );
+      // Imagen 응답에서 이미지 추출
+      const predictions = imagenResult.predictions || [];
+      if (predictions.length > 0 && predictions[0].bytesBase64Encoded) {
+        const base64Image = predictions[0].bytesBase64Encoded;
+        const imageUrl = `data:image/png;base64,${base64Image}`;
 
         return NextResponse.json({
           success: true,
           data: {
             originalPrompt: prompt,
-            enhancedPrompt,
+            enhancedPrompt: detailedPrompt,
             style,
             aspectRatio,
-            imageUrl: result.imageUrl,
-            mimeType: 'image/png',
-            generator: result.generator,
-            executionTime: result.executionTime,
+            imageUrl,
+            mimeType: predictions[0].mimeType || 'image/png',
+            generator: 'imagen-3',
           }
         });
-      } catch (comfyError) {
-        console.error('ComfyUI error:', comfyError);
-
-        // ComfyUI 실패시 Gemini로 폴백 (auto 모드일 때만)
-        if (generator === 'auto') {
-          console.log('Falling back to Gemini...');
-          selectedGenerator = 'gemini';
-        } else {
-          throw comfyError;
-        }
       }
+
+      throw new Error('이미지가 생성되지 않았습니다.');
+    } catch (imagenError) {
+      console.error('Imagen API error:', imagenError);
+
+      // 모든 방법 실패시 프롬프트만 반환
+      return NextResponse.json({
+        success: false,
+        message: '이미지 생성에 실패했습니다. Gemini 2.0과 Imagen 3 모두 사용할 수 없습니다.',
+        data: {
+          originalPrompt: prompt,
+          enhancedPrompt: detailedPrompt,
+          style,
+          aspectRatio,
+          imageUrl: null,
+        },
+        error: 'Both Gemini 2.0 and Imagen 3 failed to generate image',
+      });
     }
-
-    // Gemini로 생성
-    if (selectedGenerator === 'gemini') {
-      if (!process.env.GOOGLE_AI_API_KEY) {
-        return NextResponse.json(
-          { error: 'Google AI API 키가 설정되지 않았습니다.' },
-          { status: 500 }
-        );
-      }
-
-      try {
-        const geminiResult = await generateImageWithGemini2(enhancedPrompt);
-        const candidates = geminiResult.candidates || [];
-
-        if (candidates.length > 0) {
-          const parts = candidates[0].content?.parts || [];
-          for (const part of parts) {
-            if (part.inlineData && part.inlineData.mimeType?.startsWith('image/')) {
-              const base64Image = part.inlineData.data;
-              const mimeType = part.inlineData.mimeType;
-
-              return NextResponse.json({
-                success: true,
-                data: {
-                  originalPrompt: prompt,
-                  enhancedPrompt,
-                  style,
-                  aspectRatio,
-                  imageUrl: `data:${mimeType};base64,${base64Image}`,
-                  mimeType,
-                  generator: 'gemini-2.0-flash',
-                }
-              });
-            }
-          }
-        }
-
-        // Gemini가 이미지를 반환하지 않으면 Imagen으로 폴백
-        selectedGenerator = 'imagen';
-      } catch (geminiError) {
-        console.error('Gemini error:', geminiError);
-        selectedGenerator = 'imagen';
-      }
-    }
-
-    // Imagen으로 생성
-    if (selectedGenerator === 'imagen') {
-      try {
-        const imagenResult = await generateImageWithImagen(enhancedPrompt, aspectRatio);
-        const predictions = imagenResult.predictions || [];
-
-        if (predictions.length > 0 && predictions[0].bytesBase64Encoded) {
-          return NextResponse.json({
-            success: true,
-            data: {
-              originalPrompt: prompt,
-              enhancedPrompt,
-              style,
-              aspectRatio,
-              imageUrl: `data:image/png;base64,${predictions[0].bytesBase64Encoded}`,
-              mimeType: predictions[0].mimeType || 'image/png',
-              generator: 'imagen-3',
-            }
-          });
-        }
-      } catch (imagenError) {
-        console.error('Imagen error:', imagenError);
-      }
-    }
-
-    // 모든 방법 실패
-    return NextResponse.json({
-      success: false,
-      message: '이미지 생성에 실패했습니다.',
-      data: {
-        originalPrompt: prompt,
-        enhancedPrompt,
-        style,
-        aspectRatio,
-        imageUrl: null,
-      },
-      error: 'All image generation methods failed',
-    });
 
   } catch (error) {
     console.error('Image generation error:', error);
@@ -310,32 +205,22 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// 서버 상태 확인
+// 이미지 생성 상태 확인 (비동기 생성 시 사용)
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const jobId = searchParams.get('jobId');
 
-  if (jobId) {
-    // TODO: 작업 상태 조회
-    return NextResponse.json({
-      jobId,
-      status: 'pending',
-      message: '이미지 생성 중입니다.',
-    });
+  if (!jobId) {
+    return NextResponse.json(
+      { error: 'jobId가 필요합니다.' },
+      { status: 400 }
+    );
   }
 
-  // 사용 가능한 생성기 확인
-  const comfyui = getComfyUIService();
-  const comfyAvailable = await comfyui.isAvailable();
-  const geminiAvailable = !!process.env.GOOGLE_AI_API_KEY;
-
+  // TODO: 실제 작업 상태 조회 로직 구현
   return NextResponse.json({
-    generators: {
-      'sdxl-base': comfyAvailable,
-      'sd35-medium': comfyAvailable,
-      'gemini': geminiAvailable,
-      'imagen': geminiAvailable,
-    },
-    recommended: comfyAvailable ? 'sdxl-base' : (geminiAvailable ? 'gemini' : null),
+    jobId,
+    status: 'pending',
+    message: '이미지 생성 중입니다.',
   });
 }

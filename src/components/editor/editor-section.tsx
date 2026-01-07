@@ -20,20 +20,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { BlockRenderer, type SectionRegenerationContext } from './block-renderer';
+import { BlockRenderer } from './block-renderer';
 import type { Section, EditorBlock, BlockType } from '@/stores/editor-store';
-
-// 섹션 이름으로부터 섹션 타입 추출
-function getSectionType(sectionName: string, isMain: boolean): SectionRegenerationContext['sectionType'] {
-  if (isMain) return 'MAIN';
-  const name = sectionName.toLowerCase();
-  if (name.includes('hero') || name.includes('히어로')) return 'HERO';
-  if (name.includes('feature') || name.includes('특징') || name.includes('기능')) return 'FEATURES';
-  if (name.includes('social') || name.includes('리뷰') || name.includes('후기')) return 'SOCIAL_PROOF';
-  if (name.includes('how') || name.includes('사용') || name.includes('방법')) return 'HOW_TO_USE';
-  if (name.includes('faq') || name.includes('질문')) return 'FAQ';
-  return 'HERO'; // 기본값
-}
 
 // 블록 사이 인라인 추가 버튼 컴포넌트
 function BlockAddDivider({ onAdd }: { onAdd: (type: BlockType) => void }) {
@@ -103,10 +91,6 @@ interface EditorSectionProps {
   onUpdateBlock: (blockId: string, updates: Partial<EditorBlock>) => void;
   onDeleteBlock: (blockId: string) => void;
   onReorderBlocks: (startIndex: number, endIndex: number) => void;
-  // 재생성 관련 props
-  regenerationContext?: Omit<SectionRegenerationContext, 'sectionId' | 'sectionType'>;
-  regeneratingBlockId?: string | null;
-  onRegenerateBlock?: (blockId: string, sectionType: SectionRegenerationContext['sectionType'], selectedModel: string) => void;
 }
 
 const blockTypes: { type: BlockType; label: string; description: string }[] = [
@@ -170,9 +154,6 @@ export function EditorSection({
   onUpdateBlock,
   onDeleteBlock,
   onReorderBlocks,
-  regenerationContext,
-  regeneratingBlockId,
-  onRegenerateBlock,
 }: EditorSectionProps) {
   const [showSettings, setShowSettings] = useState(false);
   const [draggedBlockIndex, setDraggedBlockIndex] = useState<number | null>(null);
@@ -429,13 +410,6 @@ export function EditorSection({
                     isMain={isMain}
                     onSelect={() => onSelectBlock(block.id)}
                     onUpdate={(updates) => onUpdateBlock(block.id, updates)}
-                    regenerationContext={regenerationContext ? {
-                      ...regenerationContext,
-                      sectionId: section.id,
-                      sectionType: getSectionType(section.name, isMain),
-                    } : undefined}
-                    isRegenerating={regeneratingBlockId === block.id}
-                    onRegenerate={onRegenerateBlock ? (selectedModel) => onRegenerateBlock(block.id, getSectionType(section.name, isMain), selectedModel) : undefined}
                   />
                 </div>
 
