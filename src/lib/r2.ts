@@ -1,14 +1,35 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 
-// R2 클라이언트 설정
-const R2 = new S3Client({
-  region: 'auto',
-  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
-  },
-});
+// R2 클라이언트 (지연 초기화 - 환경변수 없을 때 문제 방지)
+let _r2Client: S3Client | null = null;
+
+function getR2Client(): S3Client {
+  if (!_r2Client) {
+    if (!isR2Configured()) {
+      throw new Error('R2 is not configured. Missing required environment variables.');
+    }
+    _r2Client = new S3Client({
+      region: 'auto',
+      endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      credentials: {
+        accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+      },
+    });
+  }
+  return _r2Client;
+}
+
+// ★ R2 설정 여부 체크 함수를 먼저 정의
+export function isR2Configured(): boolean {
+  return !!(
+    process.env.R2_ACCOUNT_ID &&
+    process.env.R2_ACCESS_KEY_ID &&
+    process.env.R2_SECRET_ACCESS_KEY &&
+    process.env.R2_BUCKET_NAME &&
+    process.env.R2_PUBLIC_URL
+  );
+}
 
 export interface R2UploadResult {
   url: string;
@@ -52,7 +73,7 @@ export async function uploadBase64ToR2(
   const key = `${folder}/${fileName}.${extension}`;
 
   try {
-    await R2.send(new PutObjectCommand({
+    await getR2Client().send(new PutObjectCommand({
       Bucket: process.env.R2_BUCKET_NAME,
       Key: key,
       Body: buffer,
@@ -95,7 +116,11 @@ export async function uploadMultipleToR2(
  */
 export async function deleteFromR2(key: string): Promise<boolean> {
   try {
-    await R2.send(new DeleteObjectCommand({
+    if (!isR2Configured()) {
+      console.warn('[R2] Delete skipped - R2 not configured');
+      return false;
+    }
+    await getR2Client().send(new DeleteObjectCommand({
       Bucket: process.env.R2_BUCKET_NAME,
       Key: key,
     }));
@@ -104,19 +129,6 @@ export async function deleteFromR2(key: string): Promise<boolean> {
     console.error('[R2] Delete failed:', error);
     return false;
   }
-}
-
-/**
- * R2가 설정되어 있는지 확인
- */
-export function isR2Configured(): boolean {
-  return !!(
-    process.env.R2_ACCOUNT_ID &&
-    process.env.R2_ACCESS_KEY_ID &&
-    process.env.R2_SECRET_ACCESS_KEY &&
-    process.env.R2_BUCKET_NAME &&
-    process.env.R2_PUBLIC_URL
-  );
 }
 
 /**
@@ -134,7 +146,7 @@ export async function uploadBufferToR2(
   const key = `${folder}/${options.fileName}`;
 
   try {
-    await R2.send(new PutObjectCommand({
+    await getR2Client().send(new PutObjectCommand({
       Bucket: process.env.R2_BUCKET_NAME,
       Key: key,
       Body: buffer,
@@ -155,4 +167,9 @@ export async function uploadBufferToR2(
   }
 }
 
-export { R2 };
+// 하위 호환성을 위해 getter로 export (실제 사용 시에만 초기화)
+export const R2 = {
+  send: async (command: PutObjectCommand | DeleteObjectCommand) => {
+    return getR2Client().send(command);
+  },
+};
