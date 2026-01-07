@@ -92,7 +92,7 @@ jobs:
           fi
 
       - name: Trigger Vercel Deploy
-        if: steps.build.outcome == 'success' && github.event_name == 'push' && github.actor != 'joycha3110'
+        if: steps.build.outcome == 'success' && github.event_name == 'push'
         env:
           VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
         run: |
