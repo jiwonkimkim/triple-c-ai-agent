@@ -91,13 +91,15 @@ jobs:
             echo "time=${DURATION}s" >> $GITHUB_OUTPUT
           fi
 
-      - name: Trigger Vercel Deploy
-        if: steps.build.outcome == 'success' && github.event_name == 'push'
+      - name: Deploy to Vercel
+        if: steps.build.outcome == 'success' && github.event_name == 'push' && github.actor != 'joycha3110'
         env:
-          VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          curl -X POST "$VERCEL_DEPLOY_HOOK"
-          echo "✅ Vercel deploy triggered for ${{ github.actor }}"
+          git config user.email "chwns617@gmail.com"
+          git config user.name "joycha3110"
+          npx vercel --prod --token $VERCEL_TOKEN --yes
+          echo "✅ Vercel deploy completed for ${{ github.actor }}"
 
       - name: Update Slack - Success
         if: steps.build.outcome == 'success'
