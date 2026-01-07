@@ -53,7 +53,10 @@
       "Bash(npx prisma studio:*)",
       "Bash(tasklist:*)",
       "Bash(wmic process where \"name=''node.exe''\" get processid,commandline)",
-      "WebFetch(domain:triple-c.vercel.app)"
+      "WebFetch(domain:triple-c.vercel.app)",
+      "Bash(git stash:*)",
+      "mcp__jira__jira_get",
+      "Bash(xargs:*)"
     ],
     "deny": [],
     "ask": []
