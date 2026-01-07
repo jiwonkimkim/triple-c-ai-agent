@@ -126,6 +126,10 @@ export async function POST(request: NextRequest) {
     // Generate detail page versions with optional image generation
     // - generateImages: false (기본) = 사용자 업로드 제품 이미지 직접 사용
     // - generateImages: true = AI가 새로운 이미지 생성
+    // - 제품 이미지 없으면 자동으로 T2I 활성화
+    const hasProductImages = validatedData.productImages && validatedData.productImages.length > 0;
+    const shouldGenerateImages = validatedData.generateImages ?? !hasProductImages; // 제품 이미지 없으면 자동 T2I
+
     const generationResult = await generateDetailPage({
       productImages: validatedData.productImages,
       productName: validatedData.productName,
@@ -135,7 +139,7 @@ export async function POST(request: NextRequest) {
       targetAudience: validatedData.targetAudience || '일반 소비자',
       copyLength: validatedData.copyLength,
       brandContext,
-      generateImages: validatedData.generateImages ?? false, // 기본: 사용자 이미지 직접 사용
+      generateImages: shouldGenerateImages,
       imageModel: validatedData.imageModel,
     }, { includeDevPrompts });
 
