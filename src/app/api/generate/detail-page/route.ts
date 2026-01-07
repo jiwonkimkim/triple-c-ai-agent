@@ -119,8 +119,8 @@ export async function POST(request: NextRequest) {
       };
     }
 
-    // 개발 모드에서 프롬프트 포함 여부
-    const isDev = process.env.NODE_ENV === 'development';
+    // 개발 모드에서 프롬프트 포함 여부 (NEXT_PUBLIC_DEV_MODE도 체크)
+    const isDev = process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEV_MODE === 'true';
     const includeDevPrompts = isDev && (body.includeDevPrompts ?? true);
 
     // Generate detail page versions with optional image generation
