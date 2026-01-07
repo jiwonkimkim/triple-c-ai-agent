@@ -92,12 +92,12 @@ jobs:
           fi
 
       - name: Trigger Vercel Deploy
-        if: steps.build.outcome == 'success' && github.event_name == 'push'
+        if: steps.build.outcome == 'success' && github.event_name == 'push' && github.actor != 'joycha3110'
         env:
           VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
         run: |
           curl -X POST "$VERCEL_DEPLOY_HOOK"
-          echo "✅ Vercel deploy triggered"
+          echo "✅ Vercel deploy triggered for ${{ github.actor }}"
 
       - name: Update Slack - Success
         if: steps.build.outcome == 'success'
