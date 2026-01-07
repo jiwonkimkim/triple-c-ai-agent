@@ -213,6 +213,107 @@ export function detectSubCategoryFromProductName(productName: string): BeautySub
 }
 
 // ============================================
+// 표준 섹션 → 서브카테고리 섹션 매핑
+// ============================================
+
+type StandardSectionType = 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
+
+/**
+ * 표준 섹션 타입을 서브카테고리별 섹션 타입으로 매핑
+ * - 오케스트레이션 서비스의 표준 섹션(MAIN, HERO, FEATURES 등)을
+ * - 각 뷰티 서브카테고리의 특화된 섹션으로 변환
+ */
+const SECTION_TYPE_MAPPING: Record<BeautySubCategory, Record<StandardSectionType, string>> = {
+  skincare: {
+    MAIN: 'MAIN', // 썸네일 전용 - 매핑 안 함
+    HERO: 'HERO_SPLASH',
+    FEATURES: 'EFFICACY_VISUAL',
+    SOCIAL_PROOF: 'REVIEW_SHOWCASE',
+    HOW_TO_USE: 'STEP_GUIDE',
+    FAQ: 'SIZE_OPTIONS',
+  },
+  suncare: {
+    MAIN: 'MAIN', // 썸네일 전용 - 매핑 안 함
+    HERO: 'HERO_SUNCARE',
+    FEATURES: 'KEY_BENEFITS',
+    SOCIAL_PROOF: 'UV_PROTECTION_TECH',
+    HOW_TO_USE: 'HOW_TO_USE',
+    FAQ: 'FREE_SYSTEM',
+  },
+  lip: {
+    MAIN: 'MAIN', // 썸네일 전용 - 매핑 안 함
+    HERO: 'HERO_LIP',
+    FEATURES: 'TEXTURE_VISUAL',
+    SOCIAL_PROOF: 'COLOR_COMPARISON',
+    HOW_TO_USE: 'HOW_TO_USE',
+    FAQ: 'LONGEVITY_INFO',
+  },
+  mascara: {
+    MAIN: 'MAIN', // 썸네일 전용 - 매핑 안 함
+    HERO: 'HERO_MASCARA',
+    FEATURES: 'CURL_EFFECT_VISUAL',
+    SOCIAL_PROOF: 'EYE_BEFORE_AFTER',
+    HOW_TO_USE: 'HOW_TO_USE',
+    FAQ: 'WATERPROOF_TEST',
+  },
+  maskpack: {
+    MAIN: 'MAIN', // 썸네일 전용 - 매핑 안 함
+    HERO: 'HERO_MASKPACK',
+    FEATURES: 'KEY_INGREDIENTS',
+    SOCIAL_PROOF: 'BEFORE_AFTER',
+    HOW_TO_USE: 'HOW_TO_USE',
+    FAQ: 'BULK_PACK',
+  },
+  // 미구현 카테고리는 표준 섹션 그대로 사용
+  cushion: {
+    MAIN: 'MAIN',
+    HERO: 'HERO',
+    FEATURES: 'FEATURES',
+    SOCIAL_PROOF: 'SOCIAL_PROOF',
+    HOW_TO_USE: 'HOW_TO_USE',
+    FAQ: 'FAQ',
+  },
+  eyeshadow: {
+    MAIN: 'MAIN',
+    HERO: 'HERO',
+    FEATURES: 'FEATURES',
+    SOCIAL_PROOF: 'SOCIAL_PROOF',
+    HOW_TO_USE: 'HOW_TO_USE',
+    FAQ: 'FAQ',
+  },
+  cleanser: {
+    MAIN: 'MAIN',
+    HERO: 'HERO',
+    FEATURES: 'FEATURES',
+    SOCIAL_PROOF: 'SOCIAL_PROOF',
+    HOW_TO_USE: 'HOW_TO_USE',
+    FAQ: 'FAQ',
+  },
+  other_beauty: {
+    MAIN: 'MAIN',
+    HERO: 'HERO',
+    FEATURES: 'FEATURES',
+    SOCIAL_PROOF: 'SOCIAL_PROOF',
+    HOW_TO_USE: 'HOW_TO_USE',
+    FAQ: 'FAQ',
+  },
+};
+
+/**
+ * 표준 섹션 타입을 서브카테고리 섹션 타입으로 변환
+ */
+export function mapStandardSectionToSubcategory(
+  standardSection: string,
+  subCategory: BeautySubCategory
+): string {
+  const mapping = SECTION_TYPE_MAPPING[subCategory];
+  if (!mapping) return standardSection;
+
+  const mapped = mapping[standardSection as StandardSectionType];
+  return mapped || standardSection;
+}
+
+// ============================================
 // 통합 프롬프트 생성 인터페이스
 // ============================================
 
@@ -232,6 +333,7 @@ export interface UnifiedPromptOptions {
 /**
  * 통합 이미지 프롬프트 생성
  * 서브 카테고리에 따라 적절한 프롬프트 빌더 호출
+ * ★ 표준 섹션(MAIN, HERO 등)을 서브카테고리 섹션으로 자동 매핑
  */
 export function buildUnifiedImagePrompt(
   section: string,
@@ -239,6 +341,10 @@ export function buildUnifiedImagePrompt(
   blockIndex: number = 0
 ): string | null {
   const { subCategory, productName, keyFeatures, brandStyle } = options;
+
+  // ★ 표준 섹션을 서브카테고리 섹션으로 매핑
+  const mappedSection = mapStandardSectionToSubcategory(section, subCategory);
+  console.log(`[BeautySubcategory] Mapping section: ${section} → ${mappedSection} (${subCategory})`);
 
   switch (subCategory) {
     case 'skincare': {
@@ -251,7 +357,7 @@ export function buildUnifiedImagePrompt(
         ...options.skincareOptions,
       };
       return buildSkincareImagePrompt(
-        section as SkincareDetailSectionType,
+        mappedSection as SkincareDetailSectionType,
         skincareOpts,
         blockIndex
       );
@@ -268,7 +374,7 @@ export function buildUnifiedImagePrompt(
         ...options.suncareOptions,
       };
       return buildSuncareImagePrompt(
-        section as SuncareDetailSectionType,
+        mappedSection as SuncareDetailSectionType,
         suncareOpts,
         blockIndex
       );
@@ -285,7 +391,7 @@ export function buildUnifiedImagePrompt(
         ...options.lipOptions,
       };
       return buildLipImagePrompt(
-        section as LipDetailSectionType,
+        mappedSection as LipDetailSectionType,
         lipOpts,
         blockIndex
       );
@@ -302,7 +408,7 @@ export function buildUnifiedImagePrompt(
         ...options.mascaraOptions,
       };
       return buildMascaraImagePrompt(
-        section as MascaraDetailSectionType,
+        mappedSection as MascaraDetailSectionType,
         mascaraOpts,
         blockIndex
       );
@@ -319,7 +425,7 @@ export function buildUnifiedImagePrompt(
         ...options.maskpackOptions,
       };
       return buildMaskPackImagePrompt(
-        section as MaskPackDetailSectionType,
+        mappedSection as MaskPackDetailSectionType,
         maskpackOpts,
         blockIndex
       );
@@ -333,12 +439,17 @@ export function buildUnifiedImagePrompt(
 
 /**
  * 통합 섹션별 프롬프트 목록 생성
+ * ★ 표준 섹션(MAIN, HERO 등)을 서브카테고리 섹션으로 자동 매핑
  */
 export function buildUnifiedSectionPrompts(
   section: string,
   options: UnifiedPromptOptions
 ): { blockIndex: number; conceptType: string; aspectRatio: string; prompt: string }[] | null {
   const { subCategory, productName, keyFeatures, brandStyle } = options;
+
+  // ★ 표준 섹션을 서브카테고리 섹션으로 매핑
+  const mappedSection = mapStandardSectionToSubcategory(section, subCategory);
+  console.log(`[BeautySubcategory] SectionPrompts mapping: ${section} → ${mappedSection} (${subCategory})`);
 
   switch (subCategory) {
     case 'skincare': {
@@ -350,7 +461,7 @@ export function buildUnifiedSectionPrompts(
         additionalKeywords: keyFeatures,
         ...options.skincareOptions,
       };
-      return buildSkincareSectionPrompts(section as SkincareDetailSectionType, skincareOpts);
+      return buildSkincareSectionPrompts(mappedSection as SkincareDetailSectionType, skincareOpts);
     }
 
     case 'suncare': {
@@ -363,7 +474,7 @@ export function buildUnifiedSectionPrompts(
         additionalKeywords: keyFeatures,
         ...options.suncareOptions,
       };
-      return buildSuncareSectionPrompts(section as SuncareDetailSectionType, suncareOpts);
+      return buildSuncareSectionPrompts(mappedSection as SuncareDetailSectionType, suncareOpts);
     }
 
     case 'lip': {
@@ -376,7 +487,7 @@ export function buildUnifiedSectionPrompts(
         additionalKeywords: keyFeatures,
         ...options.lipOptions,
       };
-      return buildLipSectionPrompts(section as LipDetailSectionType, lipOpts);
+      return buildLipSectionPrompts(mappedSection as LipDetailSectionType, lipOpts);
     }
 
     case 'mascara': {
@@ -389,7 +500,7 @@ export function buildUnifiedSectionPrompts(
         additionalKeywords: keyFeatures,
         ...options.mascaraOptions,
       };
-      return buildMascaraSectionPrompts(section as MascaraDetailSectionType, mascaraOpts);
+      return buildMascaraSectionPrompts(mappedSection as MascaraDetailSectionType, mascaraOpts);
     }
 
     case 'maskpack': {
@@ -402,7 +513,7 @@ export function buildUnifiedSectionPrompts(
         additionalKeywords: keyFeatures,
         ...options.maskpackOptions,
       };
-      return buildMaskPackSectionPrompts(section as MaskPackDetailSectionType, maskpackOpts);
+      return buildMaskPackSectionPrompts(mappedSection as MaskPackDetailSectionType, maskpackOpts);
     }
 
     default:
