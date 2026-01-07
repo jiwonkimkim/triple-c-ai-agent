@@ -95,11 +95,8 @@ jobs:
         if: steps.build.outcome == 'success' && github.event_name == 'push' && github.actor != 'joycha3110'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          npx vercel pull --yes --environment=production --token $VERCEL_TOKEN
-          npx vercel build --prod --token $VERCEL_TOKEN
-          npx vercel deploy --prebuilt --prod --token $VERCEL_TOKEN
+          npx vercel --prod --token $VERCEL_TOKEN --yes
           echo "✅ Vercel deploy completed for ${{ github.actor }}"
 
       - name: Update Slack - Success
