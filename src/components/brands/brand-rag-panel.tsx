@@ -17,6 +17,9 @@ import {
   Link as LinkIcon,
   Clock,
   Filter,
+  Palette,
+  Image as ImageIcon,
+  Type,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,11 +54,32 @@ interface BrandRagPanelProps {
   brandId: string;
   websiteUrl?: string | null;
   instagramUrl?: string | null;
+  hideStyleGuide?: boolean;
+}
+
+interface StyleGuide {
+  colors?: {
+    primary?: string;
+    secondary?: string;
+    palette?: string[];
+  };
+  images?: {
+    logo?: string;
+    favicon?: string;
+    ogImage?: string;
+  };
+  fonts?: {
+    primary?: string;
+    all?: string[];
+  };
+  extractedAt?: string;
+  sourceUrl?: string;
 }
 
 interface KnowledgeStats {
   vectorCount: number;
   lastUpdated: string | null;
+  styleGuide?: StyleGuide | null;
 }
 
 interface Chunk {
@@ -85,7 +109,7 @@ interface CrawlHistoryItem {
   chunkCount: number;
 }
 
-export function BrandRagPanel({ brandId, websiteUrl, instagramUrl }: BrandRagPanelProps) {
+export function BrandRagPanel({ brandId, websiteUrl, instagramUrl, hideStyleGuide }: BrandRagPanelProps) {
   const { toast } = useToast();
   const [stats, setStats] = useState<KnowledgeStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
@@ -245,6 +269,12 @@ export function BrandRagPanel({ brandId, websiteUrl, instagramUrl }: BrandRagPan
 
       clearInterval(progressInterval);
       setCrawlProgress(100);
+
+      // Check content type before parsing JSON
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('서버 응답 오류: JSON이 아닌 응답을 받았습니다.');
+      }
 
       const data = await res.json();
 
@@ -812,7 +842,7 @@ export function BrandRagPanel({ brandId, websiteUrl, instagramUrl }: BrandRagPan
   return (
     <div className="space-y-6">
       {/* 지식베이스 현황 */}
-      <Card>
+      {!hideStyleGuide && <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -903,10 +933,143 @@ export function BrandRagPanel({ brandId, websiteUrl, instagramUrl }: BrandRagPan
                   ))}
                 </div>
               )}
+
+              {/* 추출된 브랜드 자산 */}
+              {!hideStyleGuide && stats?.styleGuide && (
+                <div className="pt-4 border-t space-y-4">
+                  <h4 className="text-sm font-medium flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    추출된 브랜드 자산
+                  </h4>
+
+                  {/* 색상 팔레트 */}
+                  {stats.styleGuide.colors && (stats.styleGuide.colors.primary || stats.styleGuide.colors.palette?.length) && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Palette className="h-4 w-4" />
+                        <span>브랜드 색상</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {stats.styleGuide.colors.primary && (
+                          <div className="flex items-center gap-2 px-2 py-1 rounded border bg-background">
+                            <div
+                              className="w-5 h-5 rounded border"
+                              style={{ backgroundColor: stats.styleGuide.colors.primary }}
+                            />
+                            <span className="text-xs font-mono">{stats.styleGuide.colors.primary}</span>
+                            <Badge variant="secondary" className="text-xs">Primary</Badge>
+                          </div>
+                        )}
+                        {stats.styleGuide.colors.secondary && stats.styleGuide.colors.secondary !== stats.styleGuide.colors.primary && (
+                          <div className="flex items-center gap-2 px-2 py-1 rounded border bg-background">
+                            <div
+                              className="w-5 h-5 rounded border"
+                              style={{ backgroundColor: stats.styleGuide.colors.secondary }}
+                            />
+                            <span className="text-xs font-mono">{stats.styleGuide.colors.secondary}</span>
+                            <Badge variant="outline" className="text-xs">Secondary</Badge>
+                          </div>
+                        )}
+                        {stats.styleGuide.colors.palette?.slice(0, 6).map((color, idx) => (
+                          color !== stats.styleGuide?.colors?.primary && color !== stats.styleGuide?.colors?.secondary && (
+                            <div
+                              key={idx}
+                              className="w-8 h-8 rounded border cursor-pointer hover:scale-110 transition-transform"
+                              style={{ backgroundColor: color }}
+                              title={color}
+                            />
+                          )
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 이미지 */}
+                  {stats.styleGuide.images && (stats.styleGuide.images.logo || stats.styleGuide.images.favicon) && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <ImageIcon className="h-4 w-4" />
+                        <span>브랜드 이미지</span>
+                      </div>
+                      <div className="flex flex-wrap gap-3">
+                        {stats.styleGuide.images.logo && (
+                          <div className="flex flex-col items-center gap-1">
+                            <div className="w-16 h-16 rounded border bg-white flex items-center justify-center p-1">
+                              <img
+                                src={stats.styleGuide.images.logo}
+                                alt="Logo"
+                                className="max-w-full max-h-full object-contain"
+                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                              />
+                            </div>
+                            <span className="text-xs text-muted-foreground">로고</span>
+                          </div>
+                        )}
+                        {stats.styleGuide.images.favicon && (
+                          <div className="flex flex-col items-center gap-1">
+                            <div className="w-16 h-16 rounded border bg-white flex items-center justify-center p-1">
+                              <img
+                                src={stats.styleGuide.images.favicon}
+                                alt="Favicon"
+                                className="max-w-full max-h-full object-contain"
+                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                              />
+                            </div>
+                            <span className="text-xs text-muted-foreground">파비콘</span>
+                          </div>
+                        )}
+                        {stats.styleGuide.images.ogImage && (
+                          <div className="flex flex-col items-center gap-1">
+                            <div className="w-24 h-16 rounded border bg-white flex items-center justify-center p-1 overflow-hidden">
+                              <img
+                                src={stats.styleGuide.images.ogImage}
+                                alt="OG Image"
+                                className="max-w-full max-h-full object-cover"
+                                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                              />
+                            </div>
+                            <span className="text-xs text-muted-foreground">대표 이미지</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 폰트 */}
+                  {stats.styleGuide.fonts && (stats.styleGuide.fonts.primary || stats.styleGuide.fonts.all?.length) && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Type className="h-4 w-4" />
+                        <span>사용 폰트</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {stats.styleGuide.fonts.primary && (
+                          <Badge variant="default">{stats.styleGuide.fonts.primary}</Badge>
+                        )}
+                        {stats.styleGuide.fonts.all?.slice(0, 5).map((font, idx) => (
+                          font !== stats.styleGuide?.fonts?.primary && (
+                            <Badge key={idx} variant="outline">{font}</Badge>
+                          )
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 추출 정보 */}
+                  {stats.styleGuide.extractedAt && (
+                    <p className="text-xs text-muted-foreground">
+                      추출 일시: {new Date(stats.styleGuide.extractedAt).toLocaleString('ko-KR')}
+                      {stats.styleGuide.sourceUrl && (
+                        <> · <a href={stats.styleGuide.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{new URL(stats.styleGuide.sourceUrl).hostname}</a></>
+                      )}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </CardContent>
-      </Card>
+      </Card>}
 
       {/* 청크 목록 */}
       {showChunkList && (

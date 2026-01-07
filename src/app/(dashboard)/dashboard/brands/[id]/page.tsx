@@ -10,6 +10,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BrandForm, BrandRagPanel } from '@/components/brands';
 import { useToast } from '@/hooks/use-toast';
 
+interface StyleGuide {
+  colors?: {
+    primary?: string;
+    secondary?: string;
+    palette?: string[];
+  };
+  images?: {
+    logo?: string;
+    favicon?: string;
+    ogImage?: string;
+  };
+  fonts?: {
+    primary?: string;
+    all?: string[];
+  };
+  extractedAt?: string;
+  sourceUrl?: string;
+}
+
 interface Brand {
   id: string;
   name: string;
@@ -18,6 +37,7 @@ interface Brand {
   imageKeywords: string[];
   websiteUrl?: string | null;
   instagramUrl?: string | null;
+  styleGuide?: StyleGuide | null;
   updatedAt: string;
   _count: {
     projects: number;
@@ -110,35 +130,40 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="info">기본 정보</TabsTrigger>
+          <TabsTrigger value="info">브랜드 설정</TabsTrigger>
           <TabsTrigger value="rag">
-            지식베이스 ({brand._count.documentChunks})
+            참고자료 ({brand._count.documentChunks})
           </TabsTrigger>
           <TabsTrigger value="projects">
             프로젝트 ({brand._count.projects})
           </TabsTrigger>
         </TabsList>
 
-        {/* 기본 정보 탭 */}
+        {/* 브랜드 설정 탭 (기본정보 + 자산) */}
         <TabsContent value="info" className="mt-6">
           <BrandForm
             mode="edit"
             initialData={brand}
+            styleGuide={brand.styleGuide}
             onSuccess={() => {
               toast({
                 title: '저장 완료',
                 description: '브랜드 정보가 업데이트되었습니다.',
               });
             }}
+            onStyleGuideUpdate={(newStyleGuide) => {
+              setBrand((prev) => prev ? { ...prev, styleGuide: newStyleGuide } : null);
+            }}
           />
         </TabsContent>
 
-        {/* 지식베이스(RAG) 탭 */}
+        {/* 참고자료 탭 (크롤링/업로드/입력) */}
         <TabsContent value="rag" className="mt-6">
           <BrandRagPanel
             brandId={brand.id}
             websiteUrl={brand.websiteUrl}
             instagramUrl={brand.instagramUrl}
+            hideStyleGuide={true}
           />
         </TabsContent>
 

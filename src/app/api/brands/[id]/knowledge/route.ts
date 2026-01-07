@@ -47,6 +47,11 @@ export async function GET(
         id: brandId,
         userId: session.user.id,
       },
+      select: {
+        id: true,
+        name: true,
+        styleGuide: true,
+      },
     });
 
     if (!brandProfile) {
@@ -63,6 +68,7 @@ export async function GET(
       data: {
         brandId,
         brandName: brandProfile.name,
+        styleGuide: brandProfile.styleGuide,
         ...stats,
       },
     });
@@ -139,6 +145,7 @@ export async function POST(
         brandId,
         chunksIndexed: result.chunksIndexed,
         pagesProcessed: result.pagesProcessed,
+        extractedAssets: result.extractedAssets,
       },
     });
   } catch (error) {
@@ -151,8 +158,10 @@ export async function POST(
       );
     }
 
+    // Return more detailed error message
+    const errorMessage = error instanceof Error ? error.message : 'Failed to index brand content';
     return NextResponse.json(
-      { error: 'Failed to index brand content' },
+      { error: errorMessage },
       { status: 500 }
     );
   }
