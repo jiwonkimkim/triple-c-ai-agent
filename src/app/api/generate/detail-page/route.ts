@@ -120,8 +120,10 @@ export async function POST(request: NextRequest) {
     }
 
     // 개발 모드에서 프롬프트 포함 여부 (NEXT_PUBLIC_DEV_MODE도 체크)
-    const isDev = process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEV_MODE === 'true';
+    const devModeEnv = process.env.NEXT_PUBLIC_DEV_MODE?.toLowerCase();
+    const isDev = process.env.NODE_ENV === 'development' || devModeEnv === 'true' || devModeEnv === '1';
     const includeDevPrompts = isDev && (body.includeDevPrompts ?? true);
+    console.log('[DevPrompts] isDev:', isDev, 'NODE_ENV:', process.env.NODE_ENV, 'DEV_MODE:', devModeEnv);
 
     // Generate detail page versions with optional image generation
     // - generateImages: false (기본) = 사용자 업로드 제품 이미지 직접 사용

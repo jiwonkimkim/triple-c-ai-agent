@@ -47,9 +47,11 @@ export default function ProjectDetailPage() {
     }
   );
 
-  // Load dev prompts from sessionStorage in development
+  // Load dev prompts from sessionStorage in development mode
   useEffect(() => {
-    if (projectId && process.env.NODE_ENV === 'development') {
+    const devModeEnv = process.env.NEXT_PUBLIC_DEV_MODE?.toLowerCase();
+    const isDev = process.env.NODE_ENV === 'development' || devModeEnv === 'true' || devModeEnv === '1';
+    if (projectId && isDev) {
       try {
         const stored = sessionStorage.getItem(`devPrompts_${projectId}`);
         if (stored) {
