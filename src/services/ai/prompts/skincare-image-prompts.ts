@@ -370,8 +370,9 @@ export function buildSkincareImagePrompt(
     ? additionalKeywords.join(', ')
     : '';
 
-  // 프롬프트 조합
+  // 프롬프트 조합 - ★ 이미지 내 텍스트 생성 금지 명시
   let prompt = `
+[CRITICAL: NO TEXT IN IMAGE - Generate pure visual imagery only. Do not include any text, letters, words, numbers, labels, or typography in the image.]
 [PRODUCT REFERENCE: ${productReference}]
 [SUBCATEGORY STYLE: ${subCategoryModifier}]
 [EFFICACY VISUAL: ${efficacyVisual}]
@@ -379,12 +380,12 @@ export function buildSkincareImagePrompt(
 ${basePrompt}
 ${brandModifier}
 ${additionalModifiers}
-professional e-commerce detail page photography, high-end skincare advertising, 8K resolution
+professional e-commerce detail page photography, high-end skincare advertising, 8K resolution, clean visual without any text overlay
 `.trim().replace(/\n+/g, ', ').replace(/,\s*,/g, ',');
 
-  // 네거티브 프롬프트
+  // 네거티브 프롬프트 - 텍스트 금지 강화
   if (includeNegative) {
-    prompt += ` --negative low quality, blurry, noisy, amateur, cartoon, anime, illustration, watermark, text, letters, numbers, words, Korean text, English text, any characters, logo text, brand name text, labels, captions, signatures, hand-written, distorted product, wrong proportions, unrealistic`;
+    prompt += ` --negative text, letters, words, numbers, typography, Korean text, English text, Chinese text, Japanese text, any characters, logo text, brand name text, labels, captions, titles, subtitles, watermark, signatures, hand-written text, printed text, floating text, overlay text, embedded text, low quality, blurry, noisy, amateur, cartoon, anime, illustration, distorted product, wrong proportions, unrealistic`;
   }
 
   return prompt;

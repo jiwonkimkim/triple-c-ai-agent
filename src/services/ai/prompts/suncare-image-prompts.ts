@@ -440,8 +440,9 @@ export function buildSuncareImagePrompt(
     ? additionalKeywords.join(', ')
     : '';
 
-  // 프롬프트 조합
+  // 프롬프트 조합 - ★ 이미지 내 텍스트 생성 금지 명시
   let prompt = `
+[CRITICAL: NO TEXT IN IMAGE - Generate pure visual imagery only. Do not include any text, letters, words, numbers, labels, or typography in the image.]
 [PRODUCT REFERENCE: ${productReference}]
 [SUBCATEGORY STYLE: ${subCategoryModifier}]
 [SPF VISUAL: ${spfVisual}]
@@ -451,12 +452,12 @@ ${freeSystemModifier ? `[CLEAN BEAUTY: ${freeSystemModifier}]` : ''}
 ${basePrompt}
 ${brandModifier}
 ${additionalModifiers}
-professional e-commerce detail page photography, high-end suncare advertising, 8K resolution, warm summer mood
+professional e-commerce detail page photography, high-end suncare advertising, 8K resolution, warm summer mood, clean visual without any text overlay
 `.trim().replace(/\n+/g, ', ').replace(/,\s*,/g, ',');
 
-  // 네거티브 프롬프트
+  // 네거티브 프롬프트 - 텍스트 금지 강화
   if (includeNegative) {
-    prompt += ` --negative low quality, blurry, noisy, amateur, cartoon, anime, illustration, watermark, text, letters, numbers, words, Korean text, English text, any characters, logo text, brand name text, labels, captions, SPF numbers visible, PA rating text, signatures, hand-written, distorted product, wrong proportions, unrealistic, cold blue tones, winter mood`;
+    prompt += ` --negative text, letters, words, numbers, typography, Korean text, English text, Chinese text, Japanese text, any characters, logo text, brand name text, labels, captions, titles, subtitles, SPF numbers visible, PA rating text, watermark, signatures, hand-written text, printed text, floating text, overlay text, embedded text, low quality, blurry, noisy, amateur, cartoon, anime, illustration, distorted product, wrong proportions, unrealistic, cold blue tones, winter mood`;
   }
 
   return prompt;
