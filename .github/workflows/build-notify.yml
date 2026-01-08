@@ -96,8 +96,18 @@ jobs:
         env:
           VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
         run: |
-          curl -X POST "$VERCEL_DEPLOY_HOOK"
-          echo "✅ Vercel deploy triggered for ${{ github.actor }}"
+          echo "🚀 Triggering Vercel Deploy for ${{ github.actor }}..."
+          RESPONSE=$(curl -s -X POST "$VERCEL_DEPLOY_HOOK")
+          echo "📋 Vercel Response: $RESPONSE"
+
+          # Check if job was created
+          JOB_ID=$(echo $RESPONSE | jq -r '.job.id // empty')
+          if [ -n "$JOB_ID" ]; then
+            echo "✅ Deploy Hook accepted! Job ID: $JOB_ID"
+          else
+            echo "❌ Deploy Hook failed or returned unexpected response"
+            echo "Full response: $RESPONSE"
+          fi
 
       - name: Update Slack - Success
         if: steps.build.outcome == 'success'
