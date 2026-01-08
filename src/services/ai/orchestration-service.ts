@@ -2001,42 +2001,28 @@ CRITICAL INSTRUCTION FOR DIVERSE BACKGROUNDS:
   console.log('[Orchestration] ★★★ TEXT-DRIVEN image prompts per section:', JSON.stringify(promptCounts));
 
   // 4. 결과 조합 (다중 이미지 프롬프트 포함)
+  // ★★★ 항상 sectionTypes 기준으로 빌드 (imagePromptsMap 키와 일치 보장!)
   const buildResult = (textContent: { hookMessage: string; sections: Array<{ type: string; title?: string; body: string }> } | null): OrchestrationResult => {
-    if (!textContent) {
-      // 폴백 결과
-      return {
-        hookMessage: `${input.productName} - 최고의 선택`,
-        sections: sectionTypes.map((type, index) => {
-          const sectionPrompts = imagePromptsMap.get(type) || [];
-          const firstPrompt = sectionPrompts[0];
-          return {
-            id: uuidv4(),
-            type,
-            title: type,
-            body: `${input.productName} ${type} 섹션`,
-            order: index,
-            imagePrompt: firstPrompt,                    // 기존 호환성
-            imagePrompts: sectionPrompts,                 // 항상 배열 전달
-          };
-        }),
-      };
-    }
+    const hookMessage = textContent?.hookMessage || `${input.productName} - 최고의 선택`;
 
+    // ★★★ sectionTypes 기준으로 순회하여 이미지 프롬프트 키 매칭 보장
     return {
-      hookMessage: textContent.hookMessage,
-      sections: textContent.sections.map((section, index) => {
-        const sectionType = section.type as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
-        const sectionPrompts = imagePromptsMap.get(sectionType) || imagePromptsMap.get('HERO') || [];
+      hookMessage,
+      sections: sectionTypes.map((type, index) => {
+        const sectionPrompts = imagePromptsMap.get(type) || [];
         const firstPrompt = sectionPrompts[0];
+
+        // textContent에서 해당 타입의 텍스트 찾기 (없으면 기본값)
+        const textSection = textContent?.sections?.find(s => s.type === type);
 
         return {
           id: uuidv4(),
-          type: section.type,
-          title: section.title,
-          body: section.body,
+          type,
+          title: textSection?.title || type.replace(/_/g, ' '),
+          body: textSection?.body || `${input.productName} ${type} 섹션`,
           order: index,
-          imagePrompt: firstPrompt,                      // 기존 호환성
-          imagePrompts: sectionPrompts,                   // 항상 배열 전달
+          imagePrompt: firstPrompt,
+          imagePrompts: sectionPrompts,
         };
       }),
     };
