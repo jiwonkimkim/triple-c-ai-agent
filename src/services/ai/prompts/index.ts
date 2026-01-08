@@ -250,11 +250,19 @@ export {
   SKINCARE_SECTION_BLOCKS,
   SKINCARE_SECTION_BASE_PROMPTS,
   SUBCATEGORY_VISUAL_MODIFIERS,
+  BARRIER_KEYWORDS,
+  EFFICACY_KEYWORD_PATTERNS,
   buildSkincareImagePrompt,
   buildSkincareFullPromptSet,
   buildSkincareSectionPrompts,
   getEfficacyVisualModifiers,
   getEfficacyColorPalette,
+  // ★ 피부장벽 매칭 함수
+  detectBarrierKeywords,
+  detectEfficacyFromText,
+  getBarrierDetailedPrompt,
+  shouldUseBarrierDetailedPrompt,
+  buildSkincareOptionsFromProduct,
 } from './skincare-image-prompts';
 
 // ============================================

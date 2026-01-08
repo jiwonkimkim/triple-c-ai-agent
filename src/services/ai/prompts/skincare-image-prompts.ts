@@ -497,10 +497,133 @@ export function getEfficacyColorPalette(efficacy: keyof typeof SKINCARE_EFFICACY
 }
 
 // ============================================
+// 효능 자동 감지 및 매칭 함수
+// ============================================
+
+/**
+ * 피부장벽 관련 키워드 목록
+ */
+const BARRIER_KEYWORDS = [
+  // 한글 키워드
+  '피부장벽', '장벽', '세라마이드', '세라마이드', '배리어', '방어막',
+  '피부보호', '장벽강화', '장벽케어', '스킨배리어', '보호막',
+  '세라미드', '피부방어', '리페어', '복구', '장벽복구',
+  // 영문 키워드
+  'barrier', 'ceramide', 'skin barrier', 'protective', 'repair',
+  'strengthening', 'defense', 'shield', 'fortifying',
+] as const;
+
+/**
+ * 효능별 키워드 매칭 패턴
+ */
+const EFFICACY_KEYWORD_PATTERNS: Record<keyof typeof SKINCARE_EFFICACY_KEYWORDS, string[]> = {
+  hydrating: ['수분', '보습', '촉촉', '하이드', 'hydrat', 'moisture', 'aqua', '워터'],
+  anti_aging: ['안티에이징', '탄력', '주름', '리프팅', 'anti-aging', 'firming', 'wrinkle', '에이징'],
+  brightening: ['미백', '브라이트', '톤업', '광채', 'bright', 'whiten', 'radiance', 'glow'],
+  soothing: ['진정', '민감', '저자극', '캄', 'sooth', 'calm', 'sensitive', 'gentle'],
+  pore_care: ['모공', '피지', '블랙헤드', '각질', 'pore', 'sebum', 'purif', 'exfoliat'],
+  barrier: BARRIER_KEYWORDS as unknown as string[],
+};
+
+/**
+ * 제품명/설명에서 피부장벽 관련 키워드 감지
+ * @param text 제품명 또는 설명 텍스트
+ * @returns 피부장벽 키워드 감지 여부
+ */
+export function detectBarrierKeywords(text: string): boolean {
+  const lowerText = text.toLowerCase();
+  return BARRIER_KEYWORDS.some(keyword =>
+    lowerText.includes(keyword.toLowerCase())
+  );
+}
+
+/**
+ * 제품명/설명에서 효능 타입 자동 감지
+ * @param text 제품명 또는 설명 텍스트
+ * @returns 감지된 효능 타입 (기본값: hydrating)
+ */
+export function detectEfficacyFromText(text: string): keyof typeof SKINCARE_EFFICACY_KEYWORDS {
+  const lowerText = text.toLowerCase();
+
+  // 우선순위: barrier > 기타 (피부장벽 키워드가 있으면 우선 적용)
+  if (detectBarrierKeywords(text)) {
+    return 'barrier';
+  }
+
+  // 다른 효능 키워드 매칭
+  for (const [efficacy, keywords] of Object.entries(EFFICACY_KEYWORD_PATTERNS)) {
+    if (efficacy === 'barrier') continue; // 이미 체크함
+    if (keywords.some(keyword => lowerText.includes(keyword.toLowerCase()))) {
+      return efficacy as keyof typeof SKINCARE_EFFICACY_KEYWORDS;
+    }
+  }
+
+  // 기본값: 수분/보습
+  return 'hydrating';
+}
+
+/**
+ * 피부장벽 상세 프롬프트 반환 (해당 효능일 경우)
+ * @param efficacy 효능 타입
+ * @returns 피부장벽 상세 프롬프트 또는 null
+ */
+export function getBarrierDetailedPrompt(efficacy: keyof typeof SKINCARE_EFFICACY_KEYWORDS): string | null {
+  if (efficacy !== 'barrier') return null;
+
+  const barrierData = SKINCARE_EFFICACY_KEYWORDS.barrier;
+  if ('detailedPrompt' in barrierData) {
+    return (barrierData as any).detailedPrompt;
+  }
+  return null;
+}
+
+/**
+ * 피부장벽 섹션용 프롬프트인지 확인
+ * @param section 섹션 타입
+ * @param efficacy 효능 타입
+ * @returns 피부장벽 상세 프롬프트 적용 여부
+ */
+export function shouldUseBarrierDetailedPrompt(
+  section: SkincareDetailSectionType,
+  efficacy: keyof typeof SKINCARE_EFFICACY_KEYWORDS
+): boolean {
+  const barrierSections: SkincareDetailSectionType[] = ['EFFICACY_VISUAL', 'INGREDIENT_TECH'];
+  return efficacy === 'barrier' && barrierSections.includes(section);
+}
+
+/**
+ * 제품 정보에서 스킨케어 프롬프트 옵션 자동 생성
+ * @param productName 제품명
+ * @param description 제품 설명 (optional)
+ * @param subCategory 서브카테고리
+ * @returns SkincareImagePromptOptions
+ */
+export function buildSkincareOptionsFromProduct(
+  productName: string,
+  description: string = '',
+  subCategory: SkincareSubCategory = 'serum'
+): SkincareImagePromptOptions {
+  const combinedText = `${productName} ${description}`;
+  const detectedEfficacy = detectEfficacyFromText(combinedText);
+
+  return {
+    productName,
+    subCategory,
+    primaryEfficacy: detectedEfficacy,
+    additionalKeywords: detectBarrierKeywords(combinedText)
+      ? ['skin barrier protection', 'ceramide layer', 'protective membrane']
+      : [],
+    includeNegative: true,
+  };
+}
+
+// ============================================
 // Export
 // ============================================
 
 export {
   SKINCARE_SECTION_BASE_PROMPTS,
   SUBCATEGORY_VISUAL_MODIFIERS,
+  BARRIER_KEYWORDS,
+  EFFICACY_KEYWORD_PATTERNS,
 };
