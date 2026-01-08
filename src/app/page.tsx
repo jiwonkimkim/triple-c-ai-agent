@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Zap, Palette, Clock, Users, Sparkles, CheckCircle, Sun, Moon, Play, Check, Heart, Settings, Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -66,43 +66,6 @@ const themeOptions = [
   { value: 'fluid', label: 'Fluid', description: '모던 미니멀 스타일' },
 ] as const;
 
-// 눈송이 컴포넌트 (Sapporo 테마 전용)
-const Snowflakes = () => {
-  const snowflakes = useMemo(() => Array.from({ length: 50 }, (_, i) => ({
-    id: i,
-    left: (i * 17 + 7) % 100,
-    delay: (i * 0.4) % 10,
-    duration: 10 + (i % 6) * 2,
-    size: i % 3 === 0 ? 'w-2 h-2' : i % 3 === 1 ? 'w-1.5 h-1.5' : 'w-1 h-1',
-  })), []);
-
-  return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-30">
-      {snowflakes.map((snow) => (
-        <motion.div
-          key={snow.id}
-          initial={{ y: -20, opacity: 0 }}
-          animate={{
-            y: '110vh',
-            opacity: [0, 0.8, 0.8, 0],
-          }}
-          transition={{
-            duration: snow.duration,
-            repeat: Infinity,
-            delay: snow.delay,
-            ease: "linear"
-          }}
-          className={`absolute ${snow.size} bg-white rounded-full`}
-          style={{
-            left: `${snow.left}%`,
-            boxShadow: '0 0 4px rgba(255,255,255,0.8)',
-          }}
-        />
-      ))}
-    </div>
-  );
-};
-
 // 파티클 인터페이스
 interface Particle {
   id: number;
@@ -160,9 +123,6 @@ export default function LandingPage() {
     )}>
       {/* Default 테마: 마우스 따라다니는 글로우 효과 */}
       {isDefault && <MouseGlowEffect />}
-
-      {/* Sapporo 테마: 눈 내림 효과 */}
-      {isSapporo && <Snowflakes />}
 
       {/* Sapporo 테마: 따뜻한 조명 효과 */}
       {isSapporo && (
