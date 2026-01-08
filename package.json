@@ -65,6 +65,7 @@
     "nsfwjs": "^4.2.1",
     "openai": "^4.68.0",
     "otplib": "^12.0.1",
+    "puppeteer": "^24.34.0",
     "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

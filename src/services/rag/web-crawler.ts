@@ -1,4 +1,31 @@
 import { extractTextFromHtml } from './text-chunker';
+import puppeteer, { Browser, Page } from 'puppeteer';
+
+// Singleton browser instance for reuse
+let browserInstance: Browser | null = null;
+
+async function getBrowser(): Promise<Browser> {
+  if (!browserInstance || !browserInstance.connected) {
+    browserInstance = await puppeteer.launch({
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu',
+      ],
+    });
+  }
+  return browserInstance;
+}
+
+export async function closeBrowser(): Promise<void> {
+  if (browserInstance) {
+    await browserInstance.close();
+    browserInstance = null;
+  }
+}
 
 // Brand assets extracted from HTML
 export interface BrandAssets {
@@ -52,6 +79,10 @@ export interface CrawlOptions {
   timeout?: number;
   // User agent string
   userAgent?: string;
+  // Use Puppeteer for JavaScript-rendered pages
+  usePuppeteer?: boolean;
+  // Wait time for JavaScript to render (ms)
+  waitForRender?: number;
 }
 
 const DEFAULT_OPTIONS: Required<CrawlOptions> = {
@@ -63,21 +94,136 @@ const DEFAULT_OPTIONS: Required<CrawlOptions> = {
     /\.(css|js|json|xml)$/i,
     /\/api\//i,
     /\/admin\//i,
-    /\?/,
   ],
-  timeout: 10000,
+  timeout: 30000,
   userAgent: 'Triple-C-Bot/1.0 (Marketing Content Agent)',
+  usePuppeteer: false,
+  waitForRender: 3000,
 };
 
-/**
- * Crawl a single URL
- */
-export async function crawlUrl(
-  url: string,
-  options?: Partial<CrawlOptions>
-): Promise<CrawlResult> {
-  const opts = { ...DEFAULT_OPTIONS, ...options };
+// Domains that require JavaScript rendering
+const JS_RENDERED_DOMAINS = [
+  'naver.com',
+  'brand.naver.com',
+  'smartstore.naver.com',
+  'shopping.naver.com',
+  'instagram.com',
+  'facebook.com',
+  'twitter.com',
+  'coupang.com',
+];
 
+/**
+ * Check if URL requires JavaScript rendering
+ */
+function requiresJsRendering(url: string): boolean {
+  try {
+    const hostname = new URL(url).hostname;
+    return JS_RENDERED_DOMAINS.some(domain =>
+      hostname === domain || hostname.endsWith('.' + domain)
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Crawl a single URL using Puppeteer (for JS-rendered pages)
+ */
+async function crawlUrlWithPuppeteer(
+  url: string,
+  opts: Required<CrawlOptions>
+): Promise<CrawlResult> {
+  const browser = await getBrowser();
+  const page = await browser.newPage();
+
+  try {
+    await page.setUserAgent(opts.userAgent);
+    await page.setViewport({ width: 1920, height: 1080 });
+
+    // Block unnecessary resources for faster loading
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+      const resourceType = req.resourceType();
+      if (['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
+
+    const response = await page.goto(url, {
+      waitUntil: 'networkidle2',
+      timeout: opts.timeout,
+    });
+
+    if (!response) {
+      throw new Error('Failed to load page');
+    }
+
+    // Wait for JavaScript to render content
+    await new Promise(resolve => setTimeout(resolve, opts.waitForRender));
+
+    // Scroll to load lazy content
+    await autoScroll(page);
+
+    const html = await page.content();
+    const text = extractTextFromHtml(html);
+    const metadata = extractMetadata(html);
+    const links = extractLinks(html, url, opts);
+    const title = await page.title() || new URL(url).hostname;
+    const brandAssets = extractBrandAssets(html, url);
+
+    return {
+      url,
+      title,
+      text,
+      html,
+      statusCode: response.status(),
+      crawledAt: new Date(),
+      links,
+      metadata,
+      brandAssets,
+    };
+  } finally {
+    await page.close();
+  }
+}
+
+/**
+ * Auto-scroll page to trigger lazy loading
+ */
+async function autoScroll(page: Page): Promise<void> {
+  await page.evaluate(async () => {
+    await new Promise<void>((resolve) => {
+      let totalHeight = 0;
+      const distance = 500;
+      const maxScrolls = 10;
+      let scrollCount = 0;
+
+      const timer = setInterval(() => {
+        const scrollHeight = document.body.scrollHeight;
+        window.scrollBy(0, distance);
+        totalHeight += distance;
+        scrollCount++;
+
+        if (totalHeight >= scrollHeight || scrollCount >= maxScrolls) {
+          clearInterval(timer);
+          window.scrollTo(0, 0); // Scroll back to top
+          resolve();
+        }
+      }, 200);
+    });
+  });
+}
+
+/**
+ * Crawl a single URL using fetch (for static pages)
+ */
+async function crawlUrlWithFetch(
+  url: string,
+  opts: Required<CrawlOptions>
+): Promise<CrawlResult> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), opts.timeout);
 
@@ -123,6 +269,26 @@ export async function crawlUrl(
   } catch (error) {
     clearTimeout(timeoutId);
     throw error;
+  }
+}
+
+/**
+ * Crawl a single URL (auto-detects if Puppeteer is needed)
+ */
+export async function crawlUrl(
+  url: string,
+  options?: Partial<CrawlOptions>
+): Promise<CrawlResult> {
+  const opts = { ...DEFAULT_OPTIONS, ...options };
+
+  // Use Puppeteer if explicitly requested or if domain requires JS rendering
+  const shouldUsePuppeteer = opts.usePuppeteer || requiresJsRendering(url);
+
+  if (shouldUsePuppeteer) {
+    console.log(`[Crawler] Using Puppeteer for JS-rendered page: ${url}`);
+    return crawlUrlWithPuppeteer(url, opts);
+  } else {
+    return crawlUrlWithFetch(url, opts);
   }
 }
 

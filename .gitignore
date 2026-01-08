@@ -60,3 +60,6 @@ temp
 /public/uploads
 src/data/reference-pages/crawling_oliv/
 src/data/reference-pages/ocr_results_gemini/
+
+# Documentation (local only)
+/docs
