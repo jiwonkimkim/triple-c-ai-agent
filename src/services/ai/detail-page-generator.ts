@@ -557,10 +557,14 @@ export async function generateDetailPage(
 
                         // ★ 최종 사용된 프롬프트로 업데이트 (revisedPrompt가 있으면)
                         if (generatedImage.revisedPrompt && updatedPrompts[i]) {
+                          console.log(`[AI DEBUG] ★ Updating prompt for ${sectionType}[${i}]:`);
+                          console.log(`[AI DEBUG]   revisedPrompt: ${generatedImage.revisedPrompt.substring(0, 150)}...`);
                           updatedPrompts[i] = {
                             ...updatedPrompts[i],
                             imagePrompt: generatedImage.revisedPrompt,
                           };
+                        } else {
+                          console.log(`[AI DEBUG] ⚠️ No revisedPrompt for ${sectionType}[${i}]`);
                         }
 
                         console.log(`[AI I2I] ${sectionType} image ${i + 1} generated successfully`);
@@ -717,11 +721,14 @@ export async function generateDetailPage(
       const overlayTextPrompts: DevPromptInfo['overlayTextPrompts'] = [];
 
       // 모든 섹션의 이미지 프롬프트 및 생성된 이미지 수집 (다중 이미지 지원)
+      console.log(`[DevPrompts DEBUG] Collecting prompts from ${versions[0].sections.length} sections...`);
       for (const section of versions[0].sections) {
         const prompts = section.imagePrompts || (section.imagePrompt ? [section.imagePrompt] : []);
         const imageUrls = section.imageUrls || (section.imageUrl ? [section.imageUrl] : []);
 
+        console.log(`[DevPrompts DEBUG] Section ${section.type}: ${prompts.length} prompts`);
         prompts.forEach((prompt, index) => {
+          console.log(`[DevPrompts DEBUG]   [${index}] imagePrompt: ${prompt.imagePrompt?.substring(0, 100) || 'UNDEFINED'}...`);
           sectionImagePrompts.push({
             sectionType: section.type,
             imagePrompt: prompt.imagePrompt,
