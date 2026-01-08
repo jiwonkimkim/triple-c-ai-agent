@@ -282,28 +282,25 @@ function PreviewBlock({ block, isMain = false }: { block: EditorBlock; isMain?: 
 }
 
 // Image Overlay 블록 미리보기 컴포넌트
-// MAIN 섹션: 1:1 정사각형 비율
-// 나머지 섹션: 원래 비율 (3:4)
+// 가로 100%, 세로는 이미지 비율에 맞춤
 function PreviewImageOverlay({ block, isMain = false }: { block: EditorBlock; isMain?: boolean }) {
   if (block.type !== 'image-overlay') return null;
 
   const overlayTexts = block.overlayTexts || [];
-  const aspectRatio = isMain ? '1/1' : '3/4';
 
   return (
     <div
       className={`relative w-full overflow-hidden ${isMain ? 'mb-6 rounded-lg' : ''}`}
-      style={{ aspectRatio }}
     >
       {/* 배경 이미지 */}
       {block.src ? (
         <img
           src={block.src}
           alt={block.alt || '상세페이지 이미지'}
-          className="absolute inset-0 w-full h-full object-cover"
+          className="w-full h-auto block"
         />
       ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+        <div className="w-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center" style={{ aspectRatio: '3/4' }}>
           <span className="text-gray-500">이미지 없음</span>
         </div>
       )}

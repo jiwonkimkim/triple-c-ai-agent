@@ -422,22 +422,22 @@ export function ImageOverlayBlockRenderer({
       onClick={onSelect}
     >
       {/* 이미지 캔버스 - overflow-visible로 텍스트가 이미지 밖으로 나갈 수 있음 */}
-      {/* MAIN 섹션은 1:1, 나머지는 3:4 비율 */}
+      {/* 가로 폭 100%, 세로는 이미지 비율에 맞춤 */}
       <div
         ref={containerRef}
         className="relative bg-muted overflow-visible"
-        style={{ aspectRatio: isMain ? '1/1' : '3/4' }}
       >
         {block.src ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={block.src}
             alt={block.alt || '상세페이지 이미지'}
-            className="absolute inset-0 w-full h-full object-contain"
+            className="w-full h-auto block"
           />
         ) : (
           <div
-            className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900 cursor-pointer"
+            className="w-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900 cursor-pointer"
+            style={{ aspectRatio: '3/4' }}
             onClick={() => fileInputRef.current?.click()}
           >
             <div className="text-center text-white/70">
@@ -958,19 +958,19 @@ export function ImageOverlayBlockPreview({
   isMain = false,
 }: {
   block: ImageOverlayBlock & { id: string };
-  isMain?: boolean;  // MAIN 섹션 여부 - 1:1 비율 적용
+  isMain?: boolean;  // MAIN 섹션 여부
 }) {
   return (
-    <div className="relative rounded-lg overflow-hidden" style={{ aspectRatio: isMain ? '1/1' : '3/4' }}>
+    <div className="relative rounded-lg overflow-hidden">
       {block.src ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={block.src}
           alt={block.alt || '상세페이지 이미지'}
-          className="absolute inset-0 w-full h-full object-cover"
+          className="w-full h-auto block"
         />
       ) : (
-        <div className="absolute inset-0 bg-muted" />
+        <div className="w-full bg-muted" style={{ aspectRatio: '3/4' }} />
       )}
 
       {block.overlayGradient && (

@@ -47,6 +47,7 @@ import {
   buildUnifiedImagePrompt,
   hasAdvancedPromptSystem,
   isBeautyCategory,
+  getSubCategorySections,  // ★ 서브카테고리별 동적 섹션 목록
   type BeautySubCategory,
   type UnifiedPromptOptions,
   type PaletteTheme,
@@ -1769,14 +1770,44 @@ export async function orchestrateDetailPageGeneration(
   // 텍스트 콘텐츠를 먼저 분석하여 그에 맞는 이미지 생성
   console.log('[Orchestration] ★ TEXT-DRIVEN IMAGE GENERATION: Analyzing text content to generate matching images...');
 
-  const sectionTypes: Array<'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ'> = [
-    'MAIN', 'HERO', 'FEATURES', 'SOCIAL_PROOF', 'HOW_TO_USE', 'FAQ'
-  ];
+  // ★★★ 서브카테고리별 동적 섹션 사용 (NEW!) ★★★
+  // 뷰티 서브카테고리가 있고 고급 프롬프트 시스템이 있으면 해당 카테고리의 전체 섹션 사용
+  const DEFAULT_SECTIONS: string[] = ['MAIN', 'HERO', 'FEATURES', 'SOCIAL_PROOF', 'HOW_TO_USE', 'FAQ'];
+
+  let sectionTypes: string[];
+
+  if (input.subCategory && hasAdvancedPromptSystem(input.subCategory) && isBeautyCategory(input.category)) {
+    // 뷰티 서브카테고리의 모든 섹션 사용 (예: 립은 14개, 마스크팩은 17개)
+    sectionTypes = getSubCategorySections(input.subCategory);
+    console.log(`[Orchestration] ★★★ Using DYNAMIC sections for ${input.subCategory}: ${sectionTypes.length} sections`);
+    console.log(`[Orchestration]   Sections: ${sectionTypes.join(', ')}`);
+  } else {
+    // 기본 6개 섹션 사용
+    sectionTypes = DEFAULT_SECTIONS;
+    console.log(`[Orchestration] Using DEFAULT 6 sections`);
+  }
 
   const brandStyle = input.brandContext?.imageKeywords?.join(', ');
 
+  // ★★★ 표준 섹션 타입 (기존 함수 호환용)
+  type StandardSectionType = 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
+  const STANDARD_SECTIONS: StandardSectionType[] = ['MAIN', 'HERO', 'FEATURES', 'SOCIAL_PROOF', 'HOW_TO_USE', 'FAQ'];
+
+  // ★★★ 서브카테고리 섹션인지 확인하는 헬퍼 함수
+  const isStandardSection = (section: string): section is StandardSectionType => {
+    return STANDARD_SECTIONS.includes(section as StandardSectionType);
+  };
+
   // 3-1. 각 섹션별 권장 이미지 수 계산
+  // ★★★ 서브카테고리 섹션의 경우 각 섹션당 이미지 1개로 설정 (14~17개 섹션이므로)
   const sectionImageCounts = sectionTypes.map(sectionType => {
+    // 서브카테고리 섹션인 경우 (예: HERO_LIP, TEXTURE_VISUAL 등)
+    if (!isStandardSection(sectionType)) {
+      // 서브카테고리 섹션은 각각 1개의 이미지 생성
+      return { sectionType, count: 1, overlayTextGuide: '' };
+    }
+
+    // 표준 섹션인 경우 기존 로직 사용
     const extendedType = mapToExtendedSectionType(sectionType) as ExtendedSectionType;
     const sectionImageInfo = getSectionImagePrompt(
       extendedType,
@@ -1816,7 +1847,14 @@ export async function orchestrateDetailPageGeneration(
   console.log('[Orchestration] Reference text for image generation:', referenceTextContent.hookMessage);
 
   // ★ 3-3-1. 섹션별 배경색 맵 생성 (각 섹션마다 다른 배경색!)
-  const extendedSectionTypes = sectionTypes.map(s => mapToExtendedSectionType(s));
+  // ★★★ 서브카테고리 섹션은 기본값 'FEATURES'로 매핑 (배경색 생성용)
+  const extendedSectionTypes = sectionTypes.map(s => {
+    if (isStandardSection(s)) {
+      return mapToExtendedSectionType(s);
+    }
+    // 서브카테고리 섹션은 FEATURES로 기본 매핑 (배경색 생성용)
+    return mapToExtendedSectionType('FEATURES');
+  });
   const sectionBackgroundMap = generatePageBackgroundMap(extendedSectionTypes, selectedPaletteTheme);
 
   console.log('[Orchestration] ★ Section background colors:');
@@ -1840,13 +1878,20 @@ export async function orchestrateDetailPageGeneration(
       console.log(`[Orchestration] Generating image for ${sectionType} based on text: "${sectionText.title}"`);
 
       // ★ 해당 섹션의 배경색 가져오기 (팔레트에서)
-      const extendedType = mapToExtendedSectionType(sectionType);
+      // ★★★ 서브카테고리 섹션은 'FEATURES'로 기본 매핑
+      const extendedType = isStandardSection(sectionType)
+        ? mapToExtendedSectionType(sectionType)
+        : mapToExtendedSectionType('FEATURES');
       const sectionBackground = sectionBackgroundMap.get(extendedType);
       const backgroundPrompt = sectionBackground?.prompt || 'clean gradient background';
       const backgroundHex = sectionBackground?.hex || '#FFFFFF';
 
+      // ★★★ 서브카테고리 섹션인지 확인 (overlayText 및 indexed prompts 처리용)
+      const isSubcategorySection = !isStandardSection(sectionType);
+
       // ★ 인덱스 기반 프롬프트 사용 여부 확인 (NEW!)
-      const useIndexedPrompts = hasIndexedPrompts(extendedType, input.category);
+      // 서브카테고리 섹션은 자체 프롬프트 시스템 사용
+      const useIndexedPrompts = !isSubcategorySection && hasIndexedPrompts(extendedType, input.category);
       if (useIndexedPrompts) {
         console.log(`[Orchestration] ★ Using INDEXED prompts for ${sectionType} (category: ${input.category})`);
       }
@@ -1897,8 +1942,9 @@ export async function orchestrateDetailPageGeneration(
               index                          // ★ 블록 인덱스
             ),
             // ★ overlayText는 블록별로 다르게 생성 (variationHint 반영!)
+            // ★★★ 서브카테고리 섹션은 'FEATURES'로 기본 매핑 (overlayText 생성용)
             generateOverlayText(
-              sectionType,
+              isSubcategorySection ? 'FEATURES' : sectionType as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ',
               input.productName,
               input.category,
               input.keyFeatures,

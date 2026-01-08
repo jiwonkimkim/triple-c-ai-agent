@@ -334,6 +334,7 @@ export interface UnifiedPromptOptions {
  * 통합 이미지 프롬프트 생성
  * 서브 카테고리에 따라 적절한 프롬프트 빌더 호출
  * ★ 표준 섹션(MAIN, HERO 등)을 서브카테고리 섹션으로 자동 매핑
+ * ★★★ 이미 서브카테고리 섹션인 경우 매핑 스킵 (동적 섹션 지원)
  */
 export function buildUnifiedImagePrompt(
   section: string,
@@ -342,9 +343,21 @@ export function buildUnifiedImagePrompt(
 ): string | null {
   const { subCategory, productName, keyFeatures, brandStyle } = options;
 
-  // ★ 표준 섹션을 서브카테고리 섹션으로 매핑
-  const mappedSection = mapStandardSectionToSubcategory(section, subCategory);
-  console.log(`[BeautySubcategory] Mapping section: ${section} → ${mappedSection} (${subCategory})`);
+  // ★★★ 이미 서브카테고리 섹션인지 확인 (동적 섹션 지원)
+  // getSubCategorySections로 해당 서브카테고리의 섹션 목록 가져와서 확인
+  const subcategorySections = getSubCategorySections(subCategory);
+  const isAlreadySubcategorySection = subcategorySections.includes(section);
+
+  // 이미 서브카테고리 섹션이면 매핑 스킵, 아니면 매핑
+  const mappedSection = isAlreadySubcategorySection
+    ? section
+    : mapStandardSectionToSubcategory(section, subCategory);
+
+  if (isAlreadySubcategorySection) {
+    console.log(`[BeautySubcategory] ★ Direct section (no mapping): ${section} (${subCategory})`);
+  } else {
+    console.log(`[BeautySubcategory] Mapping section: ${section} → ${mappedSection} (${subCategory})`);
+  }
 
   switch (subCategory) {
     case 'skincare': {
