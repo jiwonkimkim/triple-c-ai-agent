@@ -5,7 +5,6 @@
 
 import {
   buildSkincareImagePrompt,
-  buildSkincareSectionPrompts,
   type SkincareDetailSectionType,
   type SkincareImagePromptOptions,
   SKINCARE_SECTION_BLOCKS,
@@ -13,7 +12,6 @@ import {
 
 import {
   buildSuncareImagePrompt,
-  buildSuncareSectionPrompts,
   type SuncareDetailSectionType,
   type SuncareImagePromptOptions,
   SUNCARE_SECTION_BLOCKS,
@@ -21,7 +19,6 @@ import {
 
 import {
   buildLipImagePrompt,
-  buildLipSectionPrompts,
   type LipDetailSectionType,
   type LipImagePromptOptions,
   LIP_SECTION_BLOCKS,
@@ -29,7 +26,6 @@ import {
 
 import {
   buildMascaraImagePrompt,
-  buildMascaraSectionPrompts,
   type MascaraDetailSectionType,
   type MascaraImagePromptOptions,
   MASCARA_SECTION_BLOCKS,
@@ -37,7 +33,6 @@ import {
 
 import {
   buildMaskPackImagePrompt,
-  buildMaskPackSectionPrompts,
   type MaskPackDetailSectionType,
   type MaskPackImagePromptOptions,
   MASKPACK_SECTION_BLOCKS,
@@ -446,90 +441,6 @@ export function buildUnifiedImagePrompt(
 
     default:
       // 기타 카테고리는 기존 프롬프트 시스템 사용
-      return null;
-  }
-}
-
-/**
- * 통합 섹션별 프롬프트 목록 생성
- * ★ 표준 섹션(MAIN, HERO 등)을 서브카테고리 섹션으로 자동 매핑
- */
-export function buildUnifiedSectionPrompts(
-  section: string,
-  options: UnifiedPromptOptions
-): { blockIndex: number; conceptType: string; aspectRatio: string; prompt: string }[] | null {
-  const { subCategory, productName, keyFeatures, brandStyle } = options;
-
-  // ★ 표준 섹션을 서브카테고리 섹션으로 매핑
-  const mappedSection = mapStandardSectionToSubcategory(section, subCategory);
-  console.log(`[BeautySubcategory] SectionPrompts mapping: ${section} → ${mappedSection} (${subCategory})`);
-
-  switch (subCategory) {
-    case 'skincare': {
-      const skincareOpts: SkincareImagePromptOptions = {
-        productName,
-        subCategory: options.skincareOptions?.subCategory || 'toner',
-        primaryEfficacy: options.skincareOptions?.primaryEfficacy || 'hydrating',
-        brandStyle,
-        additionalKeywords: keyFeatures,
-        ...options.skincareOptions,
-      };
-      return buildSkincareSectionPrompts(mappedSection as SkincareDetailSectionType, skincareOpts);
-    }
-
-    case 'suncare': {
-      const suncareOpts: SuncareImagePromptOptions = {
-        productName,
-        subCategory: options.suncareOptions?.subCategory || 'sun_cream',
-        protectionLevel: options.suncareOptions?.protectionLevel || { spf: 'SPF50+', pa: 'PA++++' },
-        primaryFeature: options.suncareOptions?.primaryFeature || 'uv_protection',
-        brandStyle,
-        additionalKeywords: keyFeatures,
-        ...options.suncareOptions,
-      };
-      return buildSuncareSectionPrompts(mappedSection as SuncareDetailSectionType, suncareOpts);
-    }
-
-    case 'lip': {
-      const lipOpts: LipImagePromptOptions = {
-        productName,
-        subCategory: options.lipOptions?.subCategory || 'lip_gloss',
-        finish: options.lipOptions?.finish || 'glossy',
-        primaryFeature: options.lipOptions?.primaryFeature || 'glossy',
-        brandStyle,
-        additionalKeywords: keyFeatures,
-        ...options.lipOptions,
-      };
-      return buildLipSectionPrompts(mappedSection as LipDetailSectionType, lipOpts);
-    }
-
-    case 'mascara': {
-      const mascaraOpts: MascaraImagePromptOptions = {
-        productName,
-        mascaraType: options.mascaraOptions?.mascaraType || 'volume',
-        wandType: options.mascaraOptions?.wandType || 'curved',
-        primaryFeature: options.mascaraOptions?.primaryFeature || 'volume',
-        brandStyle,
-        additionalKeywords: keyFeatures,
-        ...options.mascaraOptions,
-      };
-      return buildMascaraSectionPrompts(mappedSection as MascaraDetailSectionType, mascaraOpts);
-    }
-
-    case 'maskpack': {
-      const maskpackOpts: MaskPackImagePromptOptions = {
-        productName,
-        maskType: options.maskpackOptions?.maskType || 'sheet_mask',
-        primaryIngredient: options.maskpackOptions?.primaryIngredient || 'hyaluronic',
-        primaryFeature: options.maskpackOptions?.primaryFeature || 'hydrating',
-        brandStyle,
-        additionalKeywords: keyFeatures,
-        ...options.maskpackOptions,
-      };
-      return buildMaskPackSectionPrompts(mappedSection as MaskPackDetailSectionType, maskpackOpts);
-    }
-
-    default:
       return null;
   }
 }

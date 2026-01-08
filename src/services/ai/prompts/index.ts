@@ -374,7 +374,6 @@ export {
   getSubCategorySections,
   detectSubCategoryFromProductName,
   buildUnifiedImagePrompt,
-  buildUnifiedSectionPrompts,
   hasAdvancedPromptSystem,
   isBeautyCategory,
 } from './beauty-subcategory';
