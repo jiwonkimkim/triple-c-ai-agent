@@ -137,7 +137,7 @@ export default function DashboardLayout({
                         ? 'bg-amber-500/90 text-white shadow-md'
                         : 'text-white shadow-[0_0_20px_#eee] bg-[length:200%_auto] bg-[linear-gradient(to_right,#77A1D3_0%,#79CBCA_51%,#77A1D3_100%)]'
                     : isSapporo
-                      ? 'text-red-500 dark:text-red-400 font-bold hover:bg-red-200/60 dark:hover:bg-red-900/40'
+                      ? 'text-amber-800 dark:text-amber-100 font-medium hover:bg-amber-100/50 dark:hover:bg-amber-800/30 hover:text-amber-900 dark:hover:text-amber-50'
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 )}
                 onClick={() => setSidebarOpen(false)}

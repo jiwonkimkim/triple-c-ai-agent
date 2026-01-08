@@ -1567,7 +1567,7 @@ export default function SettingsPage() {
                       <CardDescription>나에게 맞는 플랜을 선택하세요.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid md:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                         {plans.map((plan) => (
                           <div
                             key={plan.id}
