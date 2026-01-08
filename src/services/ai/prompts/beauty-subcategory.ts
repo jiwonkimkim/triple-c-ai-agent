@@ -157,17 +157,18 @@ export type BeautyDetailSectionType =
 // ============================================
 
 export function getSubCategorySections(subCategory: BeautySubCategory): string[] {
+  // MAIN(썸네일)은 항상 첫 번째로 포함
   switch (subCategory) {
     case 'skincare':
-      return Object.keys(SKINCARE_SECTION_BLOCKS);
+      return ['MAIN', ...Object.keys(SKINCARE_SECTION_BLOCKS)];
     case 'suncare':
-      return Object.keys(SUNCARE_SECTION_BLOCKS);
+      return ['MAIN', ...Object.keys(SUNCARE_SECTION_BLOCKS)];
     case 'lip':
-      return Object.keys(LIP_SECTION_BLOCKS);
+      return ['MAIN', ...Object.keys(LIP_SECTION_BLOCKS)];
     case 'mascara':
-      return Object.keys(MASCARA_SECTION_BLOCKS);
+      return ['MAIN', ...Object.keys(MASCARA_SECTION_BLOCKS)];
     case 'maskpack':
-      return Object.keys(MASKPACK_SECTION_BLOCKS);
+      return ['MAIN', ...Object.keys(MASKPACK_SECTION_BLOCKS)];
     default:
       return ['MAIN', 'HERO', 'FEATURES', 'SOCIAL_PROOF', 'HOW_TO_USE', 'FAQ']; // 기본 섹션
   }
@@ -337,6 +338,13 @@ export function buildUnifiedImagePrompt(
   blockIndex: number = 0
 ): string | null {
   const { subCategory, productName, keyFeatures, brandStyle } = options;
+
+  // ★★★ MAIN 섹션은 기본 썸네일 프롬프트 사용 (서브카테고리 프롬프트 아님)
+  // orchestration-service의 표준 MAIN 핸들러가 처리하도록 null 반환
+  if (section === 'MAIN') {
+    console.log(`[BeautySubcategory] MAIN section - using standard thumbnail prompt`);
+    return null;
+  }
 
   // ★★★ 이미 서브카테고리 섹션인지 확인 (동적 섹션 지원)
   // getSubCategorySections로 해당 서브카테고리의 섹션 목록 가져와서 확인
