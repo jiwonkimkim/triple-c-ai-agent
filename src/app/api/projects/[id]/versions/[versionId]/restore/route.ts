@@ -114,6 +114,14 @@ export async function POST(
       },
     });
 
+    // devPrompts 추출 (개발 모드에서 히스토리 복원 시 프롬프트 보기 지원)
+    const contentWithPrompts = versionToRestore.content as {
+      sections?: unknown[];
+      hookMessage?: string;
+      devPrompts?: unknown;
+    };
+    const devPrompts = contentWithPrompts?.devPrompts || null;
+
     return NextResponse.json({
       success: true,
       version: {
@@ -122,6 +130,8 @@ export async function POST(
         restoredFrom: versionToRestore.versionNumber,
         content: restoredVersion.content,
       },
+      // 개발 모드에서 프롬프트 정보 반환
+      ...(devPrompts && { devPrompts }),
     });
   } catch (error) {
     console.error('Restore version error:', error);

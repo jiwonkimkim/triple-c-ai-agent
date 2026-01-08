@@ -94,9 +94,33 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       }
     }
 
+    // 개발 모드에서 최신 버전의 devPrompts 조회
+    let devPrompts = null;
+    const devModeEnv = process.env.NEXT_PUBLIC_DEV_MODE?.toLowerCase();
+    const isDev = process.env.NODE_ENV === 'development' || devModeEnv === 'true' || devModeEnv === '1';
+
+    if (isDev) {
+      const latestVersion = await prisma.projectVersion.findFirst({
+        where: { projectId: params.id },
+        orderBy: { versionNumber: 'desc' },
+        select: { content: true },
+      });
+
+      if (latestVersion?.content) {
+        const content = latestVersion.content as {
+          sections?: unknown[];
+          hookMessage?: string;
+          devPrompts?: unknown;
+        };
+        devPrompts = content.devPrompts || null;
+      }
+    }
+
     return NextResponse.json({
       success: true,
       data: project,
+      // 개발 모드에서만 프롬프트 정보 포함
+      ...(devPrompts && { devPrompts }),
     });
   } catch (error) {
     console.error('Get project error:', error);

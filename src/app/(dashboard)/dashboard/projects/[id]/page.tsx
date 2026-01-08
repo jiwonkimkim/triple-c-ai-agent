@@ -10,12 +10,21 @@ import { DetailPageEditor } from '@/components/editor';
 import { ProjectHeader, HistoryTab, SettingsTab, RegenerateDialog } from './_components';
 import { useProjectSettings, useVersionHistory, useRegeneration } from './_hooks';
 import type { ProjectData } from './_types';
+import type { DevPromptInfo } from '@/components/dev/dev-prompt-viewer';
 
-async function fetchProject(id: string): Promise<ProjectData> {
+interface FetchProjectResult {
+  project: ProjectData;
+  devPrompts: DevPromptInfo | null;
+}
+
+async function fetchProject(id: string): Promise<FetchProjectResult> {
   const response = await fetch(`/api/projects/${id}`);
   if (!response.ok) throw new Error('Failed to fetch project');
   const data = await response.json();
-  return data.data;
+  return {
+    project: data.data,
+    devPrompts: data.devPrompts || null,
+  };
 }
 
 export default function ProjectDetailPage() {
@@ -28,15 +37,16 @@ export default function ProjectDetailPage() {
   const [editorKey, setEditorKey] = useState(0);
 
   // Fetch project data
-  const { data: project, isLoading, error } = useQuery({
+  const { data: fetchResult, isLoading, error } = useQuery({
     queryKey: ['project', projectId],
     queryFn: () => fetchProject(projectId),
     enabled: !!projectId,
   });
 
+  const project = fetchResult?.project;
+
   // Custom hooks
   const settingsHook = useProjectSettings(project, projectId);
-  const historyHook = useVersionHistory(projectId, activeTab === 'history');
   const regenerationHook = useRegeneration(
     project,
     projectId,
@@ -46,23 +56,40 @@ export default function ProjectDetailPage() {
       onSettingsRequired: () => setActiveTab('settings'),
     }
   );
+  const historyHook = useVersionHistory(projectId, activeTab === 'history', {
+    onDevPromptsLoaded: (prompts) => regenerationHook.setLastDevPrompts(prompts),
+  });
 
-  // Load dev prompts from sessionStorage in development mode
+  // Load dev prompts from API response or sessionStorage
   useEffect(() => {
     const devModeEnv = process.env.NEXT_PUBLIC_DEV_MODE?.toLowerCase();
     const isDev = process.env.NODE_ENV === 'development' || devModeEnv === 'true' || devModeEnv === '1';
-    if (projectId && isDev) {
+
+    if (!projectId || !isDev) return;
+
+    // 1. API에서 가져온 devPrompts가 있으면 사용
+    if (fetchResult?.devPrompts) {
+      regenerationHook.setLastDevPrompts(fetchResult.devPrompts);
+      // sessionStorage에도 저장
       try {
-        const stored = sessionStorage.getItem(`devPrompts_${projectId}`);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          regenerationHook.setLastDevPrompts(parsed);
-        }
+        sessionStorage.setItem(`devPrompts_${projectId}`, JSON.stringify(fetchResult.devPrompts));
       } catch (e) {
-        console.warn('Failed to load devPrompts from sessionStorage:', e);
+        console.warn('Failed to save devPrompts to sessionStorage:', e);
       }
+      return;
     }
-  }, [projectId, regenerationHook]);
+
+    // 2. sessionStorage에서 불러오기 (fallback)
+    try {
+      const stored = sessionStorage.getItem(`devPrompts_${projectId}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        regenerationHook.setLastDevPrompts(parsed);
+      }
+    } catch (e) {
+      console.warn('Failed to load devPrompts from sessionStorage:', e);
+    }
+  }, [projectId, fetchResult?.devPrompts, regenerationHook]);
 
   // Error handling
   useEffect(() => {

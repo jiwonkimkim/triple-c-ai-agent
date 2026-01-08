@@ -2,8 +2,17 @@ import { useState, useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import type { VersionSnapshot } from '../_types';
+import type { DevPromptInfo } from '@/components/dev/dev-prompt-viewer';
 
-export function useVersionHistory(projectId: string, isActive: boolean) {
+interface UseVersionHistoryOptions {
+  onDevPromptsLoaded?: (prompts: DevPromptInfo | null) => void;
+}
+
+export function useVersionHistory(
+  projectId: string,
+  isActive: boolean,
+  options?: UseVersionHistoryOptions
+) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -107,6 +116,18 @@ export function useVersionHistory(projectId: string, isActive: boolean) {
       );
       if (!response.ok) throw new Error('Failed to restore');
 
+      const responseData = await response.json();
+
+      // devPrompts가 있으면 콜백 호출 및 sessionStorage에 저장
+      if (responseData.devPrompts) {
+        options?.onDevPromptsLoaded?.(responseData.devPrompts);
+        try {
+          sessionStorage.setItem(`devPrompts_${projectId}`, JSON.stringify(responseData.devPrompts));
+        } catch (e) {
+          console.warn('Failed to save devPrompts to sessionStorage:', e);
+        }
+      }
+
       await fetchVersions();
       queryClient.invalidateQueries({ queryKey: ['project', projectId] });
 
@@ -127,7 +148,7 @@ export function useVersionHistory(projectId: string, isActive: boolean) {
     } finally {
       setIsRestoring(false);
     }
-  }, [versionToRestore, projectId, fetchVersions, queryClient, toast]);
+  }, [versionToRestore, projectId, fetchVersions, queryClient, toast, options]);
 
   // Open rename dialog
   const openRenameDialog = useCallback((version: VersionSnapshot) => {

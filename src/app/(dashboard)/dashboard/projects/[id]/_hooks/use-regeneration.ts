@@ -85,6 +85,12 @@ export function useRegeneration(
       // Store dev prompts in development mode
       if (responseData.data?.devPrompts) {
         setLastDevPrompts(responseData.data.devPrompts);
+        // sessionStorage에도 저장 (페이지 새로고침 시 유지)
+        try {
+          sessionStorage.setItem(`devPrompts_${projectId}`, JSON.stringify(responseData.data.devPrompts));
+        } catch (e) {
+          console.warn('Failed to save devPrompts to sessionStorage:', e);
+        }
       }
 
       // Refresh project data

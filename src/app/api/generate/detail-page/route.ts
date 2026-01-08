@@ -201,6 +201,8 @@ export async function POST(request: NextRequest) {
         content: {
           sections: versions[0]?.sections || [],
           hookMessage: versions[0]?.hookMessage,
+          // 개발 모드에서 프롬프트 정보도 저장 (히스토리 복원 시 사용)
+          ...(devPrompts && { devPrompts }),
         } as unknown as Prisma.InputJsonValue,
         thumbnail: thumbnailUrl,
         createdById: session.user.id,
