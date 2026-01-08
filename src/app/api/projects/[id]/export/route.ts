@@ -157,6 +157,44 @@ function generateHTML(
           </blockquote>
         `;
 
+      case 'image-overlay':
+        const overlayTextsHtml = block.overlayTexts
+          .map((text) => {
+            const textStyles = [
+              `position: absolute`,
+              `left: ${text.style.x}%`,
+              `top: ${text.style.y}%`,
+              `transform: translate(-50%, -50%)${text.style.rotation ? ` rotate(${text.style.rotation}deg)` : ''}`,
+              text.style.width ? `width: ${text.style.width}%` : '',
+              text.style.color ? `color: ${text.style.color}` : 'color: white',
+              text.style.backgroundColor ? `background-color: ${text.style.backgroundColor}` : '',
+              text.style.padding ? `padding: ${text.style.padding}` : '',
+              text.style.fontSize ? `font-size: ${text.style.fontSize}px` : '',
+              text.style.fontWeight ? `font-weight: ${getFontWeight(text.style.fontWeight)}` : '',
+              text.style.fontFamily ? `font-family: ${text.style.fontFamily}` : '',
+              text.style.textShadow ? `text-shadow: 2px 2px 4px rgba(0,0,0,0.5)` : '',
+              text.style.textAlign ? `text-align: ${text.style.textAlign}` : '',
+              text.style.letterSpacing ? `letter-spacing: ${text.style.letterSpacing}px` : '',
+              text.style.lineHeight ? `line-height: ${text.style.lineHeight}` : '',
+              text.style.opacity !== undefined ? `opacity: ${text.style.opacity}` : '',
+              text.zIndex ? `z-index: ${text.zIndex}` : '',
+            ].filter(Boolean).join('; ');
+            return `<div style="${textStyles}">${escapeHtml(text.content)}</div>`;
+          })
+          .join('\n');
+
+        const gradientStyle = block.overlayGradient
+          ? `<div style="position: absolute; inset: 0; background: ${block.overlayGradient};"></div>`
+          : '';
+
+        return `
+          <div class="relative mb-6" style="width: 100%;">
+            <img src="${escapeHtml(block.src)}" alt="${escapeHtml(block.alt)}" class="w-full" style="${block.width ? `max-width: ${block.width}px;` : ''}" />
+            ${gradientStyle}
+            ${overlayTextsHtml}
+          </div>
+        `;
+
       default:
         return '';
     }
@@ -226,4 +264,14 @@ function getFontSize(size: string): string {
     '3xl': '1.875rem',
   };
   return sizes[size] || '1rem';
+}
+
+function getFontWeight(weight: string): string {
+  const weights: Record<string, string> = {
+    normal: '400',
+    medium: '500',
+    semibold: '600',
+    bold: '700',
+  };
+  return weights[weight] || '400';
 }
