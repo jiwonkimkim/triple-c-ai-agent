@@ -715,19 +715,35 @@ export async function generateImageFromImage(
       aspectRatioSection = `\n[IMAGE FORMAT]\n${aspectRatioInstruction}\n`;
     }
 
-    // 제품 참조 + 창의적 구성 프롬프트 결합
-    const enhancedPrompt = `[PRODUCT REFERENCE]
-Use the provided product image as a reference for product identity (brand, colors, general form).
-You may reposition, resize, or angle the product creatively to create an appealing composition.
+    // ★★★ 강화된 제품 일관성 프롬프트 ★★★
+    const enhancedPrompt = `[★★★ ABSOLUTE PRODUCT IDENTITY LOCK ★★★]
+The product in the reference image MUST be reproduced EXACTLY as shown:
+- SAME bottle/tube/container shape - do not modify the product form
+- SAME cap/lid design and color
+- SAME color scheme and gradients on packaging
+- SAME proportions, size relationships, and dimensions
+- SAME surface texture, finish (matte/glossy), and material appearance
+- SAME label placement and brand elements (if visible)
+
+CRITICAL: DO NOT redesign, reinterpret, or modify the product in ANY way.
+The product must look like the EXACT SAME physical item, just photographed differently.
+
+[WHAT YOU CAN CHANGE]
+- Background: scenery, colors, gradients, textures
+- Lighting: direction, intensity, mood
+- Camera angle: perspective, tilt, distance
+- Surrounding elements: props, decorations, atmospheric effects
+- Composition: product placement within the frame
 ${aspectRatioSection}
 [CREATIVE DIRECTION]
 ${prompt}
 
 [OUTPUT REQUIREMENTS]
-- Feature the same product but in a NEW creative composition
-- Apply dynamic positioning, interesting angles, and professional styling
-- High-quality commercial photography output
-- No text or watermarks on the image`;
+- The EXACT same product from the reference, not a similar or redesigned version
+- Professional commercial photography quality
+- Dynamic and appealing composition
+- High-quality 8K resolution output
+- Absolutely no text, typography, or watermarks on the image`;
 
     // Gemini에 이미지 + 텍스트 프롬프트 동시 전송
     console.log(`[Gemini I2I] Sending request to ${model}...`);
@@ -946,11 +962,12 @@ OUTPUT: High-quality commercial photography, 8K resolution, no text on image.`;
   }
 
   // MAIN 섹션만 1:1 정사각형, 나머지는 비율 지정 안함 (자유 비율)
+  // ★ preserveStrength 0.75: 제품 형태를 최대한 유지하면서 배경/스타일만 변경
   const images = await generateImageFromImage({
     sourceImage,
     prompt: fullPrompt,
     model,
-    preserveStrength: 0.4, // 제품 이미지를 참조하되 새로운 구성으로 생성
+    preserveStrength: 0.75, // ★ 0.4 → 0.75: 제품 일관성 강화
     ...(sectionType === 'MAIN' && { aspectRatio: '1:1' as const }),
   });
 
