@@ -22,8 +22,8 @@ import {
 } from './prompts';
 import {
   orchestrateDetailPageGeneration,
-  generateSectionImagePrompt,
-  regenerateSectionImagePrompt,
+  // generateSectionImagePrompt - 제거됨 (사용 안 함)
+  // regenerateSectionImagePrompt - 제거됨 (사용 안 함)
   SectionImagePrompt,
   OrchestrationResult,
 } from './orchestration-service';
@@ -1132,8 +1132,8 @@ Return in JSON format: {"title": "Section Title", "body": "Section content"}`;
 // ============================================
 
 export {
-  generateSectionImagePrompt,
-  regenerateSectionImagePrompt,
+  // generateSectionImagePrompt - 제거됨 (사용 안 함)
+  // regenerateSectionImagePrompt - 제거됨 (사용 안 함)
   orchestrateDetailPageGeneration,
 } from './orchestration-service';
 

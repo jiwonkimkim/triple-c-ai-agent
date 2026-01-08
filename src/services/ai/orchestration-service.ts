@@ -33,7 +33,7 @@ import {
   // 이미지 개수 관련
   COPY_LENGTH_CONFIG,
   getSectionImagePrompt,
-  getReferencePrompts, // regenerateSectionImagePrompt에서 사용
+  // getReferencePrompts 삭제됨 - regenerateSectionImagePrompt 함수 제거됨
   // ★ 섹션별 다양한 배경색 팔레트 시스템
   autoSelectPalette,
   getColorPalette,
@@ -230,105 +230,12 @@ function getGeminiClient(): GoogleGenAI | null {
 }
 
 // ============================================
-// 섹션별 이미지 프롬프트 생성기
+// [REMOVED] generateSectionImagePrompt - 호출되지 않음, 제거됨
+// [REMOVED] generateDecorativeEnhancements - 호출되지 않음, 제거됨
+// [REMOVED] generateRuleBasedEnhancements - 호출되지 않음, 제거됨
 // ============================================
 
-export async function generateSectionImagePrompt(
-  sectionType: 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ',
-  productName: string,
-  category: string,
-  keyFeatures: string[],
-  targetAudience: string,
-  brandStyle?: string,
-  visualReference?: ProductVisualReference,
-  visualTheme?: VisualTheme
-): Promise<SectionImagePrompt> {
-  const position = mapSectionTypeToPosition(sectionType);
-  const visualKeywords = getVisualStyleKeywords(category);
-  const compositionGuide = SECTION_COMPOSITION_GUIDE[position];
-
-  // 텍스트 없는 이미지 프롬프트 생성
-  const noTextInstruction = 'absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only';
-
-  // 제품 일관성 지시문 (모든 섹션에서 동일한 제품 표시)
-  const productConsistencyPrefix = `[CRITICAL - PRODUCT CONSISTENCY: The exact same "${productName}" must appear identically in all images with consistent design, shape, color, texture and packaging]`;
-
-  // 섹션 템플릿 기반 프롬프트 - 직접 사용! (AI 재생성 없이)
-  const extendedSectionType = mapToExtendedSectionType(sectionType);
-  const sectionTemplate = getSectionTemplate(extendedSectionType);
-  const baseTemplatePrompt = buildSectionTemplatePrompt(
-    sectionTemplate,
-    productName,
-    visualTheme?.backgroundColors.gradient || 'clean gradient',
-    keyFeatures[0]
-  );
-
-  // 네거티브 프롬프트
-  const negativePrompt = buildNegativePrompt(['quality', 'style', 'content', 'composition'], category);
-
-  // 비주얼 테마 지시문
-  const themePrefix = visualTheme
-    ? `[VISUAL THEME: ${visualTheme.consistencyPrompt}] [BACKGROUND: ${visualTheme.backgroundColors.gradient || visualTheme.backgroundColors.primary}] [LIGHTING: ${visualTheme.lighting.style}]`
-    : '[VISUAL THEME: clean minimal style with soft neutral background]';
-
-  // 제품 외형 참조
-  const productAppearance = visualReference?.appearance
-    ? `[PRODUCT APPEARANCE: ${visualReference.appearance}]`
-    : '';
-  const productColors = visualReference?.colorScheme
-    ? `[COLOR SCHEME: ${visualReference.colorScheme}]`
-    : '';
-
-  // 품질 키워드
-  const qualityKeywords = '8K resolution, photorealistic, professional commercial photography, high-end advertising quality, sharp focus, premium product visualization';
-  const styleKeywords = visualKeywords.slice(0, 4).join(', ');
-
-  let imagePrompt: string;
-
-  // ===== 새로운 접근법: 템플릿 직접 사용 + AI는 오브제/분위기만 생성 =====
-
-  // 1. AI로 제품명 기반 오브제/분위기 생성 (또는 규칙 기반 폴백)
-  const brandTone = brandStyle?.includes('luxury') ? 'luxury'
-    : brandStyle?.includes('natural') ? 'natural'
-    : brandStyle?.includes('clean') ? 'clean'
-    : brandStyle?.includes('trendy') ? 'trendy'
-    : brandStyle?.includes('derma') ? 'derma'
-    : undefined;
-
-  const enhancements = await generateDecorativeEnhancements(productName, category, brandTone);
-  console.log(`[Orchestration] Decorative enhancements for ${sectionType}:`, enhancements);
-
-  // 2. 템플릿 + 오브제 + 테마 조합
-  const decorativeObjectsClause = `[DECORATIVE ELEMENTS: ${enhancements.ingredientObjects}, ${enhancements.moodObjects}]`;
-  const moodClause = `[MOOD: ${enhancements.moodKeywords}]`;
-
-  // 3. 최종 프롬프트 조합 (템플릿 직접 사용!)
-  // 구조: [일관성] [테마] [제품외형] [템플릿(핵심!)] [오브제] [분위기] [품질] --negative [제외]
-  imagePrompt = [
-    productConsistencyPrefix,
-    themePrefix,
-    productAppearance,
-    productColors,
-    baseTemplatePrompt,  // 섹션 템플릿 프롬프트 직접 사용!
-    decorativeObjectsClause,
-    moodClause,
-    styleKeywords,
-    qualityKeywords,
-    noTextInstruction,
-    `--negative ${negativePrompt}`
-  ].filter(Boolean).join(', ');
-
-  console.log(`[Orchestration] Generated prompt for ${sectionType} using DIRECT TEMPLATE approach`);
-
-  return {
-    sectionType,
-    position,
-    imagePrompt,
-    compositionGuide,
-  };
-}
-
-// 제품 일관성 지시문 생성 헬퍼
+// 제품 일관성 지시문 생성 헬퍼 (유지)
 function buildProductConsistencyText(
   productName: string,
   _category: string,
@@ -351,158 +258,6 @@ function buildProductConsistencyText(
   }
 
   return instruction;
-}
-
-// ============================================
-// 오브제/분위기 생성기 (AI 보조)
-// AI는 전체 프롬프트가 아닌 추가 요소만 생성
-// ============================================
-
-interface DecorativeEnhancements {
-  ingredientObjects: string;  // 제품명 기반 재료 오브제
-  moodObjects: string;        // 분위기 오브제
-  moodKeywords: string;       // 분위기 키워드
-}
-
-/**
- * 제품명과 카테고리를 분석하여 오브제/분위기 요소만 생성
- * 전체 프롬프트 재생성 없이 보조 요소만 AI가 추천
- */
-async function generateDecorativeEnhancements(
-  productName: string,
-  category: string,
-  brandTone?: string
-): Promise<DecorativeEnhancements> {
-  const gemini = getGeminiClient();
-
-  // AI가 없으면 규칙 기반으로 생성
-  if (!gemini) {
-    return generateRuleBasedEnhancements(productName, category, brandTone);
-  }
-
-  const prompt = `제품명 "${productName}" (카테고리: ${category})을 분석하여 이미지에 추가할 오브제와 분위기 요소를 추천해주세요.
-${brandTone ? `브랜드 톤: ${brandTone}` : ''}
-
-다음 JSON 형식으로만 응답하세요:
-{
-  "ingredientObjects": "제품 성분/재료 관련 오브제 (영어, 2-3개, 예: fresh rose petals, honey drip)",
-  "moodObjects": "분위기 오브제 (영어, 1-2개, 예: soft silk fabric, water droplets)",
-  "moodKeywords": "분위기 키워드 (영어, 3-4개, 예: romantic, feminine, luxurious)"
-}
-
-규칙:
-- 제품명에서 성분을 추출하여 관련 오브제 추천 (예: 로즈→장미꽃잎, 허니→꿀)
-- 브랜드 톤에 맞는 분위기 오브제 추천
-- 반드시 영어로 작성
-- JSON만 반환`;
-
-  try {
-    const response = await gemini.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-    });
-
-    const text = response.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-
-    // JSON 파싱
-    let jsonStr = text;
-    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (jsonMatch) {
-      jsonStr = jsonMatch[1];
-    }
-
-    const result = JSON.parse(jsonStr) as DecorativeEnhancements;
-    console.log('[Orchestration] AI generated decorative enhancements:', result);
-    return result;
-  } catch (error) {
-    console.error('[Orchestration] Failed to generate decorative enhancements, using fallback:', error);
-    return generateRuleBasedEnhancements(productName, category, brandTone);
-  }
-}
-
-/**
- * 규칙 기반 오브제/분위기 생성 (AI 없을 때 폴백)
- */
-function generateRuleBasedEnhancements(
-  productName: string,
-  category: string,
-  brandTone?: string
-): DecorativeEnhancements {
-  // 제품명에서 성분 키워드 추출
-  const ingredientMap: Record<string, string> = {
-    '로즈': 'fresh rose petals, pink rose buds',
-    'rose': 'fresh rose petals, pink rose buds',
-    '장미': 'fresh rose petals, pink rose buds',
-    '베리': 'fresh berries (strawberry, raspberry)',
-    'berry': 'fresh berries (strawberry, raspberry)',
-    '허니': 'golden honey drip, honeycomb',
-    'honey': 'golden honey drip, honeycomb',
-    '꿀': 'golden honey drip, honeycomb',
-    '그린티': 'fresh green tea leaves',
-    'green tea': 'fresh green tea leaves',
-    '녹차': 'fresh green tea leaves',
-    '시트러스': 'citrus slices with water droplets',
-    'citrus': 'citrus slices with water droplets',
-    '레몬': 'fresh lemon slices',
-    '오렌지': 'orange slices with zest',
-    '라벤더': 'lavender sprigs',
-    'lavender': 'lavender sprigs',
-    '민트': 'fresh mint leaves',
-    'mint': 'fresh mint leaves',
-    '알로에': 'aloe vera gel, fresh aloe leaves',
-    'aloe': 'aloe vera gel, fresh aloe leaves',
-    '진주': 'pearl beads, iridescent pearls',
-    'pearl': 'pearl beads, iridescent pearls',
-    '골드': 'gold leaf flakes, golden accents',
-    'gold': 'gold leaf flakes, golden accents',
-    '히알루론': 'crystal clear water droplets, hydrating gel texture',
-    '세라마이드': 'smooth creamy texture, barrier visualization',
-    '비타민': 'citrus elements, bright fresh ingredients',
-    '콜라겐': 'bouncy gel texture, plump skin visualization',
-  };
-
-  // 브랜드 톤에 따른 분위기 오브제
-  const moodMap: Record<string, { objects: string; keywords: string }> = {
-    luxury: { objects: 'velvet fabric, crystal accents, gold elements', keywords: 'luxurious, sophisticated, premium, elegant' },
-    clean: { objects: 'white pebbles, geometric shapes, minimal props', keywords: 'clean, minimal, pure, simple' },
-    natural: { objects: 'wooden elements, green leaves, natural textures', keywords: 'natural, organic, fresh, earthy' },
-    trendy: { objects: 'holographic elements, bold colors, modern props', keywords: 'trendy, youthful, bold, dynamic' },
-    derma: { objects: 'clinical white surface, scientific elements', keywords: 'clinical, professional, trustworthy, scientific' },
-  };
-
-  // 제품명에서 성분 찾기
-  let ingredientObjects = '';
-  const productLower = productName.toLowerCase();
-  for (const [key, value] of Object.entries(ingredientMap)) {
-    if (productLower.includes(key.toLowerCase())) {
-      ingredientObjects = value;
-      break;
-    }
-  }
-
-  // 성분을 못 찾으면 카테고리 기반 기본값
-  if (!ingredientObjects) {
-    const categoryDefaults: Record<string, string> = {
-      '스킨케어': 'water droplets, botanical elements',
-      '에센스': 'serum drops, glass texture',
-      '크림': 'creamy swirl texture, soft elements',
-      '토너': 'water splash, fresh droplets',
-      '선케어': 'sunlight rays, summer elements',
-      '립': 'glossy texture, color pigments',
-      '쿠션': 'soft puff, cushion texture',
-      '메이크업': 'makeup brushes, color palette',
-    };
-    ingredientObjects = categoryDefaults[category] || 'premium cosmetic elements';
-  }
-
-  // 브랜드 톤에 따른 분위기
-  const mood = moodMap[brandTone || 'clean'] || moodMap.clean;
-
-  return {
-    ingredientObjects,
-    moodObjects: mood.objects,
-    moodKeywords: mood.keywords,
-  };
 }
 
 // ============================================
@@ -871,81 +626,7 @@ function buildDynamicDecorativePrompt(category: string): string {
   return selectRandomObjects(objects);
 }
 
-/**
- * AI 기반 맞춤 오브제 제안 (제품 정보 기반)
- * - 제품명, 특징, 브랜드 스타일, 타겟 고객 등을 분석하여 최적의 오브제 조합 생성
- */
-async function generateAIDecorativeObjects(
-  productName: string,
-  category: string,
-  keyFeatures: string[],
-  targetAudience: string,
-  brandStyle?: string,
-  visualReference?: ProductVisualReference
-): Promise<string> {
-  const gemini = getGeminiClient();
-
-  if (!gemini) {
-    // AI 없으면 카테고리 기반 폴백
-    return buildDynamicDecorativePrompt(category);
-  }
-
-  const prompt = `당신은 프리미엄 상품 사진 스타일리스트입니다.
-제품 정보를 분석하여 이 제품의 썸네일 이미지에 어울리는 고급스러운 장식 오브제를 제안해주세요.
-
-## 제품 정보
-- 제품명: ${productName}
-- 카테고리: ${category}
-- 핵심 특징: ${keyFeatures.join(', ')}
-- 타겟 고객: ${targetAudience}
-${brandStyle ? `- 브랜드 스타일: ${brandStyle}` : ''}
-${visualReference?.colorScheme ? `- 제품 색상: ${visualReference.colorScheme}` : ''}
-
-## 중요 규칙
-1. 제품이 주인공! 오브제는 작고 미묘하게 배치
-2. 제품의 특징/컬러/분위기와 조화로운 오브제 선택
-3. 구매 욕구를 자극하는 감각적인 스타일링
-4. 고급스럽고 세련된 잡지 화보 느낌
-
-## 제안 형식 (JSON)
-{
-  "concept": "전체 컨셉 (예: 로맨틱 로즈가든, 미니멀 럭셔리, 내추럴 보타닉 등)",
-  "primary_objects": ["메인 오브제 2-3개 - 작은 스케일로"],
-  "secondary_elements": ["보조 소품 1-2개"],
-  "base_surface": "베이스/플랫폼 1개",
-  "lighting_mood": "조명/분위기 효과"
-}
-
-JSON만 반환하세요. 영어로 작성하세요.`;
-
-  try {
-    const response = await gemini.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-    });
-
-    const text = response.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-
-    let jsonStr = text;
-    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (jsonMatch) {
-      jsonStr = jsonMatch[1];
-    }
-
-    const suggestion = JSON.parse(jsonStr);
-
-    console.log(`[Orchestration] AI suggested decorative objects for "${productName}":`, suggestion);
-
-    return `[DECORATIVE OBJECTS - AI-curated for "${productName}" (${suggestion.concept}):
-    PRIMARY PROPS (subtle, small scale): ${suggestion.primary_objects.join(', ')},
-    SUPPORTING ELEMENTS: ${suggestion.secondary_elements.join(', ')},
-    BASE/PLATFORM: ${suggestion.base_surface},
-    LIGHTING EFFECT: ${suggestion.lighting_mood}]`;
-  } catch (error) {
-    console.error('[Orchestration] Failed to generate AI decorative objects, using fallback:', error);
-    return buildDynamicDecorativePrompt(category);
-  }
-}
+// [REMOVED] generateAIDecorativeObjects - 호출되지 않음, 제거됨
 
 // 폴백 이미지 프롬프트 생성 (AI 없을 때) - Gemini Imagen 최적화
 function buildFallbackImagePrompt(
@@ -1052,72 +733,81 @@ interface ExtractedKeyMessages {
 }
 
 /**
- * 섹션 텍스트에서 핵심 메시지와 시각화 키워드 추출
+ * 섹션 타입과 카테고리 기반 템플릿 메시지 생성
+ * ★ AI 호출 없이 템플릿만 사용 ★
  */
-async function extractKeyMessagesFromText(
+function extractKeyMessagesFromText(
   sectionText: SectionTextContent,
   productName: string,
   category: string,
-  brandTone?: string
-): Promise<ExtractedKeyMessages> {
-  const gemini = getGeminiClient();
+  _brandTone?: string
+): ExtractedKeyMessages {
+  const sectionType = sectionText.type;
+  const lowerCategory = category.toLowerCase();
 
-  // 기본값 (AI 없을 때)
-  const defaultMessages: ExtractedKeyMessages = {
-    mainMessage: sectionText.title || productName,
-    emotionalTone: 'professional, trustworthy',
-    visualKeywords: ['clean', 'premium', 'elegant'],
-    targetScene: 'professional studio setting',
+  // 카테고리별 기본 스타일 템플릿
+  const categoryTemplates: Record<string, { tone: string; keywords: string[]; scene: string }> = {
+    beauty: {
+      tone: 'luxurious, elegant, aspirational',
+      keywords: ['soft glow', 'premium texture', 'flawless skin', 'beauty ritual'],
+      scene: 'elegant vanity setting with soft lighting',
+    },
+    skincare: {
+      tone: 'clean, clinical, trustworthy',
+      keywords: ['hydration', 'dewy skin', 'fresh glow', 'moisture droplets'],
+      scene: 'clean spa-like environment',
+    },
+    fashion: {
+      tone: 'stylish, trendy, sophisticated',
+      keywords: ['elegant styling', 'premium fabric', 'fashion forward', 'lifestyle'],
+      scene: 'modern fashion editorial setting',
+    },
+    food: {
+      tone: 'fresh, appetizing, natural',
+      keywords: ['fresh ingredients', 'delicious texture', 'appetizing presentation', 'culinary art'],
+      scene: 'bright kitchen or dining setting',
+    },
+    digital: {
+      tone: 'modern, innovative, sleek',
+      keywords: ['cutting-edge design', 'premium materials', 'tech aesthetic', 'minimalist'],
+      scene: 'modern workspace or tech showcase',
+    },
+    default: {
+      tone: 'professional, trustworthy, premium',
+      keywords: ['clean', 'premium', 'elegant', 'quality'],
+      scene: 'professional studio setting',
+    },
   };
 
-  if (!gemini) {
-    return defaultMessages;
-  }
+  // 섹션 타입별 메시지 템플릿
+  const sectionMessages: Record<string, string> = {
+    MAIN: `Premium ${productName} showcase`,
+    HERO: `Introducing ${productName} - your new essential`,
+    FEATURES: `Key benefits of ${productName}`,
+    SOCIAL_PROOF: `Trusted by thousands - ${productName}`,
+    HOW_TO_USE: `How to use ${productName} effectively`,
+    FAQ: `Everything about ${productName}`,
+  };
 
-  const prompt = `텍스트를 분석하여 이미지로 표현할 핵심 요소를 추출하세요.
-
-## 섹션 텍스트
-- 타입: ${sectionText.type}
-- 제목: ${sectionText.title || '없음'}
-- 본문: ${sectionText.body}
-
-## 제품 정보
-- 제품명: ${productName}
-- 카테고리: ${category}
-${brandTone ? `- 브랜드 톤: ${brandTone}` : ''}
-
-## 추출 요청 (JSON)
-{
-  "mainMessage": "핵심 메시지 1개 (영어, 예: 72-hour hydration, dermatologist tested)",
-  "emotionalTone": "감성 톤 (영어, 예: luxurious, clinical, natural, youthful)",
-  "visualKeywords": ["시각화할 키워드 3-5개 (영어, 예: water droplets, dewy skin, fresh glow)"],
-  "targetScene": "연출 장면 (영어, 예: spa atmosphere, clinical laboratory, morning routine)"
-}
-
-텍스트에서 언급된 수치, 효과, 감성을 시각적 요소로 변환해주세요.
-JSON만 반환하세요.`;
-
-  try {
-    const response = await gemini.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-    });
-
-    const text = response.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-
-    let jsonStr = text;
-    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (jsonMatch) {
-      jsonStr = jsonMatch[1];
+  // 카테고리 매칭
+  let template = categoryTemplates.default;
+  for (const [key, value] of Object.entries(categoryTemplates)) {
+    if (lowerCategory.includes(key)) {
+      template = value;
+      break;
     }
-
-    const result = JSON.parse(jsonStr) as ExtractedKeyMessages;
-    console.log(`[Orchestration] Extracted key messages for ${sectionText.type}:`, result);
-    return result;
-  } catch (error) {
-    console.error('[Orchestration] Failed to extract key messages:', error);
-    return defaultMessages;
   }
+
+  const mainMessage = sectionMessages[sectionType] || sectionText.title || `Discover ${productName}`;
+
+  console.log(`[Orchestration] Using TEMPLATE-based key messages for ${sectionType} (no AI call)`);
+
+  return {
+    mainMessage,
+    emotionalTone: template.tone,
+    visualKeywords: template.keywords,
+    targetScene: template.scene,
+  };
 }
 
 /**
@@ -1193,8 +883,8 @@ export async function generateSectionImagePromptFromText(
 
   // ===== 기존 프롬프트 생성 로직 (서브 카테고리 없거나 지원 안 되는 경우) =====
 
-  // 1. 텍스트에서 핵심 메시지 추출
-  const keyMessages = await extractKeyMessagesFromText(
+  // 1. 텍스트에서 핵심 메시지 추출 (템플릿 기반, AI 호출 없음)
+  const keyMessages = extractKeyMessagesFromText(
     sectionText,
     productName,
     category,
@@ -1698,6 +1388,15 @@ export async function orchestrateDetailPageGeneration(
 
   const gemini = getGeminiClient();
 
+  // ★★★ I2I 모드 감지 (제품 이미지가 있고 이미지 생성이 활성화된 경우)
+  // I2I 모드에서는 generateSectionImageFromProduct가 자체 템플릿을 사용하므로
+  // orchestration의 imagePrompt와 visualReference가 사용되지 않음
+  const isI2IMode = input.generateImages && input.productImages && input.productImages.length > 0;
+  if (isI2IMode) {
+    console.log('[Orchestration] ★★★ I2I MODE DETECTED - Skipping unnecessary AI calls for image prompts');
+    console.log('[Orchestration] (generateSectionImageFromProduct will use its own templates)');
+  }
+
   // 0-1. 비주얼 테마 자동 선택 (전체 상세페이지에 일관된 스타일 적용)
   const brandTone = input.brandContext?.toneAndManner;
   const selectedThemeStyle = autoSelectTheme(input.category, brandTone);
@@ -1713,14 +1412,20 @@ export async function orchestrateDetailPageGeneration(
   console.log(`[Orchestration] ★ Palette colors: ${colorPalette.colors.map(c => c.hex).join(', ')}`);
   console.log(`[Orchestration] ★ Palette mood: ${colorPalette.moodKeywords.join(', ')}`);
 
-  // 0-2. 제품 외형 참조 생성 (모든 섹션에서 동일한 제품 표시를 위해)
-  console.log('[Orchestration] Generating product visual reference for consistency...');
-  const visualReference = await generateProductVisualReference(
-    input.productName,
-    input.category,
-    input.keyFeatures,
-    input.brandContext
-  );
+  // 0-2. 제품 외형 참조 생성 (T2I 모드에서만 - I2I는 자체 템플릿 사용)
+  // ★★★ I2I 모드에서는 이 AI 호출이 사용되지 않으므로 스킵 ★★★
+  let visualReference: ProductVisualReference | undefined;
+  if (!isI2IMode) {
+    console.log('[Orchestration] Generating product visual reference for consistency...');
+    visualReference = await generateProductVisualReference(
+      input.productName,
+      input.category,
+      input.keyFeatures,
+      input.brandContext
+    );
+  } else {
+    console.log('[Orchestration] ★ Skipping visualReference generation (I2I mode uses own templates)');
+  }
 
   // 1. 텍스트 콘텐츠 생성 (훅 메시지 + 섹션 카피)
   const systemPrompt = buildEnhancedSystemPrompt(input.copyLength, input.brandContext, input.category);
@@ -1940,23 +1645,22 @@ export async function orchestrateDetailPageGeneration(
           // ★ 텍스트 기반 이미지 프롬프트 생성 + overlayText 항상 생성
           // overlayText는 generateImages와 관계없이 항상 생성 (텍스트와 함께 제공)
           // ★★★ 블록별 다른 오버레이 텍스트 생성 (variationHint 전달!)
-          const [imagePrompt, overlayResult] = await Promise.all([
-            generateSectionImagePromptFromText(
-              sectionText,           // ★ 텍스트 내용 전달!
-              input.productName,
-              input.category,
-              input.keyFeatures,
-              input.targetAudience,
-              brandStyle,
-              visualReference,
-              visualTheme,
-              indexBasedPromptInfo?.prompt,  // ★ 인덱스별 프롬프트 전달
-              input.subCategory,             // ★★★ 뷰티 서브 카테고리 (NEW!)
-              index                          // ★ 블록 인덱스
-            ),
-            // ★ overlayText는 블록별로 다르게 생성 (variationHint 반영!)
-            // ★★★ 서브카테고리 섹션은 'FEATURES'로 기본 매핑 (overlayText 생성용)
-            generateOverlayText(
+
+          // ★★★ I2I 모드 최적화: imagePrompt는 사용되지 않으므로 간단한 placeholder 반환 ★★★
+          // I2I 모드에서는 generateSectionImageFromProduct가 자체 템플릿을 사용
+          let imagePrompt: SectionImagePrompt;
+          let overlayResult: { overlayText?: OverlayTextContent; overlayPrompt?: string };
+
+          if (isI2IMode) {
+            // I2I 모드: imagePrompt는 placeholder (실제로 사용 안 됨), overlayText만 생성
+            const position = mapSectionTypeToPosition(sectionType as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ');
+            imagePrompt = {
+              sectionType: sectionType as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ',
+              position,
+              imagePrompt: `[I2I_MODE_PLACEHOLDER] Section: ${sectionType}, Product: ${input.productName}`,
+              compositionGuide: SECTION_COMPOSITION_GUIDE[position],
+            };
+            overlayResult = await generateOverlayText(
               isSubcategorySection ? 'FEATURES' : sectionType as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ',
               input.productName,
               input.category,
@@ -1967,9 +1671,41 @@ export async function orchestrateDetailPageGeneration(
                 totalBlocks: imageCount,
                 variationHint,
               },
-              indexBasedPromptInfo?.overlayGuide  // ★ 인덱스별 오버레이 가이드 전달 (NEW!)
-            ),
-          ]);
+              indexBasedPromptInfo?.overlayGuide
+            );
+          } else {
+            // T2I 모드: 전체 프롬프트 생성 (실제로 사용됨)
+            [imagePrompt, overlayResult] = await Promise.all([
+              generateSectionImagePromptFromText(
+                sectionText,           // ★ 텍스트 내용 전달!
+                input.productName,
+                input.category,
+                input.keyFeatures,
+                input.targetAudience,
+                brandStyle,
+                visualReference,
+                visualTheme,
+                indexBasedPromptInfo?.prompt,  // ★ 인덱스별 프롬프트 전달
+                input.subCategory,             // ★★★ 뷰티 서브 카테고리 (NEW!)
+                index                          // ★ 블록 인덱스
+              ),
+              // ★ overlayText는 블록별로 다르게 생성 (variationHint 반영!)
+              // ★★★ 서브카테고리 섹션은 'FEATURES'로 기본 매핑 (overlayText 생성용)
+              generateOverlayText(
+                isSubcategorySection ? 'FEATURES' : sectionType as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ',
+                input.productName,
+                input.category,
+                input.keyFeatures,
+                input.targetAudience,
+                {
+                  blockIndex: index,
+                  totalBlocks: imageCount,
+                  variationHint,
+                },
+                indexBasedPromptInfo?.overlayGuide  // ★ 인덱스별 오버레이 가이드 전달 (NEW!)
+              ),
+            ]);
+          }
 
           // ★★★ 섹션별 다양한 배경색 주입 (핵심!)
           // 팔레트에서 해당 섹션에 할당된 배경색으로 프롬프트 강화
@@ -2051,92 +1787,5 @@ CRITICAL INSTRUCTION FOR DIVERSE BACKGROUNDS:
 }
 
 // ============================================
-// 단일 섹션 재생성 함수
+// [REMOVED] regenerateSectionImagePrompt - 이미지 프롬프트 AI 생성 함수, 호출되지 않아 제거됨
 // ============================================
-
-export async function regenerateSectionImagePrompt(
-  sectionType: 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ',
-  productName: string,
-  category: string,
-  keyFeatures: string[],
-  targetAudience: string,
-  brandStyle?: string,
-  userFeedback?: string
-): Promise<SectionImagePrompt> {
-  console.log(`[Orchestration] Regenerating image prompt for ${sectionType}...`);
-
-  const position = mapSectionTypeToPosition(sectionType);
-  const referencePrompts = getReferencePrompts(category, position);
-  const visualKeywords = getVisualStyleKeywords(category);
-  const compositionGuide = SECTION_COMPOSITION_GUIDE[position];
-
-  const noTextInstruction = 'absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only';
-
-  const gemini = getGeminiClient();
-
-  if (!gemini) {
-    return {
-      sectionType,
-      position,
-      imagePrompt: buildFallbackImagePrompt(sectionType, productName, category, keyFeatures, brandStyle, position, visualKeywords),
-      compositionGuide,
-    };
-  }
-
-  const promptGenerationRequest = `
-당신은 상세페이지 이미지 프롬프트 전문가입니다.
-기존 프롬프트를 개선하여 새로운 버전을 만들어주세요.
-
-## 제품 정보
-- 제품명: ${productName}
-- 카테고리: ${category}
-- 핵심 특징: ${keyFeatures.join(', ')}
-- 타겟: ${targetAudience}
-${brandStyle ? `- 브랜드 스타일: ${brandStyle}` : ''}
-
-## 섹션: ${sectionType} (${position})
-- 레이아웃: ${compositionGuide.layout}
-- 분위기: ${compositionGuide.mood}
-
-## 참조 프롬프트 (올리브영 베스트셀러)
-${referencePrompts.slice(0, 2).join('\n')}
-
-${userFeedback ? `## 사용자 피드백\n${userFeedback}` : ''}
-
-## 규칙
-1. 텍스트 없이 제품만 포함
-2. 영어로 작성
-3. 이전과 다른 새로운 접근
-
-프롬프트만 반환하세요.
-`;
-
-  try {
-    const response = await gemini.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: promptGenerationRequest,
-    });
-
-    let imagePrompt = response.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-
-    if (!imagePrompt.toLowerCase().includes('no text')) {
-      imagePrompt = `${imagePrompt}, ${noTextInstruction}`;
-    }
-
-    return {
-      sectionType,
-      position,
-      imagePrompt,
-      compositionGuide,
-    };
-  } catch (error) {
-    console.error('[Orchestration] Regeneration failed:', error);
-    const fallback = buildFallbackImagePrompt(sectionType, productName, category, keyFeatures, brandStyle, position, visualKeywords);
-    return {
-      sectionType,
-      position,
-      imagePrompt: fallback,
-      compositionGuide,
-    };
-  }
-}
