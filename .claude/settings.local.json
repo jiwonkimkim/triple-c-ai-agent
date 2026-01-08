@@ -56,7 +56,14 @@
       "WebFetch(domain:triple-c.vercel.app)",
       "Bash(git stash:*)",
       "mcp__jira__jira_get",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(npx prisma db pull:*)",
+      "Bash(set -a)",
+      "Bash(source:*)",
+      "Bash(set +a)",
+      "Bash(git rev-parse:*)",
+      "Bash(git restore:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

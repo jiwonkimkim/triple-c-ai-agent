@@ -65,13 +65,12 @@ export function ImageBlock({ block, isSelected, onSelect, onUpdate }: ImageBlock
     >
       {block.src ? (
         <div className={cn('relative', getStyleClasses(block.style))}>
-          <div className="relative aspect-video w-full overflow-hidden rounded-lg" style={inlineStyles}>
-            <Image
+          <div className="relative w-full overflow-hidden rounded-lg" style={inlineStyles}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src={block.src}
               alt={block.alt || 'Product image'}
-              fill
-              className="object-contain"
-              unoptimized // For blob URLs
+              className="w-full h-auto"
             />
 
             {/* Overlay controls on hover */}
