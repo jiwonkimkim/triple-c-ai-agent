@@ -91,23 +91,21 @@ jobs:
             echo "time=${DURATION}s" >> $GITHUB_OUTPUT
           fi
 
-      - name: Trigger Vercel Deploy
-        if: steps.build.outcome == 'success' && github.event_name == 'push' && github.actor != 'joycha3110'
+      - name: Trigger Vercel Deploy (Owner Push)
+        if: steps.build.outcome == 'success' && github.event_name == 'push' && github.actor != 'joycha3110' && !contains(github.event.head_commit.message, '[auto-deploy]')
         env:
-          VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+          OWNER_PAT: ${{ secrets.OWNER_GITHUB_PAT }}
         run: |
-          echo "🚀 Triggering Vercel Deploy for ${{ github.actor }}..."
-          RESPONSE=$(curl -s -X POST "$VERCEL_DEPLOY_HOOK")
-          echo "📋 Vercel Response: $RESPONSE"
+          echo "🚀 Triggering Vercel deploy for ${{ github.actor }} via owner push..."
 
-          # Check if job was created
-          JOB_ID=$(echo $RESPONSE | jq -r '.job.id // empty')
-          if [ -n "$JOB_ID" ]; then
-            echo "✅ Deploy Hook accepted! Job ID: $JOB_ID"
-          else
-            echo "❌ Deploy Hook failed or returned unexpected response"
-            echo "Full response: $RESPONSE"
-          fi
+          git config user.name "joycha3110"
+          git config user.email "joycha3110@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${OWNER_PAT}@github.com/${{ github.repository }}.git
+
+          git commit --allow-empty -m "chore: deploy for ${{ github.actor }} [auto-deploy]"
+          git push
+
+          echo "✅ Empty commit pushed as owner - Vercel will auto-deploy"
 
       - name: Update Slack - Success
         if: steps.build.outcome == 'success'
