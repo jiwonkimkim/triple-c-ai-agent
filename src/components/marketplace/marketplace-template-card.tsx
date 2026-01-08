@@ -96,7 +96,7 @@ export function MarketplaceTemplateCard({
   return (
     <Card
       className={cn(
-        'group overflow-hidden transition-all hover:shadow-lg',
+        'group overflow-hidden transition-all hover:shadow-lg h-full flex flex-col',
         isSelected && 'ring-2 ring-primary'
       )}
     >
@@ -198,7 +198,7 @@ export function MarketplaceTemplateCard({
         )}
       </CardHeader>
 
-      <CardContent className="px-4 pb-2">
+      <CardContent className="px-4 pb-2 flex-1">
         {/* Seller info */}
         {template.seller && (
           <div className="flex items-center gap-2">
