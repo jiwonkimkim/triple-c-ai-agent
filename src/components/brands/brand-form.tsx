@@ -80,9 +80,22 @@ export function BrandForm({ mode, initialData, styleGuide, workspaceId, onSucces
 
   const onSubmit = async (data: CreateBrandProfileInput) => {
     setIsLoading(true);
+    // 생성 모드이고 websiteUrl이 있으면 크롤링 진행 표시
+    if (mode === 'create' && data.websiteUrl) {
+      setIsCrawling(true);
+      setCrawlProgress(10);
+    }
     try {
       const url = mode === 'create' ? '/api/brands' : `/api/brands/${initialData?.id}`;
       const method = mode === 'create' ? 'POST' : 'PUT';
+
+      // 생성 모드이고 URL이 있으면 진행률 업데이트
+      let progressInterval: ReturnType<typeof setInterval> | null = null;
+      if (mode === 'create' && data.websiteUrl) {
+        progressInterval = setInterval(() => {
+          setCrawlProgress((prev) => Math.min(prev + 5, 85));
+        }, 500);
+      }
 
       const res = await fetch(url, {
         method,
@@ -90,21 +103,37 @@ export function BrandForm({ mode, initialData, styleGuide, workspaceId, onSucces
         body: JSON.stringify(data),
       });
 
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        setCrawlProgress(100);
+      }
+
       const result = await res.json();
 
       if (!res.ok) {
         throw new Error(result.error || 'Failed to save brand profile');
       }
 
+      // 크롤링 결과 메시지 생성
+      let description = mode === 'create'
+        ? '이제 프로젝트에서 이 브랜드를 사용할 수 있습니다.'
+        : '변경사항이 저장되었습니다.';
+
+      if (result.crawlResult) {
+        description = `${result.crawlResult.pagesProcessed}개 페이지에서 브랜드 자산을 추출했습니다.`;
+      }
+
       toast({
         title: mode === 'create' ? '브랜드가 생성되었습니다' : '브랜드가 수정되었습니다',
-        description: mode === 'create'
-          ? '이제 프로젝트에서 이 브랜드를 사용할 수 있습니다.'
-          : '변경사항이 저장되었습니다.',
+        description,
       });
 
       if (onSuccess) {
         onSuccess();
+      } else if (mode === 'create' && result.data?.id) {
+        // 생성 후 편집 페이지로 이동 (크롤링 결과 확인 가능)
+        router.push(`/dashboard/brands/${result.data.id}`);
+        router.refresh();
       } else {
         router.push('/dashboard/brands');
         router.refresh();
@@ -117,6 +146,8 @@ export function BrandForm({ mode, initialData, styleGuide, workspaceId, onSucces
       });
     } finally {
       setIsLoading(false);
+      setIsCrawling(false);
+      setCrawlProgress(0);
     }
   };
 
@@ -534,11 +565,11 @@ export function BrandForm({ mode, initialData, styleGuide, workspaceId, onSucces
         >
           취소
         </Button>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? (
+        <Button type="submit" disabled={isLoading || isCrawling}>
+          {isLoading || isCrawling ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              저장 중...
+              {isCrawling ? `크롤링 중... ${crawlProgress}%` : '저장 중...'}
             </>
           ) : mode === 'create' ? (
             '브랜드 생성'

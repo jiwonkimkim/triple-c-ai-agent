@@ -57,6 +57,7 @@ export default function DashboardLayout({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const isSmile = isLoaded && styleTheme === 'smile';
+  const isSapporo = isLoaded && styleTheme === 'sapporo';
 
   // 에디터 페이지 진입 시 사이드바 자동 닫기
   useEffect(() => {
@@ -132,8 +133,12 @@ export default function DashboardLayout({
                   isActive
                     ? isSmile
                       ? 'bg-foreground text-background'
-                      : 'text-white shadow-[0_0_20px_#eee] bg-[length:200%_auto] bg-[linear-gradient(to_right,#77A1D3_0%,#79CBCA_51%,#77A1D3_100%)]'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                      : isSapporo
+                        ? 'bg-amber-500/90 text-white shadow-md'
+                        : 'text-white shadow-[0_0_20px_#eee] bg-[length:200%_auto] bg-[linear-gradient(to_right,#77A1D3_0%,#79CBCA_51%,#77A1D3_100%)]'
+                    : isSapporo
+                      ? 'text-red-500 dark:text-red-400 font-bold hover:bg-red-200/60 dark:hover:bg-red-900/40'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 )}
                 onClick={() => setSidebarOpen(false)}
               >

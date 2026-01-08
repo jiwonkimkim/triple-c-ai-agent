@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { createBrandProfileSchema } from '@/lib/validations';
 import { z } from 'zod';
+import { indexBrandContent } from '@/services/rag/brand-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -175,10 +176,32 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // 웹사이트 URL이 있으면 자동으로 크롤링 실행
+    let crawlResult = null;
+    if (validatedData.websiteUrl) {
+      try {
+        console.log(`[Brand Create] Auto-crawling: ${validatedData.websiteUrl}`);
+        crawlResult = await indexBrandContent(brandProfile.id, {
+          websiteUrls: [validatedData.websiteUrl],
+          maxPagesPerUrl: 5,
+        });
+        console.log(`[Brand Create] Crawl complete:`, crawlResult);
+      } catch (crawlError) {
+        console.error('[Brand Create] Auto-crawl failed:', crawlError);
+        // 크롤링 실패해도 브랜드 생성은 성공으로 처리
+      }
+    }
+
+    // 크롤링 후 업데이트된 브랜드 프로필 조회
+    const updatedBrandProfile = await prisma.brandProfile.findUnique({
+      where: { id: brandProfile.id },
+    });
+
     return NextResponse.json(
       {
         success: true,
-        data: brandProfile,
+        data: updatedBrandProfile || brandProfile,
+        crawlResult,
       },
       { status: 201 }
     );
