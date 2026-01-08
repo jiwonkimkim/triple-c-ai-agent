@@ -71,9 +71,19 @@ export const SKINCARE_EFFICACY_KEYWORDS = {
     visual: ['clean', 'minimalist', 'fresh', 'clear', 'refined texture'],
   },
   barrier: {
-    ko: ['장벽', '세라마이드', '보호', '방어', '강화'],
-    en: ['barrier', 'ceramide', 'protective', 'strengthening', 'repair'],
-    visual: ['shield', 'layered', 'protective dome', 'skin diagram', 'scientific'],
+    ko: ['장벽', '세라마이드', '보호', '방어', '강화', '피부장벽'],
+    en: ['barrier', 'ceramide', 'protective', 'strengthening', 'repair', 'skin barrier'],
+    visual: [
+      'translucent purple biological cell',
+      'liquid bubble with smaller bubbles inside',
+      'uniform reflective purple spheres layer',
+      'thin smooth wavy translucent membrane',
+      'scientific illustration microscopic photography',
+      'monochromatic purple palette',
+      'skin barrier cell structure',
+    ],
+    // 피부장벽 전용 상세 프롬프트
+    detailedPrompt: `A large, translucent purple biological cell or liquid bubble, with smaller bubbles inside, floating above a layer of uniform, slightly reflective purple spheres, which are partially covered by a thin, smooth, wavy translucent purple membrane at the top, against a pristine white background. Style: Scientific Illustration, Microscopic Photography, Abstract. Lighting: Bright, soft, even lighting, creating subtle reflections on the spheres and cell, subtle volumetric light. Composition: Eye-level shot, centered, shallow depth of field focusing on the main cell. Details: Clear liquid texture inside the large cell, fine details of tiny bubbles, harmonious monochromatic purple palette, clean and smooth surfaces. Quality: High Detail, 4K, Studio Quality Render, Photorealistic, Masterpiece.`,
   },
 } as const;
 
@@ -348,6 +358,15 @@ export function buildSkincareImagePrompt(
   const efficacyData = SKINCARE_EFFICACY_KEYWORDS[primaryEfficacy];
   const efficacyVisual = efficacyData.visual.join(', ');
 
+  // ★ 피부장벽 효능일 경우 상세 프롬프트 사용 (EFFICACY_VISUAL, INGREDIENT_TECH 섹션)
+  const useBarrierDetailedPrompt =
+    primaryEfficacy === 'barrier' &&
+    (section === 'EFFICACY_VISUAL' || section === 'INGREDIENT_TECH') &&
+    'detailedPrompt' in efficacyData;
+  const barrierDetailedPrompt = useBarrierDetailedPrompt
+    ? (efficacyData as any).detailedPrompt
+    : '';
+
   // 블록 변형 적용 (섹션이 없으면 기본값 사용)
   const blockVariations = SKINCARE_SECTION_BLOCKS[section];
   const blockVariation = blockVariations
@@ -371,13 +390,16 @@ export function buildSkincareImagePrompt(
     : '';
 
   // 프롬프트 조합 - ★ 이미지 내 텍스트 생성 금지 명시
+  // ★ 피부장벽 상세 프롬프트가 있으면 기본 프롬프트 대신 사용
+  const effectiveBasePrompt = barrierDetailedPrompt || basePrompt;
+
   let prompt = `
 [CRITICAL: NO TEXT IN IMAGE - Generate pure visual imagery only. Do not include any text, letters, words, numbers, labels, or typography in the image.]
 [PRODUCT REFERENCE: ${productReference}]
 [SUBCATEGORY STYLE: ${subCategoryModifier}]
 [EFFICACY VISUAL: ${efficacyVisual}]
 [BLOCK VARIATION: ${blockModifier}]
-${basePrompt}
+${effectiveBasePrompt}
 ${brandModifier}
 ${additionalModifiers}
 professional e-commerce detail page photography, high-end skincare advertising, 8K resolution, clean visual without any text overlay
