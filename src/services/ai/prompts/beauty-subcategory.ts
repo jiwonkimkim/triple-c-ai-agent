@@ -310,6 +310,88 @@ export function mapStandardSectionToSubcategory(
 }
 
 // ============================================
+// 서브카테고리별 MAIN 썸네일 프롬프트
+// ============================================
+
+/**
+ * 서브카테고리에 맞는 MAIN 썸네일 프롬프트 생성
+ */
+function buildSubcategoryMainPrompt(
+  subCategory: BeautySubCategory,
+  productName: string,
+  keyFeatures: string[],
+  brandStyle?: string
+): string {
+  const featuresText = keyFeatures.slice(0, 3).join(', ');
+  const brandModifier = brandStyle ? `${brandStyle} aesthetic, ` : '';
+
+  const subcategoryPrompts: Record<BeautySubCategory, string> = {
+    skincare: `
+[CRITICAL: NO TEXT IN IMAGE - Generate pure visual imagery only]
+Hero product shot of ${productName} skincare product,
+${brandModifier}luxurious Korean beauty style,
+glass skin aesthetic with dewy water droplets,
+soft gradient background in pastel tones,
+product floating on water surface with gentle ripples,
+${featuresText},
+professional e-commerce thumbnail, 8K quality, clean minimalist composition
+`.trim(),
+
+    suncare: `
+[CRITICAL: NO TEXT IN IMAGE - Generate pure visual imagery only]
+Dynamic product shot of ${productName} sun protection,
+${brandModifier}summer beach vibes with golden hour lighting,
+sun rays and lens flare effects,
+water splash around the product,
+tropical leaves and citrus accents,
+${featuresText},
+professional suncare advertising, 8K quality, vibrant and fresh mood
+`.trim(),
+
+    lip: `
+[CRITICAL: NO TEXT IN IMAGE - Generate pure visual imagery only]
+Glamorous product shot of ${productName} lip product,
+${brandModifier}luxurious makeup aesthetic,
+glossy texture with light reflections,
+rose petals and soft fabric background,
+close-up showing product color and finish,
+${featuresText},
+professional cosmetics photography, 8K quality, romantic and elegant mood
+`.trim(),
+
+    mascara: `
+[CRITICAL: NO TEXT IN IMAGE - Generate pure visual imagery only]
+Dramatic product shot of ${productName} mascara,
+${brandModifier}bold eye makeup aesthetic,
+sleek black packaging with metallic accents,
+dynamic brush stroke effects,
+feather or lash elements floating around,
+${featuresText},
+professional mascara advertising, 8K quality, sophisticated and powerful mood
+`.trim(),
+
+    maskpack: `
+[CRITICAL: NO TEXT IN IMAGE - Generate pure visual imagery only]
+Fresh product shot of ${productName} mask pack,
+${brandModifier}spa and self-care aesthetic,
+hydrating essence droplets and bubbles,
+natural ingredients like aloe, honey, or botanical elements,
+soft fabric or sheet texture visible,
+${featuresText},
+professional skincare photography, 8K quality, refreshing and calming mood
+`.trim(),
+
+    // 미구현 카테고리는 기본 프롬프트
+    cushion: `[CRITICAL: NO TEXT IN IMAGE] Hero product shot of ${productName}, ${brandModifier}professional cosmetics photography, ${featuresText}, 8K quality`,
+    eyeshadow: `[CRITICAL: NO TEXT IN IMAGE] Hero product shot of ${productName}, ${brandModifier}professional cosmetics photography, ${featuresText}, 8K quality`,
+    cleanser: `[CRITICAL: NO TEXT IN IMAGE] Hero product shot of ${productName}, ${brandModifier}professional skincare photography, ${featuresText}, 8K quality`,
+    other_beauty: `[CRITICAL: NO TEXT IN IMAGE] Hero product shot of ${productName}, ${brandModifier}professional beauty photography, ${featuresText}, 8K quality`,
+  };
+
+  return subcategoryPrompts[subCategory] || subcategoryPrompts.other_beauty;
+}
+
+// ============================================
 // 통합 프롬프트 생성 인터페이스
 // ============================================
 
@@ -339,11 +421,10 @@ export function buildUnifiedImagePrompt(
 ): string | null {
   const { subCategory, productName, keyFeatures, brandStyle } = options;
 
-  // ★★★ MAIN 섹션은 기본 썸네일 프롬프트 사용 (서브카테고리 프롬프트 아님)
-  // orchestration-service의 표준 MAIN 핸들러가 처리하도록 null 반환
+  // ★★★ MAIN 섹션 - 서브카테고리에 맞는 썸네일 프롬프트 생성
   if (section === 'MAIN') {
-    console.log(`[BeautySubcategory] MAIN section - using standard thumbnail prompt`);
-    return null;
+    console.log(`[BeautySubcategory] MAIN section - generating ${subCategory} thumbnail prompt`);
+    return buildSubcategoryMainPrompt(subCategory, productName, keyFeatures, brandStyle);
   }
 
   // ★★★ 이미 서브카테고리 섹션인지 확인 (동적 섹션 지원)

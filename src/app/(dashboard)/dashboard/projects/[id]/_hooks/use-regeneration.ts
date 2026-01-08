@@ -66,6 +66,7 @@ export function useRegeneration(
           productImages: project.productImages || [],
           productName: project.productName,
           category: project.category,
+          subCategory: project.subCategory || undefined,  // 뷰티 서브카테고리 전달
           keyFeatures: project.keyFeatures,
           targetAudience: project.targetAudience || '일반 소비자',
           copyLength: project.copyLength || 'medium',
