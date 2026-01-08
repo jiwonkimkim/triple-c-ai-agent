@@ -70,7 +70,7 @@ export function ImageBlock({ block, isSelected, onSelect, onUpdate }: ImageBlock
               src={block.src}
               alt={block.alt || 'Product image'}
               fill
-              className="object-cover"
+              className="object-contain"
               unoptimized // For blob URLs
             />
 

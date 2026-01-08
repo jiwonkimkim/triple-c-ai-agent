@@ -433,7 +433,7 @@ export function ImageOverlayBlockRenderer({
           <img
             src={block.src}
             alt={block.alt || '상세페이지 이미지'}
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-contain"
           />
         ) : (
           <div
