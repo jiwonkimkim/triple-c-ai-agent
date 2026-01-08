@@ -69,10 +69,13 @@ export async function indexBrandContent(
   let primarySourceUrl: string | undefined;
 
   // Process website URLs
+  const crawlErrors: string[] = [];
   for (const url of websiteUrls) {
     if (!primarySourceUrl) primarySourceUrl = url;
     try {
+      console.log(`[Brand Context] Starting crawl for: ${url}`);
       const results = await crawlSite(url, { maxPages: maxPagesPerUrl });
+      console.log(`[Brand Context] Crawled ${results.length} pages from: ${url}`);
       pagesProcessed += results.length;
 
       for (const result of results) {
@@ -93,8 +96,15 @@ export async function indexBrandContent(
         }
       }
     } catch (error) {
-      console.error(`Failed to crawl ${url}:`, error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`[Brand Context] Failed to crawl ${url}:`, errorMessage);
+      crawlErrors.push(`${url}: ${errorMessage}`);
     }
+  }
+
+  // If all URLs failed, throw error with details
+  if (websiteUrls.length > 0 && pagesProcessed === 0 && !manualContent) {
+    throw new Error(`크롤링 실패: ${crawlErrors.join('; ')}`);
   }
 
   // Process manual content
