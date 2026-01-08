@@ -9,6 +9,7 @@ const initialSettingsForm: SettingsFormState = {
   brandProfileId: null,
   productName: '',
   category: '',
+  subCategory: '',  // 뷰티 서브카테고리
   keyFeatures: [''],
   targetAudience: '',
   copyLength: 'medium',
@@ -32,6 +33,7 @@ export function useProjectSettings(project: ProjectData | undefined, projectId: 
         brandProfileId: project.brandProfile?.id || null,
         productName: project.productName || '',
         category: project.category || '',
+        subCategory: project.subCategory || '',  // 뷰티 서브카테고리
         keyFeatures: project.keyFeatures?.length ? project.keyFeatures : [''],
         targetAudience: project.targetAudience || '',
         copyLength: project.copyLength || 'medium',
@@ -96,6 +98,7 @@ export function useProjectSettings(project: ProjectData | undefined, projectId: 
           brandProfileId: settingsForm.brandProfileId,
           productName: settingsForm.productName,
           category: settingsForm.category,
+          subCategory: settingsForm.subCategory || undefined,  // 뷰티 서브카테고리
           keyFeatures: settingsForm.keyFeatures.filter((f) => f.trim()),
           targetAudience: settingsForm.targetAudience,
           copyLength: settingsForm.copyLength,

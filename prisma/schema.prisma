@@ -291,6 +291,7 @@ model Project {
   // 제품 정보 (재생성 시 사용)
   productName    String?       @map("product_name")
   category       String?
+  subCategory    String?       @map("sub_category")  // 뷰티 서브카테고리 (skincare, lip 등)
   keyFeatures    String[]      @default([]) @map("key_features")
   targetAudience String?       @map("target_audience")
   copyLength     String?       @default("medium") @map("copy_length")

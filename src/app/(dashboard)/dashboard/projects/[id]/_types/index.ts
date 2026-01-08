@@ -11,6 +11,7 @@ export interface ProjectData {
   };
   productName?: string;
   category?: string;
+  subCategory?: string;  // 뷰티 서브카테고리 (skincare, lip 등)
   keyFeatures?: string[];
   targetAudience?: string;
   copyLength?: 'short' | 'medium' | 'long';
@@ -33,6 +34,7 @@ export interface SettingsFormState {
   brandProfileId: string | null;
   productName: string;
   category: string;
+  subCategory: string;  // 뷰티 서브카테고리 (skincare, lip 등)
   keyFeatures: string[];
   targetAudience: string;
   copyLength: 'short' | 'medium' | 'long';
