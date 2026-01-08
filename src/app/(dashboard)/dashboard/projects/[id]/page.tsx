@@ -68,11 +68,13 @@ export default function ProjectDetailPage() {
     if (!projectId || !isDev) return;
 
     // 1. API에서 가져온 devPrompts가 있으면 사용
-    if (fetchResult?.devPrompts) {
-      regenerationHook.setLastDevPrompts(fetchResult.devPrompts);
+    const apiDevPrompts = fetchResult?.devPrompts;
+    if (apiDevPrompts) {
+      console.log('[DevPrompts] Loading from API response');
+      regenerationHook.setLastDevPrompts(apiDevPrompts);
       // sessionStorage에도 저장
       try {
-        sessionStorage.setItem(`devPrompts_${projectId}`, JSON.stringify(fetchResult.devPrompts));
+        sessionStorage.setItem(`devPrompts_${projectId}`, JSON.stringify(apiDevPrompts));
       } catch (e) {
         console.warn('Failed to save devPrompts to sessionStorage:', e);
       }
@@ -83,13 +85,17 @@ export default function ProjectDetailPage() {
     try {
       const stored = sessionStorage.getItem(`devPrompts_${projectId}`);
       if (stored) {
+        console.log('[DevPrompts] Loading from sessionStorage');
         const parsed = JSON.parse(stored);
         regenerationHook.setLastDevPrompts(parsed);
+      } else {
+        console.log('[DevPrompts] No prompts found in API or sessionStorage');
       }
     } catch (e) {
       console.warn('Failed to load devPrompts from sessionStorage:', e);
     }
-  }, [projectId, fetchResult?.devPrompts, regenerationHook]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, fetchResult?.devPrompts]);
 
   // Error handling
   useEffect(() => {
