@@ -252,6 +252,7 @@ export async function POST(request: NextRequest) {
         // 제품 정보 저장 (재생성 시 사용)
         productName: validatedData.productName,
         category: validatedData.category,
+        subCategory: validatedData.subCategory || null,  // ★ 뷰티 서브카테고리 저장 (재생성 시 사용)
         keyFeatures: validatedData.keyFeatures || [],
         targetAudience: validatedData.targetAudience,
         copyLength: validatedData.copyLength || 'medium',

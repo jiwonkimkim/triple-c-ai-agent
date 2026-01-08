@@ -81,4 +81,19 @@ export const IMAGE_MODEL_OPTIONS: ImageModelOption[] = [
   { value: 'gemini-3-pro-image-preview', label: '프로 (Pro)', description: '고품질 이미지 생성' },
 ];
 
+// 뷰티 서브카테고리 옵션 (재생성 시 섹션 구성에 사용)
+export const BEAUTY_SUBCATEGORIES = [
+  { value: 'skincare', label: '스킨케어', description: '에센스, 세럼, 크림 등' },
+  { value: 'suncare', label: '선케어', description: '선크림, 선스틱 등' },
+  { value: 'lip', label: '립', description: '립스틱, 립틴트, 립글로스 등' },
+  { value: 'mascara', label: '마스카라', description: '마스카라, 속눈썹 케어' },
+  { value: 'maskpack', label: '마스크팩', description: '시트 마스크, 팩 등' },
+  { value: 'cushion', label: '쿠션', description: '쿠션 파운데이션' },
+  { value: 'eyeshadow', label: '아이섀도우', description: '아이섀도우 팔레트' },
+  { value: 'cleanser', label: '클렌저', description: '클렌징 제품' },
+  { value: 'other_beauty', label: '기타 뷰티', description: '그 외 뷰티 제품' },
+] as const;
+
+export type BeautySubCategory = typeof BEAUTY_SUBCATEGORIES[number]['value'];
+
 export type { VersionSnapshot };

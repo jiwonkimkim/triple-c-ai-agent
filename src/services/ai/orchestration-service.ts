@@ -89,6 +89,7 @@ export interface SectionImagePrompt {
   position: SectionPosition;
   imagePrompt: string;
   overlayText?: OverlayTextContent;
+  overlayPrompt?: string;     // 개발자 모드: 오버레이 텍스트 생성에 사용된 프롬프트
   compositionGuide: typeof SECTION_COMPOSITION_GUIDE[SectionPosition];
   imageIndex?: number;        // 다중 이미지일 때 인덱스 (0부터 시작)
   totalImagesInSection?: number; // 해당 섹션의 총 이미지 수
@@ -1330,6 +1331,12 @@ function buildSectionVisualizationGuide(
 // 오버레이 텍스트 생성기
 // ============================================
 
+// 오버레이 텍스트 생성 결과 (프롬프트 포함)
+export interface OverlayTextResult {
+  overlayText?: OverlayTextContent;
+  overlayPrompt: string;  // 사용된 프롬프트 (개발자 모드용)
+}
+
 export async function generateOverlayText(
   sectionType: 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ',
   productName: string,
@@ -1338,15 +1345,18 @@ export async function generateOverlayText(
   targetAudience: string,
   blockOptions?: BlockOverlayOptions,
   indexedOverlayGuide?: string  // ★ 인덱스별 오버레이 가이드 (NEW!)
-): Promise<OverlayTextContent | undefined> {
+): Promise<OverlayTextResult> {
   const gemini = getGeminiClient();
-  if (!gemini) return undefined;
 
   // ★ blockOptions와 indexedOverlayGuide 모두 지원
   const basePrompt = buildOverlayTextPrompt(sectionType, productName, category, keyFeatures, targetAudience, blockOptions);
   const prompt = indexedOverlayGuide
     ? `${basePrompt}\n\n[★ INDEX-SPECIFIC OVERLAY GUIDE - USE THIS AS PRIMARY REFERENCE]\nRecommended text for this specific image: "${indexedOverlayGuide}"\nIncorporate this message into the overlay text structure.`
     : basePrompt;
+
+  if (!gemini) {
+    return { overlayText: undefined, overlayPrompt: prompt };
+  }
 
   try {
     const response = await gemini.models.generateContent({
@@ -1363,10 +1373,13 @@ export async function generateOverlayText(
       jsonStr = jsonMatch[1];
     }
 
-    return JSON.parse(jsonStr) as OverlayTextContent;
+    return {
+      overlayText: JSON.parse(jsonStr) as OverlayTextContent,
+      overlayPrompt: prompt
+    };
   } catch (error) {
     console.error('[Orchestration] Failed to generate overlay text:', error);
-    return undefined;
+    return { overlayText: undefined, overlayPrompt: prompt };
   }
 }
 
@@ -1927,7 +1940,7 @@ export async function orchestrateDetailPageGeneration(
           // ★ 텍스트 기반 이미지 프롬프트 생성 + overlayText 항상 생성
           // overlayText는 generateImages와 관계없이 항상 생성 (텍스트와 함께 제공)
           // ★★★ 블록별 다른 오버레이 텍스트 생성 (variationHint 전달!)
-          const [imagePrompt, overlayText] = await Promise.all([
+          const [imagePrompt, overlayResult] = await Promise.all([
             generateSectionImagePromptFromText(
               sectionText,           // ★ 텍스트 내용 전달!
               input.productName,
@@ -1981,7 +1994,8 @@ CRITICAL INSTRUCTION FOR DIVERSE BACKGROUNDS:
           return {
             ...imagePrompt,
             imagePrompt: enhancedImagePrompt,  // ★ 배경색 강화된 프롬프트
-            overlayText,
+            overlayText: overlayResult.overlayText,
+            overlayPrompt: overlayResult.overlayPrompt,  // ★ 개발자 모드용 프롬프트
             imageIndex: index,
             totalImagesInSection: imageCount,
             variationHint,

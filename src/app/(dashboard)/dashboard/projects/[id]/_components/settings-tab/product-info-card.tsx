@@ -10,6 +10,7 @@ import {
   CATEGORIES,
   COPY_LENGTH_OPTIONS,
   IMAGE_MODEL_OPTIONS,
+  BEAUTY_SUBCATEGORIES,
   type SettingsFormState,
 } from '../../_types';
 
@@ -50,7 +51,11 @@ export function ProductInfoCard({
             <Label>카테고리</Label>
             <Select
               value={settingsForm.category}
-              onValueChange={(value) => onUpdate({ category: value })}
+              onValueChange={(value) => onUpdate({
+                category: value,
+                // 뷰티 카테고리가 아니면 서브카테고리 초기화
+                subCategory: value === 'Beauty & Skincare' ? settingsForm.subCategory : '',
+              })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="카테고리 선택" />
@@ -65,6 +70,34 @@ export function ProductInfoCard({
             </Select>
           </div>
         </div>
+
+        {/* 뷰티 서브카테고리 (뷰티/스킨케어 선택 시에만 표시) */}
+        {settingsForm.category === 'Beauty & Skincare' && (
+          <div className="space-y-2">
+            <Label>뷰티 서브카테고리</Label>
+            <Select
+              value={settingsForm.subCategory}
+              onValueChange={(value) => onUpdate({ subCategory: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="서브카테고리 선택 (재생성 시 섹션 구성에 사용)" />
+              </SelectTrigger>
+              <SelectContent>
+                {BEAUTY_SUBCATEGORIES.map((sub) => (
+                  <SelectItem key={sub.value} value={sub.value}>
+                    <div className="flex flex-col">
+                      <span>{sub.label}</span>
+                      <span className="text-xs text-muted-foreground">{sub.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              서브카테고리에 따라 재생성 시 최적화된 섹션 구성이 적용됩니다.
+            </p>
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label>주요 특징</Label>

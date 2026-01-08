@@ -103,6 +103,14 @@ export interface DevPromptInfo {
     // 생성된 이미지 URL
     generatedImageUrl?: string;
   }>;
+  // 오버레이 텍스트 프롬프트 (각 섹션별)
+  overlayTextPrompts?: Array<{
+    sectionType: string;
+    blockIndex: number;
+    overlayPrompt: string;
+    // 생성된 오버레이 텍스트 결과
+    generatedOverlay?: unknown;
+  }>;
 }
 
 // 개발자 모드용 확장 응답 타입
@@ -706,6 +714,7 @@ export async function generateDetailPage(
     // 개발자 모드에서 프롬프트 정보 수집 (이미지 생성 후 - 생성된 결과 포함)
     if (includeDevPrompts && versions.length > 0) {
       const sectionImagePrompts: DevPromptInfo['sectionImagePrompts'] = [];
+      const overlayTextPrompts: DevPromptInfo['overlayTextPrompts'] = [];
 
       // 모든 섹션의 이미지 프롬프트 및 생성된 이미지 수집 (다중 이미지 지원)
       for (const section of versions[0].sections) {
@@ -718,6 +727,16 @@ export async function generateDetailPage(
             imagePrompt: prompt.imagePrompt,
             generatedImageUrl: imageUrls[index], // 해당 인덱스의 생성된 이미지 URL
           });
+
+          // 오버레이 텍스트 프롬프트 수집
+          if (prompt.overlayPrompt) {
+            overlayTextPrompts.push({
+              sectionType: section.type,
+              blockIndex: index,
+              overlayPrompt: prompt.overlayPrompt,
+              generatedOverlay: prompt.overlayText,
+            });
+          }
         });
       }
 
@@ -738,6 +757,7 @@ export async function generateDetailPage(
           },
         },
         sectionImagePrompts,
+        overlayTextPrompts: overlayTextPrompts.length > 0 ? overlayTextPrompts : undefined,
       };
     }
 

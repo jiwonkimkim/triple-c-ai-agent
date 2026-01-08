@@ -45,6 +45,13 @@ export interface DevPromptInfo {
     // 생성된 이미지 URL
     generatedImageUrl?: string;
   }>;
+  // 오버레이 텍스트 프롬프트
+  overlayTextPrompts?: Array<{
+    sectionType: string;
+    blockIndex: number;
+    overlayPrompt: string;
+    generatedOverlay?: unknown;
+  }>;
 }
 
 interface DevPromptViewerProps {
@@ -148,13 +155,21 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
         </DialogHeader>
 
         <Tabs defaultValue="text" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="text">텍스트 생성 프롬프트</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="text">텍스트 생성</TabsTrigger>
             <TabsTrigger value="image">
-              이미지 생성 프롬프트
+              이미지 생성
               {prompts.sectionImagePrompts.length > 0 && (
                 <Badge variant="secondary" className="ml-2">
                   {prompts.sectionImagePrompts.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="overlay">
+              오버레이 텍스트
+              {prompts.overlayTextPrompts && prompts.overlayTextPrompts.length > 0 && (
+                <Badge variant="secondary" className="ml-2">
+                  {prompts.overlayTextPrompts.length}
                 </Badge>
               )}
             </TabsTrigger>
@@ -286,6 +301,62 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
               </ScrollArea>
             )}
           </TabsContent>
+
+          <TabsContent value="overlay" className="mt-4">
+            {!prompts.overlayTextPrompts || prompts.overlayTextPrompts.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                오버레이 텍스트 프롬프트가 없습니다.
+              </div>
+            ) : (
+              <ScrollArea className="h-[500px]">
+                <div className="space-y-6 pr-4">
+                  {prompts.overlayTextPrompts.map((overlay, index) => (
+                    <div key={index} className="rounded-lg border p-4 bg-muted/20">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Badge>{overlay.sectionType}</Badge>
+                        <Badge variant="outline">Block #{overlay.blockIndex + 1}</Badge>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* 왼쪽: 생성된 오버레이 텍스트 */}
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-green-600" />
+                            <span className="text-xs font-medium text-green-600">생성된 오버레이</span>
+                          </div>
+                          {overlay.generatedOverlay ? (
+                            <ScrollArea className="h-[200px] rounded-md border bg-green-50 dark:bg-green-950/20 p-3">
+                              <pre className="text-[10px] whitespace-pre-wrap font-mono">
+                                {JSON.stringify(overlay.generatedOverlay, null, 2)}
+                              </pre>
+                            </ScrollArea>
+                          ) : (
+                            <div className="h-[200px] rounded-md border bg-muted/30 flex items-center justify-center">
+                              <p className="text-xs text-muted-foreground">생성된 오버레이 없음</p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* 오른쪽: 프롬프트 */}
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Code className="h-4 w-4 text-blue-600" />
+                            <span className="text-xs font-medium text-blue-600">사용된 프롬프트</span>
+                            <CopyButton text={overlay.overlayPrompt} />
+                          </div>
+                          <ScrollArea className="h-[200px] rounded-md border bg-muted/50 p-3">
+                            <pre className="text-[10px] whitespace-pre-wrap font-mono">
+                              {overlay.overlayPrompt}
+                            </pre>
+                          </ScrollArea>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+          </TabsContent>
         </Tabs>
       </DialogContent>
     </Dialog>
@@ -328,9 +399,10 @@ export function DevPromptInlineViewer({ prompts }: DevPromptViewerProps) {
 
       {isExpanded && (
         <Tabs defaultValue="text" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="text" className="text-xs">텍스트 프롬프트</TabsTrigger>
-            <TabsTrigger value="image" className="text-xs">이미지 프롬프트</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 mb-4">
+            <TabsTrigger value="text" className="text-xs">텍스트</TabsTrigger>
+            <TabsTrigger value="image" className="text-xs">이미지</TabsTrigger>
+            <TabsTrigger value="overlay" className="text-xs">오버레이</TabsTrigger>
           </TabsList>
 
           <TabsContent value="text" className="space-y-3">
@@ -377,6 +449,39 @@ export function DevPromptInlineViewer({ prompts }: DevPromptViewerProps) {
                       <ScrollArea className="h-[80px] rounded border bg-background p-2">
                         <pre className="text-[10px] whitespace-pre-wrap font-mono">
                           {section.imagePrompt}
+                        </pre>
+                      </ScrollArea>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            )}
+          </TabsContent>
+
+          <TabsContent value="overlay" className="space-y-3">
+            {!prompts.overlayTextPrompts || prompts.overlayTextPrompts.length === 0 ? (
+              <div className="text-center py-4 text-muted-foreground text-sm">
+                오버레이 프롬프트 없음
+              </div>
+            ) : (
+              <ScrollArea className="h-[300px]">
+                <div className="space-y-3 pr-2">
+                  {prompts.overlayTextPrompts.map((overlay, index) => (
+                    <div key={index} className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1">
+                          <Badge variant="secondary" className="text-[10px]">
+                            {overlay.sectionType}
+                          </Badge>
+                          <Badge variant="outline" className="text-[10px]">
+                            #{overlay.blockIndex + 1}
+                          </Badge>
+                        </div>
+                        <CopyButton text={overlay.overlayPrompt} />
+                      </div>
+                      <ScrollArea className="h-[80px] rounded border bg-background p-2">
+                        <pre className="text-[10px] whitespace-pre-wrap font-mono">
+                          {overlay.overlayPrompt}
                         </pre>
                       </ScrollArea>
                     </div>

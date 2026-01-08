@@ -40,6 +40,7 @@ export const createProjectSchema = z.object({
   // 제품 정보 (재생성 시 사용)
   productName: z.string().max(100).optional(),
   category: z.string().optional(),
+  subCategory: z.enum(['skincare', 'suncare', 'lip', 'mascara', 'maskpack', 'cushion', 'eyeshadow', 'cleanser', 'other_beauty']).optional(),  // 뷰티 서브카테고리
   keyFeatures: z.array(z.string()).optional(),
   targetAudience: z.string().optional(),
   copyLength: z.enum(['short', 'medium', 'long']).optional(),
