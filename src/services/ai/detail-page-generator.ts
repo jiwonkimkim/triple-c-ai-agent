@@ -91,7 +91,12 @@ export interface DevPromptInfo {
   };
   sectionImagePrompts: Array<{
     sectionType: string;
-    imagePrompt: string;
+    // ★ 개별 프롬프트 구성요소
+    orchestrationPrompt?: string;      // 오케스트레이션 AI가 생성한 시나리오 프롬프트
+    categoryTemplatePrompt?: string;   // 섹션 타입별 카테고리 템플릿 프롬프트
+    i2iSystemPrompt?: string;          // I2I 시스템 프롬프트 (제품 재배치 규칙 등)
+    // ★ 최종 결합된 프롬프트 (이전 호환성)
+    imagePrompt: string;               // 최종 사용된 전체 프롬프트
     // 생성된 이미지 URL
     generatedImageUrl?: string;
   }>;
@@ -551,13 +556,15 @@ export async function generateDetailPage(
                         });
                         generatedImageUrls.push(uploadResult.url);
 
-                        // ★ 최종 사용된 프롬프트로 업데이트 (revisedPrompt가 있으면)
+                        // ★ 최종 사용된 프롬프트로 업데이트 (revisedPrompt + promptComponents)
                         if (generatedImage.revisedPrompt && updatedPrompts[i]) {
                           console.log(`[AI DEBUG] ★ Updating prompt for ${sectionType}[${i}]:`);
                           console.log(`[AI DEBUG]   revisedPrompt: ${generatedImage.revisedPrompt.substring(0, 150)}...`);
                           updatedPrompts[i] = {
                             ...updatedPrompts[i],
                             imagePrompt: generatedImage.revisedPrompt,
+                            // ★ 개발자 모드용: 개별 프롬프트 구성요소 저장
+                            promptComponents: generatedImage.promptComponents,
                           };
                         } else {
                           console.log(`[AI DEBUG] ⚠️ No revisedPrompt for ${sectionType}[${i}]`);
@@ -725,8 +732,17 @@ export async function generateDetailPage(
         console.log(`[DevPrompts DEBUG] Section ${section.type}: ${prompts.length} prompts`);
         prompts.forEach((prompt, index) => {
           console.log(`[DevPrompts DEBUG]   [${index}] imagePrompt: ${prompt.imagePrompt?.substring(0, 100) || 'UNDEFINED'}...`);
+
+          // ★ 개별 프롬프트 구성요소 추출
+          const components = prompt.promptComponents;
+
           sectionImagePrompts.push({
             sectionType: section.type,
+            // ★ 개별 프롬프트 구성요소
+            orchestrationPrompt: components?.orchestrationPrompt,
+            categoryTemplatePrompt: components?.categoryTemplatePrompt,
+            i2iSystemPrompt: components?.i2iSystemPrompt,
+            // 최종 결합된 프롬프트
             imagePrompt: prompt.imagePrompt,
             generatedImageUrl: imageUrls[index], // 해당 인덱스의 생성된 이미지 URL
           });

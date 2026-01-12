@@ -42,6 +42,12 @@ export interface GeminiGeneratedImage {
   base64Data: string;
   mimeType: string;
   revisedPrompt?: string;
+  // ★ 개발자 모드용 개별 프롬프트 구성요소
+  promptComponents?: {
+    orchestrationPrompt?: string;      // 오케스트레이션 AI가 생성한 시나리오
+    categoryTemplatePrompt?: string;   // 섹션별 카테고리 템플릿
+    i2iSystemPrompt?: string;          // I2I 시스템 프롬프트 (재배치 규칙)
+  };
 }
 
 /**
@@ -727,7 +733,8 @@ export async function generateImageFromImage(
     // 제품의 모양/디자인은 절대 변경하지 않고, 위치/각도만 재배치
     // 시나리오에 따라 제품을 사용 안해도 됨
 
-    const enhancedPrompt = `[★★★ IMAGE-TO-IMAGE: PRODUCT REPOSITIONING ★★★]
+    // ★ I2I 시스템 프롬프트 (개발자 모드용으로 별도 저장)
+    const i2iSystemPrompt = `[★★★ IMAGE-TO-IMAGE: PRODUCT REPOSITIONING ★★★]
 
 [CRITICAL RULES - 절대 규칙]
 1. DO NOT change the product's shape, design, color, or appearance
@@ -763,7 +770,9 @@ export async function generateImageFromImage(
 ❌ Change product shape or design
 ❌ Create new/different products
 ❌ Modify product colors or packaging
-❌ Transform products into something else
+❌ Transform products into something else`;
+
+    const enhancedPrompt = `${i2iSystemPrompt}
 ${aspectRatioSection}
 [CREATIVE DIRECTION / 시나리오]
 ${prompt}
@@ -827,6 +836,10 @@ ${prompt}
           results.push({
             base64Data: part.inlineData.data,
             mimeType: part.inlineData.mimeType || 'image/png',
+            // ★ 개발자 모드용: I2I 시스템 프롬프트 포함
+            promptComponents: {
+              i2iSystemPrompt: i2iSystemPrompt,
+            },
           });
         } else if (part.text) {
           console.log(`[Gemini I2I] Text response instead of image: ${part.text.substring(0, 200)}...`);
@@ -1039,10 +1052,16 @@ OUTPUT: High-quality commercial photography, 8K resolution, no text on image.`;
     throw new Error(`No image generated for ${sectionType} section`);
   }
 
-  // 최종 사용된 프롬프트를 revisedPrompt로 반환
+  // 최종 사용된 프롬프트를 revisedPrompt로 반환 + 개별 프롬프트 구성요소 포함
   return {
     ...images[0],
     revisedPrompt: fullPrompt,
+    // ★ 개발자 모드용: 개별 프롬프트 구성요소 (UI에서 분리 표시)
+    promptComponents: {
+      ...images[0].promptComponents,
+      orchestrationPrompt: scenarioPrompt || undefined,       // 오케스트레이션 AI 생성 시나리오
+      categoryTemplatePrompt: basePrompt,                     // 섹션별 카테고리 템플릿
+    },
   };
 }
 

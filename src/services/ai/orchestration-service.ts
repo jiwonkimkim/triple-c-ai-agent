@@ -92,6 +92,12 @@ export interface SectionImagePrompt {
   imageIndex?: number;        // 다중 이미지일 때 인덱스 (0부터 시작)
   totalImagesInSection?: number; // 해당 섹션의 총 이미지 수
   variationHint?: string;     // 이미지 변형 힌트 (예: "shade #21", "step 1")
+  // ★ 개발자 모드: 개별 프롬프트 구성요소 (UI에서 분리 표시)
+  promptComponents?: {
+    orchestrationPrompt?: string;      // 오케스트레이션 AI가 생성한 시나리오
+    categoryTemplatePrompt?: string;   // 섹션별 카테고리 템플릿
+    i2iSystemPrompt?: string;          // I2I 시스템 프롬프트 (재배치 규칙)
+  };
 }
 
 export interface OrchestrationResult {

@@ -41,7 +41,12 @@ export interface DevPromptInfo {
   };
   sectionImagePrompts: Array<{
     sectionType: string;
-    imagePrompt: string;
+    // ★ 개별 프롬프트 구성요소
+    orchestrationPrompt?: string;      // 오케스트레이션 AI가 생성한 시나리오 프롬프트
+    categoryTemplatePrompt?: string;   // 섹션 타입별 카테고리 템플릿 프롬프트
+    i2iSystemPrompt?: string;          // I2I 시스템 프롬프트 (제품 재배치 규칙 등)
+    // ★ 최종 결합된 프롬프트 (이전 호환성)
+    imagePrompt: string;               // 최종 사용된 전체 프롬프트
     // 생성된 이미지 URL
     generatedImageUrl?: string;
   }>;
@@ -255,7 +260,7 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-3 gap-4">
                         {/* 왼쪽: 생성된 이미지 */}
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
@@ -281,11 +286,80 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                           )}
                         </div>
 
-                        {/* 오른쪽: 프롬프트 */}
+                        {/* 중앙: 개별 프롬프트 구성요소 */}
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Code className="h-4 w-4 text-purple-600" />
+                            <span className="text-xs font-medium text-purple-600">프롬프트 구성요소</span>
+                          </div>
+                          <ScrollArea className="h-[280px] rounded-md border bg-purple-50 dark:bg-purple-950/20 p-2">
+                            <div className="space-y-3">
+                              {/* 오케스트레이션 프롬프트 */}
+                              {section.orchestrationPrompt && (
+                                <div className="space-y-1">
+                                  <div className="flex items-center justify-between">
+                                    <Badge variant="outline" className="text-[9px] bg-orange-100 text-orange-700 border-orange-300">
+                                      오케스트레이션 (AI 시나리오)
+                                    </Badge>
+                                    <CopyButton text={section.orchestrationPrompt} />
+                                  </div>
+                                  <div className="rounded border bg-orange-50 dark:bg-orange-950/30 p-2 max-h-[70px] overflow-y-auto">
+                                    <pre className="text-[9px] whitespace-pre-wrap font-mono text-orange-900 dark:text-orange-200">
+                                      {section.orchestrationPrompt}
+                                    </pre>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* 카테고리 템플릿 프롬프트 */}
+                              {section.categoryTemplatePrompt && (
+                                <div className="space-y-1">
+                                  <div className="flex items-center justify-between">
+                                    <Badge variant="outline" className="text-[9px] bg-blue-100 text-blue-700 border-blue-300">
+                                      카테고리 템플릿
+                                    </Badge>
+                                    <CopyButton text={section.categoryTemplatePrompt} />
+                                  </div>
+                                  <div className="rounded border bg-blue-50 dark:bg-blue-950/30 p-2 max-h-[70px] overflow-y-auto">
+                                    <pre className="text-[9px] whitespace-pre-wrap font-mono text-blue-900 dark:text-blue-200">
+                                      {section.categoryTemplatePrompt}
+                                    </pre>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* I2I 시스템 프롬프트 */}
+                              {section.i2iSystemPrompt && (
+                                <div className="space-y-1">
+                                  <div className="flex items-center justify-between">
+                                    <Badge variant="outline" className="text-[9px] bg-green-100 text-green-700 border-green-300">
+                                      I2I 시스템 (재배치 규칙)
+                                    </Badge>
+                                    <CopyButton text={section.i2iSystemPrompt} />
+                                  </div>
+                                  <div className="rounded border bg-green-50 dark:bg-green-950/30 p-2 max-h-[70px] overflow-y-auto">
+                                    <pre className="text-[9px] whitespace-pre-wrap font-mono text-green-900 dark:text-green-200">
+                                      {section.i2iSystemPrompt}
+                                    </pre>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* 프롬프트 구성요소가 없는 경우 */}
+                              {!section.orchestrationPrompt && !section.categoryTemplatePrompt && !section.i2iSystemPrompt && (
+                                <div className="text-center py-4 text-muted-foreground text-xs">
+                                  개별 프롬프트 구성요소 없음
+                                </div>
+                              )}
+                            </div>
+                          </ScrollArea>
+                        </div>
+
+                        {/* 오른쪽: 최종 결합 프롬프트 */}
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
                             <Code className="h-4 w-4 text-blue-600" />
-                            <span className="text-xs font-medium text-blue-600">사용된 프롬프트</span>
+                            <span className="text-xs font-medium text-blue-600">최종 결합 프롬프트</span>
                             <CopyButton text={section.imagePrompt} />
                           </div>
                           <ScrollArea className="h-[280px] rounded-md border bg-muted/50 p-3">
