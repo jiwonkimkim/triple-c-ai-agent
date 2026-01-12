@@ -77,12 +77,18 @@ export async function generateImageWithGemini(
     console.log(`[Gemini] Generating image with model: ${model}, aspectRatio: ${aspectRatio || 'free'}`);
     console.log(`[Gemini] Prompt: ${prompt.substring(0, 100)}...`);
 
+    // image_config 설정 (aspectRatio가 지정된 경우만)
+    const imageConfig = aspectRatio ? {
+      aspectRatio: aspectRatio,  // "1:1", "3:4", "16:9" 등
+    } : undefined;
+
     // Generate images using Gemini with correct responseModalities format
     const response = await client.models.generateContent({
       model: model,
       contents: enhancedPrompt,
       config: {
         responseModalities: ['TEXT', 'IMAGE'],
+        ...(imageConfig && { imageConfig }),
       },
     });
 
@@ -762,12 +768,19 @@ ${prompt}
 - Premium and desirable presentation
 - 8K resolution, no text/typography/watermarks`;
 
-    // Gemini에 이미지 + 텍스트 프롬프트 동시 전송
+    // Gemini에 이미지 + 텍스트 프롬프트 동시 전송 (Google AI 공식 방식)
     console.log(`[Gemini I2I] ★★★ Sending IMAGE-TO-IMAGE request ★★★`);
     console.log(`[Gemini I2I] Model: ${model}`);
     console.log(`[Gemini I2I] Image attached: YES (${base64.length} chars, mimeType: ${mimeType})`);
     console.log(`[Gemini I2I] PreserveStrength: ${preserveStrength} → Level: ${preserveLevel}`);
+    console.log(`[Gemini I2I] AspectRatio: ${aspectRatio || 'free'}`);
     console.log(`[Gemini I2I] Prompt preview: ${enhancedPrompt.substring(0, 200)}...`);
+
+    // image_config 설정 (aspectRatio가 지정된 경우만)
+    const imageConfig = aspectRatio ? {
+      aspectRatio: aspectRatio,  // "1:1", "3:4", "16:9" 등
+      // imageSize: "2K",  // Pro 모델에서 지원 시 활성화
+    } : undefined;
 
     const response = await client.models.generateContent({
       model: model,
@@ -775,20 +788,22 @@ ${prompt}
         {
           role: 'user',
           parts: [
+            // 프롬프트 먼저, 이미지 나중에 (Google AI 예시 순서)
+            {
+              text: enhancedPrompt,
+            },
             {
               inlineData: {
                 mimeType: mimeType,
                 data: base64,
               },
             },
-            {
-              text: enhancedPrompt,
-            },
           ],
         },
       ],
       config: {
-        responseModalities: ['IMAGE'],
+        responseModalities: ['TEXT', 'IMAGE'],  // 텍스트+이미지 동시 응답
+        ...(imageConfig && { imageConfig }),
       },
     });
 
