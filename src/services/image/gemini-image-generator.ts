@@ -741,9 +741,12 @@ export async function generateImageFromImage(
 - Change ONLY: position, angle, size, lighting on the product
 - If multiple products in the image: treat each as a separate item and rearrange naturally
 - Products can be: tilted, stacked, grouped, partially visible - but SAME SHAPE
+- DO NOT copy the original arrangement - ALWAYS rearrange to fit the new scene
 
 제품이 여러개인 경우:
 - 각 제품을 개별 아이템으로 인식하세요
+- 입력된 배치를 그대로 복사하지 마세요!
+- 생성되는 시나리오/상황에 맞게 새롭게 재배치하세요
 - 자연스럽게 재배치, 그룹핑, 정렬하세요
 - 모든 제품의 원래 모양을 유지하세요
 
