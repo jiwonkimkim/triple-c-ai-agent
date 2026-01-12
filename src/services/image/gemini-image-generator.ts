@@ -560,8 +560,8 @@ export async function removeBackground(
   const client = getGeminiClient();
 
   try {
-    // base64 데이터 추출
-    const { base64, mimeType } = extractBase64FromDataUrl(sourceImage);
+    // base64 데이터 추출 (URL인 경우 fetch하여 변환)
+    const { base64, mimeType } = await extractBase64FromSource(sourceImage);
 
     console.log(`[Gemini BG] Starting background removal`);
     console.log(`[Gemini BG] Model: ${model}, Transparent: ${transparent}`);
@@ -674,9 +674,66 @@ export interface ImageToImageOptions {
 }
 
 /**
- * URL 또는 data URL에서 base64 데이터 추출
+ * URL, data URL, 또는 순수 base64에서 base64 데이터 추출
+ * - HTTP/HTTPS URL: fetch하여 base64 변환
+ * - data URL: 파싱하여 base64 추출
+ * - 순수 base64: 그대로 반환
+ */
+async function extractBase64FromSource(source: string): Promise<{ base64: string; mimeType: string }> {
+  // HTTP/HTTPS URL인 경우 fetch하여 base64로 변환
+  if (source.startsWith('http://') || source.startsWith('https://')) {
+    console.log('[Gemini] Fetching image from URL for base64 conversion...');
+    try {
+      const response = await fetch(source);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+      }
+
+      const contentType = response.headers.get('content-type') || 'image/jpeg';
+      const arrayBuffer = await response.arrayBuffer();
+      const base64 = Buffer.from(arrayBuffer).toString('base64');
+
+      // MIME 타입 결정 (확장자 기반 fallback)
+      let mimeType = contentType.split(';')[0].trim();
+      if (!mimeType.startsWith('image/')) {
+        // URL 확장자로 추측
+        if (source.endsWith('.webp')) mimeType = 'image/webp';
+        else if (source.endsWith('.png')) mimeType = 'image/png';
+        else if (source.endsWith('.gif')) mimeType = 'image/gif';
+        else mimeType = 'image/jpeg';
+      }
+
+      console.log(`[Gemini] Image fetched: ${(arrayBuffer.byteLength / 1024).toFixed(1)}KB, ${mimeType}`);
+      return { base64, mimeType };
+    } catch (error) {
+      console.error('[Gemini] Failed to fetch image from URL:', error);
+      throw new Error(`Failed to fetch image from URL: ${source}`);
+    }
+  }
+
+  // data URL 형식인 경우 파싱
+  if (source.startsWith('data:')) {
+    const matches = source.match(/^data:([^;]+);base64,(.+)$/);
+    if (matches) {
+      return { base64: matches[2], mimeType: matches[1] };
+    }
+    throw new Error('Invalid data URL format');
+  }
+
+  // 순수 base64인 경우 그대로 반환
+  return { base64: source, mimeType: 'image/jpeg' };
+}
+
+/**
+ * URL 또는 data URL에서 base64 데이터 추출 (동기 버전 - 레거시 호환)
+ * @deprecated extractBase64FromSource 사용 권장
  */
 function extractBase64FromDataUrl(dataUrl: string): { base64: string; mimeType: string } {
+  // HTTP URL은 동기 함수에서 처리 불가 - 에러 발생시킴
+  if (dataUrl.startsWith('http://') || dataUrl.startsWith('https://')) {
+    throw new Error('HTTP URLs must be processed with extractBase64FromSource (async)');
+  }
+
   // 이미 순수 base64인 경우
   if (!dataUrl.startsWith('data:')) {
     return { base64: dataUrl, mimeType: 'image/jpeg' };
@@ -712,8 +769,8 @@ export async function generateImageFromImage(
   const results: GeminiGeneratedImage[] = [];
 
   try {
-    // base64 데이터 추출
-    const { base64, mimeType } = extractBase64FromDataUrl(sourceImage);
+    // base64 데이터 추출 (URL인 경우 fetch하여 변환)
+    const { base64, mimeType } = await extractBase64FromSource(sourceImage);
 
     console.log(`[Gemini I2I] Starting image-to-image generation`);
     console.log(`[Gemini I2I] Model: ${model}, Preserve: ${preserveStrength}, AspectRatio: ${aspectRatio || 'free'}`);

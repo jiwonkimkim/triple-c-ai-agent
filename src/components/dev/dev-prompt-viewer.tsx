@@ -151,7 +151,7 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
           </Badge>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-[95vw] w-[1600px] max-h-[95vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Code className="h-5 w-5" />
@@ -252,26 +252,26 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                 이미지 생성 프롬프트가 없습니다.
               </div>
             ) : (
-              <ScrollArea className="h-[500px]">
-                <div className="space-y-6 pr-4">
+              <ScrollArea className="h-[70vh]">
+                <div className="space-y-8 pr-4">
                   {prompts.sectionImagePrompts.map((section, index) => (
-                    <div key={index} className="rounded-lg border p-4 bg-muted/20">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Badge>{section.sectionType}</Badge>
+                    <div key={index} className="rounded-lg border-2 p-5 bg-muted/20">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Badge className="text-sm px-3 py-1">{section.sectionType}</Badge>
                         <span className="text-sm text-muted-foreground">
-                          섹션 이미지
+                          섹션 이미지 #{index + 1}
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-4">
+                      <div className="grid grid-cols-[300px_1fr_1fr] gap-6">
                         {/* 왼쪽: 생성된 이미지 */}
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           <div className="flex items-center gap-2">
-                            <ImageIcon className="h-4 w-4 text-green-600" />
-                            <span className="text-xs font-medium text-green-600">생성된 이미지</span>
+                            <ImageIcon className="h-5 w-5 text-green-600" />
+                            <span className="text-sm font-semibold text-green-600">생성된 이미지</span>
                           </div>
                           {section.generatedImageUrl ? (
-                            <div className="relative aspect-[3/4] rounded-md border overflow-hidden bg-white">
+                            <div className="relative h-[400px] rounded-lg border-2 overflow-hidden bg-white shadow-sm">
                               <Image
                                 src={section.generatedImageUrl}
                                 alt={`${section.sectionType} 생성 이미지`}
@@ -280,34 +280,34 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                               />
                             </div>
                           ) : (
-                            <div className="aspect-[3/4] rounded-md border bg-muted/30 flex items-center justify-center">
+                            <div className="h-[400px] rounded-lg border-2 bg-muted/30 flex items-center justify-center">
                               <div className="text-center">
-                                <ImageIcon className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
-                                <p className="text-xs text-muted-foreground">이미지 없음</p>
+                                <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+                                <p className="text-sm text-muted-foreground">이미지 없음</p>
                               </div>
                             </div>
                           )}
                         </div>
 
                         {/* 중앙: 개별 프롬프트 구성요소 */}
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           <div className="flex items-center gap-2">
-                            <Code className="h-4 w-4 text-purple-600" />
-                            <span className="text-xs font-medium text-purple-600">프롬프트 구성요소</span>
+                            <Code className="h-5 w-5 text-purple-600" />
+                            <span className="text-sm font-semibold text-purple-600">프롬프트 구성요소</span>
                           </div>
-                          <ScrollArea className="h-[280px] rounded-md border bg-purple-50 dark:bg-purple-950/20 p-2">
-                            <div className="space-y-3">
+                          <ScrollArea className="h-[400px] rounded-lg border-2 border-purple-200 bg-purple-50 dark:bg-purple-950/20 p-4">
+                            <div className="space-y-4">
                               {/* ★ 고정 프롬프트 (모든 섹션 공통) */}
                               {section.fixedPrompt && (
-                                <div className="space-y-1">
+                                <div className="space-y-2">
                                   <div className="flex items-center justify-between">
-                                    <Badge variant="outline" className="text-[9px] bg-slate-100 text-slate-700 border-slate-300">
+                                    <Badge variant="outline" className="text-xs bg-slate-100 text-slate-700 border-slate-300 px-2 py-1">
                                       🔒 고정 (공통)
                                     </Badge>
                                     <CopyButton text={section.fixedPrompt} />
                                   </div>
-                                  <div className="rounded border bg-slate-50 dark:bg-slate-950/30 p-2 max-h-[80px] overflow-y-auto">
-                                    <pre className="text-[9px] whitespace-pre-wrap font-mono text-slate-700 dark:text-slate-300">
+                                  <div className="rounded-lg border bg-slate-50 dark:bg-slate-950/30 p-3 max-h-[120px] overflow-y-auto">
+                                    <pre className="text-[11px] whitespace-pre-wrap font-mono text-slate-700 dark:text-slate-300 leading-relaxed">
                                       {section.fixedPrompt}
                                     </pre>
                                   </div>
@@ -316,15 +316,15 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
 
                               {/* ★ 동적 프롬프트 (섹션/카테고리별 변경) */}
                               {section.dynamicPrompt && (
-                                <div className="space-y-1">
+                                <div className="space-y-2">
                                   <div className="flex items-center justify-between">
-                                    <Badge variant="outline" className="text-[9px] bg-amber-100 text-amber-700 border-amber-300">
+                                    <Badge variant="outline" className="text-xs bg-amber-100 text-amber-700 border-amber-300 px-2 py-1">
                                       🔄 동적 (섹션별)
                                     </Badge>
                                     <CopyButton text={section.dynamicPrompt} />
                                   </div>
-                                  <div className="rounded border bg-amber-50 dark:bg-amber-950/30 p-2 max-h-[120px] overflow-y-auto">
-                                    <pre className="text-[9px] whitespace-pre-wrap font-mono text-amber-900 dark:text-amber-200">
+                                  <div className="rounded-lg border bg-amber-50 dark:bg-amber-950/30 p-3 max-h-[180px] overflow-y-auto">
+                                    <pre className="text-[11px] whitespace-pre-wrap font-mono text-amber-900 dark:text-amber-200 leading-relaxed">
                                       {section.dynamicPrompt}
                                     </pre>
                                   </div>
@@ -333,15 +333,15 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
 
                               {/* I2I 시스템 프롬프트 (있으면 표시) */}
                               {section.i2iSystemPrompt && (
-                                <div className="space-y-1">
+                                <div className="space-y-2">
                                   <div className="flex items-center justify-between">
-                                    <Badge variant="outline" className="text-[9px] bg-green-100 text-green-700 border-green-300">
+                                    <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300 px-2 py-1">
                                       🖼️ I2I 시스템
                                     </Badge>
                                     <CopyButton text={section.i2iSystemPrompt} />
                                   </div>
-                                  <div className="rounded border bg-green-50 dark:bg-green-950/30 p-2 max-h-[60px] overflow-y-auto">
-                                    <pre className="text-[9px] whitespace-pre-wrap font-mono text-green-900 dark:text-green-200">
+                                  <div className="rounded-lg border bg-green-50 dark:bg-green-950/30 p-3 max-h-[100px] overflow-y-auto">
+                                    <pre className="text-[11px] whitespace-pre-wrap font-mono text-green-900 dark:text-green-200 leading-relaxed">
                                       {section.i2iSystemPrompt}
                                     </pre>
                                   </div>
@@ -350,7 +350,7 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
 
                               {/* 프롬프트 구성요소가 없는 경우 */}
                               {!section.fixedPrompt && !section.dynamicPrompt && !section.i2iSystemPrompt && (
-                                <div className="text-center py-4 text-muted-foreground text-xs">
+                                <div className="text-center py-8 text-muted-foreground">
                                   개별 프롬프트 구성요소 없음
                                 </div>
                               )}
@@ -359,14 +359,14 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                         </div>
 
                         {/* 오른쪽: 최종 결합 프롬프트 */}
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                           <div className="flex items-center gap-2">
-                            <Code className="h-4 w-4 text-blue-600" />
-                            <span className="text-xs font-medium text-blue-600">최종 결합 프롬프트</span>
+                            <Code className="h-5 w-5 text-blue-600" />
+                            <span className="text-sm font-semibold text-blue-600">최종 결합 프롬프트</span>
                             <CopyButton text={section.imagePrompt} />
                           </div>
-                          <ScrollArea className="h-[280px] rounded-md border bg-muted/50 p-3">
-                            <pre className="text-[10px] whitespace-pre-wrap font-mono">
+                          <ScrollArea className="h-[400px] rounded-lg border-2 border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 p-4">
+                            <pre className="text-[11px] whitespace-pre-wrap font-mono leading-relaxed">
                               {section.imagePrompt}
                             </pre>
                           </ScrollArea>
