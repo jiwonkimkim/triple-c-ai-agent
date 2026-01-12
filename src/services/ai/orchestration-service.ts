@@ -1743,33 +1743,41 @@ export async function orchestrateDetailPageGeneration(
           // overlayText는 generateImages와 관계없이 항상 생성 (텍스트와 함께 제공)
           // ★★★ 블록별 다른 오버레이 텍스트 생성 (variationHint 전달!)
 
-          // ★★★ I2I 모드 최적화: imagePrompt는 사용되지 않으므로 간단한 placeholder 반환 ★★★
-          // I2I 모드에서는 generateSectionImageFromProduct가 자체 템플릿을 사용
+          // ★★★ I2I/T2I 모두 템플릿 기반 프롬프트 생성 ★★★
+          // I2I 모드에서도 시나리오 프롬프트를 생성하여 다양한 배치 유도
           let imagePrompt: SectionImagePrompt;
           let overlayResult: { overlayText?: OverlayTextContent; overlayPrompt?: string };
 
           if (isI2IMode) {
-            // I2I 모드: imagePrompt는 placeholder (실제로 사용 안 됨), overlayText만 생성
-            const position = mapSectionTypeToPosition(sectionType as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ');
-            imagePrompt = {
-              sectionType: sectionType as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ',
-              position,
-              imagePrompt: `[I2I_MODE_PLACEHOLDER] Section: ${sectionType}, Product: ${input.productName}`,
-              compositionGuide: SECTION_COMPOSITION_GUIDE[position],
-            };
-            overlayResult = await generateOverlayText(
-              isSubcategorySection ? 'FEATURES' : sectionType as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ',
-              input.productName,
-              input.category,
-              input.keyFeatures,
-              input.targetAudience,
-              {
-                blockIndex: index,
-                totalBlocks: imageCount,
-                variationHint,
-              },
-              indexBasedPromptInfo?.overlayGuide
-            );
+            // I2I 모드: 템플릿 기반 시나리오 프롬프트 생성 + overlayText 생성
+            [imagePrompt, overlayResult] = await Promise.all([
+              generateSectionImagePromptFromText(
+                sectionText,
+                input.productName,
+                input.category,
+                input.keyFeatures,
+                input.targetAudience,
+                brandStyle,
+                undefined,  // visualReference는 I2I에서 제품 이미지로 대체
+                visualTheme,
+                indexBasedPromptInfo?.prompt,
+                input.subCategory,
+                index
+              ),
+              generateOverlayText(
+                isSubcategorySection ? 'FEATURES' : sectionType as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ',
+                input.productName,
+                input.category,
+                input.keyFeatures,
+                input.targetAudience,
+                {
+                  blockIndex: index,
+                  totalBlocks: imageCount,
+                  variationHint,
+                },
+                indexBasedPromptInfo?.overlayGuide
+              ),
+            ]);
           } else {
             // T2I 모드: 전체 프롬프트 생성 (실제로 사용됨)
             [imagePrompt, overlayResult] = await Promise.all([

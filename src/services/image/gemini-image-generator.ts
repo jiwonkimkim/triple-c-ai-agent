@@ -852,6 +852,7 @@ ${prompt}
  * 상세페이지 섹션용 Image-to-Image 생성
  * - 사용자 제품 이미지를 기반으로 각 섹션에 맞는 스타일로 변환
  * - keyFeatures와 targetAudience를 반영하여 맞춤형 이미지 생성
+ * - scenarioPrompt가 전달되면 오케스트레이션 프롬프트 활용 (없으면 기본 템플릿 사용)
  */
 export async function generateSectionImageFromProduct(
   sourceImage: string,
@@ -861,7 +862,8 @@ export async function generateSectionImageFromProduct(
   additionalPrompt?: string,
   model: GeminiImageModel = DEFAULT_IMAGE_MODEL,  // gemini-2.5-flash-image
   keyFeatures?: string[],
-  targetAudience?: string
+  targetAudience?: string,
+  scenarioPrompt?: string  // ★ 오케스트레이션에서 생성된 시나리오 프롬프트
 ): Promise<GeminiGeneratedImage> {
   // MAIN 섹션: 제품명 기반 오브제 + 타겟/특징 반영
   let mainPrompt = '';
@@ -972,8 +974,12 @@ ${targetAudience ? `Target: ${targetAudience}` : ''}
 8K, photorealistic, no text.`,
   };
 
-  // ★ 미정의 섹션 타입도 해당 타입명을 표시하여 자동 처리
-  // 새로운 섹션 타입이 추가되어도 기본 템플릿으로 처리됨
+  // ★★★ 기본 템플릿 + 오케스트레이션 프롬프트 결합 ★★★
+  // 1. 기본 템플릿: 카테고리별/섹션별 시각적 지시 (sectionPrompts)
+  // 2. 오케스트레이션 프롬프트: 전체 상세페이지 메시지/컨텍스트 (scenarioPrompt)
+  // 둘 다 결합하여 일관된 메시지 + 섹션별 스타일 모두 반영
+
+  // 1. 기본 섹션 템플릿 가져오기
   let basePrompt = sectionPrompts[sectionType];
 
   if (!basePrompt) {
@@ -989,9 +995,28 @@ ${targetAudience ? `Target: ${targetAudience}` : ''}
 Section type: ${sectionType}
 Korean beauty detail page style, 올리브영/쿠팡 스타일.
 8K, photorealistic, no text in image.`;
+  } else {
+    console.log(`[Gemini I2I] Using section template for ${sectionType}`);
   }
 
-  const fullPrompt = `${basePrompt}
+  // 2. 오케스트레이션 프롬프트 추가 (있으면)
+  // 전체 상세페이지의 일관된 메시지와 컨텍스트를 담은 추가 지시
+  let orchestrationContext = '';
+  if (scenarioPrompt && scenarioPrompt.trim()) {
+    console.log(`[Gemini I2I] ★ Adding orchestration context for ${sectionType}`);
+    console.log(`[Gemini I2I] orchestration preview: ${scenarioPrompt.substring(0, 100)}...`);
+    orchestrationContext = `
+
+[ORCHESTRATION CONTEXT - 상세페이지 전체 메시지]
+${scenarioPrompt}
+
+[제품 배치 원칙]
+- 위 오케스트레이션 컨텍스트의 시나리오에 맞게 제품을 자연스럽게 배치하세요
+- 시나리오에 따라 제품이 부각되거나, 자연스럽게 녹아들 수 있습니다
+- 항상 가운데에 놓지 말고, 시나리오에 어울리는 위치에 배치하세요`;
+  }
+
+  const fullPrompt = `${basePrompt}${orchestrationContext}
 
 Product: ${productName}
 Category: ${category}
