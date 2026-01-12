@@ -716,50 +716,58 @@ export async function generateImageFromImage(
     }
 
     // ★★★ 상세페이지용 제품 광고 이미지 생성 프롬프트 ★★★
-    const enhancedPrompt = `[★★★ PRODUCT DETAIL PAGE IMAGE GENERATION ★★★]
+    // preserveStrength를 프롬프트에 반영 (0.0~1.0, 높을수록 원본 유지)
+    const preserveLevel = preserveStrength >= 0.8 ? 'EXACTLY' : preserveStrength >= 0.5 ? 'closely' : 'loosely';
 
-[CONTEXT - 맥락]
-The attached image contains the PRODUCT we are selling.
-This is the actual product that will be featured on our e-commerce detail page.
-Your task is to CREATE ADVERTISING IMAGES for this product.
+    const enhancedPrompt = `[★★★ IMAGE-TO-IMAGE: USE THE ATTACHED PRODUCT IMAGE ★★★]
 
-첨부된 이미지의 제품이 우리가 판매할 제품입니다.
-이 제품을 활용하여 상세페이지 광고 이미지를 생성하세요.
+[CRITICAL INSTRUCTION - 핵심 지시]
+I am attaching a PRODUCT IMAGE. You MUST use THIS EXACT PRODUCT in your generated image.
+DO NOT create a new product. DO NOT imagine a different product.
+COPY the product from my attached image and place it in a new scene.
 
-[PRODUCT IDENTITY - 제품 동일성 유지]
-The product in the attached image MUST appear EXACTLY as shown:
-- SAME shape, design, color, packaging
-- SAME proportions and dimensions
-- SAME surface texture and finish
-- DO NOT redesign or modify the product
+첨부한 이미지에 있는 제품을 반드시 사용하세요!
+새로운 제품을 만들지 마세요. 첨부한 제품을 그대로 복사해서 새로운 배경에 배치하세요.
 
-[YOUR TASK - 생성할 이미지]
-Create a professional e-commerce detail page image that:
-- Features THIS EXACT PRODUCT as the hero/main subject
-- Makes this product look attractive and desirable
-- Encourages customers to purchase this product
-- Follows Korean beauty e-commerce style (올리브영/쿠팡 스타일)
+[PRODUCT PRESERVATION LEVEL: ${preserveLevel.toUpperCase()} (${Math.round(preserveStrength * 100)}%)]
+The product from the attached image must be reproduced ${preserveLevel}:
+- ${preserveLevel === 'EXACTLY' ? 'IDENTICAL shape, design, color, packaging - pixel-perfect reproduction' : 'Same general shape and design'}
+- ${preserveLevel === 'EXACTLY' ? 'IDENTICAL proportions and dimensions' : 'Similar proportions'}
+- ${preserveLevel === 'EXACTLY' ? 'IDENTICAL surface texture, finish, and material appearance' : 'Similar appearance'}
+- DO NOT redesign, reinterpret, or modify the product
+
+[YOUR TASK]
+1. EXTRACT the product from my attached image
+2. PLACE this exact product into a new professional e-commerce scene
+3. ADD appropriate background, lighting, and styling
+4. CREATE an attractive detail page image for Korean e-commerce (올리브영/쿠팡 스타일)
+
+[WHAT YOU MUST KEEP FROM ATTACHED IMAGE]
+- The exact product appearance
+- Product shape, color, design, packaging
+- Brand elements if visible
 
 [WHAT YOU CAN CHANGE]
 - Background: scenery, colors, gradients, textures
 - Lighting: direction, intensity, mood
-- Camera angle: perspective, tilt, distance
+- Camera angle: perspective, distance (but keep product recognizable)
 - Surrounding elements: props, decorations, atmospheric effects
-- Composition: product placement within the frame
 ${aspectRatioSection}
 [CREATIVE DIRECTION]
 ${prompt}
 
-[OUTPUT REQUIREMENTS]
-- The EXACT same product from the attached image
-- Professional commercial photography quality for e-commerce
-- Make the product look premium and desirable
-- High-quality 8K resolution output
-- Absolutely no text, typography, or watermarks on the image`;
+[OUTPUT]
+- An e-commerce detail page image featuring THE PRODUCT FROM MY ATTACHED IMAGE
+- Professional commercial photography quality
+- Premium and desirable presentation
+- 8K resolution, no text/typography/watermarks`;
 
     // Gemini에 이미지 + 텍스트 프롬프트 동시 전송
-    console.log(`[Gemini I2I] Sending request to ${model}...`);
-    console.log(`[Gemini I2I] Image size (base64 length): ${base64.length}`);
+    console.log(`[Gemini I2I] ★★★ Sending IMAGE-TO-IMAGE request ★★★`);
+    console.log(`[Gemini I2I] Model: ${model}`);
+    console.log(`[Gemini I2I] Image attached: YES (${base64.length} chars, mimeType: ${mimeType})`);
+    console.log(`[Gemini I2I] PreserveStrength: ${preserveStrength} → Level: ${preserveLevel}`);
+    console.log(`[Gemini I2I] Prompt preview: ${enhancedPrompt.substring(0, 200)}...`);
 
     const response = await client.models.generateContent({
       model: model,
