@@ -45,6 +45,9 @@ export interface DevPromptInfo {
     orchestrationPrompt?: string;      // 오케스트레이션 AI가 생성한 시나리오 프롬프트
     categoryTemplatePrompt?: string;   // 섹션 타입별 카테고리 템플릿 프롬프트
     i2iSystemPrompt?: string;          // I2I 시스템 프롬프트 (제품 재배치 규칙 등)
+    // ★★★ 고정/동적 프롬프트 분리 (NEW!)
+    fixedPrompt?: string;              // 고정 프롬프트 (제품일관성, 품질, no-text, 네거티브)
+    dynamicPrompt?: string;            // 동적 프롬프트 (테마, 섹션템플릿, 텍스트시각화 등)
     // ★ 최종 결합된 프롬프트 (이전 호환성)
     imagePrompt: string;               // 최종 사용된 전체 프롬프트
     // 생성된 이미지 URL
@@ -294,50 +297,50 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                           </div>
                           <ScrollArea className="h-[280px] rounded-md border bg-purple-50 dark:bg-purple-950/20 p-2">
                             <div className="space-y-3">
-                              {/* 오케스트레이션 프롬프트 */}
-                              {section.orchestrationPrompt && (
+                              {/* ★ 고정 프롬프트 (모든 섹션 공통) */}
+                              {section.fixedPrompt && (
                                 <div className="space-y-1">
                                   <div className="flex items-center justify-between">
-                                    <Badge variant="outline" className="text-[9px] bg-orange-100 text-orange-700 border-orange-300">
-                                      오케스트레이션 (AI 시나리오)
+                                    <Badge variant="outline" className="text-[9px] bg-slate-100 text-slate-700 border-slate-300">
+                                      🔒 고정 (공통)
                                     </Badge>
-                                    <CopyButton text={section.orchestrationPrompt} />
+                                    <CopyButton text={section.fixedPrompt} />
                                   </div>
-                                  <div className="rounded border bg-orange-50 dark:bg-orange-950/30 p-2 max-h-[70px] overflow-y-auto">
-                                    <pre className="text-[9px] whitespace-pre-wrap font-mono text-orange-900 dark:text-orange-200">
-                                      {section.orchestrationPrompt}
+                                  <div className="rounded border bg-slate-50 dark:bg-slate-950/30 p-2 max-h-[80px] overflow-y-auto">
+                                    <pre className="text-[9px] whitespace-pre-wrap font-mono text-slate-700 dark:text-slate-300">
+                                      {section.fixedPrompt}
                                     </pre>
                                   </div>
                                 </div>
                               )}
 
-                              {/* 카테고리 템플릿 프롬프트 */}
-                              {section.categoryTemplatePrompt && (
+                              {/* ★ 동적 프롬프트 (섹션/카테고리별 변경) */}
+                              {section.dynamicPrompt && (
                                 <div className="space-y-1">
                                   <div className="flex items-center justify-between">
-                                    <Badge variant="outline" className="text-[9px] bg-blue-100 text-blue-700 border-blue-300">
-                                      카테고리 템플릿
+                                    <Badge variant="outline" className="text-[9px] bg-amber-100 text-amber-700 border-amber-300">
+                                      🔄 동적 (섹션별)
                                     </Badge>
-                                    <CopyButton text={section.categoryTemplatePrompt} />
+                                    <CopyButton text={section.dynamicPrompt} />
                                   </div>
-                                  <div className="rounded border bg-blue-50 dark:bg-blue-950/30 p-2 max-h-[70px] overflow-y-auto">
-                                    <pre className="text-[9px] whitespace-pre-wrap font-mono text-blue-900 dark:text-blue-200">
-                                      {section.categoryTemplatePrompt}
+                                  <div className="rounded border bg-amber-50 dark:bg-amber-950/30 p-2 max-h-[120px] overflow-y-auto">
+                                    <pre className="text-[9px] whitespace-pre-wrap font-mono text-amber-900 dark:text-amber-200">
+                                      {section.dynamicPrompt}
                                     </pre>
                                   </div>
                                 </div>
                               )}
 
-                              {/* I2I 시스템 프롬프트 */}
+                              {/* I2I 시스템 프롬프트 (있으면 표시) */}
                               {section.i2iSystemPrompt && (
                                 <div className="space-y-1">
                                   <div className="flex items-center justify-between">
                                     <Badge variant="outline" className="text-[9px] bg-green-100 text-green-700 border-green-300">
-                                      I2I 시스템 (재배치 규칙)
+                                      🖼️ I2I 시스템
                                     </Badge>
                                     <CopyButton text={section.i2iSystemPrompt} />
                                   </div>
-                                  <div className="rounded border bg-green-50 dark:bg-green-950/30 p-2 max-h-[70px] overflow-y-auto">
+                                  <div className="rounded border bg-green-50 dark:bg-green-950/30 p-2 max-h-[60px] overflow-y-auto">
                                     <pre className="text-[9px] whitespace-pre-wrap font-mono text-green-900 dark:text-green-200">
                                       {section.i2iSystemPrompt}
                                     </pre>
@@ -346,7 +349,7 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                               )}
 
                               {/* 프롬프트 구성요소가 없는 경우 */}
-                              {!section.orchestrationPrompt && !section.categoryTemplatePrompt && !section.i2iSystemPrompt && (
+                              {!section.fixedPrompt && !section.dynamicPrompt && !section.i2iSystemPrompt && (
                                 <div className="text-center py-4 text-muted-foreground text-xs">
                                   개별 프롬프트 구성요소 없음
                                 </div>

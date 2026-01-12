@@ -95,6 +95,9 @@ export interface DevPromptInfo {
     orchestrationPrompt?: string;      // 오케스트레이션 AI가 생성한 시나리오 프롬프트
     categoryTemplatePrompt?: string;   // 섹션 타입별 카테고리 템플릿 프롬프트
     i2iSystemPrompt?: string;          // I2I 시스템 프롬프트 (제품 재배치 규칙 등)
+    // ★★★ 고정/동적 프롬프트 분리 (NEW!)
+    fixedPrompt?: string;              // 고정 프롬프트 (제품일관성, 품질, no-text, 네거티브)
+    dynamicPrompt?: string;            // 동적 프롬프트 (테마, 섹션템플릿, 텍스트시각화 등)
     // ★ 최종 결합된 프롬프트 (이전 호환성)
     imagePrompt: string;               // 최종 사용된 전체 프롬프트
     // 생성된 이미지 URL
@@ -742,6 +745,9 @@ export async function generateDetailPage(
             orchestrationPrompt: components?.orchestrationPrompt,
             categoryTemplatePrompt: components?.categoryTemplatePrompt,
             i2iSystemPrompt: components?.i2iSystemPrompt,
+            // ★★★ 고정/동적 프롬프트 분리 (NEW!)
+            fixedPrompt: components?.fixedPrompt,
+            dynamicPrompt: components?.dynamicPrompt,
             // 최종 결합된 프롬프트
             imagePrompt: prompt.imagePrompt,
             generatedImageUrl: imageUrls[index], // 해당 인덱스의 생성된 이미지 URL

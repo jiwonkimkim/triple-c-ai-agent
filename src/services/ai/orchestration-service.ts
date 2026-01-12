@@ -97,6 +97,9 @@ export interface SectionImagePrompt {
     orchestrationPrompt?: string;      // 오케스트레이션 AI가 생성한 시나리오
     categoryTemplatePrompt?: string;   // 섹션별 카테고리 템플릿
     i2iSystemPrompt?: string;          // I2I 시스템 프롬프트 (재배치 규칙)
+    // ★★★ 고정/동적 프롬프트 분리 (NEW!)
+    fixedPrompt?: string;              // 고정 프롬프트 (제품일관성, 품질, no-text, 네거티브)
+    dynamicPrompt?: string;            // 동적 프롬프트 (테마, 섹션템플릿, 텍스트시각화 등)
   };
 }
 
@@ -951,16 +954,30 @@ export async function generateSectionImagePromptFromText(
     const advancedPrompt = buildUnifiedImagePrompt(sectionType, unifiedOptions, blockIndex);
 
     if (advancedPrompt) {
-      // 기본 품질 및 일관성 지시문
+      // 기본 품질 및 일관성 지시문 (고정)
       const noTextInstruction = 'absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only';
       const productConsistencyPrefix = `[CRITICAL - PRODUCT CONSISTENCY: The exact same "${productName}" must appear identically in all images]`;
       const qualityKeywords = '8K resolution, photorealistic, professional commercial photography, high-end advertising quality';
       const negativePrompt = buildNegativePrompt(['quality', 'style', 'content', 'composition'], category);
 
-      // 비주얼 테마 지시문
+      // 비주얼 테마 지시문 (동적)
       const themePrefix = visualTheme
         ? `[VISUAL THEME: ${visualTheme.consistencyPrompt}] [BACKGROUND: ${visualTheme.backgroundColors.gradient || visualTheme.backgroundColors.primary}]`
         : '';
+
+      // ★★★ 고정/동적 프롬프트 분리 (DEV 모드 표시용)
+      const fixedPromptParts = [
+        productConsistencyPrefix,
+        qualityKeywords,
+        noTextInstruction,
+        `--negative ${negativePrompt}`
+      ].filter(Boolean);
+
+      const dynamicPromptParts = [
+        themePrefix,
+        `[★★★ ADVANCED ${subCategory.toUpperCase()} PROMPT ★★★]`,
+        advancedPrompt,
+      ].filter(Boolean);
 
       // 최종 프롬프트 조합
       const finalPrompt = [
@@ -980,6 +997,11 @@ export async function generateSectionImagePromptFromText(
         position,
         imagePrompt: finalPrompt,
         compositionGuide,
+        // ★★★ 고정/동적 프롬프트 분리 반환 (DEV 모드용)
+        promptComponents: {
+          fixedPrompt: fixedPromptParts.join('\n\n'),
+          dynamicPrompt: dynamicPromptParts.join('\n\n'),
+        },
       };
     }
   }
@@ -1063,8 +1085,15 @@ ${indexBasedPrompt}
     : '';
 
   // 10. 최종 프롬프트 조합
-  const imagePrompt = [
+  // ★★★ 고정/동적 프롬프트 분리 (DEV 모드 표시용)
+  const fixedPromptParts = [
     productConsistencyPrefix,
+    qualityKeywords,
+    noTextInstruction,
+    `--negative ${negativePrompt}`
+  ].filter(Boolean);
+
+  const dynamicPromptParts = [
     themePrefix,
     productAppearance,
     productColors,
@@ -1072,9 +1101,12 @@ ${indexBasedPrompt}
     textBasedVisualization,   // 텍스트 기반 시각화 지시
     sectionVisualization,     // 섹션별 특화 연출
     baseTemplatePrompt,
-    qualityKeywords,
-    noTextInstruction,
-    `--negative ${negativePrompt}`
+  ].filter(Boolean);
+
+  const imagePrompt = [
+    ...fixedPromptParts.slice(0, 1),  // productConsistencyPrefix
+    ...dynamicPromptParts,
+    ...fixedPromptParts.slice(1),     // qualityKeywords, noTextInstruction, negative
   ].filter(Boolean).join(', ');
 
   console.log(`[Orchestration] Generated TEXT-DRIVEN prompt for ${sectionType}${indexBasedPrompt ? ' (with INDEXED prompt)' : ''}`);
@@ -1084,6 +1116,11 @@ ${indexBasedPrompt}
     position,
     imagePrompt,
     compositionGuide,
+    // ★★★ 고정/동적 프롬프트 분리 반환 (DEV 모드용)
+    promptComponents: {
+      fixedPrompt: fixedPromptParts.join('\n\n'),
+      dynamicPrompt: dynamicPromptParts.join('\n\n'),
+    },
   };
 }
 
