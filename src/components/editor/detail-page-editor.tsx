@@ -608,20 +608,29 @@ export function DetailPageEditor({
     const section = sections.find(s => s.id === sectionId);
     if (!section) return;
 
-    // MAIN 섹션은 재생성 제외 (별도 로직 필요)
-    const isMain = section.name === '메인' ||
-      section.id.includes('MAIN') ||
-      section.name?.toLowerCase().includes('main');
-    if (isMain) {
-      toast({
-        variant: 'destructive',
-        title: '재생성 불가',
-        description: 'MAIN 섹션은 개별 재생성이 지원되지 않습니다.',
-      });
-      return;
-    }
-
     setRegeneratingSectionId(sectionId);
+
+    // ID에서 섹션 타입 추출 (예: "section-MAIN-abc123" → "MAIN")
+    // 형식: section-{TYPE}-{uuid} 또는 section-{TYPE}_{index}-{uuid}
+    const extractSectionType = (id: string): string => {
+      const match = id.match(/section-([A-Z_]+)/i);
+      if (match) {
+        return match[1].toUpperCase().split('_')[0]; // HERO_LIP_1 → HERO
+      }
+      // fallback: 이름 기반 매핑
+      const nameToType: Record<string, string> = {
+        '메인': 'MAIN',
+        '히어로': 'HERO',
+        '특징': 'FEATURES',
+        '사용법': 'HOW_TO_USE',
+        '후기': 'SOCIAL_PROOF',
+        'faq': 'FAQ',
+      };
+      return nameToType[section.name.toLowerCase()] || section.name;
+    };
+
+    const sectionType = extractSectionType(sectionId);
+    console.log(`[Section Regenerate] sectionId: ${sectionId}, extracted type: ${sectionType}`);
 
     try {
       const response = await fetch('/api/generate/section', {
@@ -629,7 +638,7 @@ export function DetailPageEditor({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           projectId,
-          sectionType: section.name,
+          sectionType,
           sectionIndex,
         }),
       });
@@ -1124,7 +1133,7 @@ export function DetailPageEditor({
                             onUpdateBlock={(blockId, updates) => updateBlock(section.id, blockId, updates)}
                             onDeleteBlock={(blockId) => deleteBlock(section.id, blockId)}
                             onReorderBlocks={(start, end) => reorderBlocks(section.id, start, end)}
-                            onRegenerateSection={!isMain ? () => handleRegenerateSection(section.id, index) : undefined}
+                            onRegenerateSection={() => handleRegenerateSection(section.id, index)}
                           />
                           {/* 각 섹션 아래 섹션 추가 버튼 - MAIN 섹션 바로 아래는 숨김 */}
                           {!isMain && (
