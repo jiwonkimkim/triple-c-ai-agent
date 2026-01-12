@@ -9,6 +9,7 @@ import {
   ChevronDown,
   Plus,
   Settings,
+  RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -81,6 +82,8 @@ interface EditorSectionProps {
   isSelected: boolean;
   /** MAIN 섹션인지 여부 - 블록 추가 버튼 숨김, 특별 디자인 적용 */
   isMain?: boolean;
+  /** 섹션 이미지 재생성 중 여부 */
+  isRegenerating?: boolean;
   onSelectSection: () => void;
   onSelectBlock: (blockId: string | null) => void;
   onUpdateSection: (updates: Partial<Omit<Section, 'id'>>) => void;
@@ -91,6 +94,8 @@ interface EditorSectionProps {
   onUpdateBlock: (blockId: string, updates: Partial<EditorBlock>) => void;
   onDeleteBlock: (blockId: string) => void;
   onReorderBlocks: (startIndex: number, endIndex: number) => void;
+  /** 섹션 이미지 재생성 핸들러 */
+  onRegenerateSection?: () => void;
 }
 
 const blockTypes: { type: BlockType; label: string; description: string }[] = [
@@ -144,6 +149,7 @@ export function EditorSection({
   selectedBlockId,
   isSelected,
   isMain = false,
+  isRegenerating = false,
   onSelectSection,
   onSelectBlock,
   onUpdateSection,
@@ -154,6 +160,7 @@ export function EditorSection({
   onUpdateBlock,
   onDeleteBlock,
   onReorderBlocks,
+  onRegenerateSection,
 }: EditorSectionProps) {
   const [showSettings, setShowSettings] = useState(false);
   const [draggedBlockIndex, setDraggedBlockIndex] = useState<number | null>(null);
@@ -261,6 +268,22 @@ export function EditorSection({
                 <ChevronDown className="h-4 w-4" />
               </Button>
             </>
+          )}
+          {/* 섹션 이미지 재생성 버튼 */}
+          {onRegenerateSection && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRegenerateSection();
+              }}
+              disabled={isRegenerating}
+              title="이 섹션 이미지 재생성"
+            >
+              <RefreshCw className={cn('h-4 w-4', isRegenerating && 'animate-spin')} />
+            </Button>
           )}
           <Button
             variant="ghost"
