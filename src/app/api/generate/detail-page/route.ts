@@ -158,6 +158,13 @@ export async function POST(request: NextRequest) {
     const hasProductImages = validatedData.productImages && validatedData.productImages.length > 0;
     const shouldGenerateImages = validatedData.generateImages ?? !hasProductImages; // 제품 이미지 없으면 자동 T2I
 
+    // ★ 디버그: productImages 상태 로깅
+    console.log('[Generate] ★ productImages from request:', JSON.stringify(validatedData.productImages));
+    console.log('[Generate] ★ hasProductImages:', hasProductImages);
+    console.log('[Generate] ★ generateImages requested:', validatedData.generateImages);
+    console.log('[Generate] ★ shouldGenerateImages (final):', shouldGenerateImages);
+    console.log('[Generate] ★ Mode:', hasProductImages && shouldGenerateImages ? 'I2I' : (shouldGenerateImages ? 'T2I' : 'Direct'));
+
     const generationResult = await generateDetailPage({
       productImages: validatedData.productImages,
       productName: validatedData.productName,
