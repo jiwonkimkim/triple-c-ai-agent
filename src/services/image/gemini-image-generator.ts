@@ -628,10 +628,12 @@ export async function preprocessProductImage(
   try {
     console.log('[Gemini] Preprocessing product image (removing background)...');
 
+    // ★ transparent: false로 변경 - 흰색 배경 사용
+    // Gemini가 투명 배경을 바둑판 패턴으로 렌더링하는 문제 방지
     const result = await removeBackground({
       sourceImage,
       model,
-      transparent: true,
+      transparent: false,  // 흰색 배경 (#FFFFFF)
     });
 
     const dataUrl = base64ToDataUrl(result.base64Data, result.mimeType);
