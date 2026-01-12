@@ -918,67 +918,114 @@ Korean beauty trend: 글로우, 투명감, 프리미엄
   }
 
   // 섹션별 스타일 프롬프트 - 제품 이미지를 참조하여 각각 다른 구성 생성
-  // 각 섹션마다 다른 앵글, 위치, 크기를 명시적으로 지정
+  // ★★★ 각 섹션마다 다른 배치를 명확하게 지시 (상세페이지 시나리오 기반) ★★★
   const sectionPrompts: Record<string, string> = {
     MAIN: mainPrompt,
 
     HERO: `Create KOREAN E-COMMERCE HERO IMAGE using the provided product as reference.
-[KOREAN DETAIL PAGE - HERO STYLE 히어로 섹션]
-- Product placement: UPPER CENTER (30-40% from top)
-- Product size: LARGE, commanding presence (55-65% of frame)
-- Angle: FRONT-FACING with subtle 10-degree tilt
-- Background: Dramatic gradient (soft cream to white, Korean beauty style)
-- Lighting: Strong rim lighting from behind, soft fill from front
-- Add elegant bokeh lights for depth (Korean 광채 feel)
-- Space for brand name and slogan at TOP and BOTTOM
-Premium Korean beauty brand aesthetic, 올리브영 스타일.${keyFeatures ? ` Emphasize: ${keyFeatures[0]}` : ''}
+
+[★★★ CRITICAL: PRODUCT PLACEMENT - 히어로 섹션 ★★★]
+This is for a HERO BANNER at the top of a product detail page.
+The product should be PROMINENTLY DISPLAYED but with SPACE for text overlays.
+
+MANDATORY COMPOSITION:
+- Place product in UPPER AREA of frame (top 40%)
+- Product takes 50-60% of frame - LARGE and commanding
+- Leave BOTTOM 30% EMPTY for headline/CTA text overlay
+- Slight floating effect - product casting soft shadow below
+
+DO NOT place product in exact center. Shift it UPWARD.
+
+[VISUAL STYLE]
+- Dramatic gradient background (Korean 고급스러움)
+- Strong rim lighting creating premium glow effect
+- 올리브영/쿠팡 스타일 hero banner aesthetic
+${keyFeatures ? `- Emphasize: ${keyFeatures[0]}` : ''}
 8K, photorealistic, no text in image.`,
 
     FEATURES: `Create KOREAN E-COMMERCE FEATURES IMAGE using the provided product as reference.
-[KOREAN DETAIL PAGE - FEATURES STYLE 특징 섹션]
-- Product placement: LEFT SIDE (25-35% from left)
-- Product size: MEDIUM (35-45% of frame)
-- Angle: 45-DEGREE showing product details
-- Background: Clean white/cream gradient (Korean clean aesthetic)
-- RIGHT SIDE: Large clean space for feature icons and text overlay
-- Show product texture/quality details clearly
-- Add subtle ingredient visualization near product
-Modern, clean Korean beauty aesthetic.${keyFeatures ? ` Feature: ${keyFeatures.slice(0, 2).join(', ')}` : ''}
+
+[★★★ CRITICAL: PRODUCT PLACEMENT - 특징 소개 섹션 ★★★]
+This is for a FEATURES section where product benefits are explained.
+The product should be on ONE SIDE to leave space for feature descriptions.
+
+MANDATORY COMPOSITION:
+- Place product on LEFT SIDE of frame (positioned at 20-30% from left edge)
+- Product takes only 35-40% of frame width
+- Leave RIGHT 50-60% COMPLETELY EMPTY for text/icons overlay
+- Show product at 45-degree angle to reveal details
+- Product should be vertically centered
+
+DO NOT center the product. Keep it clearly on the LEFT.
+
+[VISUAL STYLE]
+- Clean white/cream background (Korean 클린뷰티)
+- Soft even lighting showing product texture clearly
+${keyFeatures ? `- Highlight: ${keyFeatures.slice(0, 2).join(', ')}` : ''}
 8K, photorealistic, no text in image.`,
 
     SOCIAL_PROOF: `Create KOREAN E-COMMERCE SOCIAL PROOF IMAGE using the provided product as reference.
-[KOREAN DETAIL PAGE - SOCIAL PROOF STYLE 후기/리뷰 섹션]
-- Product placement: BOTTOM RIGHT (65-75% from left, 60-70% from top)
-- Product size: SMALLER (25-35% of frame)
-- Angle: SLIGHT TOP-DOWN view (15-20 degrees)
-- Background: Warm, inviting neutral tones (Korean 신뢰감)
-- UPPER-LEFT: Large empty space for testimonial/statistics overlay
-- Soft, natural lighting that feels authentic and trustworthy
-Professional, trustworthy Korean e-commerce aesthetic.${targetAudience ? ` Target: ${targetAudience}` : ''}
+
+[★★★ CRITICAL: PRODUCT PLACEMENT - 후기/리뷰 섹션 ★★★]
+This is for a REVIEWS/TESTIMONIAL section showing customer satisfaction.
+The product should be SMALL and SUBTLE, not the main focus.
+
+MANDATORY COMPOSITION:
+- Place product in BOTTOM-RIGHT CORNER (70% from left, 65% from top)
+- Product takes only 25-30% of frame - SMALL size
+- Leave UPPER-LEFT 60% EMPTY for review text/stars overlay
+- Top-down slight angle view (looking down at product)
+- Create cozy, lifestyle atmosphere
+
+DO NOT make product large. DO NOT center it. Keep it SMALL in CORNER.
+
+[VISUAL STYLE]
+- Warm, inviting background tones (beige, soft pink)
+- Natural, authentic lighting (not studio-perfect)
+- Lifestyle context feeling (on table, bathroom counter)
+${targetAudience ? `- Target audience: ${targetAudience}` : ''}
 8K, photorealistic, no text in image.`,
 
     HOW_TO_USE: `Create KOREAN E-COMMERCE HOW-TO-USE IMAGE using the provided product as reference.
-[KOREAN DETAIL PAGE - HOW TO USE STYLE 사용법 섹션]
-- Product placement: CENTER-RIGHT (55-65% from left)
-- Product size: MEDIUM-LARGE (40-50% of frame)
-- Angle: SIDE PROFILE view showing application angle
-- Background: Bright, clean white (clinical yet friendly)
-- Suggest hands or application context (not holding, nearby)
-- Bright, even lighting for clear instructional purpose
-- LEFT SIDE: Space for step-by-step text overlay (STEP 1, 2, 3)
-Clean Korean beauty tutorial aesthetic.
+
+[★★★ CRITICAL: PRODUCT PLACEMENT - 사용법 섹션 ★★★]
+This is for a HOW-TO-USE tutorial section with step instructions.
+The product should be positioned to show APPLICATION context.
+
+MANDATORY COMPOSITION:
+- Place product on RIGHT SIDE (60-70% from left)
+- Product takes 40-45% of frame
+- LEFT 40% should be EMPTY for step-by-step text (STEP 1, 2, 3)
+- Show product at SIDE ANGLE suggesting usage motion
+- Include subtle hand/finger silhouette nearby (not touching)
+
+DO NOT center the product. Position it on the RIGHT side.
+
+[VISUAL STYLE]
+- Bright, clinical white background (tutorial clarity)
+- Even, shadowless lighting for clear instruction
+- Show product dispensing/application angle
 8K, photorealistic, no text in image.`,
 
-    FAQ: `Create KOREAN E-COMMERCE FAQ/INFO IMAGE using the provided product as reference.
-[KOREAN DETAIL PAGE - FAQ STYLE 정보 섹션]
-- Product placement: LOWER CENTER (50% from left, 55-65% from top)
-- Product size: MEDIUM (35-45% of frame)
-- Angle: STRAIGHT-ON front view for clear identification
-- Background: Simple gradient with large space for Q&A at top
-- Professional, informative studio lighting
-- Clean, minimal styling (Korean 미니멀)
-- TOP AREA: Large clean space for FAQ text overlay
-Professional Korean e-commerce showcase style.
+    FAQ: `Create KOREAN E-COMMERCE FAQ IMAGE using the provided product as reference.
+
+[★★★ CRITICAL: PRODUCT PLACEMENT - FAQ/정보 섹션 ★★★]
+This is for an FAQ section at the bottom of detail page.
+The product should be at BOTTOM with space for Q&A above.
+
+MANDATORY COMPOSITION:
+- Place product in BOTTOM CENTER (50% from left, 70% from top)
+- Product takes 35-40% of frame
+- TOP 50% should be EMPTY for FAQ text overlay
+- Front-facing straight angle for easy identification
+- Minimal, clean presentation
+
+Position product LOW in the frame, not centered vertically.
+
+[VISUAL STYLE]
+- Simple clean gradient background
+- Professional studio lighting
+- Korean 미니멀 aesthetic
 8K, photorealistic, no text in image.`,
   };
 
