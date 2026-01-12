@@ -165,6 +165,14 @@ export default function NewProjectPage() {
   const [projectId, setProjectId] = useState<string | null>(null);
   const [productImages, setProductImages] = useState<string[]>([]);
   const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
+  const [selectedBrand, setSelectedBrand] = useState<{
+    id: string;
+    name: string;
+    styleGuide?: {
+      colors?: { primary?: string; secondary?: string; palette?: string[] };
+      images?: { logo?: string; ogImage?: string; favicon?: string };
+    } | null;
+  } | null>(null);
   const [uploadedImageUrls, setUploadedImageUrls] = useState<string[]>([]);
   const [productInfo, setProductInfo] = useState<{
     productName: string;
@@ -583,6 +591,7 @@ export default function NewProjectPage() {
               <BrandSelect
                 value={selectedBrandId}
                 onChange={setSelectedBrandId}
+                onBrandSelect={(brand) => setSelectedBrand(brand as typeof selectedBrand)}
               />
 
               <div className="flex justify-end gap-4">
@@ -615,7 +624,7 @@ export default function NewProjectPage() {
                 최대 5장의 제품 이미지를 업로드할 수 있습니다
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
                 {productImages.map((img, index) => (
                   <div key={index} className="relative aspect-square">
@@ -651,6 +660,83 @@ export default function NewProjectPage() {
                   </label>
                 )}
               </div>
+
+              {/* 브랜드 추출 이미지 선택 */}
+              {selectedBrand?.styleGuide?.images && (
+                selectedBrand.styleGuide.images.logo ||
+                selectedBrand.styleGuide.images.ogImage
+              ) && (
+                <div className="border-t pt-4">
+                  <p className="text-sm font-medium mb-2">브랜드에서 추출된 이미지</p>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    클릭하여 제품 이미지로 추가할 수 있습니다
+                  </p>
+                  <div className="flex gap-3 flex-wrap">
+                    {selectedBrand.styleGuide.images.logo && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (productImages.length < 5 && selectedBrand.styleGuide?.images?.logo) {
+                            setProductImages((prev) => [...prev, selectedBrand.styleGuide!.images!.logo!]);
+                            toast({
+                              title: '이미지 추가됨',
+                              description: '브랜드 로고가 제품 이미지에 추가되었습니다.',
+                            });
+                          }
+                        }}
+                        disabled={productImages.length >= 5 || productImages.includes(selectedBrand.styleGuide.images.logo)}
+                        className="relative group p-2 rounded-lg border border-border hover:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <img
+                          src={selectedBrand.styleGuide.images.logo}
+                          alt="브랜드 로고"
+                          className="h-16 w-auto max-w-[100px] object-contain"
+                          onError={(e) => { e.currentTarget.parentElement!.style.display = 'none'; }}
+                        />
+                        <span className="absolute -bottom-5 left-0 right-0 text-[10px] text-muted-foreground text-center">
+                          로고
+                        </span>
+                        {productImages.includes(selectedBrand.styleGuide.images.logo) && (
+                          <div className="absolute inset-0 bg-primary/20 rounded-lg flex items-center justify-center">
+                            <span className="text-xs text-primary font-medium">추가됨</span>
+                          </div>
+                        )}
+                      </button>
+                    )}
+                    {selectedBrand.styleGuide.images.ogImage && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (productImages.length < 5 && selectedBrand.styleGuide?.images?.ogImage) {
+                            setProductImages((prev) => [...prev, selectedBrand.styleGuide!.images!.ogImage!]);
+                            toast({
+                              title: '이미지 추가됨',
+                              description: '브랜드 대표 이미지가 제품 이미지에 추가되었습니다.',
+                            });
+                          }
+                        }}
+                        disabled={productImages.length >= 5 || productImages.includes(selectedBrand.styleGuide.images.ogImage)}
+                        className="relative group p-2 rounded-lg border border-border hover:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <img
+                          src={selectedBrand.styleGuide.images.ogImage}
+                          alt="브랜드 대표 이미지"
+                          className="h-16 w-auto max-w-[100px] object-contain"
+                          onError={(e) => { e.currentTarget.parentElement!.style.display = 'none'; }}
+                        />
+                        <span className="absolute -bottom-5 left-0 right-0 text-[10px] text-muted-foreground text-center">
+                          대표이미지
+                        </span>
+                        {productImages.includes(selectedBrand.styleGuide.images.ogImage) && (
+                          <div className="absolute inset-0 bg-primary/20 rounded-lg flex items-center justify-center">
+                            <span className="text-xs text-primary font-medium">추가됨</span>
+                          </div>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
