@@ -715,18 +715,30 @@ export async function generateImageFromImage(
       aspectRatioSection = `\n[IMAGE FORMAT]\n${aspectRatioInstruction}\n`;
     }
 
-    // ★★★ 강화된 제품 일관성 프롬프트 ★★★
-    const enhancedPrompt = `[★★★ ABSOLUTE PRODUCT IDENTITY LOCK ★★★]
-The product in the reference image MUST be reproduced EXACTLY as shown:
-- SAME bottle/tube/container shape - do not modify the product form
-- SAME cap/lid design and color
-- SAME color scheme and gradients on packaging
-- SAME proportions, size relationships, and dimensions
-- SAME surface texture, finish (matte/glossy), and material appearance
-- SAME label placement and brand elements (if visible)
+    // ★★★ 상세페이지용 제품 광고 이미지 생성 프롬프트 ★★★
+    const enhancedPrompt = `[★★★ PRODUCT DETAIL PAGE IMAGE GENERATION ★★★]
 
-CRITICAL: DO NOT redesign, reinterpret, or modify the product in ANY way.
-The product must look like the EXACT SAME physical item, just photographed differently.
+[CONTEXT - 맥락]
+The attached image contains the PRODUCT we are selling.
+This is the actual product that will be featured on our e-commerce detail page.
+Your task is to CREATE ADVERTISING IMAGES for this product.
+
+첨부된 이미지의 제품이 우리가 판매할 제품입니다.
+이 제품을 활용하여 상세페이지 광고 이미지를 생성하세요.
+
+[PRODUCT IDENTITY - 제품 동일성 유지]
+The product in the attached image MUST appear EXACTLY as shown:
+- SAME shape, design, color, packaging
+- SAME proportions and dimensions
+- SAME surface texture and finish
+- DO NOT redesign or modify the product
+
+[YOUR TASK - 생성할 이미지]
+Create a professional e-commerce detail page image that:
+- Features THIS EXACT PRODUCT as the hero/main subject
+- Makes this product look attractive and desirable
+- Encourages customers to purchase this product
+- Follows Korean beauty e-commerce style (올리브영/쿠팡 스타일)
 
 [WHAT YOU CAN CHANGE]
 - Background: scenery, colors, gradients, textures
@@ -739,9 +751,9 @@ ${aspectRatioSection}
 ${prompt}
 
 [OUTPUT REQUIREMENTS]
-- The EXACT same product from the reference, not a similar or redesigned version
-- Professional commercial photography quality
-- Dynamic and appealing composition
+- The EXACT same product from the attached image
+- Professional commercial photography quality for e-commerce
+- Make the product look premium and desirable
 - High-quality 8K resolution output
 - Absolutely no text, typography, or watermarks on the image`;
 
