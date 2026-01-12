@@ -15,14 +15,20 @@ export type SkincareDetailSectionType =
   | 'BRAND_TRUST'        // 섹션 1: 브랜드 신뢰 배너 (공식 판매처)
   | 'AWARD_RANKING'      // 섹션 2: 수상/랭킹 배너
   | 'HERO_SPLASH'        // 섹션 3: 히어로 제품샷 (물/텍스처 스플래시)
-  | 'REVIEW_SHOWCASE'    // 섹션 4: 소비자 리뷰 섹션
-  | 'EFFICACY_VISUAL'    // 섹션 5: 핵심 효능 비주얼 (피부층 흡수)
-  | 'INGREDIENT_TECH'    // 섹션 6: 성분/기술 설명
-  | 'MODEL_RESULT'       // 섹션 7: 모델 사용샷/효과
-  | 'STEP_GUIDE'         // 섹션 8: 사용 방법 (How-to)
-  | 'PRODUCT_LINEUP'     // 섹션 9: 제품 라인업 (시리즈 소개)
-  | 'SIZE_OPTIONS'       // 섹션 10: 용량/가격 옵션
-  | 'CTA_CLOSING';       // 섹션 11: 클로징 CTA 배너
+  | 'TEXT_BANNER_1'      // 섹션 4: 텍스트 배너 (카피/슬로건)
+  | 'REVIEW_SHOWCASE'    // 섹션 5: 소비자 리뷰 섹션
+  | 'KEY_MESSAGE_1'      // 섹션 6: 핵심 메시지 배경
+  | 'EFFICACY_VISUAL'    // 섹션 7: 핵심 효능 비주얼 (피부층 흡수)
+  | 'BENEFIT_HIGHLIGHT_1'// 섹션 8: 성분/효능 하이라이트 배경
+  | 'INGREDIENT_TECH'    // 섹션 9: 성분/기술 설명
+  | 'MODEL_RESULT'       // 섹션 10: 모델 사용샷/효과
+  | 'DIVIDER_VISUAL_1'   // 섹션 11: 섹션 구분 비주얼
+  | 'STEP_GUIDE'         // 섹션 12: 사용 방법 (How-to)
+  | 'KEY_MESSAGE_2'      // 섹션 13: 핵심 메시지 배경 2
+  | 'PRODUCT_LINEUP'     // 섹션 14: 제품 라인업 (시리즈 소개)
+  | 'TEXT_BANNER_2'      // 섹션 15: 텍스트 배너 2 (클로징 카피)
+  | 'SIZE_OPTIONS'       // 섹션 16: 용량/가격 옵션
+  | 'CTA_CLOSING';       // 섹션 17: 클로징 CTA 배너
 
 // ============================================
 // 스킨케어 서브카테고리 정의
@@ -113,15 +119,27 @@ export const SKINCARE_SECTION_BLOCKS: Record<SkincareDetailSectionType, SectionB
     { blockIndex: 1, conceptType: 'bubble-float', promptModifier: 'product floating with rising bubbles', aspectRatio: '1:1' },
     { blockIndex: 2, conceptType: 'droplet-macro', promptModifier: 'macro shot with water droplets on surface', aspectRatio: '4:3' },
   ],
+  TEXT_BANNER_1: [
+    { blockIndex: 0, conceptType: 'gradient-banner', promptModifier: 'clean white to soft mint gradient with ample text space', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'abstract-flow', promptModifier: 'abstract flowing water shapes with soft blur', aspectRatio: '2:1' },
+  ],
   REVIEW_SHOWCASE: [
     { blockIndex: 0, conceptType: 'review-cards', promptModifier: 'review cards with speech bubbles layout', aspectRatio: '3:2' },
     { blockIndex: 1, conceptType: 'sns-style', promptModifier: 'SNS post style review mockup', aspectRatio: '1:1' },
     { blockIndex: 2, conceptType: 'rating-summary', promptModifier: 'rating summary infographic', aspectRatio: '2:1' },
   ],
+  KEY_MESSAGE_1: [
+    { blockIndex: 0, conceptType: 'center-focus', promptModifier: 'soft aqua radial gradient with bright center for text focus', aspectRatio: '1:1' },
+    { blockIndex: 1, conceptType: 'soft-blur', promptModifier: 'soft blurred water droplets as background', aspectRatio: '4:3' },
+  ],
   EFFICACY_VISUAL: [
     { blockIndex: 0, conceptType: 'skin-layer', promptModifier: 'cross-section skin layer absorption diagram', aspectRatio: '4:3' },
     { blockIndex: 1, conceptType: 'before-after', promptModifier: 'before-after skin texture comparison', aspectRatio: '2:1' },
     { blockIndex: 2, conceptType: 'moisture-meter', promptModifier: 'hydration level meter visualization', aspectRatio: '1:1' },
+  ],
+  BENEFIT_HIGHLIGHT_1: [
+    { blockIndex: 0, conceptType: 'split-layout', promptModifier: 'split aqua blue background for icon and text placement', aspectRatio: '2:1' },
+    { blockIndex: 1, conceptType: 'card-style', promptModifier: 'card-style background with subtle water shadow', aspectRatio: '3:2' },
   ],
   INGREDIENT_TECH: [
     { blockIndex: 0, conceptType: 'molecule-3d', promptModifier: '3D molecular structure floating', aspectRatio: '1:1' },
@@ -133,15 +151,27 @@ export const SKINCARE_SECTION_BLOCKS: Record<SkincareDetailSectionType, SectionB
     { blockIndex: 1, conceptType: 'result-glow', promptModifier: 'model showing glowing skin result', aspectRatio: '1:1' },
     { blockIndex: 2, conceptType: 'close-up-skin', promptModifier: 'extreme close-up dewy skin texture', aspectRatio: '4:3' },
   ],
+  DIVIDER_VISUAL_1: [
+    { blockIndex: 0, conceptType: 'wave-divider', promptModifier: 'elegant aqua wave pattern divider', aspectRatio: '6:1' },
+    { blockIndex: 1, conceptType: 'line-accent', promptModifier: 'thin blue decorative line with water droplet ornament', aspectRatio: '8:1' },
+  ],
   STEP_GUIDE: [
     { blockIndex: 0, conceptType: 'step-1', promptModifier: 'step 1 dispense product', aspectRatio: '1:1' },
     { blockIndex: 1, conceptType: 'step-2', promptModifier: 'step 2 spread on skin', aspectRatio: '1:1' },
     { blockIndex: 2, conceptType: 'step-3', promptModifier: 'step 3 pat gently', aspectRatio: '1:1' },
   ],
+  KEY_MESSAGE_2: [
+    { blockIndex: 0, conceptType: 'center-focus', promptModifier: 'soft white to mint gradient with ethereal glow center', aspectRatio: '1:1' },
+    { blockIndex: 1, conceptType: 'geometric-minimal', promptModifier: 'minimal geometric shapes in aqua framing center', aspectRatio: '3:2' },
+  ],
   PRODUCT_LINEUP: [
     { blockIndex: 0, conceptType: 'full-lineup', promptModifier: 'complete product line arranged', aspectRatio: '3:2' },
     { blockIndex: 1, conceptType: 'hero-product', promptModifier: 'hero product highlighted in lineup', aspectRatio: '1:1' },
     { blockIndex: 2, conceptType: 'routine-order', promptModifier: 'products in routine order sequence', aspectRatio: '4:1' },
+  ],
+  TEXT_BANNER_2: [
+    { blockIndex: 0, conceptType: 'closing-gradient', promptModifier: 'elegant white to soft blue fade with subtle sparkle elements', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'abstract-minimal', promptModifier: 'minimal abstract water droplet accent at corners', aspectRatio: '2:1' },
   ],
   SIZE_OPTIONS: [
     { blockIndex: 0, conceptType: 'size-comparison', promptModifier: 'multiple sizes side by side comparison', aspectRatio: '3:1' },
@@ -211,6 +241,19 @@ luxury pharmacy skincare mood, professional commercial photography,
 CRITICAL: ABSOLUTELY NO TEXT NO LETTERS on product or background
 `.trim(),
 
+  TEXT_BANNER_1: `
+Clean elegant banner background for text overlay,
+soft white to mint gradient background,
+ample negative space in center for large typography,
+subtle water droplet or bubble shapes at edges only,
+professional Korean skincare brand aesthetic,
+pure clean fresh mood,
+soft lighting with gentle aqua glow,
+visually balanced horizontal composition for text placement,
+premium K-beauty skincare marketing style,
+CRITICAL: NO TEXT NO LETTERS - pure gradient background only, text will be added later
+`.trim(),
+
   REVIEW_SHOWCASE: `
 Customer review showcase design, speech bubble elements,
 heart icons and thumbs up symbols floating,
@@ -223,6 +266,18 @@ friendly approachable feel, user-generated content style mockup,
 CRITICAL: NO TEXT - only UI mockup shapes and icons
 `.trim(),
 
+  KEY_MESSAGE_1: `
+Focused background design for key message highlight,
+soft radial aqua gradient drawing attention to center,
+ethereal clean atmosphere with subtle water glow,
+blurred abstract shapes or skincare product silhouette in background,
+clean space for impactful single message,
+Korean beauty skincare editorial style,
+luxury pharmacy skincare campaign aesthetic,
+pure and fresh sophisticated mood,
+CRITICAL: NO TEXT NO LETTERS - visual background only
+`.trim(),
+
   EFFICACY_VISUAL: `
 Skin hydration concept visualization,
 cross-section diagram of skin layers absorbing moisture,
@@ -233,6 +288,18 @@ scientific skincare infographic style,
 clean medical illustration aesthetic,
 hydration technology demonstration, Korean beauty skin science visual,
 CRITICAL: NO TEXT NO LABELS - pure visual diagram only
+`.trim(),
+
+  BENEFIT_HIGHLIGHT_1: `
+Clean infographic-style background layout for skincare product benefits,
+organized sections for benefit icons and descriptions,
+soft aqua blue and white color blocks or gradient sections,
+space for 3-4 benefit points with icon placeholders,
+professional skincare ingredient benefit layout,
+Korean pharmacy skincare brand explanation style,
+scientific yet clean approachable design,
+clean organized visual hierarchy with water droplet accents,
+CRITICAL: NO TEXT NO ICONS - background layout only
 `.trim(),
 
   INGREDIENT_TECH: `
@@ -258,6 +325,18 @@ healthy skin glow, natural no-makeup makeup look,
 CRITICAL: NO TEXT overlays on image
 `.trim(),
 
+  DIVIDER_VISUAL_1: `
+Elegant section divider visual element,
+decorative transition between skincare content sections,
+subtle wave pattern or flowing water line design in aqua tones,
+gradient color transition strip from white to soft blue,
+minimal water droplet ornamental accent,
+Korean skincare beauty page design aesthetic,
+smooth visual flow element with clean fresh touch,
+thin horizontal decorative band,
+CRITICAL: NO TEXT - decorative visual only
+`.trim(),
+
   STEP_GUIDE: `
 Step-by-step skincare application guide visual,
 3-step process infographic layout,
@@ -271,6 +350,17 @@ Korean skincare routine tutorial aesthetic,
 CRITICAL: NO TEXT - numbered circles and arrows only
 `.trim(),
 
+  KEY_MESSAGE_2: `
+Elegant background for secondary key message,
+soft white to mint gradient with ethereal center glow,
+dreamy clean atmosphere with subtle sparkle,
+minimal geometric frames in soft aqua,
+clean open space for impactful typography,
+luxury K-beauty skincare campaign style,
+sophisticated fresh mood,
+CRITICAL: NO TEXT NO LETTERS - visual background only
+`.trim(),
+
   PRODUCT_LINEUP: `
 Product family flat lay arrangement,
 complete skincare line products displayed,
@@ -282,6 +372,18 @@ professional catalog product photography,
 top-down or 45-degree angle view, consistent lighting,
 pharmacy skincare collection display,
 CRITICAL: NO TEXT NO LABELS on products
+`.trim(),
+
+  TEXT_BANNER_2: `
+Closing banner background for final text message,
+elegant white to soft blue fade gradient,
+subtle water sparkle or light bokeh overlay effect,
+minimal abstract water droplet accent elements at corners,
+professional Korean skincare brand closing aesthetic,
+pure clean fresh mood for call-to-action,
+clean composition with ample text space,
+premium pharmacy skincare marketing closing style,
+CRITICAL: NO TEXT NO LETTERS - pure background only
 `.trim(),
 
   SIZE_OPTIONS: `
@@ -423,12 +525,18 @@ export function buildSkincareFullPromptSet(
     'BRAND_TRUST',
     'AWARD_RANKING',
     'HERO_SPLASH',
+    'TEXT_BANNER_1',
     'REVIEW_SHOWCASE',
+    'KEY_MESSAGE_1',
     'EFFICACY_VISUAL',
+    'BENEFIT_HIGHLIGHT_1',
     'INGREDIENT_TECH',
     'MODEL_RESULT',
+    'DIVIDER_VISUAL_1',
     'STEP_GUIDE',
+    'KEY_MESSAGE_2',
     'PRODUCT_LINEUP',
+    'TEXT_BANNER_2',
     'SIZE_OPTIONS',
     'CTA_CLOSING',
   ];

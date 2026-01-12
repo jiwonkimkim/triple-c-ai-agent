@@ -15,18 +15,24 @@ import type { ProductVisualReference } from './types';
 export type LipDetailSectionType =
   | 'BRAND_HEADER'        // 섹션 1: 브랜드 헤더
   | 'HERO_LIP'            // 섹션 2: 히어로 제품샷 (메인 배너)
-  | 'COLOR_SWATCHES'      // 섹션 3: 컬러 배리에이션 스와치
-  | 'MODEL_LIP_CLOSEUP_1' // 섹션 4: 모델 립 클로즈업 (코랄/피치)
-  | 'TEXTURE_VISUAL'      // 섹션 5: 제품 텍스처 비주얼
-  | 'MODEL_WEARING_1'     // 섹션 6: 모델 착용샷 (핑크 톤)
-  | 'COLOR_COMPARISON'    // 섹션 7: 발색 비교 (비포/애프터)
-  | 'INGREDIENTS_EFFECT'  // 섹션 8: 성분/효능 설명
-  | 'MODEL_WEARING_2'     // 섹션 9: 모델 착용샷 (레드/베리 톤)
-  | 'MULTI_COLOR_GRID'    // 섹션 10: 멀티 컬러 립 클로즈업 그리드
-  | 'LONGEVITY_INFO'      // 섹션 11: 사용감/지속력 설명
-  | 'HOW_TO_USE'          // 섹션 12: 제품 사용법
-  | 'FULL_LINEUP'         // 섹션 13: 전체 컬러 라인업
-  | 'CTA_CLOSING';        // 섹션 14: 클로징 배너
+  | 'TEXT_BANNER_1'       // 섹션 3: 텍스트 배너 (카피/슬로건)
+  | 'COLOR_SWATCHES'      // 섹션 4: 컬러 배리에이션 스와치
+  | 'MODEL_LIP_CLOSEUP_1' // 섹션 5: 모델 립 클로즈업 (코랄/피치)
+  | 'KEY_MESSAGE_1'       // 섹션 6: 핵심 메시지 배경
+  | 'TEXTURE_VISUAL'      // 섹션 7: 제품 텍스처 비주얼
+  | 'MODEL_WEARING_1'     // 섹션 8: 모델 착용샷 (핑크 톤)
+  | 'BENEFIT_HIGHLIGHT_1' // 섹션 9: 성분/효능 하이라이트 배경
+  | 'COLOR_COMPARISON'    // 섹션 10: 발색 비교 (비포/애프터)
+  | 'INGREDIENTS_EFFECT'  // 섹션 11: 성분/효능 설명
+  | 'DIVIDER_VISUAL_1'    // 섹션 12: 섹션 구분 비주얼
+  | 'MODEL_WEARING_2'     // 섹션 13: 모델 착용샷 (레드/베리 톤)
+  | 'MULTI_COLOR_GRID'    // 섹션 14: 멀티 컬러 립 클로즈업 그리드
+  | 'KEY_MESSAGE_2'       // 섹션 15: 핵심 메시지 배경 2
+  | 'LONGEVITY_INFO'      // 섹션 16: 사용감/지속력 설명
+  | 'HOW_TO_USE'          // 섹션 17: 제품 사용법
+  | 'TEXT_BANNER_2'       // 섹션 18: 텍스트 배너 2 (클로징 카피)
+  | 'FULL_LINEUP'         // 섹션 19: 전체 컬러 라인업
+  | 'CTA_CLOSING';        // 섹션 20: 클로징 배너
 
 // ============================================
 // 립 서브카테고리 정의
@@ -183,6 +189,30 @@ export const LIP_SECTION_BLOCKS: Record<LipDetailSectionType, LipSectionBlockVar
     { blockIndex: 1, conceptType: 'single-hero', promptModifier: 'single hero product with dreamy background', aspectRatio: '1:1' },
     { blockIndex: 2, conceptType: 'applicator-detail', promptModifier: 'doe-foot applicator with product texture visible', aspectRatio: '4:3' },
   ],
+  TEXT_BANNER_1: [
+    { blockIndex: 0, conceptType: 'gradient-banner', promptModifier: 'soft pink to coral gradient with ample text space', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'abstract-flow', promptModifier: 'abstract flowing pink shapes with soft blur', aspectRatio: '2:1' },
+  ],
+  KEY_MESSAGE_1: [
+    { blockIndex: 0, conceptType: 'center-focus', promptModifier: 'radial pink gradient with bright center for text focus', aspectRatio: '1:1' },
+    { blockIndex: 1, conceptType: 'soft-blur', promptModifier: 'soft blurred lip product silhouette as background', aspectRatio: '4:3' },
+  ],
+  BENEFIT_HIGHLIGHT_1: [
+    { blockIndex: 0, conceptType: 'split-layout', promptModifier: 'split pink background for icon and text placement', aspectRatio: '2:1' },
+    { blockIndex: 1, conceptType: 'card-style', promptModifier: 'card-style background with subtle rose shadow', aspectRatio: '3:2' },
+  ],
+  DIVIDER_VISUAL_1: [
+    { blockIndex: 0, conceptType: 'wave-divider', promptModifier: 'elegant pink wave pattern divider', aspectRatio: '6:1' },
+    { blockIndex: 1, conceptType: 'line-accent', promptModifier: 'thin rose gold decorative line with subtle ornament', aspectRatio: '8:1' },
+  ],
+  KEY_MESSAGE_2: [
+    { blockIndex: 0, conceptType: 'center-focus', promptModifier: 'soft coral gradient with ethereal glow center', aspectRatio: '1:1' },
+    { blockIndex: 1, conceptType: 'geometric-minimal', promptModifier: 'minimal geometric shapes in pink framing center', aspectRatio: '3:2' },
+  ],
+  TEXT_BANNER_2: [
+    { blockIndex: 0, conceptType: 'closing-gradient', promptModifier: 'elegant pink to white fade with sparkle elements', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'abstract-minimal', promptModifier: 'minimal abstract pink accent at corners', aspectRatio: '2:1' },
+  ],
   COLOR_SWATCHES: [
     { blockIndex: 0, conceptType: 'arm-swatches', promptModifier: 'color swatches on arm skin in gradient arrangement', aspectRatio: '3:2' },
     { blockIndex: 1, conceptType: 'surface-swatches', promptModifier: 'swatches on clear acrylic or white surface', aspectRatio: '2:1' },
@@ -298,6 +328,78 @@ doe-foot applicator or bullet tip slightly visible,
 high-end K-beauty lip product photography,
 luminous glossy aesthetic, editorial beauty campaign style,
 CRITICAL: NO TEXT NO PRODUCT NAMES - visual only
+`.trim(),
+
+  TEXT_BANNER_1: `
+Clean elegant banner background for text overlay,
+soft pink to coral gradient background,
+ample negative space in center for large typography,
+subtle abstract lip-inspired shapes at edges only,
+professional Korean lip cosmetic brand aesthetic,
+feminine romantic elegant mood,
+soft lighting with gentle pink glow,
+visually balanced horizontal composition for text placement,
+premium K-beauty lip marketing style,
+CRITICAL: NO TEXT NO LETTERS - pure gradient background only, text will be added later
+`.trim(),
+
+  KEY_MESSAGE_1: `
+Focused background design for key message highlight,
+soft radial pink gradient drawing attention to center,
+ethereal dreamy feminine atmosphere with subtle rose glow,
+blurred abstract shapes or lip product silhouette in background,
+clean space for impactful single message,
+Korean beauty lip editorial style,
+luxury lip cosmetic campaign aesthetic,
+elegant and romantic sophisticated mood,
+CRITICAL: NO TEXT NO LETTERS - visual background only
+`.trim(),
+
+  BENEFIT_HIGHLIGHT_1: `
+Clean infographic-style background layout for lip product benefits,
+organized sections for benefit icons and descriptions,
+soft pink and coral color blocks or gradient sections,
+space for 3-4 benefit points with icon placeholders,
+professional lip cosmetic ingredient benefit layout,
+Korean lip care brand explanation style,
+scientific yet feminine approachable design,
+clean organized visual hierarchy with rose accents,
+CRITICAL: NO TEXT NO ICONS - background layout only
+`.trim(),
+
+  DIVIDER_VISUAL_1: `
+Elegant section divider visual element,
+decorative transition between lip product content sections,
+subtle wave pattern or flowing line design in pink tones,
+gradient color transition strip from coral to pink,
+minimal rose gold ornamental accent,
+Korean lip beauty page design aesthetic,
+smooth visual flow element with feminine touch,
+thin horizontal decorative band,
+CRITICAL: NO TEXT - decorative visual only
+`.trim(),
+
+  KEY_MESSAGE_2: `
+Elegant background for secondary key message,
+soft coral to pink gradient with ethereal center glow,
+dreamy romantic atmosphere with subtle sparkle,
+minimal geometric frames in rose gold,
+clean open space for impactful typography,
+luxury K-beauty lip campaign style,
+sophisticated feminine mood,
+CRITICAL: NO TEXT NO LETTERS - visual background only
+`.trim(),
+
+  TEXT_BANNER_2: `
+Closing banner background for final text message,
+elegant pink to white fade gradient,
+subtle sparkle or light bokeh overlay effect,
+minimal abstract pink accent elements at corners,
+professional Korean lip cosmetic brand closing aesthetic,
+feminine romantic elegant mood for call-to-action,
+clean composition with ample text space,
+premium beauty marketing closing style,
+CRITICAL: NO TEXT NO LETTERS - pure background only
 `.trim(),
 
   COLOR_SWATCHES: `
@@ -597,16 +699,22 @@ export function buildLipFullPromptSet(
   const sections: LipDetailSectionType[] = [
     'BRAND_HEADER',
     'HERO_LIP',
+    'TEXT_BANNER_1',
     'COLOR_SWATCHES',
     'MODEL_LIP_CLOSEUP_1',
+    'KEY_MESSAGE_1',
     'TEXTURE_VISUAL',
     'MODEL_WEARING_1',
+    'BENEFIT_HIGHLIGHT_1',
     'COLOR_COMPARISON',
     'INGREDIENTS_EFFECT',
+    'DIVIDER_VISUAL_1',
     'MODEL_WEARING_2',
     'MULTI_COLOR_GRID',
+    'KEY_MESSAGE_2',
     'LONGEVITY_INFO',
     'HOW_TO_USE',
+    'TEXT_BANNER_2',
     'FULL_LINEUP',
     'CTA_CLOSING',
   ];

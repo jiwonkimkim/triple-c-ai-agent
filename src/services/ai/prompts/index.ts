@@ -386,3 +386,24 @@ export {
   hasAdvancedPromptSystem,
   isBeautyCategory,
 } from './beauty-subcategory';
+
+// ============================================
+// 텍스트 배경 섹션 프롬프트 (공통)
+// ============================================
+export type {
+  TextBackgroundSectionType,
+  CategoryColorTheme,
+  TextBackgroundBlockVariation,
+  TextBackgroundPromptOptions,
+} from './text-background-prompts';
+export {
+  CATEGORY_COLOR_THEMES,
+  TEXT_BACKGROUND_BLOCKS,
+  TEXT_BACKGROUND_BASE_PROMPTS,
+  TEXT_BG_BASE_PROMPTS,
+  TEXT_BG_BLOCKS,
+  buildTextBackgroundPrompt,
+  buildTextBackgroundSectionPrompts,
+  buildAllTextBackgroundPrompts,
+  getInterleavedSectionOrder,
+} from './text-background-prompts';

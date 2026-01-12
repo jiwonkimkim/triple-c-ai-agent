@@ -15,21 +15,27 @@ import type { ProductVisualReference } from './types';
 export type MaskPackDetailSectionType =
   | 'BRAND_HEADER'           // 섹션 1: 브랜드 헤더
   | 'HERO_MASKPACK'          // 섹션 2: 히어로 배너 (메인 제품샷)
-  | 'KEY_INGREDIENTS'        // 섹션 3: 핵심 성분 비주얼
-  | 'ESSENCE_TEXTURE'        // 섹션 4: 에센스/세럼 텍스처
-  | 'SHEET_MATERIAL'         // 섹션 5: 마스크 시트 소재 클로즈업
-  | 'VARIANT_LINEUP'         // 섹션 6: 성분별 배리에이션 라인업
-  | 'INGREDIENT_TEATREE'     // 섹션 7: 티트리 성분 상세
-  | 'INGREDIENT_CICA'        // 섹션 8: 시카(센텔라) 성분 상세
-  | 'MODEL_WEARING'          // 섹션 9: 모델 착용샷
-  | 'BEFORE_AFTER'           // 섹션 10: 사용 전후 비교
-  | 'INGREDIENT_HONEY'       // 섹션 11: 꿀/프로폴리스 성분 상세
-  | 'INGREDIENT_HYALURONIC'  // 섹션 12: 히알루론산 성분 상세
-  | 'HOW_TO_USE'             // 섹션 13: 사용 방법
-  | 'MASK_FIT_CLOSEUP'       // 섹션 14: 마스크 핏 클로즈업
-  | 'BULK_PACK'              // 섹션 15: 대용량/멀티팩 구성
-  | 'SAFETY_CERTIFICATION'   // 섹션 16: 성분 안전성/인증
-  | 'CTA_CLOSING';           // 섹션 17: 클로징 배너
+  | 'TEXT_BANNER_1'          // 섹션 3: 텍스트 배너 (카피/슬로건)
+  | 'KEY_INGREDIENTS'        // 섹션 4: 핵심 성분 비주얼
+  | 'ESSENCE_TEXTURE'        // 섹션 5: 에센스/세럼 텍스처
+  | 'KEY_MESSAGE_1'          // 섹션 6: 핵심 메시지 배경
+  | 'SHEET_MATERIAL'         // 섹션 7: 마스크 시트 소재 클로즈업
+  | 'VARIANT_LINEUP'         // 섹션 8: 성분별 배리에이션 라인업
+  | 'BENEFIT_HIGHLIGHT_1'    // 섹션 9: 성분/효능 하이라이트 배경
+  | 'INGREDIENT_TEATREE'     // 섹션 10: 티트리 성분 상세
+  | 'INGREDIENT_CICA'        // 섹션 11: 시카(센텔라) 성분 상세
+  | 'DIVIDER_VISUAL_1'       // 섹션 12: 섹션 구분 비주얼
+  | 'MODEL_WEARING'          // 섹션 13: 모델 착용샷
+  | 'BEFORE_AFTER'           // 섹션 14: 사용 전후 비교
+  | 'KEY_MESSAGE_2'          // 섹션 15: 핵심 메시지 배경 2
+  | 'INGREDIENT_HONEY'       // 섹션 16: 꿀/프로폴리스 성분 상세
+  | 'INGREDIENT_HYALURONIC'  // 섹션 17: 히알루론산 성분 상세
+  | 'HOW_TO_USE'             // 섹션 18: 사용 방법
+  | 'TEXT_BANNER_2'          // 섹션 19: 텍스트 배너 2 (클로징 카피)
+  | 'MASK_FIT_CLOSEUP'       // 섹션 20: 마스크 핏 클로즈업
+  | 'BULK_PACK'              // 섹션 21: 대용량/멀티팩 구성
+  | 'SAFETY_CERTIFICATION'   // 섹션 22: 성분 안전성/인증
+  | 'CTA_CLOSING';           // 섹션 23: 클로징 배너
 
 // ============================================
 // 마스크팩 타입 정의
@@ -217,6 +223,10 @@ export const MASKPACK_SECTION_BLOCKS: Record<MaskPackDetailSectionType, MaskPack
     { blockIndex: 1, conceptType: 'single-hero', promptModifier: 'single mask packet hero with ingredient backdrop', aspectRatio: '1:1' },
     { blockIndex: 2, conceptType: 'lifestyle-hero', promptModifier: 'mask packets in spa-like setting', aspectRatio: '4:3' },
   ],
+  TEXT_BANNER_1: [
+    { blockIndex: 0, conceptType: 'gradient-banner', promptModifier: 'soft green to white gradient with ample text space', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'abstract-flow', promptModifier: 'abstract flowing botanical shapes with soft blur', aspectRatio: '2:1' },
+  ],
   KEY_INGREDIENTS: [
     { blockIndex: 0, conceptType: 'botanical-flatlay', promptModifier: 'fresh botanical ingredients flat lay arrangement', aspectRatio: '1:1' },
     { blockIndex: 1, conceptType: 'ingredient-splash', promptModifier: 'ingredients with water splash freshness', aspectRatio: '4:3' },
@@ -226,6 +236,10 @@ export const MASKPACK_SECTION_BLOCKS: Record<MaskPackDetailSectionType, MaskPack
     { blockIndex: 0, conceptType: 'droplet-pour', promptModifier: 'essence droplet pouring onto surface', aspectRatio: '3:4' },
     { blockIndex: 1, conceptType: 'gel-spread', promptModifier: 'gel serum spreading on clear surface', aspectRatio: '4:3' },
     { blockIndex: 2, conceptType: 'light-refraction', promptModifier: 'light refracting through translucent essence', aspectRatio: '1:1' },
+  ],
+  KEY_MESSAGE_1: [
+    { blockIndex: 0, conceptType: 'center-focus', promptModifier: 'radial soft green gradient with bright center for text focus', aspectRatio: '1:1' },
+    { blockIndex: 1, conceptType: 'soft-blur', promptModifier: 'soft blurred botanical leaves as background', aspectRatio: '4:3' },
   ],
   SHEET_MATERIAL: [
     { blockIndex: 0, conceptType: 'fabric-macro', promptModifier: 'sheet fabric texture extreme close-up', aspectRatio: '4:3' },
@@ -237,6 +251,10 @@ export const MASKPACK_SECTION_BLOCKS: Record<MaskPackDetailSectionType, MaskPack
     { blockIndex: 1, conceptType: 'fan-arrangement', promptModifier: 'packets arranged in fan display', aspectRatio: '4:3' },
     { blockIndex: 2, conceptType: 'ingredient-pairing', promptModifier: 'each packet paired with its key ingredient', aspectRatio: '16:9' },
   ],
+  BENEFIT_HIGHLIGHT_1: [
+    { blockIndex: 0, conceptType: 'split-layout', promptModifier: 'split green and white background for icon and text placement', aspectRatio: '2:1' },
+    { blockIndex: 1, conceptType: 'card-style', promptModifier: 'card-style background with subtle botanical shadow', aspectRatio: '3:2' },
+  ],
   INGREDIENT_TEATREE: [
     { blockIndex: 0, conceptType: 'teatree-branch', promptModifier: 'fresh tea tree branch with leaves and oil drops', aspectRatio: '4:3' },
     { blockIndex: 1, conceptType: 'essential-oil', promptModifier: 'tea tree essential oil extraction concept', aspectRatio: '1:1' },
@@ -247,6 +265,10 @@ export const MASKPACK_SECTION_BLOCKS: Record<MaskPackDetailSectionType, MaskPack
     { blockIndex: 1, conceptType: 'healing-concept', promptModifier: 'skin healing and barrier repair visualization', aspectRatio: '1:1' },
     { blockIndex: 2, conceptType: 'gentle-soothing', promptModifier: 'gentle soothing calming effect visual', aspectRatio: '3:2' },
   ],
+  DIVIDER_VISUAL_1: [
+    { blockIndex: 0, conceptType: 'wave-divider', promptModifier: 'elegant soft green wave pattern divider', aspectRatio: '6:1' },
+    { blockIndex: 1, conceptType: 'line-accent', promptModifier: 'thin botanical green decorative line with leaf ornament', aspectRatio: '8:1' },
+  ],
   MODEL_WEARING: [
     { blockIndex: 0, conceptType: 'spa-moment', promptModifier: 'model wearing mask in relaxing spa setting', aspectRatio: '3:4' },
     { blockIndex: 1, conceptType: 'selfcare-lifestyle', promptModifier: 'self-care routine lifestyle photography', aspectRatio: '1:1' },
@@ -256,6 +278,10 @@ export const MASKPACK_SECTION_BLOCKS: Record<MaskPackDetailSectionType, MaskPack
     { blockIndex: 0, conceptType: 'split-comparison', promptModifier: 'split frame before/after skin transformation', aspectRatio: '2:1' },
     { blockIndex: 1, conceptType: 'side-by-side', promptModifier: 'side by side dull vs glowing skin', aspectRatio: '16:9' },
     { blockIndex: 2, conceptType: 'transformation-sequence', promptModifier: 'skin transformation sequence frames', aspectRatio: '3:1' },
+  ],
+  KEY_MESSAGE_2: [
+    { blockIndex: 0, conceptType: 'center-focus', promptModifier: 'soft mint gradient with ethereal glow center', aspectRatio: '1:1' },
+    { blockIndex: 1, conceptType: 'geometric-minimal', promptModifier: 'minimal geometric shapes in soft green framing center', aspectRatio: '3:2' },
   ],
   INGREDIENT_HONEY: [
     { blockIndex: 0, conceptType: 'honey-drip', promptModifier: 'golden honey dripping from dipper', aspectRatio: '3:4' },
@@ -271,6 +297,10 @@ export const MASKPACK_SECTION_BLOCKS: Record<MaskPackDetailSectionType, MaskPack
     { blockIndex: 0, conceptType: 'step-sequence', promptModifier: '4-step application guide with numbered circles', aspectRatio: '4:1' },
     { blockIndex: 1, conceptType: 'application-demo', promptModifier: 'hands applying mask demonstration', aspectRatio: '4:3' },
     { blockIndex: 2, conceptType: 'timing-visual', promptModifier: '15-20 minute timer visualization', aspectRatio: '1:1' },
+  ],
+  TEXT_BANNER_2: [
+    { blockIndex: 0, conceptType: 'closing-gradient', promptModifier: 'elegant green to white fade with sparkle elements', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'abstract-minimal', promptModifier: 'minimal abstract botanical accent at corners', aspectRatio: '2:1' },
   ],
   MASK_FIT_CLOSEUP: [
     { blockIndex: 0, conceptType: 'face-contour-fit', promptModifier: 'mask adhering perfectly to facial contours', aspectRatio: '3:4' },
@@ -347,6 +377,19 @@ spa-like freshness mood,
 CRITICAL: NO TEXT NO PRODUCT NAMES - visual only
 `.trim(),
 
+  TEXT_BANNER_1: `
+Clean elegant banner background for text overlay,
+soft green to white gradient background,
+ample negative space in center for large typography,
+subtle botanical leaf shapes at edges only,
+professional Korean sheet mask brand aesthetic,
+fresh natural spa-like mood,
+soft lighting with gentle green glow,
+visually balanced horizontal composition for text placement,
+premium K-beauty skincare marketing style,
+CRITICAL: NO TEXT NO LETTERS - pure gradient background only, text will be added later
+`.trim(),
+
   KEY_INGREDIENTS: `
 Natural ingredient hero shot flat lay arrangement,
 fresh botanical leaves and plants with water droplets,
@@ -371,6 +414,18 @@ abundant essence visualization,
 Korean skincare serum texture photography,
 fresh watery lightweight feel,
 CRITICAL: NO TEXT - texture focus only
+`.trim(),
+
+  KEY_MESSAGE_1: `
+Focused background design for key message highlight,
+soft radial green gradient drawing attention to center,
+ethereal fresh atmosphere with subtle botanical glow,
+blurred abstract shapes or leaf silhouette in background,
+clean space for impactful single message,
+Korean beauty sheet mask editorial style,
+natural spa-like campaign aesthetic,
+fresh and soothing sophisticated mood,
+CRITICAL: NO TEXT NO LETTERS - visual background only
 `.trim(),
 
   SHEET_MATERIAL: `
@@ -398,6 +453,18 @@ each variant distinguishable by color,
 CRITICAL: NO TEXT NO INGREDIENT NAMES - color coding only
 `.trim(),
 
+  BENEFIT_HIGHLIGHT_1: `
+Clean infographic-style background layout for sheet mask product benefits,
+organized sections for benefit icons and descriptions,
+soft green and white color blocks or gradient sections,
+space for 3-4 benefit points with icon placeholders,
+professional sheet mask ingredient benefit layout,
+Korean natural skincare brand explanation style,
+botanical yet clean approachable design,
+clean organized visual hierarchy with leaf accents,
+CRITICAL: NO TEXT NO ICONS - background layout only
+`.trim(),
+
   INGREDIENT_TEATREE: `
 Tea tree ingredient showcase photography,
 fresh tea tree branch with vibrant green leaves,
@@ -423,6 +490,18 @@ gentle sensitive skin care mood,
 CRITICAL: NO TEXT - centella visual only
 `.trim(),
 
+  DIVIDER_VISUAL_1: `
+Elegant section divider visual element,
+decorative transition between sheet mask content sections,
+subtle wave pattern or flowing botanical line design in green tones,
+gradient color transition strip from white to soft mint,
+minimal leaf ornamental accent,
+Korean natural skincare beauty page design aesthetic,
+smooth visual flow element with botanical touch,
+thin horizontal decorative band,
+CRITICAL: NO TEXT - decorative visual only
+`.trim(),
+
   MODEL_WEARING: `
 Korean female model wearing white sheet mask on face,
 relaxing self-care spa moment atmosphere,
@@ -446,6 +525,17 @@ visible hydration and glow transformation,
 Korean skincare before/after demonstration style,
 convincing product efficacy proof,
 CRITICAL: NO TEXT NO LABELS - visual comparison only
+`.trim(),
+
+  KEY_MESSAGE_2: `
+Elegant background for secondary key message,
+soft mint to white gradient with ethereal center glow,
+dreamy fresh atmosphere with subtle sparkle,
+minimal geometric frames in soft green,
+clean open space for impactful typography,
+natural K-beauty sheet mask campaign style,
+sophisticated fresh mood,
+CRITICAL: NO TEXT NO LETTERS - visual background only
 `.trim(),
 
   INGREDIENT_HONEY: `
@@ -486,6 +576,18 @@ soft mint green background,
 simple iconographic illustration style,
 Korean skincare routine tutorial aesthetic,
 CRITICAL: NO TEXT - numbered circles and visuals only
+`.trim(),
+
+  TEXT_BANNER_2: `
+Closing banner background for final text message,
+elegant green to white fade gradient,
+subtle botanical sparkle or light bokeh overlay effect,
+minimal abstract leaf accent elements at corners,
+professional Korean sheet mask brand closing aesthetic,
+fresh natural spa-like mood for call-to-action,
+clean composition with ample text space,
+premium natural skincare marketing closing style,
+CRITICAL: NO TEXT NO LETTERS - pure background only
 `.trim(),
 
   MASK_FIT_CLOSEUP: `
@@ -655,17 +757,23 @@ export function buildMaskPackFullPromptSet(
   const sections: MaskPackDetailSectionType[] = [
     'BRAND_HEADER',
     'HERO_MASKPACK',
+    'TEXT_BANNER_1',
     'KEY_INGREDIENTS',
     'ESSENCE_TEXTURE',
+    'KEY_MESSAGE_1',
     'SHEET_MATERIAL',
     'VARIANT_LINEUP',
+    'BENEFIT_HIGHLIGHT_1',
     'INGREDIENT_TEATREE',
     'INGREDIENT_CICA',
+    'DIVIDER_VISUAL_1',
     'MODEL_WEARING',
     'BEFORE_AFTER',
+    'KEY_MESSAGE_2',
     'INGREDIENT_HONEY',
     'INGREDIENT_HYALURONIC',
     'HOW_TO_USE',
+    'TEXT_BANNER_2',
     'MASK_FIT_CLOSEUP',
     'BULK_PACK',
     'SAFETY_CERTIFICATION',

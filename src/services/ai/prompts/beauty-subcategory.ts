@@ -72,7 +72,7 @@ export const BEAUTY_SUBCATEGORY_META: SubCategoryMeta[] = [
     label: '스킨케어',
     labelEn: 'Skincare',
     description: '토너, 에센스, 세럼, 크림, 로션 등',
-    sectionCount: 11,
+    sectionCount: 17,  // 기존 11 + 텍스트배경 6
     isAvailable: true,
   },
   {
@@ -80,7 +80,7 @@ export const BEAUTY_SUBCATEGORY_META: SubCategoryMeta[] = [
     label: '선케어',
     labelEn: 'Suncare',
     description: '선크림, 선스틱, 선스프레이 등',
-    sectionCount: 11,
+    sectionCount: 17,  // 기존 11 + 텍스트배경 6
     isAvailable: true,
   },
   {
@@ -88,7 +88,7 @@ export const BEAUTY_SUBCATEGORY_META: SubCategoryMeta[] = [
     label: '립 메이크업',
     labelEn: 'Lip',
     description: '립글로스, 립틴트, 립스틱, 립밤 등',
-    sectionCount: 14,
+    sectionCount: 20,  // 기존 14 + 텍스트배경 6
     isAvailable: true,
   },
   {
@@ -96,7 +96,7 @@ export const BEAUTY_SUBCATEGORY_META: SubCategoryMeta[] = [
     label: '마스카라',
     labelEn: 'Mascara',
     description: '볼륨, 컬링, 롱래쉬, 워터프루프 등',
-    sectionCount: 15,
+    sectionCount: 21,  // 기존 15 + 텍스트배경 6
     isAvailable: true,
   },
   {
@@ -104,7 +104,7 @@ export const BEAUTY_SUBCATEGORY_META: SubCategoryMeta[] = [
     label: '마스크팩',
     labelEn: 'Mask Pack',
     description: '시트마스크, 워시오프, 수면팩 등',
-    sectionCount: 17,
+    sectionCount: 23,  // 기존 17 + 텍스트배경 6
     isAvailable: true,
   },
   {

@@ -15,19 +15,25 @@ import type { ProductVisualReference } from './types';
 export type MascaraDetailSectionType =
   | 'BRAND_HEADER'         // 섹션 1: 브랜드 헤더
   | 'HERO_MASCARA'         // 섹션 2: 히어로 배너 (메인 제품샷)
-  | 'VARIANT_LINEUP'       // 섹션 3: 제품 타입 배리에이션
-  | 'EYE_BEFORE_AFTER'     // 섹션 4: 모델 아이 클로즈업 (Before/After)
-  | 'WAND_CLOSEUP'         // 섹션 5: 브러시/완드 클로즈업
-  | 'MODEL_BEAUTY_SHOT'    // 섹션 6: 모델 뷰티샷 (정면/측면)
-  | 'CURL_EFFECT_VISUAL'   // 섹션 7: 래쉬 컬링 효과 비주얼
-  | 'TEXTURE_FORMULA'      // 섹션 8: 텍스처/포뮬러 클로즈업
-  | 'LASH_DETAIL_MACRO'    // 섹션 9: 래쉬 디테일 극대화 클로즈업
-  | 'WATERPROOF_TEST'      // 섹션 10: 지속력/워터프루프 테스트
-  | 'HOW_TO_USE'           // 섹션 11: 사용법
-  | 'MODEL_ANGLE_GRID'     // 섹션 12: 모델 다양한 앵글 쇼케이스
-  | 'COMPETITOR_COMPARE'   // 섹션 13: 타 제품 비교 (경쟁 우위)
-  | 'FULL_LINEUP'          // 섹션 14: 전체 제품 라인업
-  | 'CTA_CLOSING';         // 섹션 15: 클로징 배너
+  | 'TEXT_BANNER_1'        // 섹션 3: 텍스트 배너 (카피/슬로건)
+  | 'VARIANT_LINEUP'       // 섹션 4: 제품 타입 배리에이션
+  | 'EYE_BEFORE_AFTER'     // 섹션 5: 모델 아이 클로즈업 (Before/After)
+  | 'KEY_MESSAGE_1'        // 섹션 6: 핵심 메시지 배경
+  | 'WAND_CLOSEUP'         // 섹션 7: 브러시/완드 클로즈업
+  | 'MODEL_BEAUTY_SHOT'    // 섹션 8: 모델 뷰티샷 (정면/측면)
+  | 'BENEFIT_HIGHLIGHT_1'  // 섹션 9: 성분/효능 하이라이트 배경
+  | 'CURL_EFFECT_VISUAL'   // 섹션 10: 래쉬 컬링 효과 비주얼
+  | 'TEXTURE_FORMULA'      // 섹션 11: 텍스처/포뮬러 클로즈업
+  | 'DIVIDER_VISUAL_1'     // 섹션 12: 섹션 구분 비주얼
+  | 'LASH_DETAIL_MACRO'    // 섹션 13: 래쉬 디테일 극대화 클로즈업
+  | 'WATERPROOF_TEST'      // 섹션 14: 지속력/워터프루프 테스트
+  | 'KEY_MESSAGE_2'        // 섹션 15: 핵심 메시지 배경 2
+  | 'HOW_TO_USE'           // 섹션 16: 사용법
+  | 'MODEL_ANGLE_GRID'     // 섹션 17: 모델 다양한 앵글 쇼케이스
+  | 'TEXT_BANNER_2'        // 섹션 18: 텍스트 배너 2 (클로징 카피)
+  | 'COMPETITOR_COMPARE'   // 섹션 19: 타 제품 비교 (경쟁 우위)
+  | 'FULL_LINEUP'          // 섹션 20: 전체 제품 라인업
+  | 'CTA_CLOSING';         // 섹션 21: 클로징 배너
 
 // ============================================
 // 마스카라 서브카테고리/타입 정의
@@ -141,6 +147,10 @@ export const MASCARA_SECTION_BLOCKS: Record<MascaraDetailSectionType, MascaraSec
     { blockIndex: 1, conceptType: 'neon-accent', promptModifier: 'product with hot pink neon lighting accent', aspectRatio: '1:1' },
     { blockIndex: 2, conceptType: 'wand-reveal', promptModifier: 'tube with wand pulled out showing formula', aspectRatio: '4:3' },
   ],
+  TEXT_BANNER_1: [
+    { blockIndex: 0, conceptType: 'gradient-banner', promptModifier: 'dramatic black to hot pink gradient with ample text space', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'abstract-flow', promptModifier: 'abstract flowing black shapes with pink accent blur', aspectRatio: '2:1' },
+  ],
   VARIANT_LINEUP: [
     { blockIndex: 0, conceptType: 'side-by-side', promptModifier: '3-4 variants arranged side by side', aspectRatio: '3:1' },
     { blockIndex: 1, conceptType: 'feature-highlight', promptModifier: 'each variant with feature icon overlay space', aspectRatio: '4:3' },
@@ -150,6 +160,10 @@ export const MASCARA_SECTION_BLOCKS: Record<MascaraDetailSectionType, MascaraSec
     { blockIndex: 0, conceptType: 'split-comparison', promptModifier: 'split frame before/after lash comparison', aspectRatio: '2:1' },
     { blockIndex: 1, conceptType: 'side-by-side', promptModifier: 'side by side bare vs mascara lashes', aspectRatio: '16:9' },
     { blockIndex: 2, conceptType: 'transformation', promptModifier: 'dramatic lash transformation sequence', aspectRatio: '3:1' },
+  ],
+  KEY_MESSAGE_1: [
+    { blockIndex: 0, conceptType: 'center-focus', promptModifier: 'radial black gradient with hot pink center glow for text focus', aspectRatio: '1:1' },
+    { blockIndex: 1, conceptType: 'soft-blur', promptModifier: 'soft blurred mascara wand silhouette as background', aspectRatio: '4:3' },
   ],
   WAND_CLOSEUP: [
     { blockIndex: 0, conceptType: 'macro-bristles', promptModifier: 'extreme macro shot of wand bristles', aspectRatio: '4:3' },
@@ -161,6 +175,10 @@ export const MASCARA_SECTION_BLOCKS: Record<MascaraDetailSectionType, MascaraSec
     { blockIndex: 1, conceptType: 'three-quarter', promptModifier: 'three-quarter angle showing lash profile', aspectRatio: '1:1' },
     { blockIndex: 2, conceptType: 'side-profile', promptModifier: 'side profile emphasizing lash curl', aspectRatio: '4:3' },
   ],
+  BENEFIT_HIGHLIGHT_1: [
+    { blockIndex: 0, conceptType: 'split-layout', promptModifier: 'split black and pink background for icon and text placement', aspectRatio: '2:1' },
+    { blockIndex: 1, conceptType: 'card-style', promptModifier: 'card-style background with subtle dark shadow', aspectRatio: '3:2' },
+  ],
   CURL_EFFECT_VISUAL: [
     { blockIndex: 0, conceptType: 'curl-diagram', promptModifier: 'lash curl angle diagram with measurement', aspectRatio: '16:9' },
     { blockIndex: 1, conceptType: 'before-after-curl', promptModifier: 'straight vs curled lashes comparison', aspectRatio: '2:1' },
@@ -170,6 +188,10 @@ export const MASCARA_SECTION_BLOCKS: Record<MascaraDetailSectionType, MascaraSec
     { blockIndex: 0, conceptType: 'swatch-surface', promptModifier: 'formula swatch on clear surface', aspectRatio: '4:3' },
     { blockIndex: 1, conceptType: 'wand-drag', promptModifier: 'wand dragging through formula', aspectRatio: '3:2' },
     { blockIndex: 2, conceptType: 'consistency-shot', promptModifier: 'smooth non-clumpy consistency close-up', aspectRatio: '1:1' },
+  ],
+  DIVIDER_VISUAL_1: [
+    { blockIndex: 0, conceptType: 'wave-divider', promptModifier: 'elegant black wave pattern divider with pink accent', aspectRatio: '6:1' },
+    { blockIndex: 1, conceptType: 'line-accent', promptModifier: 'thin hot pink decorative line with subtle ornament', aspectRatio: '8:1' },
   ],
   LASH_DETAIL_MACRO: [
     { blockIndex: 0, conceptType: 'individual-lashes', promptModifier: 'ultra macro individual lash separation', aspectRatio: '4:3' },
@@ -181,6 +203,10 @@ export const MASCARA_SECTION_BLOCKS: Record<MascaraDetailSectionType, MascaraSec
     { blockIndex: 1, conceptType: 'splash-intact', promptModifier: 'water splash with lashes intact', aspectRatio: '16:9' },
     { blockIndex: 2, conceptType: 'durability-icons', promptModifier: 'sweat humidity clock icons infographic', aspectRatio: '3:1' },
   ],
+  KEY_MESSAGE_2: [
+    { blockIndex: 0, conceptType: 'center-focus', promptModifier: 'soft black to gray gradient with ethereal pink glow center', aspectRatio: '1:1' },
+    { blockIndex: 1, conceptType: 'geometric-minimal', promptModifier: 'minimal geometric shapes in black framing center', aspectRatio: '3:2' },
+  ],
   HOW_TO_USE: [
     { blockIndex: 0, conceptType: 'step-sequence', promptModifier: '4-step application guide with numbered circles', aspectRatio: '4:1' },
     { blockIndex: 1, conceptType: 'zigzag-motion', promptModifier: 'zigzag application motion on lashes', aspectRatio: '4:3' },
@@ -190,6 +216,10 @@ export const MASCARA_SECTION_BLOCKS: Record<MascaraDetailSectionType, MascaraSec
     { blockIndex: 0, conceptType: 'grid-4', promptModifier: '4-panel grid front side profile angles', aspectRatio: '1:1' },
     { blockIndex: 1, conceptType: 'grid-6', promptModifier: '6-panel grid showing all perspectives', aspectRatio: '3:2' },
     { blockIndex: 2, conceptType: 'strip-angles', promptModifier: 'horizontal strip of different angles', aspectRatio: '4:1' },
+  ],
+  TEXT_BANNER_2: [
+    { blockIndex: 0, conceptType: 'closing-gradient', promptModifier: 'elegant black to hot pink fade with sparkle elements', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'abstract-minimal', promptModifier: 'minimal abstract black accent with pink glow at corners', aspectRatio: '2:1' },
   ],
   COMPETITOR_COMPARE: [
     { blockIndex: 0, conceptType: 'vs-comparison', promptModifier: 'side by side competitor vs product comparison', aspectRatio: '2:1' },
@@ -263,6 +293,19 @@ Korean professional makeup brand style,
 CRITICAL: NO TEXT NO PRODUCT NAMES - visual only
 `.trim(),
 
+  TEXT_BANNER_1: `
+Clean bold banner background for text overlay,
+dramatic black to hot pink gradient background,
+ample negative space in center for large typography,
+subtle abstract brush stroke shapes at edges only,
+professional Korean mascara brand aesthetic,
+dramatic bold glamorous mood,
+edgy lighting with pink neon glow,
+visually balanced horizontal composition for text placement,
+premium K-beauty mascara marketing style,
+CRITICAL: NO TEXT NO LETTERS - pure gradient background only, text will be added later
+`.trim(),
+
   VARIANT_LINEUP: `
 Mascara product lineup arrangement photography,
 3-4 different mascara variants displayed side by side,
@@ -286,6 +329,18 @@ professional beauty photography lighting setup,
 K-beauty mascara advertisement style,
 clean minimal background focus on eye area only,
 CRITICAL: NO TEXT NO LABELS - visual comparison only
+`.trim(),
+
+  KEY_MESSAGE_1: `
+Focused background design for key message highlight,
+radial black gradient drawing attention to center,
+hot pink neon glow creating ethereal dramatic atmosphere,
+blurred abstract shapes or mascara wand silhouette in background,
+clean space for impactful single message,
+Korean beauty mascara editorial style,
+edgy bold mascara campaign aesthetic,
+dramatic and confident sophisticated mood,
+CRITICAL: NO TEXT NO LETTERS - visual background only
 `.trim(),
 
   WAND_CLOSEUP: `
@@ -314,6 +369,18 @@ bold yet elegant makeup look,
 CRITICAL: NO TEXT overlays on image
 `.trim(),
 
+  BENEFIT_HIGHLIGHT_1: `
+Clean infographic-style background layout for mascara product benefits,
+organized sections for benefit icons and descriptions,
+black and hot pink color blocks or gradient sections,
+space for 3-4 benefit points with icon placeholders,
+professional mascara ingredient and technology benefit layout,
+Korean eye makeup brand explanation style,
+bold yet clean approachable design,
+clean organized visual hierarchy with dramatic accents,
+CRITICAL: NO TEXT NO ICONS - background layout only
+`.trim(),
+
   CURL_EFFECT_VISUAL: `
 Lash curling effect demonstration diagram visualization,
 side profile of eye showing lash curl angle clearly,
@@ -338,6 +405,18 @@ satisfying cosmetic texture photography,
 smudge-proof clump-free formula visualization,
 professional product detail aesthetic,
 CRITICAL: NO TEXT - texture focus only
+`.trim(),
+
+  DIVIDER_VISUAL_1: `
+Elegant section divider visual element,
+decorative transition between mascara content sections,
+subtle wave pattern or flowing brush stroke design in black tones,
+gradient color transition strip from black to hot pink,
+minimal neon ornamental accent,
+Korean mascara beauty page design aesthetic,
+smooth visual flow element with dramatic touch,
+thin horizontal decorative band,
+CRITICAL: NO TEXT - decorative visual only
 `.trim(),
 
   LASH_DETAIL_MACRO: `
@@ -366,6 +445,17 @@ trust-building product proof aesthetic,
 CRITICAL: NO TEXT NO NUMBERS - icons and visuals only
 `.trim(),
 
+  KEY_MESSAGE_2: `
+Elegant background for secondary key message,
+soft black to gray gradient with ethereal pink center glow,
+dreamy dramatic atmosphere with subtle sparkle,
+minimal geometric frames in black and silver,
+clean open space for impactful typography,
+edgy K-beauty mascara campaign style,
+sophisticated bold mood,
+CRITICAL: NO TEXT NO LETTERS - visual background only
+`.trim(),
+
   HOW_TO_USE: `
 Step-by-step mascara application guide visualization,
 3-4 step process with numbered circular badges,
@@ -392,6 +482,18 @@ editorial K-beauty lookbook aesthetic,
 4-6 frame grid arrangement,
 uniform lighting across all shots,
 CRITICAL: NO TEXT NO LABELS - grid visuals only
+`.trim(),
+
+  TEXT_BANNER_2: `
+Closing banner background for final text message,
+elegant black to hot pink fade gradient,
+subtle sparkle or neon light bokeh overlay effect,
+minimal abstract black accent elements at corners,
+professional Korean mascara brand closing aesthetic,
+dramatic bold glamorous mood for call-to-action,
+clean composition with ample text space,
+premium mascara marketing closing style,
+CRITICAL: NO TEXT NO LETTERS - pure background only
 `.trim(),
 
   COMPETITOR_COMPARE: `
@@ -564,16 +666,22 @@ export function buildMascaraFullPromptSet(
   const sections: MascaraDetailSectionType[] = [
     'BRAND_HEADER',
     'HERO_MASCARA',
+    'TEXT_BANNER_1',
     'VARIANT_LINEUP',
     'EYE_BEFORE_AFTER',
+    'KEY_MESSAGE_1',
     'WAND_CLOSEUP',
     'MODEL_BEAUTY_SHOT',
+    'BENEFIT_HIGHLIGHT_1',
     'CURL_EFFECT_VISUAL',
     'TEXTURE_FORMULA',
+    'DIVIDER_VISUAL_1',
     'LASH_DETAIL_MACRO',
     'WATERPROOF_TEST',
+    'KEY_MESSAGE_2',
     'HOW_TO_USE',
     'MODEL_ANGLE_GRID',
+    'TEXT_BANNER_2',
     'COMPETITOR_COMPARE',
     'FULL_LINEUP',
     'CTA_CLOSING',

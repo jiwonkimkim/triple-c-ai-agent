@@ -15,15 +15,21 @@ import type { ProductVisualReference } from './types';
 export type SuncareDetailSectionType =
   | 'BRAND_HEADER'       // 섹션 1: 브랜드 헤더
   | 'HERO_SUNCARE'       // 섹션 2: 히어로 배너 (메인 제품샷 + 햇살)
-  | 'KEY_BENEFITS'       // 섹션 3: 3대 핵심 포인트 아이콘
-  | 'ACTIVE_INGREDIENTS' // 섹션 4: 주요 성분 설명 (펩타이드 등)
-  | 'FREE_SYSTEM'        // 섹션 5: 7無첨가/클린뷰티 시스템
-  | 'NATURAL_INGREDIENTS'// 섹션 6: 자연유래 성분 (허브/보타니컬)
-  | 'UV_PROTECTION_TECH' // 섹션 7: 자외선 차단 원리 (유무기 혼합)
-  | 'TEXTURE_CLOSEUP'    // 섹션 8: 텍스처 클로즈업
-  | 'HOW_TO_USE'         // 섹션 9: 사용 방법
-  | 'BRAND_CLOSING'      // 섹션 10: 브랜드 클로징
-  | 'PRODUCT_LINEUP';    // 섹션 11: 제품 라인업
+  | 'TEXT_BANNER_1'      // 섹션 3: 텍스트 배너 (카피/슬로건)
+  | 'KEY_BENEFITS'       // 섹션 4: 3대 핵심 포인트 아이콘
+  | 'KEY_MESSAGE_1'      // 섹션 5: 핵심 메시지 배경
+  | 'ACTIVE_INGREDIENTS' // 섹션 6: 주요 성분 설명 (펩타이드 등)
+  | 'BENEFIT_HIGHLIGHT_1'// 섹션 7: 성분/효능 하이라이트 배경
+  | 'FREE_SYSTEM'        // 섹션 8: 7無첨가/클린뷰티 시스템
+  | 'NATURAL_INGREDIENTS'// 섹션 9: 자연유래 성분 (허브/보타니컬)
+  | 'DIVIDER_VISUAL_1'   // 섹션 10: 섹션 구분 비주얼
+  | 'UV_PROTECTION_TECH' // 섹션 11: 자외선 차단 원리 (유무기 혼합)
+  | 'KEY_MESSAGE_2'      // 섹션 12: 핵심 메시지 배경 2
+  | 'TEXTURE_CLOSEUP'    // 섹션 13: 텍스처 클로즈업
+  | 'HOW_TO_USE'         // 섹션 14: 사용 방법
+  | 'TEXT_BANNER_2'      // 섹션 15: 텍스트 배너 2 (클로징 카피)
+  | 'BRAND_CLOSING'      // 섹션 16: 브랜드 클로징
+  | 'PRODUCT_LINEUP';    // 섹션 17: 제품 라인업
 
 // ============================================
 // 선케어 서브카테고리 정의
@@ -122,16 +128,28 @@ export const SUNCARE_SECTION_BLOCKS: Record<SuncareDetailSectionType, SuncareSec
     { blockIndex: 1, conceptType: 'floating-benefits', promptModifier: 'product with floating benefit icons around', aspectRatio: '1:1' },
     { blockIndex: 2, conceptType: 'summer-mood', promptModifier: 'product in bright summer beach/outdoor context', aspectRatio: '4:3' },
   ],
+  TEXT_BANNER_1: [
+    { blockIndex: 0, conceptType: 'gradient-banner', promptModifier: 'warm yellow to orange gradient with ample text space', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'abstract-flow', promptModifier: 'abstract flowing sunray shapes with soft blur', aspectRatio: '2:1' },
+  ],
   KEY_BENEFITS: [
     { blockIndex: 0, conceptType: 'triple-icons', promptModifier: 'three circular benefit icons in a row', aspectRatio: '3:1' },
     { blockIndex: 1, conceptType: 'single-benefit-1', promptModifier: 'first benefit icon enlarged with description space', aspectRatio: '1:1' },
     { blockIndex: 2, conceptType: 'single-benefit-2', promptModifier: 'second benefit icon enlarged with description space', aspectRatio: '1:1' },
     { blockIndex: 3, conceptType: 'single-benefit-3', promptModifier: 'third benefit icon enlarged with description space', aspectRatio: '1:1' },
   ],
+  KEY_MESSAGE_1: [
+    { blockIndex: 0, conceptType: 'center-focus', promptModifier: 'radial warm yellow gradient with bright center for text focus', aspectRatio: '1:1' },
+    { blockIndex: 1, conceptType: 'soft-blur', promptModifier: 'soft blurred sunray as background', aspectRatio: '4:3' },
+  ],
   ACTIVE_INGREDIENTS: [
     { blockIndex: 0, conceptType: 'molecule-showcase', promptModifier: 'scientific molecular structure floating on white', aspectRatio: '4:3' },
     { blockIndex: 1, conceptType: 'ingredient-cards', promptModifier: 'ingredient cards with icons arranged', aspectRatio: '3:2' },
     { blockIndex: 2, conceptType: 'lab-aesthetic', promptModifier: 'clinical laboratory research aesthetic', aspectRatio: '16:9' },
+  ],
+  BENEFIT_HIGHLIGHT_1: [
+    { blockIndex: 0, conceptType: 'split-layout', promptModifier: 'split yellow and white background for icon and text placement', aspectRatio: '2:1' },
+    { blockIndex: 1, conceptType: 'card-style', promptModifier: 'card-style background with subtle warm shadow', aspectRatio: '3:2' },
   ],
   FREE_SYSTEM: [
     { blockIndex: 0, conceptType: 'checklist-layout', promptModifier: '7-free system checklist with crossed-out icons', aspectRatio: '3:4' },
@@ -143,10 +161,18 @@ export const SUNCARE_SECTION_BLOCKS: Record<SuncareDetailSectionType, SuncareSec
     { blockIndex: 1, conceptType: 'herb-circle', promptModifier: 'herbs arranged in circle around product', aspectRatio: '1:1' },
     { blockIndex: 2, conceptType: 'ingredient-detail', promptModifier: 'single hero ingredient macro shot', aspectRatio: '4:3' },
   ],
+  DIVIDER_VISUAL_1: [
+    { blockIndex: 0, conceptType: 'wave-divider', promptModifier: 'elegant warm orange wave pattern divider', aspectRatio: '6:1' },
+    { blockIndex: 1, conceptType: 'line-accent', promptModifier: 'thin golden decorative line with sunray ornament', aspectRatio: '8:1' },
+  ],
   UV_PROTECTION_TECH: [
     { blockIndex: 0, conceptType: 'uv-diagram', promptModifier: 'UVA/UVB blocking mechanism diagram', aspectRatio: '16:9' },
     { blockIndex: 1, conceptType: 'skin-cross-section', promptModifier: 'skin layer cross-section with protection shield', aspectRatio: '4:3' },
     { blockIndex: 2, conceptType: 'filter-comparison', promptModifier: 'organic vs inorganic filter comparison visual', aspectRatio: '2:1' },
+  ],
+  KEY_MESSAGE_2: [
+    { blockIndex: 0, conceptType: 'center-focus', promptModifier: 'soft orange gradient with ethereal golden glow center', aspectRatio: '1:1' },
+    { blockIndex: 1, conceptType: 'geometric-minimal', promptModifier: 'minimal geometric shapes in warm yellow framing center', aspectRatio: '3:2' },
   ],
   TEXTURE_CLOSEUP: [
     { blockIndex: 0, conceptType: 'cream-swatch', promptModifier: 'cream texture swatch spreading on surface', aspectRatio: '4:3' },
@@ -157,6 +183,10 @@ export const SUNCARE_SECTION_BLOCKS: Record<SuncareDetailSectionType, SuncareSec
     { blockIndex: 0, conceptType: 'step-sequence', promptModifier: 'numbered step-by-step application guide', aspectRatio: '3:1' },
     { blockIndex: 1, conceptType: 'family-outdoor', promptModifier: 'family applying sunscreen outdoors', aspectRatio: '4:3' },
     { blockIndex: 2, conceptType: 'amount-guide', promptModifier: 'proper amount demonstration on fingers', aspectRatio: '1:1' },
+  ],
+  TEXT_BANNER_2: [
+    { blockIndex: 0, conceptType: 'closing-gradient', promptModifier: 'elegant yellow to white fade with sunray sparkle elements', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'abstract-minimal', promptModifier: 'minimal abstract warm accent at corners', aspectRatio: '2:1' },
   ],
   BRAND_CLOSING: [
     { blockIndex: 0, conceptType: 'brand-story', promptModifier: 'brand logo with warm gradient closing banner', aspectRatio: '3:2' },
@@ -223,6 +253,19 @@ lens flare and warm glow effects,
 CRITICAL: NO TEXT NO NUMBERS on product or background - visual only
 `.trim(),
 
+  TEXT_BANNER_1: `
+Clean elegant banner background for text overlay,
+warm yellow to orange gradient background,
+ample negative space in center for large typography,
+subtle sunray shapes at edges only,
+professional Korean suncare brand aesthetic,
+bright protective summer mood,
+soft lighting with warm golden glow,
+visually balanced horizontal composition for text placement,
+premium K-beauty suncare marketing style,
+CRITICAL: NO TEXT NO LETTERS - pure gradient background only, text will be added later
+`.trim(),
+
   KEY_BENEFITS: `
 Three circular benefit icons arranged in horizontal row,
 clean minimal flat design iconography,
@@ -234,6 +277,18 @@ Korean cosmetic infographic style,
 clean spacing between icons, modern benefit highlight layout,
 subtle drop shadows, professional icon design,
 CRITICAL: NO TEXT - icon symbols only
+`.trim(),
+
+  KEY_MESSAGE_1: `
+Focused background design for key message highlight,
+radial warm yellow gradient drawing attention to center,
+ethereal sunny atmosphere with subtle golden glow,
+blurred abstract shapes or sun silhouette in background,
+clean space for impactful single message,
+Korean beauty suncare editorial style,
+bright summer protection campaign aesthetic,
+warm and protective sophisticated mood,
+CRITICAL: NO TEXT NO LETTERS - visual background only
 `.trim(),
 
   ACTIVE_INGREDIENTS: `
@@ -248,6 +303,18 @@ clinical dermatology research feel,
 Korean cosmeceutical ingredient explanation style,
 professional pharmaceutical design,
 CRITICAL: NO TEXT NO CHEMICAL FORMULAS - visual structures only
+`.trim(),
+
+  BENEFIT_HIGHLIGHT_1: `
+Clean infographic-style background layout for suncare product benefits,
+organized sections for benefit icons and descriptions,
+warm yellow and white color blocks or gradient sections,
+space for 3-4 benefit points with icon placeholders,
+professional suncare UV protection benefit layout,
+Korean derma skincare brand explanation style,
+scientific yet warm approachable design,
+clean organized visual hierarchy with sun accents,
+CRITICAL: NO TEXT NO ICONS - background layout only
 `.trim(),
 
   FREE_SYSTEM: `
@@ -278,6 +345,18 @@ natural lighting with soft shadows,
 CRITICAL: NO TEXT NO LABELS - pure botanical visual
 `.trim(),
 
+  DIVIDER_VISUAL_1: `
+Elegant section divider visual element,
+decorative transition between suncare content sections,
+subtle wave pattern or flowing sunray line design in warm tones,
+gradient color transition strip from yellow to soft orange,
+minimal golden ornamental accent,
+Korean suncare beauty page design aesthetic,
+smooth visual flow element with warm summer touch,
+thin horizontal decorative band,
+CRITICAL: NO TEXT - decorative visual only
+`.trim(),
+
   UV_PROTECTION_TECH: `
 UV protection technology scientific diagram,
 split visualization: UVA long rays vs UVB short rays,
@@ -290,6 +369,17 @@ clean medical illustration style,
 Korean suncare technology education visual,
 professional dermatological diagram aesthetic,
 CRITICAL: NO TEXT NO LABELS - visual diagram only
+`.trim(),
+
+  KEY_MESSAGE_2: `
+Elegant background for secondary key message,
+soft orange to white gradient with ethereal golden center glow,
+dreamy sunny atmosphere with subtle sparkle,
+minimal geometric frames in warm yellow,
+clean open space for impactful typography,
+bright K-beauty suncare campaign style,
+sophisticated warm mood,
+CRITICAL: NO TEXT NO LETTERS - visual background only
 `.trim(),
 
   TEXTURE_CLOSEUP: `
@@ -318,6 +408,18 @@ warm golden hour natural lighting,
 Korean family skincare routine advertisement style,
 cheerful summer protection mood,
 CRITICAL: NO TEXT - numbered circles and demonstration only
+`.trim(),
+
+  TEXT_BANNER_2: `
+Closing banner background for final text message,
+elegant yellow to white fade gradient,
+subtle sunray sparkle or light bokeh overlay effect,
+minimal abstract warm accent elements at corners,
+professional Korean suncare brand closing aesthetic,
+bright protective summer mood for call-to-action,
+clean composition with ample text space,
+premium suncare marketing closing style,
+CRITICAL: NO TEXT NO LETTERS - pure background only
 `.trim(),
 
   BRAND_CLOSING: `
@@ -472,13 +574,19 @@ export function buildSuncareFullPromptSet(
   const sections: SuncareDetailSectionType[] = [
     'BRAND_HEADER',
     'HERO_SUNCARE',
+    'TEXT_BANNER_1',
     'KEY_BENEFITS',
+    'KEY_MESSAGE_1',
     'ACTIVE_INGREDIENTS',
+    'BENEFIT_HIGHLIGHT_1',
     'FREE_SYSTEM',
     'NATURAL_INGREDIENTS',
+    'DIVIDER_VISUAL_1',
     'UV_PROTECTION_TECH',
+    'KEY_MESSAGE_2',
     'TEXTURE_CLOSEUP',
     'HOW_TO_USE',
+    'TEXT_BANNER_2',
     'BRAND_CLOSING',
     'PRODUCT_LINEUP',
   ];
