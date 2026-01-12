@@ -97,6 +97,9 @@ export function DetailPageEditor({
   // Template modal state
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
 
+  // Section regeneration state
+  const [regeneratingSectionId, setRegeneratingSectionId] = useState<string | null>(null);
+
   const {
     sections,
     selectedBlockId,
@@ -578,6 +581,72 @@ export function DetailPageEditor({
     [sections.length, reorderSections]
   );
 
+  // 섹션 이미지 재생성 핸들러
+  const handleRegenerateSection = useCallback(async (sectionId: string, sectionIndex: number) => {
+    const section = sections.find(s => s.id === sectionId);
+    if (!section) return;
+
+    // MAIN 섹션은 재생성 제외 (별도 로직 필요)
+    const isMain = section.name === '메인' ||
+      section.id.includes('MAIN') ||
+      section.name?.toLowerCase().includes('main');
+    if (isMain) {
+      toast({
+        variant: 'destructive',
+        title: '재생성 불가',
+        description: 'MAIN 섹션은 개별 재생성이 지원되지 않습니다.',
+      });
+      return;
+    }
+
+    setRegeneratingSectionId(sectionId);
+
+    try {
+      const response = await fetch('/api/generate/section', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          sectionType: section.name,
+          sectionIndex,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || '섹션 재생성 실패');
+      }
+
+      const data = await response.json();
+      if (!data.success || !data.data?.imageUrl) {
+        throw new Error('이미지 생성에 실패했습니다.');
+      }
+
+      // 섹션의 첫 번째 이미지 블록 업데이트
+      const imageBlock = section.blocks.find(b => b.type === 'image-overlay' || b.type === 'image');
+      if (imageBlock) {
+        updateBlock(sectionId, imageBlock.id, {
+          ...imageBlock,
+          src: data.data.imageUrl,
+        });
+      }
+
+      toast({
+        title: '재생성 완료',
+        description: `${section.name} 섹션 이미지가 새로 생성되었습니다.`,
+      });
+    } catch (error) {
+      console.error('[Section Regenerate] Error:', error);
+      toast({
+        variant: 'destructive',
+        title: '재생성 실패',
+        description: error instanceof Error ? error.message : '섹션 이미지 재생성에 실패했습니다.',
+      });
+    } finally {
+      setRegeneratingSectionId(null);
+    }
+  }, [sections, projectId, updateBlock, toast]);
+
   const handleExport = useCallback(
     async (format: 'html' | 'json') => {
       try {
@@ -1022,6 +1091,7 @@ export function DetailPageEditor({
                             selectedBlockId={selectedBlockId}
                             isSelected={selectedSectionId === section.id}
                             isMain={isMain}
+                            isRegenerating={regeneratingSectionId === section.id}
                             onSelectSection={() => selectSection(section.id)}
                             onSelectBlock={selectBlock}
                             onUpdateSection={(updates) => updateSection(section.id, updates)}
@@ -1032,6 +1102,7 @@ export function DetailPageEditor({
                             onUpdateBlock={(blockId, updates) => updateBlock(section.id, blockId, updates)}
                             onDeleteBlock={(blockId) => deleteBlock(section.id, blockId)}
                             onReorderBlocks={(start, end) => reorderBlocks(section.id, start, end)}
+                            onRegenerateSection={!isMain ? () => handleRegenerateSection(section.id, index) : undefined}
                           />
                           {/* 각 섹션 아래 섹션 추가 버튼 - MAIN 섹션 바로 아래는 숨김 */}
                           {!isMain && (
