@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { uploadBufferToR2, isR2Configured } from '@/lib/r2';
 
 export const dynamic = 'force-dynamic';
 
-// POST /api/upload - Upload images
+// POST /api/upload - Upload images to Cloudflare R2
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -46,35 +45,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 파일 이름 생성 (userId + timestamp + random)
-    const extension = file.name.split('.').pop() || 'jpg';
-    const fileName = `${session.user.id}-${Date.now()}-${Math.random().toString(36).substring(7)}.${extension}`;
-
-    // 개발 환경: public/uploads 디렉토리에 저장
-    // 프로덕션 환경: S3 또는 다른 클라우드 스토리지 사용 권장
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-
-    // 업로드 디렉토리 생성 (없는 경우)
-    try {
-      await mkdir(uploadDir, { recursive: true });
-    } catch {
-      // 디렉토리가 이미 존재하는 경우 무시
+    // R2 설정 확인
+    if (!isR2Configured()) {
+      console.error('[Upload] R2 is not configured');
+      return NextResponse.json(
+        { success: false, error: 'Image storage is not configured' },
+        { status: 500 }
+      );
     }
 
-    const filePath = path.join(uploadDir, fileName);
-
-    // 파일을 Buffer로 변환하여 저장
+    // 파일을 Buffer로 변환
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    await writeFile(filePath, buffer);
 
-    // URL 반환 (로컬 개발용)
-    const url = `/uploads/${fileName}`;
+    // 파일명 생성
+    const extension = file.type.split('/')[1] || 'jpg';
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${extension}`;
+
+    console.log(`[Upload] Uploading to R2... (${Math.round(file.size / 1024)}KB)`);
+
+    // R2에 업로드
+    const result = await uploadBufferToR2(buffer, {
+      folder: 'products',
+      fileName,
+      contentType: file.type,
+    });
+
+    console.log(`[Upload] Success: ${result.secureUrl}`);
 
     return NextResponse.json({
       success: true,
-      url,
-      fileName,
+      url: result.secureUrl,  // R2 Public URL 반환
+      fileName: result.key,
     });
   } catch (error) {
     console.error('Upload error:', error);
