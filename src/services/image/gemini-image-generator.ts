@@ -721,65 +721,46 @@ export async function generateImageFromImage(
       aspectRatioSection = `\n[IMAGE FORMAT]\n${aspectRatioInstruction}\n`;
     }
 
-    // ★★★ 상세페이지용 제품 광고 이미지 생성 프롬프트 ★★★
-    // preserveStrength를 프롬프트에 반영 (0.0~1.0, 높을수록 원본 유지)
-    const preserveLevel = preserveStrength >= 0.8 ? 'EXACTLY' : preserveStrength >= 0.5 ? 'closely' : 'loosely';
+    // ★★★ I2I 모드: 자연스러운 배치 중심 프롬프트 ★★★
+    // I2I는 이미지가 직접 입력되므로 "일관성 강제" 프롬프트 불필요
+    // 대신 시나리오에 맞게 자연스럽게 배치하도록 유도
 
-    const enhancedPrompt = `[★★★ IMAGE-TO-IMAGE: USE THE ATTACHED PRODUCT IMAGE ★★★]
+    const enhancedPrompt = `[★★★ IMAGE-TO-IMAGE: CREATIVE PRODUCT PLACEMENT ★★★]
 
-[CRITICAL INSTRUCTION - 핵심 지시]
-I am attaching a PRODUCT IMAGE. You MUST use THIS EXACT PRODUCT in your generated image.
-DO NOT create a new product. DO NOT imagine a different product.
-COPY the product from my attached image and place it in a new scene.
+[CORE INSTRUCTION - 핵심 지시]
+첨부한 제품 이미지를 사용하여 아래 시나리오에 맞는 광고 이미지를 생성하세요.
 
-첨부한 이미지에 있는 제품을 반드시 사용하세요!
-새로운 제품을 만들지 마세요. 첨부한 제품을 그대로 복사해서 새로운 배경에 배치하세요.
+[★★★ NATURAL PLACEMENT - 자연스러운 배치 ★★★]
+- 제품을 시나리오/장면에 맞게 자연스럽게 배치하세요
+- 항상 가운데에 놓지 마세요! 구도에 따라 다양한 위치에 배치하세요
+- 제품의 각도, 크기, 위치를 장면에 어울리게 조절하세요
+- 제품이 여러 개라면 자연스럽게 재배치하거나 그룹핑하세요
+- 상황에 따라 제품 일부만 보이거나, 기울어지거나, 겹쳐도 됩니다
 
-[PRODUCT PRESERVATION LEVEL: ${preserveLevel.toUpperCase()} (${Math.round(preserveStrength * 100)}%)]
-The product from the attached image must be reproduced ${preserveLevel}:
-- ${preserveLevel === 'EXACTLY' ? 'IDENTICAL shape, design, color, packaging - pixel-perfect reproduction' : 'Same general shape and design'}
-- ${preserveLevel === 'EXACTLY' ? 'IDENTICAL proportions and dimensions' : 'Similar proportions'}
-- ${preserveLevel === 'EXACTLY' ? 'IDENTICAL surface texture, finish, and material appearance' : 'Similar appearance'}
-- DO NOT redesign, reinterpret, or modify the product
+Position the product NATURALLY according to the scene context:
+- DO NOT always center - use rule of thirds, dynamic angles
+- Adjust product size, angle, position to fit the scene
+- If multiple products: rearrange creatively, stack, group naturally
+- Product can be tilted, partially visible, or overlapping if it fits the concept
 
-[YOUR TASK]
-1. EXTRACT the product from my attached image
-2. PLACE this exact product into a new professional e-commerce scene
-3. ADD appropriate background, lighting, and styling
-4. CREATE an attractive detail page image for Korean e-commerce (올리브영/쿠팡 스타일)
-
-[PRODUCT PLACEMENT - 제품 배치]
-- Position the product NATURALLY according to the scene/scenario described below
-- DO NOT always center the product - vary placement based on composition needs
-- Consider leaving space for text overlays where the prompt suggests
-- Use creative angles and positions that fit the scene context
-제품을 항상 가운데에 놓지 마세요. 아래 시나리오에 맞게 자연스럽고 다양하게 배치하세요.
-
-[WHAT YOU MUST KEEP FROM ATTACHED IMAGE]
-- The exact product appearance
-- Product shape, color, design, packaging
-- Brand elements if visible
-
-[WHAT YOU CAN CHANGE]
-- Background: scenery, colors, gradients, textures
-- Lighting: direction, intensity, mood
-- Camera angle: perspective, distance (but keep product recognizable)
-- Surrounding elements: props, decorations, atmospheric effects
+[WHAT TO CREATE]
+Create a professional Korean e-commerce detail page image (올리브영/쿠팡 스타일):
+- Use the attached product in a new creative scene
+- Add appropriate background, lighting, props, atmosphere
+- Make it visually appealing and suitable for the scenario below
 ${aspectRatioSection}
-[CREATIVE DIRECTION]
+[CREATIVE DIRECTION / 시나리오]
 ${prompt}
 
 [OUTPUT]
-- An e-commerce detail page image featuring THE PRODUCT FROM MY ATTACHED IMAGE
 - Professional commercial photography quality
-- Premium and desirable presentation
-- 8K resolution, no text/typography/watermarks`;
+- Premium Korean beauty/e-commerce aesthetic
+- 8K resolution, absolutely no text/typography/watermarks`;
 
     // Gemini에 이미지 + 텍스트 프롬프트 동시 전송 (Google AI 공식 방식)
     console.log(`[Gemini I2I] ★★★ Sending IMAGE-TO-IMAGE request ★★★`);
     console.log(`[Gemini I2I] Model: ${model}`);
     console.log(`[Gemini I2I] Image attached: YES (${base64.length} chars, mimeType: ${mimeType})`);
-    console.log(`[Gemini I2I] PreserveStrength: ${preserveStrength} → Level: ${preserveLevel}`);
     console.log(`[Gemini I2I] AspectRatio: ${aspectRatio || 'free'}`);
     console.log(`[Gemini I2I] Prompt preview: ${enhancedPrompt.substring(0, 200)}...`);
 
