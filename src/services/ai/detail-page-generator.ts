@@ -19,6 +19,7 @@ import {
   buildEnhancedSystemPrompt,
   buildEnhancedUserPrompt,
   OverlayTextContent,
+  BrandContext,  // ★ 중앙 타입에서 import
 } from './prompts';
 import {
   orchestrateDetailPageGeneration,
@@ -34,15 +35,6 @@ const groq = new OpenAI({
   apiKey: process.env.GROQ_API_KEY || '',
   baseURL: 'https://api.groq.com/openai/v1',
 });
-
-// Types
-interface BrandContext {
-  name: string;
-  identity: string;
-  toneAndManner: string;
-  imageKeywords: string[];
-  ragContext?: string;
-}
 
 interface GenerateDetailPageInput {
   productImages: string[];

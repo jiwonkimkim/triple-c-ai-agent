@@ -3,6 +3,30 @@
  */
 
 // ============================================
+// 브랜드 스타일 가이드 (웹사이트 크롤링에서 추출)
+// ============================================
+
+export interface BrandStyleGuide {
+  colors?: {
+    primary?: string;      // 주요 브랜드 색상 (HEX)
+    secondary?: string;    // 보조 색상 (HEX)
+    palette?: string[];    // 전체 색상 팔레트
+    themeColor?: string;   // meta theme-color
+  };
+  images?: {
+    logo?: string;         // 로고 URL
+    favicon?: string;      // 파비콘 URL
+    ogImage?: string;      // OG 이미지 URL
+    hero?: string;         // 히어로 이미지 URL
+  };
+  fonts?: {
+    primary?: string;      // 주요 폰트
+    all?: string[];        // 사용된 폰트 목록
+  };
+  extractedAt?: string;    // 추출 일시
+}
+
+// ============================================
 // 브랜드 컨텍스트
 // ============================================
 
@@ -12,6 +36,7 @@ export interface BrandContext {
   toneAndManner: string;
   imageKeywords: string[];
   ragContext?: string;
+  styleGuide?: BrandStyleGuide;  // ★ 크롤링에서 추출한 브랜드 자산
 }
 
 // ============================================
@@ -80,6 +105,10 @@ export interface OverlayTextContent {
   statistics?: OverlayStatisticItem[] | string[];
   /** 행동 유도 문구 (5-10자) */
   cta?: OverlayTextItem | string;
+  /** ★ 브랜드 폰트 (크롤링에서 추출, 전체 텍스트에 적용) */
+  brandFont?: string;
+  /** ★ 브랜드 로고 URL (크롤링에서 추출, 오버레이에 표시 가능) */
+  brandLogoUrl?: string;
 }
 
 /** 헬퍼: OverlayTextItem에서 텍스트만 추출 */

@@ -110,13 +110,39 @@ export async function POST(request: NextRequest) {
         orderBy: { createdAt: 'desc' },
       });
 
+      // ★ styleGuide 파싱 (Json 타입이므로 안전하게 처리)
+      let styleGuide = undefined;
+      if (project.brandProfile.styleGuide) {
+        try {
+          // Prisma Json 타입은 이미 객체이므로 직접 사용
+          const rawStyleGuide = project.brandProfile.styleGuide as Record<string, unknown>;
+          styleGuide = {
+            colors: rawStyleGuide.colors as { primary?: string; secondary?: string; palette?: string[]; themeColor?: string } | undefined,
+            images: rawStyleGuide.images as { logo?: string; favicon?: string; ogImage?: string; hero?: string } | undefined,
+            fonts: rawStyleGuide.fonts as { primary?: string; all?: string[] } | undefined,
+            extractedAt: rawStyleGuide.extractedAt as string | undefined,
+          };
+        } catch (e) {
+          console.warn('[BrandContext] Failed to parse styleGuide:', e);
+        }
+      }
+
       brandContext = {
         name: project.brandProfile.name,
         identity: project.brandProfile.identity,
         toneAndManner: project.brandProfile.toneAndManner,
         imageKeywords: project.brandProfile.imageKeywords,
         ragContext: chunks.map((c) => c.content).join('\n\n'),
+        styleGuide,  // ★ 크롤링에서 추출한 브랜드 자산 포함
       };
+
+      // 디버그 로그
+      if (styleGuide?.colors?.primary) {
+        console.log(`[BrandContext] Brand colors loaded: primary=${styleGuide.colors.primary}, secondary=${styleGuide.colors.secondary || 'N/A'}`);
+      }
+      if (styleGuide?.fonts?.primary) {
+        console.log(`[BrandContext] Brand font loaded: ${styleGuide.fonts.primary}`);
+      }
     }
 
     // 개발 모드에서 프롬프트 포함 여부 (NEXT_PUBLIC_DEV_MODE도 체크)

@@ -7,6 +7,7 @@
 // 타입 정의
 // ============================================
 export type {
+  BrandStyleGuide,  // ★ 브랜드 스타일 가이드 (크롤링에서 추출)
   BrandContext,
   GenerateDetailPageInput,
   ProductVisualReference,

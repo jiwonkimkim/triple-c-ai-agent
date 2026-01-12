@@ -58,19 +58,17 @@ import {
   type VisualTheme,
   type ExtendedSectionType,
   type ImageAnalysisResult,
+  // ★ 브랜드 컨텍스트 타입 (중앙 정의)
+  type BrandStyleGuide,
+  type BrandContext,
 } from './prompts';
 
 // ============================================
 // 타입 정의
 // ============================================
 
-export interface BrandContext {
-  name: string;
-  identity: string;
-  toneAndManner: string;
-  imageKeywords: string[];
-  ragContext?: string;
-}
+// BrandStyleGuide, BrandContext는 ./prompts/types.ts에서 중앙 관리
+export type { BrandStyleGuide, BrandContext };
 
 export interface GenerationInput {
   productImages: string[];
@@ -258,6 +256,105 @@ function buildProductConsistencyText(
   }
 
   return instruction;
+}
+
+// ============================================
+// ★ 브랜드 스타일 가이드 기반 프롬프트 확장
+// ============================================
+
+/**
+ * 브랜드 색상을 이미지 프롬프트에 반영하는 확장 문구 생성
+ * styleGuide.colors를 활용하여 배경색, 색조 조화 등을 프롬프트에 추가
+ */
+export function buildBrandColorPromptExtension(styleGuide?: BrandStyleGuide): string {
+  if (!styleGuide?.colors) return '';
+
+  const { primary, secondary, palette, themeColor } = styleGuide.colors;
+  const parts: string[] = [];
+
+  // 주요 브랜드 색상이 있으면 배경색에 반영
+  if (primary) {
+    parts.push(`[BRAND COLOR INTEGRATION: Use brand primary color ${primary} as accent or background gradient element]`);
+  }
+
+  // 보조 색상이 있으면 조화로운 색조 지시
+  if (secondary) {
+    parts.push(`[COLOR HARMONY: Complement with brand secondary color ${secondary} for visual cohesion]`);
+  }
+
+  // 팔레트가 있으면 전체 색조 지시
+  if (palette && palette.length > 0) {
+    const topColors = palette.slice(0, 5).join(', ');
+    parts.push(`[BRAND PALETTE: Harmonize overall color tone with brand palette: ${topColors}]`);
+  }
+
+  // theme-color가 있으면 분위기에 반영
+  if (themeColor && themeColor !== primary) {
+    parts.push(`[THEME ATMOSPHERE: Subtle ${themeColor} tint in lighting or ambient glow]`);
+  }
+
+  return parts.length > 0 ? parts.join(' ') : '';
+}
+
+/**
+ * 브랜드 아이덴티티를 이미지 스타일에 반영하는 무드 키워드 생성
+ */
+export function buildBrandMoodKeywords(brandContext?: BrandContext | null): string {
+  if (!brandContext) return '';
+
+  const moodParts: string[] = [];
+
+  // 톤앤매너에서 무드 추출
+  if (brandContext.toneAndManner) {
+    const tone = brandContext.toneAndManner.toLowerCase();
+    if (tone.includes('럭셔리') || tone.includes('프리미엄') || tone.includes('고급')) {
+      moodParts.push('luxurious elegant sophisticated');
+    } else if (tone.includes('자연') || tone.includes('내추럴') || tone.includes('클린')) {
+      moodParts.push('natural organic clean minimal');
+    } else if (tone.includes('활기') || tone.includes('에너지') || tone.includes('트렌디')) {
+      moodParts.push('vibrant energetic trendy youthful');
+    } else if (tone.includes('부드럽') || tone.includes('순하') || tone.includes('민감')) {
+      moodParts.push('soft gentle soothing delicate');
+    } else if (tone.includes('전문') || tone.includes('과학') || tone.includes('더마')) {
+      moodParts.push('clinical professional scientific trustworthy');
+    }
+  }
+
+  // 이미지 키워드가 있으면 추가
+  if (brandContext.imageKeywords && brandContext.imageKeywords.length > 0) {
+    moodParts.push(brandContext.imageKeywords.slice(0, 3).join(' '));
+  }
+
+  return moodParts.length > 0 ? `[BRAND MOOD: ${moodParts.join(', ')}]` : '';
+}
+
+/**
+ * 브랜드 스타일 가이드 전체를 이미지 프롬프트에 통합
+ */
+export function buildFullBrandStylePrompt(brandContext?: BrandContext | null): string {
+  if (!brandContext) return '';
+
+  const parts: string[] = [];
+
+  // 1. 브랜드 색상 확장
+  const colorExtension = buildBrandColorPromptExtension(brandContext.styleGuide);
+  if (colorExtension) parts.push(colorExtension);
+
+  // 2. 브랜드 무드 키워드
+  const moodKeywords = buildBrandMoodKeywords(brandContext);
+  if (moodKeywords) parts.push(moodKeywords);
+
+  // 3. 브랜드명이 있으면 일관성 지시
+  if (brandContext.name) {
+    parts.push(`[BRAND CONSISTENCY: Maintain visual identity consistent with "${brandContext.name}" brand]`);
+  }
+
+  const result = parts.join(' ');
+  if (result) {
+    console.log('[Orchestration] ★ Brand style prompt extension:', result.substring(0, 100) + '...');
+  }
+
+  return result;
 }
 
 // ============================================
@@ -1724,13 +1821,24 @@ CRITICAL INSTRUCTION FOR DIVERSE BACKGROUNDS:
 - The overall mood should be: ${colorPalette.moodKeywords.join(', ')}
 `;
 
-          // 기존 프롬프트에 팔레트 배경색 정보 주입
-          const enhancedImagePrompt = imagePrompt.imagePrompt + paletteBackgroundInjection;
+          // ★★★ 브랜드 스타일 가이드 기반 프롬프트 확장 (NEW!)
+          // 브랜드 프로필에서 크롤링한 색상, 무드 등을 이미지 프롬프트에 반영
+          const brandStylePrompt = buildFullBrandStylePrompt(input.brandContext);
+
+          // 기존 프롬프트에 팔레트 배경색 + 브랜드 스타일 정보 주입
+          const enhancedImagePrompt = imagePrompt.imagePrompt + paletteBackgroundInjection + (brandStylePrompt ? `\n${brandStylePrompt}` : '');
+
+          // ★ 오버레이 텍스트에 브랜드 폰트/로고 정보 추가
+          const enhancedOverlayText = overlayResult.overlayText ? {
+            ...overlayResult.overlayText,
+            brandFont: input.brandContext?.styleGuide?.fonts?.primary,
+            brandLogoUrl: input.brandContext?.styleGuide?.images?.logo,
+          } : undefined;
 
           return {
             ...imagePrompt,
             imagePrompt: enhancedImagePrompt,  // ★ 배경색 강화된 프롬프트
-            overlayText: overlayResult.overlayText,
+            overlayText: enhancedOverlayText,  // ★ 브랜드 폰트/로고 추가
             overlayPrompt: overlayResult.overlayPrompt,  // ★ 개발자 모드용 프롬프트
             imageIndex: index,
             totalImagesInSection: imageCount,
