@@ -1010,8 +1010,9 @@ Korean beauty detail page style, 올리브영/쿠팡 스타일.
 
   // 2. 오케스트레이션 프롬프트 추가 (있으면)
   // 전체 상세페이지의 일관된 메시지와 컨텍스트를 담은 추가 지시
+  // ★ MAIN 섹션은 이미 완성형 프롬프트라 오케스트레이션 컨텍스트 제외 (충돌 방지)
   let orchestrationContext = '';
-  if (scenarioPrompt && scenarioPrompt.trim()) {
+  if (sectionType !== 'MAIN' && scenarioPrompt && scenarioPrompt.trim()) {
     console.log(`[Gemini I2I] ★ Adding orchestration context for ${sectionType}`);
     console.log(`[Gemini I2I] orchestration preview: ${scenarioPrompt.substring(0, 100)}...`);
     orchestrationContext = `

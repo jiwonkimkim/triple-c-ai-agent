@@ -64,7 +64,10 @@
       "Bash(git rev-parse:*)",
       "Bash(git restore:*)",
       "Bash(grep:*)",
-      "Bash(lsof:*)"
+      "Bash(node check-versions.js:*)",
+      "WebFetch(domain:pub-81cb23a196104a328d1e9c4f4f12004d.r2.dev)",
+      "Bash(node restore-project.js:*)",
+      "Bash(node check-projects.js:*)"
     ],
     "deny": [],
     "ask": []
