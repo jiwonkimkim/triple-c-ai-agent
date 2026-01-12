@@ -721,40 +721,50 @@ export async function generateImageFromImage(
       aspectRatioSection = `\n[IMAGE FORMAT]\n${aspectRatioInstruction}\n`;
     }
 
-    // ★★★ I2I 모드: 자연스러운 배치 중심 프롬프트 ★★★
-    // I2I는 이미지가 직접 입력되므로 "일관성 강제" 프롬프트 불필요
-    // 대신 시나리오에 맞게 자연스럽게 배치하도록 유도
+    // ★★★ I2I 모드: 제품 모양 유지 + 자연스러운 재배치 ★★★
+    // 제품의 모양/디자인은 절대 변경하지 않고, 위치/각도만 재배치
+    // 시나리오에 따라 제품을 사용 안해도 됨
 
-    const enhancedPrompt = `[★★★ IMAGE-TO-IMAGE: CREATIVE PRODUCT PLACEMENT ★★★]
+    const enhancedPrompt = `[★★★ IMAGE-TO-IMAGE: PRODUCT REPOSITIONING ★★★]
 
-[CORE INSTRUCTION - 핵심 지시]
-첨부한 제품 이미지를 사용하여 아래 시나리오에 맞는 광고 이미지를 생성하세요.
+[CRITICAL RULES - 절대 규칙]
+1. DO NOT change the product's shape, design, color, or appearance
+2. DO NOT create different products or modify the attached products
+3. ONLY REPOSITION/REARRANGE the attached products naturally
+4. If the scenario doesn't need products, you may omit them entirely
 
-[★★★ NATURAL PLACEMENT - 자연스러운 배치 ★★★]
-- 제품을 시나리오/장면에 맞게 자연스럽게 배치하세요
-- 항상 가운데에 놓지 마세요! 구도에 따라 다양한 위치에 배치하세요
-- 제품의 각도, 크기, 위치를 장면에 어울리게 조절하세요
-- 제품이 여러 개라면 자연스럽게 재배치하거나 그룹핑하세요
-- 상황에 따라 제품 일부만 보이거나, 기울어지거나, 겹쳐도 됩니다
+첨부된 제품의 "모양"을 바꾸거나 다른 제품을 만들지 마세요!
+오직 "재배치"만 하세요. 시나리오에 제품이 필요없으면 사용하지 않아도 됩니다.
 
-Position the product NATURALLY according to the scene context:
-- DO NOT always center - use rule of thirds, dynamic angles
-- Adjust product size, angle, position to fit the scene
-- If multiple products: rearrange creatively, stack, group naturally
-- Product can be tilted, partially visible, or overlapping if it fits the concept
+[★★★ REPOSITIONING RULES - 재배치 규칙 ★★★]
+- Keep the EXACT product appearance (shape, color, design, packaging)
+- Change ONLY: position, angle, size, lighting on the product
+- If multiple products in the image: treat each as a separate item and rearrange naturally
+- Products can be: tilted, stacked, grouped, partially visible - but SAME SHAPE
 
-[WHAT TO CREATE]
-Create a professional Korean e-commerce detail page image (올리브영/쿠팡 스타일):
-- Use the attached product in a new creative scene
-- Add appropriate background, lighting, props, atmosphere
-- Make it visually appealing and suitable for the scenario below
+제품이 여러개인 경우:
+- 각 제품을 개별 아이템으로 인식하세요
+- 자연스럽게 재배치, 그룹핑, 정렬하세요
+- 모든 제품의 원래 모양을 유지하세요
+
+[WHAT YOU CAN DO]
+✅ Reposition products to different locations
+✅ Adjust product angles (tilt, rotate)
+✅ Change product scale for composition
+✅ Add new background, lighting, props, atmosphere
+✅ Omit products entirely if scenario doesn't need them
+
+[WHAT YOU CANNOT DO]
+❌ Change product shape or design
+❌ Create new/different products
+❌ Modify product colors or packaging
+❌ Transform products into something else
 ${aspectRatioSection}
 [CREATIVE DIRECTION / 시나리오]
 ${prompt}
 
 [OUTPUT]
-- Professional commercial photography quality
-- Premium Korean beauty/e-commerce aesthetic
+- Professional Korean e-commerce aesthetic (올리브영/쿠팡 스타일)
 - 8K resolution, absolutely no text/typography/watermarks`;
 
     // Gemini에 이미지 + 텍스트 프롬프트 동시 전송 (Google AI 공식 방식)
