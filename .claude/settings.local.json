@@ -68,7 +68,13 @@
       "WebFetch(domain:pub-81cb23a196104a328d1e9c4f4f12004d.r2.dev)",
       "Bash(node restore-project.js:*)",
       "Bash(node check-projects.js:*)",
-      "Bash(node check-product-images.js:*)"
+      "Bash(node check-product-images.js:*)",
+      "Bash(node check-all-projects.js:*)",
+      "Bash(node restore-projects.js:*)",
+      "Bash(node restore-all-named.js:*)",
+      "Bash(node check-project-prompts.js:*)",
+      "Bash(node check-content.js:*)",
+      "Bash(node fix-content.js:*)"
     ],
     "deny": [],
     "ask": []

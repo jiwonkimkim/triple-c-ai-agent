@@ -18,8 +18,16 @@ export function useAutoSave({
 }: UseAutoSaveOptions) {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedContentRef = useRef<string>('');
+  const prevProjectIdRef = useRef<string>(projectId);
 
   const { sections, isDirty, isSaving, setDirty, setSaving, setLastSavedAt } = useEditorStore();
+
+  // ★ 프로젝트 변경 시 lastSavedContentRef 초기화 (이전 프로젝트 캐시 제거)
+  if (prevProjectIdRef.current !== projectId) {
+    console.log(`[AutoSave] Project changed from ${prevProjectIdRef.current} to ${projectId}, clearing cache`);
+    lastSavedContentRef.current = '';
+    prevProjectIdRef.current = projectId;
+  }
 
   const save = useCallback(async (isManualSave = false) => {
     if (!isDirty || isSaving) return;

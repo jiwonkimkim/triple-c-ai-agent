@@ -128,10 +128,32 @@ export function DetailPageEditor({
   } = useEditorStore();
 
   // ★★★ 프로젝트 전환 시 store 초기화 (다른 프로젝트 데이터 오염 방지)
-  // projectId가 변경되면 즉시 store를 초기화하여 이전 프로젝트 데이터가 저장되는 것을 방지
+  // projectId가 변경되면 이전 프로젝트 저장 후 store 초기화
+  const prevProjectIdRef = useRef<string | null>(null);
+
   useEffect(() => {
-    console.log(`[Editor] Project changed to ${projectId}, resetting store...`);
-    reset();
+    const prevProjectId = prevProjectIdRef.current;
+
+    // 이전 프로젝트가 있고, 프로젝트가 변경되었을 때
+    if (prevProjectId && prevProjectId !== projectId) {
+      console.log(`[Editor] Project switching from ${prevProjectId} to ${projectId}`);
+
+      // 이전 프로젝트에 저장되지 않은 변경사항이 있으면 저장 시도
+      const { sections: prevSections, isDirty: wasDirty } = useEditorStore.getState();
+      if (wasDirty && prevSections.length > 0) {
+        console.log(`[Editor] Saving unsaved changes for ${prevProjectId} before switching`);
+        // sendBeacon으로 비동기 저장 (페이지 이동 중에도 동작)
+        navigator.sendBeacon?.(
+          `/api/projects/${prevProjectId}/drafts`,
+          JSON.stringify({ content: prevSections })
+        );
+      }
+
+      // store 초기화
+      reset();
+    }
+
+    prevProjectIdRef.current = projectId;
   }, [projectId, reset]);
 
   // Initialize editor with initial sections or fetch from API
