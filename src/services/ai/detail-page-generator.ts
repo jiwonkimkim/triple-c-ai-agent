@@ -534,10 +534,11 @@ export async function generateDetailPage(
 
                   for (let i = 0; i < prompts.length; i++) {
                     try {
-                      // ★ 오케스트레이션에서 생성된 시나리오 프롬프트 추출
-                      const orchestrationPrompt = prompts[i]?.imagePrompt || '';
+                      // ★ MAIN 섹션은 오케스트레이션 프롬프트 제외 (간결한 프롬프트가 더 좋은 결과)
+                      const isMainSection = sectionType === 'MAIN';
+                      const orchestrationPrompt = isMainSection ? '' : (prompts[i]?.imagePrompt || '');
                       console.log(`[AI I2I] Generating ${sectionType} image ${i + 1}/${prompts.length}...`);
-                      console.log(`[AI I2I] Orchestration prompt: ${orchestrationPrompt.substring(0, 100)}...`);
+                      console.log(`[AI I2I] Orchestration prompt ${isMainSection ? '(SKIPPED for MAIN)' : ''}: ${orchestrationPrompt.substring(0, 100)}...`);
 
                       const generatedImage = await generateSectionImageFromProduct(
                         cleanProductImage,  // 배경 제거된 이미지 사용
@@ -548,7 +549,7 @@ export async function generateDetailPage(
                         imageModel,
                         input.keyFeatures,
                         input.targetAudience,
-                        orchestrationPrompt  // ★ 오케스트레이션 시나리오 프롬프트 전달
+                        orchestrationPrompt  // ★ MAIN은 빈 문자열, 나머지는 오케스트레이션 프롬프트
                       );
 
                       if (generatedImage) {
