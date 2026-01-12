@@ -69,7 +69,8 @@ interface Project {
 }
 
 async function fetchProjects(): Promise<{ items: Project[] }> {
-  const response = await fetch('/api/projects?includeDeleted=true');
+  // pageSize=100으로 전체 프로젝트 조회 (기본 10개 제한 해제)
+  const response = await fetch('/api/projects?includeDeleted=true&pageSize=100');
   if (!response.ok) throw new Error('Failed to fetch projects');
   const data = await response.json();
   return data.data;
