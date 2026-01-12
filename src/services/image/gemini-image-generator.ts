@@ -47,6 +47,9 @@ export interface GeminiGeneratedImage {
     orchestrationPrompt?: string;      // 오케스트레이션 AI가 생성한 시나리오
     categoryTemplatePrompt?: string;   // 섹션별 카테고리 템플릿
     i2iSystemPrompt?: string;          // I2I 시스템 프롬프트 (재배치 규칙)
+    // ★★★ 고정/동적 프롬프트 분리 (NEW!)
+    fixedPrompt?: string;              // 고정 프롬프트 (제품일관성, 품질, no-text, 네거티브)
+    dynamicPrompt?: string;            // 동적 프롬프트 (테마, 섹션템플릿, 오케스트레이션 등)
   };
 }
 
@@ -1026,6 +1029,19 @@ ${scenarioPrompt}
 - 항상 가운데에 놓지 말고, 시나리오에 어울리는 위치에 배치하세요`;
   }
 
+  // ★★★ 고정/동적 프롬프트 분리 (DEV 모드 표시용)
+  const fixedPromptParts = [
+    'OUTPUT: High-quality commercial photography, 8K resolution, no text on image.',
+  ];
+
+  const dynamicPromptParts = [
+    basePrompt,
+    orchestrationContext,
+    `Product: ${productName}`,
+    `Category: ${category}`,
+    additionalPrompt ? `Additional style: ${additionalPrompt}` : '',
+  ].filter(Boolean);
+
   const fullPrompt = `${basePrompt}${orchestrationContext}
 
 Product: ${productName}
@@ -1062,6 +1078,9 @@ OUTPUT: High-quality commercial photography, 8K resolution, no text on image.`;
       ...images[0].promptComponents,
       orchestrationPrompt: scenarioPrompt || undefined,       // 오케스트레이션 AI 생성 시나리오
       categoryTemplatePrompt: basePrompt,                     // 섹션별 카테고리 템플릿
+      // ★★★ 고정/동적 프롬프트 분리 (NEW!)
+      fixedPrompt: fixedPromptParts.join('\n\n'),
+      dynamicPrompt: dynamicPromptParts.join('\n\n'),
     },
   };
 }
