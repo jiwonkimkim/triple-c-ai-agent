@@ -58,6 +58,7 @@ export default function DashboardLayout({
 
   const isSmile = isLoaded && styleTheme === 'smile';
   const isSapporo = isLoaded && styleTheme === 'sapporo';
+  const isCollette = isLoaded && styleTheme === 'collette';
 
   // 에디터 페이지 진입 시 사이드바 자동 닫기
   useEffect(() => {
@@ -81,7 +82,10 @@ export default function DashboardLayout({
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-white/40 backdrop-blur-[20px] border-r border-white/40 transition-all duration-300 overflow-hidden',
+          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col backdrop-blur-[20px] transition-all duration-300 overflow-hidden',
+          isCollette
+            ? 'bg-[#FDF0ED]/90 border-r border-[#D94E3C]/20'
+            : 'bg-white/40 border-r border-white/40',
           // 모바일: sidebarOpen으로 제어
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
           // 데스크톱: sidebarCollapsed로 제어 - 완전히 숨김
@@ -91,9 +95,15 @@ export default function DashboardLayout({
         )}
       >
         {/* Logo */}
-        <div className="flex h-16 items-center justify-between border-b border-white/40 px-4 min-w-[256px]">
+        <div className={cn(
+          "flex h-16 items-center justify-between px-4 min-w-[256px]",
+          isCollette ? "border-b border-[#D94E3C]/20" : "border-b border-white/40"
+        )}>
           <Link href="/dashboard" className="flex items-center space-x-2">
-            <span className="text-2xl font-black tracking-tight text-primary">Triple C</span>
+            <span className={cn(
+              "text-2xl tracking-tight",
+              isCollette ? "font-serif italic text-[#D94E3C]" : "font-black text-primary"
+            )}>Triple C</span>
           </Link>
           <div className="flex items-center gap-1">
             {/* 데스크톱: 사이드바 닫기 버튼 - 모던 스타일 */}
@@ -129,16 +139,20 @@ export default function DashboardLayout({
                 href={item.href}
                 className={cn(
                   'flex items-center gap-3 px-3 py-2 text-sm font-medium transition-all duration-500',
-                  isSmile ? 'rounded-none' : 'rounded-lg',
+                  isSmile || isCollette ? 'rounded-none' : 'rounded-lg',
                   isActive
                     ? isSmile
                       ? 'bg-foreground text-background'
                       : isSapporo
                         ? 'bg-amber-500/90 text-white shadow-md'
-                        : 'text-white shadow-[0_0_20px_#eee] bg-[length:200%_auto] bg-[linear-gradient(to_right,#77A1D3_0%,#79CBCA_51%,#77A1D3_100%)]'
+                        : isCollette
+                          ? 'bg-[#D94E3C] text-[#FDF0ED]'
+                          : 'text-white shadow-[0_0_20px_#eee] bg-[length:200%_auto] bg-[linear-gradient(to_right,#77A1D3_0%,#79CBCA_51%,#77A1D3_100%)]'
                     : isSapporo
                       ? 'text-amber-800 dark:text-amber-100 font-medium hover:bg-amber-100/50 dark:hover:bg-amber-800/30 hover:text-amber-900 dark:hover:text-amber-50'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                      : isCollette
+                        ? 'text-[#D94E3C] hover:bg-[#D94E3C]/10'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 )}
                 onClick={() => setSidebarOpen(false)}
               >
@@ -150,8 +164,14 @@ export default function DashboardLayout({
         </nav>
 
         {/* User section */}
-        <div className="border-t border-white/40 p-4">
-          <div className="flex items-center gap-3 rounded-lg bg-white/30 p-3">
+        <div className={cn(
+          "p-4",
+          isCollette ? "border-t border-[#D94E3C]/20" : "border-t border-white/40"
+        )}>
+          <div className={cn(
+            "flex items-center gap-3 p-3",
+            isCollette ? "rounded-none bg-[#D94E3C]/5" : "rounded-lg bg-white/30"
+          )}>
             <Avatar className="h-9 w-9">
               <AvatarImage src={session?.user?.image || ''} />
               <AvatarFallback>

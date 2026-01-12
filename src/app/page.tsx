@@ -64,6 +64,7 @@ const themeOptions = [
   { value: 'smile', label: 'Smile', description: '패션 브랜드 스타일' },
   { value: 'sapporo', label: 'Sapporo', description: '겨울 카페 스타일' },
   { value: 'fluid', label: 'Fluid', description: '모던 미니멀 스타일' },
+  { value: 'collette', label: 'Collette', description: '미니멀 에디토리얼 스타일' },
 ] as const;
 
 // 파티클 인터페이스
@@ -82,9 +83,10 @@ export default function LandingPage() {
   const isSmile = isLoaded && styleTheme === 'smile';
   const isSapporo = isLoaded && styleTheme === 'sapporo';
   const isFluid = isLoaded && styleTheme === 'fluid';
+  const isCollette = isLoaded && styleTheme === 'collette';
 
-  // default 테마 여부 (smile, sapporo, fluid가 아닌 경우)
-  const isDefault = isLoaded && !isSmile && !isSapporo && !isFluid;
+  // default 테마 여부 (smile, sapporo, fluid, collette가 아닌 경우)
+  const isDefault = isLoaded && !isSmile && !isSapporo && !isFluid && !isCollette;
 
   // 좋아요 버튼 파티클 상태
   const [particles, setParticles] = useState<Particle[]>([]);
@@ -149,9 +151,10 @@ export default function LandingPage() {
       )}>
         <div className={cn(
           "flex items-center justify-between px-6 py-4",
-          !isSapporo && !isFluid && !isDefault && "border-b border-border",
+          !isSapporo && !isFluid && !isDefault && !isCollette && "border-b border-border",
           isSmile && "border-b-2",
-          isFluid && "py-6 px-8 lg:px-16"
+          isFluid && "py-6 px-8 lg:px-16",
+          isCollette && "py-8 px-8 lg:px-20"
         )}>
           <Link href="/" className={cn(
             "flex items-center gap-3",
@@ -165,7 +168,8 @@ export default function LandingPage() {
             <span className={cn(
               "text-2xl font-bold",
               isSapporo && "text-slate-700 tracking-wide font-semibold",
-              isFluid && "text-3xl font-light tracking-tight"
+              isFluid && "text-3xl font-light tracking-tight",
+              isCollette && "text-2xl font-light tracking-[0.15em] uppercase"
             )}>
               Triple C
             </span>
@@ -176,13 +180,15 @@ export default function LandingPage() {
                 "text-sm hover:text-primary transition-colors",
                 isSmile && "uppercase tracking-wider hover:underline",
                 isSapporo && "text-slate-500 hover:text-amber-600",
-                isFluid && "text-sm font-light tracking-wide hover:opacity-60"
+                isFluid && "text-sm font-light tracking-wide hover:opacity-60",
+                isCollette && "text-xs uppercase tracking-[0.2em] font-light hover:opacity-50"
               )}>Features</a>
               <a href="#how-it-works" className={cn(
                 "text-sm hover:text-primary transition-colors",
                 isSmile && "uppercase tracking-wider hover:underline",
                 isSapporo && "text-slate-500 hover:text-amber-600",
-                isFluid && "text-sm font-light tracking-wide hover:opacity-60"
+                isFluid && "text-sm font-light tracking-wide hover:opacity-60",
+                isCollette && "text-xs uppercase tracking-[0.2em] font-light hover:opacity-50"
               )}>How It Works</a>
             </nav>
 
@@ -216,6 +222,7 @@ export default function LandingPage() {
                 isSmile && "uppercase text-xs tracking-wider",
                 isSapporo && "text-slate-600 hover:text-amber-600 hover:bg-amber-50",
                 isFluid && "text-sm font-light hover:bg-transparent hover:opacity-60",
+                isCollette && "text-xs uppercase tracking-[0.15em] font-light hover:bg-transparent hover:opacity-50",
                 isDefault && "glass-btn"
               )}>
                 로그인
@@ -227,6 +234,7 @@ export default function LandingPage() {
                 isSmile && "uppercase text-xs tracking-wider bg-foreground text-background hover:bg-foreground/90",
                 isSapporo && "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg shadow-amber-500/30",
                 isFluid && "bg-[#7BA3D8] text-white hover:bg-[#6B93C8] font-light px-8",
+                isCollette && "bg-black text-white hover:bg-black/80 text-xs uppercase tracking-[0.15em] font-light px-10 rounded-none",
                 isDefault && "glass-btn glass-btn-primary"
               )}>
                 시작하기
@@ -252,7 +260,8 @@ export default function LandingPage() {
             "text-4xl md:text-5xl lg:text-6xl font-semibold text-center mb-3 tracking-tight",
             isSmile && "font-black uppercase tracking-tighter",
             isSapporo && "text-slate-700",
-            isFluid && "font-extralight text-5xl md:text-6xl lg:text-7xl"
+            isFluid && "font-extralight text-5xl md:text-6xl lg:text-7xl",
+            isCollette && "font-light text-4xl md:text-5xl lg:text-6xl tracking-[0.1em] uppercase"
           )}>
             {isSmile ? (
               <>CONTENTS CREATE COPY</>

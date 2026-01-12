@@ -978,10 +978,16 @@ export default function SettingsPage() {
                             description: '크림 & 스카이블루 스타일',
                             preview: 'bg-[#F5F3EA] border-[#7BA3D8]'
                           },
+                          {
+                            value: 'collette',
+                            label: 'Collette',
+                            description: '블러쉬 핑크 & 코랄 레드',
+                            preview: 'bg-[#FDF0ED] border-[#D94E3C]'
+                          },
                         ].map((t) => (
                           <motion.button
                             key={t.value}
-                            onClick={() => setStyleTheme(t.value as 'default' | 'smile' | 'sapporo' | 'fluid')}
+                            onClick={() => setStyleTheme(t.value as 'default' | 'smile' | 'sapporo' | 'fluid' | 'collette')}
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             className={cn(

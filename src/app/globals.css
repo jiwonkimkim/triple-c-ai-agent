@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Cafe24 Ssurround - 한글 폰트 */
+@font-face {
+  font-family: 'Cafe24Ssurround';
+  font-weight: 400;
+  font-style: normal;
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/Cafe24Ssurround.woff') format('woff');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cafe24Ssurround';
+  font-weight: 700;
+  font-style: normal;
+  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/Cafe24Ssurround.woff') format('woff');
+  font-display: swap;
+}
+
 @layer base {
   /* Default Theme */
   :root {
@@ -55,6 +72,7 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Cafe24Ssurround', var(--font-montserrat), 'Montserrat', system-ui, sans-serif;
   }
 }
 
@@ -398,6 +416,257 @@ html.style-fluid.dark {
 
 .style-fluid ::selection {
   background: hsl(216 50% 66% / 0.2);
+}
+
+/* ============================================
+   Collette Theme - Blush Pink + Coral Red
+   Inspired by collette-fluid-demo.squarespace.com
+   ============================================ */
+html.style-collette {
+  --background: 10 60% 96% !important; /* Blush Pink #FDF0ED */
+  --foreground: 6 65% 50% !important; /* Coral Red #D94E3C */
+  --card: 10 50% 98% !important; /* Lighter blush */
+  --card-foreground: 6 65% 50% !important;
+  --popover: 10 60% 96% !important;
+  --popover-foreground: 6 65% 50% !important;
+  --primary: 6 65% 50% !important; /* Coral Red #D94E3C */
+  --primary-foreground: 10 60% 96% !important; /* Blush Pink */
+  --secondary: 10 40% 92% !important; /* Slightly darker blush */
+  --secondary-foreground: 6 65% 50% !important;
+  --muted: 10 30% 90% !important;
+  --muted-foreground: 6 50% 60% !important; /* Lighter coral */
+  --accent: 6 65% 50% !important; /* Coral Red */
+  --accent-foreground: 10 60% 96% !important;
+  --destructive: 0 84.2% 60.2% !important;
+  --destructive-foreground: 0 0% 100% !important;
+  --border: 6 65% 50% / 0.2 !important; /* Coral border with opacity */
+  --input: 6 65% 50% / 0.15 !important;
+  --ring: 6 65% 50% !important;
+  --radius: 0rem !important; /* Sharp corners for editorial look */
+
+  /* Collette specific colors */
+  --collette-blush: #FDF0ED;
+  --collette-coral: #D94E3C;
+  --collette-coral-light: #E87A6C;
+}
+
+html.style-collette.dark {
+  --background: 6 30% 12% !important; /* Dark warm tone */
+  --foreground: 10 60% 85% !important; /* Light blush text */
+  --card: 6 25% 15% !important;
+  --card-foreground: 10 60% 85% !important;
+  --popover: 6 25% 15% !important;
+  --popover-foreground: 10 60% 85% !important;
+  --primary: 6 65% 60% !important; /* Lighter coral for dark mode */
+  --primary-foreground: 6 30% 12% !important;
+  --secondary: 6 25% 20% !important;
+  --secondary-foreground: 10 60% 85% !important;
+  --muted: 6 20% 18% !important;
+  --muted-foreground: 10 40% 60% !important;
+  --accent: 6 65% 60% !important;
+  --accent-foreground: 6 30% 12% !important;
+  --destructive: 0 62.8% 30.6% !important;
+  --destructive-foreground: 0 0% 98% !important;
+  --border: 6 65% 60% / 0.2 !important;
+  --input: 6 65% 60% / 0.15 !important;
+  --ring: 6 65% 60% !important;
+
+  --collette-blush: #2A1A18;
+  --collette-coral: #E87A6C;
+  --collette-coral-light: #F09A8E;
+}
+
+/* Collette Theme Typography - Elegant serif + wide-spaced sans */
+.style-collette {
+  font-family: 'Cafe24Ssurround', var(--font-montserrat), 'Montserrat', system-ui, sans-serif;
+}
+
+.style-collette h1 {
+  font-family: var(--font-playfair), 'Playfair Display', 'Georgia', serif;
+  font-size: 4rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  color: hsl(var(--foreground));
+}
+
+.style-collette h2 {
+  font-family: var(--font-playfair), 'Playfair Display', 'Georgia', serif;
+  font-size: 2.5rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  color: hsl(var(--foreground));
+}
+
+.style-collette h3 {
+  font-family: 'Cafe24Ssurround', var(--font-montserrat), 'Montserrat', system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.25em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: hsl(var(--foreground));
+}
+
+.style-collette h4,
+.style-collette h5,
+.style-collette h6 {
+  font-family: 'Cafe24Ssurround', var(--font-montserrat), 'Montserrat', system-ui, sans-serif;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.style-collette p {
+  font-family: 'Cafe24Ssurround', var(--font-montserrat), 'Montserrat', system-ui, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.8;
+}
+
+/* Collette Marquee Animation with Wave Effect */
+.style-collette .collette-marquee {
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+.style-collette .collette-marquee-content {
+  display: inline-flex;
+  animation: collette-marquee 20s linear infinite;
+}
+
+.style-collette .collette-marquee-content:hover {
+  animation-play-state: paused;
+}
+
+.style-collette .collette-marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 2rem;
+  font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-size: 1.5rem;
+  color: hsl(var(--foreground));
+}
+
+.style-collette .collette-marquee-item .heart {
+  color: hsl(var(--primary));
+  font-style: normal;
+}
+
+@keyframes collette-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Wave text animation for marquee */
+@keyframes collette-wave {
+  0%, 100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  25% {
+    transform: translateY(-8px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(0) rotate(2deg);
+  }
+  75% {
+    transform: translateY(8px) rotate(0deg);
+  }
+}
+
+.style-collette .wave-text {
+  display: inline-block;
+  animation: collette-wave 3s ease-in-out infinite;
+}
+
+.style-collette .wave-text:nth-child(2) { animation-delay: 0.1s; }
+.style-collette .wave-text:nth-child(3) { animation-delay: 0.2s; }
+.style-collette .wave-text:nth-child(4) { animation-delay: 0.3s; }
+.style-collette .wave-text:nth-child(5) { animation-delay: 0.4s; }
+
+/* Collette Button Styles - Outline only */
+.style-collette .btn-collette,
+.style-collette button[class*="outline"] {
+  background: transparent !important;
+  border: 2px solid hsl(var(--primary)) !important;
+  color: hsl(var(--primary)) !important;
+  font-family: 'Cafe24Ssurround', var(--font-montserrat), 'Montserrat', system-ui, sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 0.75rem 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.style-collette .btn-collette:hover,
+.style-collette button[class*="outline"]:hover {
+  background: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+
+/* Collette Navigation Style */
+.style-collette nav a {
+  font-family: 'Cafe24Ssurround', var(--font-montserrat), 'Montserrat', system-ui, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  position: relative;
+}
+
+.style-collette nav a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: hsl(var(--primary));
+  transition: width 0.3s ease;
+}
+
+.style-collette nav a:hover::after {
+  width: 100%;
+}
+
+/* Collette Cards - minimal borders */
+.style-collette .card {
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+}
+
+/* Collette scrollbar */
+.style-collette ::-webkit-scrollbar-thumb {
+  background: hsl(6 65% 50% / 0.3);
+  border-radius: 0;
+}
+
+.style-collette ::-webkit-scrollbar-thumb:hover {
+  background: hsl(6 65% 50% / 0.5);
+}
+
+.style-collette ::selection {
+  background: hsl(6 65% 50% / 0.2);
+  color: hsl(6 65% 40%);
+}
+
+/* Collette specific utility classes */
+.style-collette .text-wide {
+  letter-spacing: 0.3em;
+}
+
+.style-collette .text-serif {
+  font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+}
+
+.style-collette .text-italic-serif {
+  font-family: var(--font-playfair), 'Playfair Display', Georgia, serif;
+  font-style: italic;
 }
 
 /* Mouse Glow Effect Morph Animations */

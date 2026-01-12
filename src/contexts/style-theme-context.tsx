@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useLayoutEffect, ReactNode } from 'react';
 
-export type StyleTheme = 'default' | 'smile' | 'sapporo' | 'fluid';
+export type StyleTheme = 'default' | 'smile' | 'sapporo' | 'fluid' | 'collette';
 
 interface StyleThemeContextType {
   styleTheme: StyleTheme;
@@ -17,13 +17,15 @@ const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffec
 
 function applyStyleTheme(theme: StyleTheme) {
   const html = document.documentElement;
-  html.classList.remove('style-smile', 'style-sapporo', 'style-fluid');
+  html.classList.remove('style-smile', 'style-sapporo', 'style-fluid', 'style-collette');
   if (theme === 'smile') {
     html.classList.add('style-smile');
   } else if (theme === 'sapporo') {
     html.classList.add('style-sapporo');
   } else if (theme === 'fluid') {
     html.classList.add('style-fluid');
+  } else if (theme === 'collette') {
+    html.classList.add('style-collette');
   }
 }
 
@@ -35,7 +37,7 @@ export function StyleThemeProvider({ children }: { children: ReactNode }) {
   // Load theme from localStorage on client mount
   useIsomorphicLayoutEffect(() => {
     const saved = localStorage.getItem('style-theme') as StyleTheme;
-    if (saved === 'default' || saved === 'smile' || saved === 'sapporo' || saved === 'fluid') {
+    if (saved === 'default' || saved === 'smile' || saved === 'sapporo' || saved === 'fluid' || saved === 'collette') {
       setStyleThemeState(saved);
       applyStyleTheme(saved);
     }

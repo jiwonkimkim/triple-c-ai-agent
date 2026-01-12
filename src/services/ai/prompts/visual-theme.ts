@@ -17,7 +17,8 @@ export type ThemeStyle =
   | 'luxury-light'      // 럭셔리 라이트 (화이트, 골드)
   | 'clinical-clean'    // 클리니컬 클린 (화이트, 블루)
   | 'vibrant-pop'       // 바이브런트 팝 (컬러풀)
-  | 'soft-pastel';      // 소프트 파스텔 (파스텔톤)
+  | 'soft-pastel'       // 소프트 파스텔 (파스텔톤)
+  | 'elegant-editorial'; // 엘레강스 에디토리얼 (블랙&화이트, 미니멀 웨딩)
 
 export interface VisualTheme {
   /** 테마 ID */
@@ -244,6 +245,31 @@ export const VISUAL_THEMES: Record<ThemeStyle, VisualTheme> = {
     consistencyPrompt: 'Maintain consistent soft pastel pink and lavender color palette throughout all images. Use soft diffused lighting with dreamy glow. Keep backgrounds gentle and romantic. All images should feel cohesive and feminine as part of a single delicate product detail page.',
     suitableCategories: ['립메이크업', '블러쉬', '아이섀도우', '바디케어', '향수'],
     suitableBrandTones: ['trendy', 'clean'],
+  },
+
+  'elegant-editorial': {
+    id: 'elegant-editorial',
+    name: '엘레강스 에디토리얼',
+    description: '세련된 블랙&화이트의 미니멀 에디토리얼 무드 (Collette 스타일)',
+    backgroundColors: {
+      primary: '#FFFFFF',     // 퓨어 화이트
+      secondary: '#FAFAFA',   // 오프 화이트
+      accent: '#000000',      // 퓨어 블랙
+      gradient: 'clean pure white, no gradient, maximum negative space',
+    },
+    lighting: {
+      style: 'high-key editorial lighting, soft natural daylight, minimal shadows, museum-quality illumination',
+      temperature: 'neutral',
+      intensity: 'soft',
+    },
+    moodKeywords: [
+      'editorial', 'sophisticated', 'refined', 'timeless',
+      'high-fashion', 'gallery-like', 'architectural', 'curated',
+      'black-and-white', 'negative-space', 'modern-elegance', 'understated-luxury',
+    ],
+    consistencyPrompt: 'Maintain a strict black and white color palette with maximum white space throughout all images. Use high-key editorial lighting with soft, even illumination. Embrace generous negative space and minimalist composition. Product placement should feel curated and intentional, like a high-end gallery exhibition. Typography areas should be clean with ample breathing room. All images must feel cohesive as part of a sophisticated, magazine-quality editorial spread.',
+    suitableCategories: ['럭셔리', '프리미엄 스킨케어', '향수', '주얼리', '웨딩', '패션', '아트', '인테리어'],
+    suitableBrandTones: ['luxury', 'clean'],
   },
 };
 

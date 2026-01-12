@@ -64,7 +64,7 @@
       "Bash(git rev-parse:*)",
       "Bash(git restore:*)",
       "Bash(grep:*)",
-      "Bash(node check-versions.js:*)"
+      "Bash(lsof:*)"
     ],
     "deny": [],
     "ask": []
