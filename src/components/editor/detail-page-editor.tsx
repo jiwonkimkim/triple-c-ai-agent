@@ -120,8 +120,16 @@ export function DetailPageEditor({
     selectSection,
     undo,
     redo,
+    reset,  // ★ 프로젝트 전환 시 store 초기화용
     // pushHistory is called internally by setSections/addSection, no need to call it manually
   } = useEditorStore();
+
+  // ★★★ 프로젝트 전환 시 store 초기화 (다른 프로젝트 데이터 오염 방지)
+  // projectId가 변경되면 즉시 store를 초기화하여 이전 프로젝트 데이터가 저장되는 것을 방지
+  useEffect(() => {
+    console.log(`[Editor] Project changed to ${projectId}, resetting store...`);
+    reset();
+  }, [projectId, reset]);
 
   // Initialize editor with initial sections or fetch from API
   useEffect(() => {
