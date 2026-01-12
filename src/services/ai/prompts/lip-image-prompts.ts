@@ -303,7 +303,7 @@ CRITICAL: NO TEXT NO PRODUCT NAMES - visual only
   COLOR_SWATCHES: `
 Lip product color swatches arrangement photography,
 4-6 lip colors displayed on clear acrylic surface or arm skin,
-gradient arrangement from nude pink to coral to red to berry,
+gradient arrangement using the actual product colors from reference,
 creamy glossy texture visible in each swatch stroke,
 clean organized parallel layout,
 professional cosmetic swatch photography,
@@ -396,10 +396,11 @@ CRITICAL: NO TEXT overlays
 
   MULTI_COLOR_GRID: `
 Grid layout of 4-6 different lip close-up shots,
-each frame showing different color from collection,
+each frame showing different color from the actual product collection,
 consistent angle and lighting across all frames,
 glossy or matte finish visible in each shot,
-nude, pink, coral, red, berry, mauve color variations,
+showcase the exact colors from the uploaded product reference images,
+maintain the original product color tones and variations,
 professional catalog style lip photography,
 clean white borders between frames,
 Korean lip product lookbook aesthetic,
@@ -408,16 +409,17 @@ CRITICAL: NO TEXT NO COLOR CODES - lip visuals only
 `.trim(),
 
   LONGEVITY_INFO: `
-Lip product longevity demonstration infographic,
-clock icon showing 8-12 hour wear time visualization,
-coffee cup and food icons showing transfer-proof test,
-kiss mark test visualization on napkin or glass,
-before and after meal comparison frames,
-clean iconographic layout design,
-soft pink and white color scheme,
-Korean cosmetic product benefit explanation style,
-durability and lasting power visual proof,
-CRITICAL: NO TEXT NO NUMBERS - icons and visuals only
+Lip product longevity demonstration photography,
+split frame or side-by-side lip close-up comparison,
+morning fresh application versus evening still-vibrant color,
+same Korean model same angle showing color retention,
+glossy or matte finish maintained throughout the day,
+subtle time progression visual through lighting change (bright to warm),
+professional before-after style cosmetic photography,
+clean minimal background matching the product brand colors,
+Korean beauty long-wear proof aesthetic,
+focus on lip color and texture consistency,
+CRITICAL: NO TEXT NO NUMBERS - lip comparison visuals only
 `.trim(),
 
   HOW_TO_USE: `
@@ -436,8 +438,8 @@ CRITICAL: NO TEXT - numbered circles and demonstration only
 
   FULL_LINEUP: `
 Complete lip product collection flat lay photography,
-all color variants arranged in gradient spectrum,
-nude to pink to coral to red to berry to mauve order,
+all color variants from the actual product arranged in gradient spectrum,
+colors arranged from lightest to darkest based on uploaded product reference,
 clean white marble or acrylic background,
 soft overhead lighting with minimal shadows,
 professional cosmetic catalog photography,
