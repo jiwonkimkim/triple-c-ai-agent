@@ -74,7 +74,10 @@
       "Bash(node restore-all-named.js:*)",
       "Bash(node check-project-prompts.js:*)",
       "Bash(node check-content.js:*)",
-      "Bash(node fix-content.js:*)"
+      "Bash(node fix-content.js:*)",
+      "Bash(node check-project.js:*)",
+      "Bash(node check-v8.js:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []

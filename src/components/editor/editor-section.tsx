@@ -239,7 +239,26 @@ export function EditorSection({
           )}>{section.name || `Section ${sectionIndex + 1}`}</span>
         </div>
 
-        <div className="flex items-center gap-1 opacity-0 group-hover/section:opacity-100 transition-opacity">
+        <div className="flex items-center gap-1">
+          {/* 섹션 이미지 재생성 버튼 - 항상 표시 */}
+          {onRegenerateSection && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 px-2 gap-1 bg-gradient-to-r from-violet-500/10 to-purple-500/10 border-violet-300 hover:border-violet-400 hover:bg-violet-500/20 text-violet-700 dark:text-violet-300"
+              onClick={(e) => {
+                e.stopPropagation();
+                onRegenerateSection();
+              }}
+              disabled={isRegenerating}
+              title="이 섹션 이미지 재생성"
+            >
+              <RefreshCw className={cn('h-3.5 w-3.5', isRegenerating && 'animate-spin')} />
+              <span className="text-xs font-medium">{isRegenerating ? '생성중...' : '재생성'}</span>
+            </Button>
+          )}
+          {/* 나머지 버튼들은 호버 시 표시 */}
+          <div className="flex items-center gap-1 opacity-0 group-hover/section:opacity-100 transition-opacity">
           {/* MAIN 섹션은 이동 불가 */}
           {!isMain && (
             <>
@@ -268,22 +287,6 @@ export function EditorSection({
                 <ChevronDown className="h-4 w-4" />
               </Button>
             </>
-          )}
-          {/* 섹션 이미지 재생성 버튼 */}
-          {onRegenerateSection && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRegenerateSection();
-              }}
-              disabled={isRegenerating}
-              title="이 섹션 이미지 재생성"
-            >
-              <RefreshCw className={cn('h-4 w-4', isRegenerating && 'animate-spin')} />
-            </Button>
           )}
           <Button
             variant="ghost"
@@ -324,6 +327,7 @@ export function EditorSection({
               </Button>
             </>
           )}
+          </div>
         </div>
       </div>
 
