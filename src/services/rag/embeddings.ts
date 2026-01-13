@@ -1,25 +1,9 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-// Singleton Gemini client
-let geminiClient: GoogleGenerativeAI | null = null;
-
-function getGeminiClient(): GoogleGenerativeAI | null {
-  if (!geminiClient) {
-    if (!process.env.GOOGLE_AI_API_KEY) {
-      return null;
-    }
-
-    geminiClient = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
-  }
-
-  return geminiClient;
-}
-
-// Embedding model configuration (Gemini)
-const EMBEDDING_MODEL = 'text-embedding-004';
+// Hugging Face Inference API for embeddings
+const EMBEDDING_MODEL = 'sentence-transformers/all-mpnet-base-v2';
 const EMBEDDING_DIMENSION = 768;
 const MAX_BATCH_SIZE = 100;
-const MAX_INPUT_CHARS = 10000; // Gemini limit
+const MAX_INPUT_CHARS = 8000;
+const HF_API_URL = `https://api-inference.huggingface.co/pipeline/feature-extraction/${EMBEDDING_MODEL}`;
 
 export interface EmbeddingResult {
   text: string;
@@ -27,49 +11,94 @@ export interface EmbeddingResult {
   tokenCount: number;
 }
 
+function getHuggingFaceApiKey(): string | null {
+  return process.env.HUGGINGFACE_API_KEY || null;
+}
+
 /**
- * Generate embedding for a single text using Gemini
+ * Generate embedding for a single text using Hugging Face
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
-  const client = getGeminiClient();
+  const apiKey = getHuggingFaceApiKey();
 
-  if (!client) {
-    throw new Error('Gemini client not available. GOOGLE_AI_API_KEY is not set.');
+  if (!apiKey) {
+    throw new Error('Hugging Face API key not available. HUGGINGFACE_API_KEY is not set.');
   }
 
   const truncatedText = truncateText(text, MAX_INPUT_CHARS);
-  const model = client.getGenerativeModel({ model: EMBEDDING_MODEL });
 
-  const result = await model.embedContent(truncatedText);
-  return result.embedding.values;
+  const response = await fetch(HF_API_URL, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      inputs: truncatedText,
+      options: {
+        wait_for_model: true,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Hugging Face API error: ${error}`);
+  }
+
+  const result = await response.json();
+
+  // HF returns nested array for single input
+  if (Array.isArray(result) && Array.isArray(result[0])) {
+    return result[0];
+  }
+
+  return result;
 }
 
 /**
  * Generate embeddings for multiple texts in batches
  */
 export async function generateEmbeddings(texts: string[]): Promise<EmbeddingResult[]> {
-  const client = getGeminiClient();
+  const apiKey = getHuggingFaceApiKey();
 
-  if (!client) {
-    throw new Error('Gemini client not available. GOOGLE_AI_API_KEY is not set.');
+  if (!apiKey) {
+    throw new Error('Hugging Face API key not available. HUGGINGFACE_API_KEY is not set.');
   }
 
-  const model = client.getGenerativeModel({ model: EMBEDDING_MODEL });
   const results: EmbeddingResult[] = [];
 
   // Process in batches
   for (let i = 0; i < texts.length; i += MAX_BATCH_SIZE) {
     const batch = texts.slice(i, i + MAX_BATCH_SIZE);
+    const truncatedBatch = batch.map(text => truncateText(text, MAX_INPUT_CHARS));
 
-    // Gemini doesn't support batch embedding, process one by one
-    for (const text of batch) {
-      const truncatedText = truncateText(text, MAX_INPUT_CHARS);
-      const result = await model.embedContent(truncatedText);
+    const response = await fetch(HF_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inputs: truncatedBatch,
+        options: {
+          wait_for_model: true,
+        },
+      }),
+    });
 
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Hugging Face API error: ${error}`);
+    }
+
+    const embeddings = await response.json();
+
+    for (let j = 0; j < batch.length; j++) {
       results.push({
-        text,
-        embedding: result.embedding.values,
-        tokenCount: estimateTokens(text),
+        text: batch[j],
+        embedding: embeddings[j],
+        tokenCount: estimateTokens(batch[j]),
       });
     }
   }
