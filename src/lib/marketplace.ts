@@ -52,7 +52,7 @@ export async function purchaseTemplate(
       data: {
         templateId,
         buyerId,
-        sellerId: buyerId, // Use buyer as placeholder for system templates
+        sellerId: null, // No seller for system templates
         pricePaid: 0,
         sellerEarning: 0,
         platformFee: 0,

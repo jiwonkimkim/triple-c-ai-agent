@@ -436,7 +436,7 @@ model TemplatePurchase {
   id            String   @id @default(cuid())
   templateId    String   @map("template_id")
   buyerId       String   @map("buyer_id")
-  sellerId      String   @map("seller_id")
+  sellerId      String?  @map("seller_id") // null for system templates
   pricePaid     Int      @map("price_paid") // Credits spent
   sellerEarning Int      @map("seller_earning") // 70% of price
   platformFee   Int      @map("platform_fee") // 30% of price
@@ -445,7 +445,7 @@ model TemplatePurchase {
   // Relations
   template Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
   buyer    User     @relation("TemplateBuyer", fields: [buyerId], references: [id])
-  seller   User     @relation("TemplateSeller", fields: [sellerId], references: [id])
+  seller   User?    @relation("TemplateSeller", fields: [sellerId], references: [id])
 
   @@unique([templateId, buyerId]) // User can only purchase once
   @@index([buyerId])
