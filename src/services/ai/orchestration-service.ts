@@ -954,16 +954,32 @@ export async function generateSectionImagePromptFromText(
     const advancedPrompt = buildUnifiedImagePrompt(sectionType, unifiedOptions, blockIndex);
 
     if (advancedPrompt) {
+      // ★★★ 텍스트 배경 섹션 감지 (제품 이미지 제외)
+      const isTextBackgroundSection = /^(TEXT_BANNER|KEY_MESSAGE|BENEFIT_HIGHLIGHT|DIVIDER_VISUAL)/.test(sectionType);
+
       // 기본 품질 및 일관성 지시문 (고정)
       const noTextInstruction = 'absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only';
-      const productConsistencyPrefix = `[CRITICAL - PRODUCT CONSISTENCY: The exact same "${productName}" must appear identically in all images]`;
-      const qualityKeywords = '8K resolution, photorealistic, professional commercial photography, high-end advertising quality';
-      const negativePrompt = buildNegativePrompt(['quality', 'style', 'content', 'composition'], category);
 
-      // 비주얼 테마 지시문 (동적)
-      const themePrefix = visualTheme
-        ? `[VISUAL THEME: ${visualTheme.consistencyPrompt}] [BACKGROUND: ${visualTheme.backgroundColors.gradient || visualTheme.backgroundColors.primary}]`
-        : '';
+      // ★★★ 텍스트 배경 섹션은 제품 일관성 지시문 제외
+      const productConsistencyPrefix = isTextBackgroundSection
+        ? '' // 텍스트 배경 섹션에서는 제품 언급 제거
+        : `[CRITICAL - PRODUCT CONSISTENCY: The exact same "${productName}" must appear identically in all images]`;
+
+      // ★★★ 텍스트 배경 섹션은 더 간단한 품질 지시문 사용
+      const qualityKeywords = isTextBackgroundSection
+        ? '8K resolution, clean minimal background, solid color or simple gradient only'
+        : '8K resolution, photorealistic, professional commercial photography, high-end advertising quality';
+
+      const negativePrompt = isTextBackgroundSection
+        ? buildNegativePrompt(['quality', 'style', 'content', 'composition'], category) + ', product, cosmetic, bottle, tube, packaging, container, jar, objects, shapes, decorations, patterns'
+        : buildNegativePrompt(['quality', 'style', 'content', 'composition'], category);
+
+      // 비주얼 테마 지시문 (동적) - 텍스트 배경 섹션은 색상만 참조
+      const themePrefix = isTextBackgroundSection
+        ? (visualTheme ? `[COLOR REFERENCE: ${visualTheme.backgroundColors.primary}]` : '')
+        : (visualTheme
+          ? `[VISUAL THEME: ${visualTheme.consistencyPrompt}] [BACKGROUND: ${visualTheme.backgroundColors.gradient || visualTheme.backgroundColors.primary}]`
+          : '');
 
       // ★★★ 고정/동적 프롬프트 분리 (DEV 모드 표시용)
       const fixedPromptParts = [
@@ -1008,6 +1024,9 @@ export async function generateSectionImagePromptFromText(
 
   // ===== 기존 프롬프트 생성 로직 (서브 카테고리 없거나 지원 안 되는 경우) =====
 
+  // ★★★ 텍스트 배경 섹션 감지 (제품 이미지 제외)
+  const isTextBackgroundSection = /^(TEXT_BANNER|KEY_MESSAGE|BENEFIT_HIGHLIGHT|DIVIDER_VISUAL)/.test(sectionType);
+
   // 1. 텍스트에서 핵심 메시지 추출 (템플릿 기반, AI 호출 없음)
   const keyMessages = extractKeyMessagesFromText(
     sectionText,
@@ -1016,27 +1035,37 @@ export async function generateSectionImagePromptFromText(
     brandStyle
   );
 
-  console.log(`[Orchestration] Building image prompt from text for ${sectionType}`);
+  console.log(`[Orchestration] Building image prompt from text for ${sectionType}${isTextBackgroundSection ? ' (TEXT BACKGROUND - NO PRODUCT)' : ''}`);
   console.log(`[Orchestration] Main message: ${keyMessages.mainMessage}`);
   console.log(`[Orchestration] Visual keywords: ${keyMessages.visualKeywords.join(', ')}`);
 
   // 2. 기본 지시문
   const noTextInstruction = 'absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only';
-  const productConsistencyPrefix = `[CRITICAL - PRODUCT CONSISTENCY: The exact same "${productName}" must appear identically in all images with consistent design, shape, color, texture and packaging]`;
-  const qualityKeywords = '8K resolution, photorealistic, professional commercial photography, high-end advertising quality, sharp focus, premium product visualization';
 
-  // 3. 비주얼 테마 지시문
-  const themePrefix = visualTheme
-    ? `[VISUAL THEME: ${visualTheme.consistencyPrompt}] [BACKGROUND: ${visualTheme.backgroundColors.gradient || visualTheme.backgroundColors.primary}] [LIGHTING: ${visualTheme.lighting.style}]`
-    : '[VISUAL THEME: clean minimal style with soft neutral background]';
+  // ★★★ 텍스트 배경 섹션은 제품 일관성 지시문 제외
+  const productConsistencyPrefix = isTextBackgroundSection
+    ? '' // 텍스트 배경 섹션에서는 제품 언급 제거
+    : `[CRITICAL - PRODUCT CONSISTENCY: The exact same "${productName}" must appear identically in all images with consistent design, shape, color, texture and packaging]`;
 
-  // 4. 제품 외형 참조
-  const productAppearance = visualReference?.appearance
-    ? `[PRODUCT APPEARANCE: ${visualReference.appearance}]`
-    : '';
-  const productColors = visualReference?.colorScheme
-    ? `[COLOR SCHEME: ${visualReference.colorScheme}]`
-    : '';
+  // ★★★ 텍스트 배경 섹션은 더 간단한 품질 지시문 사용
+  const qualityKeywords = isTextBackgroundSection
+    ? '8K resolution, clean minimal background, solid color or simple gradient only'
+    : '8K resolution, photorealistic, professional commercial photography, high-end advertising quality, sharp focus, premium product visualization';
+
+  // 3. 비주얼 테마 지시문 - 텍스트 배경 섹션은 색상만 참조
+  const themePrefix = isTextBackgroundSection
+    ? (visualTheme ? `[COLOR REFERENCE: ${visualTheme.backgroundColors.primary}]` : '[PURE COLOR BACKGROUND]')
+    : (visualTheme
+      ? `[VISUAL THEME: ${visualTheme.consistencyPrompt}] [BACKGROUND: ${visualTheme.backgroundColors.gradient || visualTheme.backgroundColors.primary}] [LIGHTING: ${visualTheme.lighting.style}]`
+      : '[VISUAL THEME: clean minimal style with soft neutral background]');
+
+  // 4. 제품 외형 참조 - 텍스트 배경 섹션은 제품 참조 제외
+  const productAppearance = isTextBackgroundSection
+    ? ''
+    : (visualReference?.appearance ? `[PRODUCT APPEARANCE: ${visualReference.appearance}]` : '');
+  const productColors = isTextBackgroundSection
+    ? ''
+    : (visualReference?.colorScheme ? `[COLOR SCHEME: ${visualReference.colorScheme}]` : '');
 
   // 5. 섹션 템플릿 기반 프롬프트
   const extendedSectionType = mapToExtendedSectionType(sectionType);
@@ -1048,12 +1077,17 @@ export async function generateSectionImagePromptFromText(
     keyFeatures[0]
   );
 
-  // 6. 네거티브 프롬프트
-  const negativePrompt = buildNegativePrompt(['quality', 'style', 'content', 'composition'], category);
+  // 6. 네거티브 프롬프트 - 텍스트 배경 섹션은 제품/오브젝트 추가 제외
+  const negativePrompt = isTextBackgroundSection
+    ? buildNegativePrompt(['quality', 'style', 'content', 'composition'], category) + ', product, cosmetic, bottle, tube, packaging, container, jar, objects, shapes, decorations, patterns, textures, elements'
+    : buildNegativePrompt(['quality', 'style', 'content', 'composition'], category);
 
   // 7. ★ 텍스트 기반 핵심 메시지 시각화 지시 ★
   // 중요: 텍스트를 이미지에 렌더링하지 않고, 시각적 메타포로만 표현
-  const textBasedVisualization = `[TEXT-DRIVEN VISUALIZATION - NO TEXT RENDERING, ONLY VISUAL METAPHORS:
+  // ★★★ 텍스트 배경 섹션은 이 지시문 제외 (순수 색상 배경만 필요)
+  const textBasedVisualization = isTextBackgroundSection
+    ? '' // 텍스트 배경 섹션에서는 시각화 지시 제외
+    : `[TEXT-DRIVEN VISUALIZATION - NO TEXT RENDERING, ONLY VISUAL METAPHORS:
     CONCEPT TO VISUALIZE (NOT as text, but as visual elements): "${keyMessages.mainMessage}"
     EMOTIONAL ATMOSPHERE: ${keyMessages.emotionalTone}
     VISUAL ELEMENTS & PROPS: ${keyMessages.visualKeywords.join(', ')}
@@ -1067,8 +1101,10 @@ export async function generateSectionImagePromptFromText(
     - Example: "natural ingredients" → show fresh botanicals, organic elements
     - The viewer should FEEL the message through imagery, not READ it]`;
 
-  // 8. 섹션별 특화 연출
-  const sectionVisualization = buildSectionVisualizationGuide(sectionType, keyMessages);
+  // 8. 섹션별 특화 연출 - 텍스트 배경 섹션은 연출 제외
+  const sectionVisualization = isTextBackgroundSection
+    ? '' // 텍스트 배경 섹션에서는 연출 지시 제외
+    : buildSectionVisualizationGuide(sectionType, keyMessages);
 
   // ★★★ 9. 인덱스 기반 프롬프트 적용 (NEW!) ★★★
   // indexBasedPrompt가 있으면 해당 프롬프트를 최우선으로 사용
