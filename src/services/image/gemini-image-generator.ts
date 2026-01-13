@@ -939,11 +939,29 @@ export async function generateSectionImageFromProduct(
   const isTextBackgroundSection = /^(TEXT_BANNER|KEY_MESSAGE|BENEFIT_HIGHLIGHT|DIVIDER_VISUAL)/i.test(sectionType);
   if (isTextBackgroundSection) {
     console.log(`[Gemini I2I] ★ TEXT BACKGROUND SECTION: ${sectionType} - Redirecting to T2I mode (no product)`);
-    // scenarioPrompt(오케스트레이션에서 생성된 순수 색상/그라디언트 프롬프트) 사용
-    const t2iPrompt = scenarioPrompt || `Pure solid color or simple gradient background for ${sectionType}, no products, no objects, just clean color fill, 8K resolution`;
-    const normalizedType = sectionType.toUpperCase().split('_')[0] as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
+
+    // ★★★ orchestration-service.ts와 동일한 로직 사용 ★★★
+    const categoryColorMap: Record<string, { primary: string; gradient: string; name: string }> = {
+      lip: { primary: '#FFB6C1', gradient: 'soft pink to coral', name: 'pink' },
+      skincare: { primary: '#98D8AA', gradient: 'white to soft mint', name: 'mint' },
+      mascara: { primary: '#1a1a1a', gradient: 'black to hot pink', name: 'black' },
+      maskpack: { primary: '#98D8AA', gradient: 'soft green to white', name: 'green' },
+      suncare: { primary: '#FFD700', gradient: 'warm yellow to white', name: 'yellow' },
+    };
+    const lowerCategory = category.toLowerCase();
+    const detectedCategory = Object.keys(categoryColorMap).find(key => lowerCategory.includes(key)) || 'skincare';
+    const colorInfo = categoryColorMap[detectedCategory];
+
+    // ★ solid 색상 프롬프트 (orchestration-service와 동일)
+    const colorPrompt = `Pure solid ${colorInfo.name} (${colorInfo.primary}) color fill only, completely flat empty background, no objects, no shapes, no textures, no patterns, just clean solid color, 8K resolution`;
+    const negativePrompt = 'product, cosmetic, bottle, tube, packaging, container, objects, shapes, decorations, patterns, textures, elements, water droplets, leaves, botanical, sparkles, glow effects, text, letters, words, typography';
+
+    const t2iPrompt = scenarioPrompt ||
+      `${colorPrompt}, absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only --negative ${negativePrompt}`;
+
+    // ★ 텍스트 배경 섹션은 'FEATURES'를 기본값으로 사용 (자유 비율)
     return generateSectionImageWithGemini(
-      normalizedType,
+      'FEATURES',
       t2iPrompt,
       productName,
       category,
@@ -1246,11 +1264,13 @@ export async function generateSectionImageWithOverlay(
     imagePrompt,
   } = options || {};
 
-  const normalizedSectionType = sectionType.toUpperCase().split('_')[0] as
-    'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
-
   // ★★★ 텍스트 배경 섹션 감지 (제품 이미지 없이 순수 배경만 생성)
   const isTextBackgroundSection = /^(TEXT_BANNER|KEY_MESSAGE|BENEFIT_HIGHLIGHT|DIVIDER_VISUAL)/i.test(sectionType);
+
+  // ★ 텍스트 배경 섹션은 'FEATURES'를 기본값으로 사용 (자유 비율)
+  const normalizedSectionType = isTextBackgroundSection
+    ? 'FEATURES' as const
+    : sectionType.toUpperCase().split('_')[0] as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
 
   // 모드 결정:
   // - 텍스트 배경 섹션: 항상 T2I 모드 (제품 이미지 제외)
@@ -1287,7 +1307,8 @@ export async function generateSectionImageWithOverlay(
     // ★★★ 텍스트 배경 섹션일 때는 제품 없는 순수 색상 프롬프트 사용
     let t2iPrompt: string;
     if (isTextBackgroundSection) {
-      // 카테고리별 색상 매핑 (orchestration-service.ts와 동일)
+      // ★★★ orchestration-service.ts와 동일한 로직 사용 ★★★
+      // 카테고리별 색상 매핑
       const categoryColorMap: Record<string, { primary: string; gradient: string; name: string }> = {
         lip: { primary: '#FFB6C1', gradient: 'soft pink to coral', name: 'pink' },
         skincare: { primary: '#98D8AA', gradient: 'white to soft mint', name: 'mint' },
@@ -1299,14 +1320,20 @@ export async function generateSectionImageWithOverlay(
       const detectedCategory = Object.keys(categoryColorMap).find(key => lowerCategory.includes(key)) || 'skincare';
       const colorInfo = categoryColorMap[detectedCategory];
 
+      // ★ blockIndex 기반으로 solid/gradient 선택 (orchestration-service와 동일)
+      const blockVariant = blockIndex % 2 === 0 ? 'solid' : 'gradient';
+
+      // ★ orchestration-service.ts와 동일한 프롬프트 포맷
+      const colorPrompt = blockVariant === 'solid'
+        ? `Pure solid ${colorInfo.name} (${colorInfo.primary}) color fill only, completely flat empty background, no objects, no shapes, no textures, no patterns, just clean solid color, 8K resolution`
+        : `Simple horizontal gradient from ${colorInfo.gradient} only, completely flat empty background, no objects, no shapes, no textures, no patterns, just clean gradient, 8K resolution`;
+
+      // ★ 동일한 negative prompt
+      const negativePrompt = 'product, cosmetic, bottle, tube, packaging, container, objects, shapes, decorations, patterns, textures, elements, water droplets, leaves, botanical, sparkles, glow effects, text, letters, words, typography';
+
       t2iPrompt = imagePrompt || scenarioPrompt ||
-        `Pure solid ${colorInfo.name} (${colorInfo.primary}) color fill only, ` +
-        `OR simple horizontal gradient from ${colorInfo.gradient}, ` +
-        `completely flat empty background, ` +
-        `absolutely NO products NO objects NO shapes NO textures NO patterns NO decorations, ` +
-        `just clean solid color or gradient for text overlay, ` +
-        `8K resolution, text-free image only`;
-      console.log(`[Image+Overlay] ★ Text background section ${sectionType}: Using pure color prompt (no product)`);
+        `${colorPrompt}, absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only --negative ${negativePrompt}`;
+      console.log(`[Image+Overlay] ★ Text background section ${sectionType}: Using ${blockVariant} color prompt (no product)`);
     } else {
       t2iPrompt = imagePrompt || scenarioPrompt || `${productName} ${category} product image`;
     }
