@@ -814,12 +814,14 @@ export function DetailPageEditor({
       }
 
       // ★ 프롬프트 뷰어 업데이트를 위해 콜백 호출
-      if (onSectionPromptUpdated && data.data.promptComponents) {
+      if (onSectionPromptUpdated) {
         onSectionPromptUpdated({
           sectionIndex,
           sectionType,
           imageUrl: data.data.imageUrl,
           promptComponents: data.data.promptComponents,
+          // ★★★ API에서 반환한 전체 devPrompts (기존 섹션 포함)
+          updatedDevPrompts: data.data.updatedDevPrompts,
         });
       }
 

@@ -101,7 +101,24 @@ export default function ProjectDetailPage() {
       fixedPrompt?: string;
       dynamicPrompt?: string;
     };
+    // ★★★ API에서 반환한 전체 devPrompts (기존 섹션 + 새 섹션 모두 포함)
+    updatedDevPrompts?: {
+      textGeneration: { systemPrompt: string; userPrompt: string };
+      sectionImagePrompts: Array<{
+        sectionType: string;
+        imagePrompt: string;
+        [key: string]: unknown;
+      }>;
+    };
   }) => {
+    // ★★★ API에서 전체 devPrompts를 반환했으면 그대로 사용 (기존 섹션 유지됨)
+    if (update.updatedDevPrompts) {
+      console.log(`[DevPrompts] Using full devPrompts from API (${update.updatedDevPrompts.sectionImagePrompts.length} sections)`);
+      regenerationHook.setLastDevPrompts(update.updatedDevPrompts as DevPromptInfo);
+      return;
+    }
+
+    // 폴백: API에서 전체 devPrompts를 못 받았을 때 수동 업데이트
     const currentPrompts = regenerationHook.lastDevPrompts;
 
     // 최종 결합 프롬프트 생성
@@ -137,25 +154,19 @@ export default function ProjectDetailPage() {
     }
 
     // 기존 devPrompts가 있으면 해당 섹션만 업데이트
-    // sectionImagePrompts 배열에서 해당 섹션 찾기
     const existingIndex = currentPrompts.sectionImagePrompts.findIndex(
       (prompt) => prompt.sectionType === update.sectionType
     );
 
     let updatedSectionImagePrompts;
     if (existingIndex >= 0) {
-      // 기존 섹션 업데이트
       updatedSectionImagePrompts = currentPrompts.sectionImagePrompts.map((prompt, idx) => {
         if (prompt.sectionType === update.sectionType || idx === update.sectionIndex) {
-          return {
-            ...prompt,
-            ...newSectionPrompt,
-          };
+          return { ...prompt, ...newSectionPrompt };
         }
         return prompt;
       });
     } else {
-      // 새 섹션 추가
       updatedSectionImagePrompts = [...currentPrompts.sectionImagePrompts, newSectionPrompt];
     }
 
@@ -164,9 +175,8 @@ export default function ProjectDetailPage() {
       sectionImagePrompts: updatedSectionImagePrompts,
     };
 
-    console.log(`[DevPrompts] Updated section ${update.sectionType} prompts`);
+    console.log(`[DevPrompts] Updated section ${update.sectionType} prompts (fallback)`);
     regenerationHook.setLastDevPrompts(updatedPrompts);
-    // DB는 섹션 재생성 API에서 자동으로 업데이트됨
   }, [regenerationHook]);
 
   // Loading state

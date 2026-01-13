@@ -136,6 +136,7 @@ export async function POST(request: NextRequest) {
     console.log(`[Section Regenerate] Overlay text generated:`, JSON.stringify(result.overlayText).substring(0, 200));
 
     // ★★★ DB에 devPrompts 업데이트 (섹션 재생성 후에도 프롬프트 유지)
+    let updatedDevPrompts = null;
     try {
       const latestVersion = await prisma.projectVersion.findFirst({
         where: { projectId: project.id },
@@ -199,13 +200,16 @@ export async function POST(request: NextRequest) {
           ];
         }
 
+        // ★ 전체 업데이트된 devPrompts 저장
+        updatedDevPrompts = {
+          ...existingDevPrompts,
+          sectionImagePrompts: updatedSectionImagePrompts,
+        };
+
         // DB 업데이트 (JSON 타입 호환을 위해 깊은 복사)
         const updatedContent = JSON.parse(JSON.stringify({
           ...existingContent,
-          devPrompts: {
-            ...existingDevPrompts,
-            sectionImagePrompts: updatedSectionImagePrompts,
-          },
+          devPrompts: updatedDevPrompts,
         }));
 
         await prisma.projectVersion.update({
@@ -216,6 +220,7 @@ export async function POST(request: NextRequest) {
         });
 
         console.log(`[Section Regenerate] DevPrompts saved to DB for section ${validatedData.sectionType}`);
+        console.log(`[Section Regenerate] Total sections in devPrompts: ${updatedSectionImagePrompts.length}`);
       }
     } catch (dbError) {
       console.error('[Section Regenerate] Failed to update devPrompts in DB:', dbError);
@@ -229,9 +234,11 @@ export async function POST(request: NextRequest) {
         sectionIndex: validatedData.sectionIndex,
         imageUrl: uploadResult.url,
         promptComponents: result.image.promptComponents,
-        // ★★★ 오버레이 텍스트도 반환 (NEW!)
+        // ★★★ 오버레이 텍스트도 반환
         overlayText: result.overlayText,
         overlayPrompt: result.overlayPrompt,
+        // ★★★ 전체 업데이트된 devPrompts 반환 (기존 섹션 + 새 섹션)
+        updatedDevPrompts,
       },
     });
   } catch (error) {
