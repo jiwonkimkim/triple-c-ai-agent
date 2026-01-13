@@ -62,8 +62,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       where: { id: projectId },
       include: {
         detailPageVersions: {
-          // Get the most recent version regardless of status
-          orderBy: { updatedAt: 'desc' },
+          // Get the highest version number (most recent version)
+          orderBy: { versionNumber: 'desc' },
           take: 1,
         },
       },
