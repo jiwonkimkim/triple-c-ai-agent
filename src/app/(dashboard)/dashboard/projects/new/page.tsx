@@ -483,17 +483,7 @@ export default function NewProjectPage() {
         throw new Error(result.error || '상세페이지 생성에 실패했습니다.');
       }
 
-      // 개발 모드에서 프롬프트 정보를 sessionStorage에 저장
-      if (result.data?.devPrompts) {
-        try {
-          sessionStorage.setItem(
-            `devPrompts_${projectId}`,
-            JSON.stringify(result.data.devPrompts)
-          );
-        } catch (e) {
-          console.warn('Failed to save devPrompts to sessionStorage:', e);
-        }
-      }
+      // devPrompts는 DB에 자동 저장됨 (generate API에서 처리)
 
       toast({
         title: '완료!',

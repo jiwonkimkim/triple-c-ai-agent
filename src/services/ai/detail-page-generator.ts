@@ -7,6 +7,7 @@ import {
   generateSectionImageWithGemini,
   generateImageFromImage,
   generateSectionImageFromProduct,
+  generateSectionImageWithOverlay,  // ★ 통합 함수 (이미지+오버레이 동시 생성)
   preprocessProductImage,
   base64ToDataUrl,
   isGeminiConfigured,
@@ -528,47 +529,60 @@ export async function generateDetailPage(
                   console.log(`[AI I2I] Generating ${sectionType} section (${prompts.length} images)...`);
                   console.log(`[AI I2I] keyFeatures: ${input.keyFeatures?.slice(0, 2).join(', ')}, target: ${input.targetAudience}`);
 
-                  // 다중 이미지 생성: 모든 프롬프트에 대해 이미지 생성
+                  // 다중 이미지 생성: 모든 프롬프트에 대해 이미지+오버레이 통합 생성
                   const generatedImageUrls: string[] = [];
                   const updatedPrompts = [...prompts]; // 최종 프롬프트 저장용
+                  let sectionOverlayText: OverlayTextContent | undefined; // ★ 첫 번째 이미지의 오버레이 텍스트
 
                   for (let i = 0; i < prompts.length; i++) {
                     try {
                       // ★ MAIN 섹션은 오케스트레이션 프롬프트 제외 (간결한 프롬프트가 더 좋은 결과)
                       const isMainSection = sectionType === 'MAIN';
                       const orchestrationPrompt = isMainSection ? '' : (prompts[i]?.imagePrompt || '');
-                      console.log(`[AI I2I] Generating ${sectionType} image ${i + 1}/${prompts.length}...`);
+                      console.log(`[AI I2I] Generating ${sectionType} image ${i + 1}/${prompts.length} with overlay...`);
                       console.log(`[AI I2I] Orchestration prompt ${isMainSection ? '(SKIPPED for MAIN)' : ''}: ${orchestrationPrompt.substring(0, 100)}...`);
 
-                      const generatedImage = await generateSectionImageFromProduct(
-                        cleanProductImage,  // 배경 제거된 이미지 사용
+                      // ★ 통합 함수 사용: 이미지 + 오버레이 텍스트 동시 생성
+                      const result = await generateSectionImageWithOverlay(
+                        cleanProductImage,  // 배경 제거된 이미지 사용 (I2I 모드)
                         sectionType,
                         input.productName,
                         input.category,
-                        input.brandContext?.imageKeywords?.join(', '),  // additionalPrompt
-                        imageModel,
                         input.keyFeatures,
                         input.targetAudience,
-                        orchestrationPrompt  // ★ MAIN은 빈 문자열, 나머지는 오케스트레이션 프롬프트
+                        {
+                          additionalPrompt: input.brandContext?.imageKeywords?.join(', '),
+                          model: imageModel,
+                          scenarioPrompt: orchestrationPrompt,  // ★ MAIN은 빈 문자열, 나머지는 오케스트레이션 프롬프트
+                          blockIndex: i,
+                          totalBlocks: prompts.length,
+                        }
                       );
 
-                      if (generatedImage) {
+                      if (result && result.image) {
                         // Cloudinary에 업로드 (설정되어 있으면) 또는 base64 fallback
-                        const uploadResult = await uploadGeneratedImage(generatedImage, {
+                        const uploadResult = await uploadGeneratedImage(result.image, {
                           folder: 'triple-c/sections',
                           sectionType,
                         });
                         generatedImageUrls.push(uploadResult.url);
 
-                        // ★ 최종 사용된 프롬프트로 업데이트 (revisedPrompt + promptComponents)
-                        if (generatedImage.revisedPrompt && updatedPrompts[i]) {
+                        // ★ 첫 번째 이미지의 오버레이 텍스트 저장
+                        if (i === 0 && result.overlayText) {
+                          sectionOverlayText = result.overlayText;
+                          console.log(`[AI I2I] ${sectionType} overlay text generated:`, JSON.stringify(result.overlayText).substring(0, 150));
+                        }
+
+                        // ★ 최종 사용된 프롬프트로 업데이트 (revisedPrompt + promptComponents + overlayText)
+                        if (result.image.revisedPrompt && updatedPrompts[i]) {
                           console.log(`[AI DEBUG] ★ Updating prompt for ${sectionType}[${i}]:`);
-                          console.log(`[AI DEBUG]   revisedPrompt: ${generatedImage.revisedPrompt.substring(0, 150)}...`);
+                          console.log(`[AI DEBUG]   revisedPrompt: ${result.image.revisedPrompt.substring(0, 150)}...`);
                           updatedPrompts[i] = {
                             ...updatedPrompts[i],
-                            imagePrompt: generatedImage.revisedPrompt,
-                            // ★ 개발자 모드용: 개별 프롬프트 구성요소 저장
-                            promptComponents: generatedImage.promptComponents,
+                            imagePrompt: result.image.revisedPrompt,
+                            promptComponents: result.image.promptComponents,
+                            overlayText: result.overlayText,  // ★ 오버레이 텍스트도 저장
+                            overlayPrompt: result.overlayPrompt,
                           };
                         } else {
                           console.log(`[AI DEBUG] ⚠️ No revisedPrompt for ${sectionType}[${i}]`);
@@ -581,13 +595,14 @@ export async function generateDetailPage(
                     }
                   }
 
-                  // 생성된 이미지가 있으면 결과 반환 (최종 프롬프트 포함)
+                  // 생성된 이미지가 있으면 결과 반환 (최종 프롬프트 + 오버레이 텍스트 포함)
                   if (generatedImageUrls.length > 0) {
                     return {
                       ...section,
                       imageUrl: generatedImageUrls[0],           // 기존 호환성 (첫 번째 이미지)
                       imageUrls: generatedImageUrls,             // 다중 이미지 배열
                       imagePrompts: updatedPrompts,              // ★ 최종 프롬프트로 업데이트
+                      overlayText: sectionOverlayText,           // ★ 오버레이 텍스트 포함
                     };
                   }
 
@@ -647,40 +662,57 @@ export async function generateDetailPage(
                   console.log(`[AI T2I] Generating ${sectionType} section (${prompts.length} images)...`);
                   console.log(`[AI T2I] keyFeatures: ${input.keyFeatures?.slice(0, 2).join(', ')}, target: ${input.targetAudience}`);
 
-                  // 다중 이미지 생성: 모든 프롬프트에 대해 이미지 생성
+                  // 다중 이미지 생성: 모든 프롬프트에 대해 이미지+오버레이 통합 생성
                   const generatedImageUrls: string[] = [];
                   const updatedPrompts = [...prompts]; // 최종 프롬프트 저장용
+                  let sectionOverlayText: OverlayTextContent | undefined; // ★ 첫 번째 이미지의 오버레이 텍스트
 
                   for (let i = 0; i < prompts.length; i++) {
                     const prompt = prompts[i];
                     const imagePrompt = prompt?.imagePrompt || '';
 
                     try {
-                      console.log(`[AI T2I] Generating ${sectionType} image ${i + 1}/${prompts.length}...`);
+                      console.log(`[AI T2I] Generating ${sectionType} image ${i + 1}/${prompts.length} with overlay...`);
 
-                      const generatedImage = await generateSectionImageWithGemini(
+                      // ★ 통합 함수 사용: 이미지 + 오버레이 텍스트 동시 생성 (T2I 모드)
+                      const result = await generateSectionImageWithOverlay(
+                        null,  // sourceImage가 null이면 T2I 모드
                         sectionType,
-                        imagePrompt,
                         input.productName,
                         input.category,
-                        imageModel,
                         input.keyFeatures,
-                        input.targetAudience
+                        input.targetAudience,
+                        {
+                          additionalPrompt: input.brandContext?.imageKeywords?.join(', '),
+                          model: imageModel,
+                          imagePrompt,  // T2I용 이미지 프롬프트
+                          blockIndex: i,
+                          totalBlocks: prompts.length,
+                        }
                       );
 
-                      if (generatedImage) {
+                      if (result && result.image) {
                         // Cloudinary에 업로드 (설정되어 있으면) 또는 base64 fallback
-                        const uploadResult = await uploadGeneratedImage(generatedImage, {
+                        const uploadResult = await uploadGeneratedImage(result.image, {
                           folder: 'triple-c/sections',
                           sectionType,
                         });
                         generatedImageUrls.push(uploadResult.url);
 
-                        // ★ 최종 사용된 프롬프트로 업데이트 (revisedPrompt가 있으면)
-                        if (generatedImage.revisedPrompt && updatedPrompts[i]) {
+                        // ★ 첫 번째 이미지의 오버레이 텍스트 저장
+                        if (i === 0 && result.overlayText) {
+                          sectionOverlayText = result.overlayText;
+                          console.log(`[AI T2I] ${sectionType} overlay text generated:`, JSON.stringify(result.overlayText).substring(0, 150));
+                        }
+
+                        // ★ 최종 사용된 프롬프트로 업데이트 (revisedPrompt + promptComponents + overlayText)
+                        if (result.image.revisedPrompt && updatedPrompts[i]) {
                           updatedPrompts[i] = {
                             ...updatedPrompts[i],
-                            imagePrompt: generatedImage.revisedPrompt,
+                            imagePrompt: result.image.revisedPrompt,
+                            promptComponents: result.image.promptComponents,
+                            overlayText: result.overlayText,  // ★ 오버레이 텍스트도 저장
+                            overlayPrompt: result.overlayPrompt,
                           };
                         }
 
@@ -691,13 +723,14 @@ export async function generateDetailPage(
                     }
                   }
 
-                  // 생성된 이미지가 있으면 결과 반환 (최종 프롬프트 포함)
+                  // 생성된 이미지가 있으면 결과 반환 (최종 프롬프트 + 오버레이 텍스트 포함)
                   if (generatedImageUrls.length > 0) {
                     return {
                       ...section,
                       imageUrl: generatedImageUrls[0],           // 기존 호환성 (첫 번째 이미지)
                       imageUrls: generatedImageUrls,             // 다중 이미지 배열
                       imagePrompts: updatedPrompts,              // ★ 최종 프롬프트로 업데이트
+                      overlayText: sectionOverlayText,           // ★ 오버레이 텍스트 포함
                     };
                   }
 

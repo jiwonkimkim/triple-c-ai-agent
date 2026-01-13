@@ -118,14 +118,9 @@ export function useVersionHistory(
 
       const responseData = await response.json();
 
-      // devPrompts가 있으면 콜백 호출 및 sessionStorage에 저장
+      // devPrompts가 있으면 콜백 호출 (DB에서 가져온 데이터)
       if (responseData.devPrompts) {
         options?.onDevPromptsLoaded?.(responseData.devPrompts);
-        try {
-          sessionStorage.setItem(`devPrompts_${projectId}`, JSON.stringify(responseData.devPrompts));
-        } catch (e) {
-          console.warn('Failed to save devPrompts to sessionStorage:', e);
-        }
       }
 
       await fetchVersions();

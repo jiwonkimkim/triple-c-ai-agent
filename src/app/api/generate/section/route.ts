@@ -4,7 +4,7 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
 import {
-  generateSectionImageFromProduct,
+  generateSectionImageWithOverlay,
   preprocessProductImage,
   GeminiImageModel,
   DEFAULT_IMAGE_MODEL,
@@ -93,21 +93,25 @@ export async function POST(request: NextRequest) {
     const brandStyle = project.brandProfile?.styleGuide as { imageKeywords?: string[] } | null;
     const additionalPrompt = brandStyle?.imageKeywords?.join(', ');
 
-    // 섹션 이미지 재생성 (I2I)
-    console.log(`[Section Regenerate] Generating ${validatedData.sectionType} image with I2I...`);
-    const generatedImage = await generateSectionImageFromProduct(
+    // ★★★ 섹션 이미지 + 오버레이 텍스트 통합 재생성 (NEW!)
+    console.log(`[Section Regenerate] Generating ${validatedData.sectionType} image with overlay text...`);
+    const result = await generateSectionImageWithOverlay(
       cleanProductImage,
       validatedData.sectionType,
       project.productName || 'Product',
       project.category || 'General',
-      additionalPrompt,
-      imageModel,
       project.keyFeatures || [],
       project.targetAudience || '일반 소비자',
-      undefined // orchestrationPrompt - 섹션 재생성 시에는 새로운 시나리오 생성
+      {
+        additionalPrompt,
+        model: imageModel,
+        scenarioPrompt: undefined, // 섹션 재생성 시에는 새로운 시나리오 생성
+        blockIndex: validatedData.sectionIndex,
+        totalBlocks: 1,
+      }
     );
 
-    if (!generatedImage) {
+    if (!result || !result.image) {
       return NextResponse.json(
         { success: false, error: '이미지 생성에 실패했습니다.' },
         { status: 500 }
@@ -116,7 +120,7 @@ export async function POST(request: NextRequest) {
 
     // 생성된 이미지 업로드
     console.log('[Section Regenerate] Uploading generated image...');
-    const uploadResult = await uploadGeneratedImage(generatedImage, {
+    const uploadResult = await uploadGeneratedImage(result.image, {
       folder: 'sections',
       projectId: project.id,
     });
@@ -129,6 +133,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`[Section Regenerate] Image uploaded successfully: ${uploadResult.url}`);
+    console.log(`[Section Regenerate] Overlay text generated:`, JSON.stringify(result.overlayText).substring(0, 200));
 
     return NextResponse.json({
       success: true,
@@ -136,7 +141,10 @@ export async function POST(request: NextRequest) {
         sectionType: validatedData.sectionType,
         sectionIndex: validatedData.sectionIndex,
         imageUrl: uploadResult.url,
-        promptComponents: generatedImage.promptComponents,
+        promptComponents: result.image.promptComponents,
+        // ★★★ 오버레이 텍스트도 반환 (NEW!)
+        overlayText: result.overlayText,
+        overlayPrompt: result.overlayPrompt,
       },
     });
   } catch (error) {

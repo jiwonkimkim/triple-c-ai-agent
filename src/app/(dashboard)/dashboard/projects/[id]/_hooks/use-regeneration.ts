@@ -82,15 +82,9 @@ export function useRegeneration(
         throw new Error(responseData.error || 'Failed to regenerate');
       }
 
-      // Store dev prompts in development mode
+      // Store dev prompts in development mode (DB에 저장됨, API 응답에서 가져옴)
       if (responseData.data?.devPrompts) {
         setLastDevPrompts(responseData.data.devPrompts);
-        // sessionStorage에도 저장 (페이지 새로고침 시 유지)
-        try {
-          sessionStorage.setItem(`devPrompts_${projectId}`, JSON.stringify(responseData.data.devPrompts));
-        } catch (e) {
-          console.warn('Failed to save devPrompts to sessionStorage:', e);
-        }
       }
 
       // Refresh project data

@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
+import type { OverlayTextContent, OverlayTextItem, OverlayStatisticItem } from '@/services/ai/prompts/types';
 
 // Singleton Gemini client
 let geminiClient: GoogleGenAI | null = null;
@@ -1179,4 +1180,432 @@ export async function generateDetailPageImagesFromProduct(
 
   console.log(`[Gemini I2I] Generated ${results.size}/${sections.length} section images`);
   return results;
+}
+
+// ============================================
+// ★★★ 이미지 + 오버레이 텍스트 통합 생성 함수 (NEW!)
+// ============================================
+
+/**
+ * 이미지 생성 결과 + 오버레이 텍스트 통합 반환 타입
+ */
+export interface ImageWithOverlayResult {
+  image: GeminiGeneratedImage;
+  overlayText: OverlayTextContent;
+  overlayPrompt?: string; // 개발자 모드용
+}
+
+/**
+ * 섹션 이미지와 오버레이 텍스트를 함께 생성 (통합 함수)
+ * - T2I 모드: sourceImage가 없으면 imagePrompt 기반 Text-to-Image 생성
+ * - I2I 모드: sourceImage가 있으면 Image-to-Image 생성
+ * - 처음 생성, 전체 재생성, 섹션 재생성 모두에서 동일하게 사용
+ * - 이미지 생성 → 오버레이 텍스트 생성 (동일 컨텍스트)
+ */
+export async function generateSectionImageWithOverlay(
+  sourceImage: string | null,  // null이면 T2I 모드
+  sectionType: string,
+  productName: string,
+  category: string,
+  keyFeatures: string[],
+  targetAudience: string,
+  options?: {
+    additionalPrompt?: string;
+    model?: GeminiImageModel;
+    scenarioPrompt?: string;
+    blockIndex?: number;
+    totalBlocks?: number;
+    variationHint?: string;
+    imagePrompt?: string;  // T2I 모드용 이미지 프롬프트
+  }
+): Promise<ImageWithOverlayResult> {
+  const {
+    additionalPrompt,
+    model = DEFAULT_IMAGE_MODEL,
+    scenarioPrompt,
+    blockIndex = 0,
+    totalBlocks = 1,
+    variationHint,
+    imagePrompt,
+  } = options || {};
+
+  const normalizedSectionType = sectionType.toUpperCase().split('_')[0] as
+    'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
+
+  // 모드 결정: sourceImage 유무로 T2I/I2I 결정
+  const isI2IMode = sourceImage && sourceImage.length > 0;
+  const mode = isI2IMode ? 'I2I' : 'T2I';
+
+  console.log(`[Image+Overlay] Generating ${sectionType} image with overlay text (${mode} mode)...`);
+
+  // 1. 이미지 생성 (모드에 따라 다른 함수 호출)
+  let generatedImage: GeminiGeneratedImage;
+
+  if (isI2IMode && sourceImage) {
+    // I2I 모드: 제품 이미지 기반 생성
+    generatedImage = await generateSectionImageFromProduct(
+      sourceImage,
+      sectionType,
+      productName,
+      category,
+      additionalPrompt,
+      model,
+      keyFeatures,
+      targetAudience,
+      scenarioPrompt
+    );
+  } else {
+    // T2I 모드: 프롬프트 기반 생성
+    const t2iPrompt = imagePrompt || scenarioPrompt || `${productName} ${category} product image`;
+    generatedImage = await generateSectionImageWithGemini(
+      normalizedSectionType,
+      t2iPrompt,
+      productName,
+      category,
+      model,
+      keyFeatures,
+      targetAudience
+    );
+  }
+
+  // 2. 오버레이 텍스트 생성 (동일한 컨텍스트 사용)
+  const overlayResult = await generateOverlayTextForSection(
+    sectionType,
+    productName,
+    category,
+    keyFeatures,
+    targetAudience,
+    {
+      blockIndex,
+      totalBlocks,
+      variationHint,
+    }
+  );
+
+  console.log(`[Image+Overlay] ${sectionType} image and overlay text generated successfully`);
+
+  return {
+    image: generatedImage,
+    overlayText: overlayResult.overlayText,
+    overlayPrompt: overlayResult.prompt,
+  };
+}
+
+/**
+ * 섹션용 오버레이 텍스트 생성
+ * - 위치, 내용, 스타일(색상, 폰트크기, 굵기, 정렬) 모두 포함
+ */
+async function generateOverlayTextForSection(
+  sectionType: string,
+  productName: string,
+  category: string,
+  keyFeatures: string[],
+  targetAudience: string,
+  blockOptions?: {
+    blockIndex?: number;
+    totalBlocks?: number;
+    variationHint?: string;
+  }
+): Promise<{ overlayText: OverlayTextContent; prompt: string }> {
+  const gemini = getGeminiClient();
+
+  // 섹션 타입 정규화
+  const normalizedSection = sectionType.toUpperCase().split('_')[0] as
+    'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
+
+  // 섹션별 레이아웃 가이드
+  const sectionLayouts: Record<string, {
+    headline: { x: number; y: number; fontSize: number; align: 'left' | 'center' | 'right' };
+    subheadline: { x: number; y: number; fontSize: number; align: 'left' | 'center' | 'right' };
+    body: { x: number; y: number; fontSize: number; align: 'left' | 'center' | 'right' };
+    statistics: { x: number; y: number; fontSize: number };
+  }> = {
+    MAIN: {
+      headline: { x: 8, y: 8, fontSize: 32, align: 'left' },
+      subheadline: { x: 8, y: 18, fontSize: 18, align: 'left' },
+      body: { x: 8, y: 28, fontSize: 14, align: 'left' },
+      statistics: { x: 8, y: 85, fontSize: 24 },
+    },
+    HERO: {
+      headline: { x: 50, y: 8, fontSize: 28, align: 'center' },
+      subheadline: { x: 50, y: 18, fontSize: 16, align: 'center' },
+      body: { x: 50, y: 85, fontSize: 14, align: 'center' },
+      statistics: { x: 50, y: 50, fontSize: 48 },
+    },
+    FEATURES: {
+      headline: { x: 50, y: 5, fontSize: 14, align: 'center' },
+      subheadline: { x: 50, y: 12, fontSize: 24, align: 'center' },
+      body: { x: 50, y: 88, fontSize: 12, align: 'center' },
+      statistics: { x: 50, y: 55, fontSize: 36 },
+    },
+    SOCIAL_PROOF: {
+      headline: { x: 50, y: 55, fontSize: 14, align: 'center' },
+      subheadline: { x: 50, y: 62, fontSize: 20, align: 'center' },
+      body: { x: 50, y: 88, fontSize: 12, align: 'center' },
+      statistics: { x: 50, y: 78, fontSize: 48 },
+    },
+    HOW_TO_USE: {
+      headline: { x: 50, y: 5, fontSize: 14, align: 'center' },
+      subheadline: { x: 50, y: 12, fontSize: 20, align: 'center' },
+      body: { x: 50, y: 85, fontSize: 12, align: 'center' },
+      statistics: { x: 50, y: 50, fontSize: 32 },
+    },
+    FAQ: {
+      headline: { x: 50, y: 10, fontSize: 18, align: 'center' },
+      subheadline: { x: 50, y: 22, fontSize: 14, align: 'center' },
+      body: { x: 50, y: 50, fontSize: 14, align: 'center' },
+      statistics: { x: 50, y: 80, fontSize: 24 },
+    },
+  };
+
+  const layout = sectionLayouts[normalizedSection] || sectionLayouts.FEATURES;
+
+  // 블록별 컨텍스트
+  const blockContext = blockOptions?.variationHint
+    ? `\n블록 특성: ${blockOptions.variationHint} (${(blockOptions.blockIndex || 0) + 1}/${blockOptions.totalBlocks || 1}번째)`
+    : '';
+
+  // 카테고리별 감각 키워드
+  const categoryKeywords: Record<string, string[]> = {
+    skincare: ['촉촉한', '탱글탱글', '윤기', '맑은', '투명한'],
+    makeup: ['탱글', '영롱', '글로시', '선명한', '오래가는'],
+    suncare: ['가벼운', '산뜻한', '투명한', 'SPF', 'PA'],
+    cleansing: ['부드러운', '깨끗한', '촉촉한', '순한'],
+  };
+
+  const categoryKey = category.toLowerCase().includes('스킨') || category.toLowerCase().includes('skin') ? 'skincare'
+    : category.toLowerCase().includes('메이크') || category.toLowerCase().includes('makeup') ? 'makeup'
+    : category.toLowerCase().includes('선') || category.toLowerCase().includes('sun') ? 'suncare'
+    : category.toLowerCase().includes('클렌') || category.toLowerCase().includes('cleans') ? 'cleansing'
+    : 'skincare';
+
+  const sensoryWords = categoryKeywords[categoryKey]?.join(', ') || '';
+
+  const prompt = `당신은 한국 올리브영/화해 상세페이지 전문 카피라이터입니다.
+이미지 위에 배치할 오버레이 텍스트를 JSON 형식으로 생성하세요.
+
+## 제품 정보
+- 제품명: ${productName}
+- 카테고리: ${category}
+- 타겟: ${targetAudience}
+- 핵심 특징: ${keyFeatures.join(', ')}
+${blockContext}
+
+## 섹션: ${normalizedSection}
+${normalizedSection === 'MAIN' ? '- 목적: 시선을 끄는 메인 썸네일. 브랜드명 + 제품 슬로건' : ''}
+${normalizedSection === 'HERO' ? '- 목적: 고객 고민 공감 → 해결책 제시' : ''}
+${normalizedSection === 'FEATURES' ? '- 목적: 제품 특징/성분 강조. Point 01, 02 형식 또는 성분+효과' : ''}
+${normalizedSection === 'SOCIAL_PROOF' ? '- 목적: 신뢰 구축. 통계 수치, 수상 이력, 후기' : ''}
+${normalizedSection === 'HOW_TO_USE' ? '- 목적: 사용법 안내. STEP 1, 2, 3 형식' : ''}
+${normalizedSection === 'FAQ' ? '- 목적: 자주 묻는 질문 답변' : ''}
+
+## 참고할 감각 키워드
+${sensoryWords}
+
+## ★ 위치/스타일 가이드 (섹션별 기본값)
+- headline: x=${layout.headline.x}%, y=${layout.headline.y}%, fontSize=${layout.headline.fontSize}px, align=${layout.headline.align}
+- subheadline: x=${layout.subheadline.x}%, y=${layout.subheadline.y}%, fontSize=${layout.subheadline.fontSize}px, align=${layout.subheadline.align}
+- body: x=${layout.body.x}%, y=${layout.body.y}%, fontSize=${layout.body.fontSize}px, align=${layout.body.align}
+- statistics: x=${layout.statistics.x}%, y=${layout.statistics.y}%, fontSize=${layout.statistics.fontSize}px
+
+## 텍스트 길이 규칙
+- headline: 5-15자 (영문 섹션명 또는 짧은 슬로건)
+- subheadline: 10-30자 (핵심 메시지)
+- body: 20-50자 (부연 설명, 필요시에만)
+- statistics: 숫자+단위 (예: "92%", "48H", "3.5배")
+
+## 색상 가이드
+- 밝은 배경: headline=#333333, subheadline=#666666, body=#888888
+- 어두운 배경: headline=#ffffff, subheadline=#eeeeee, body=#cccccc
+- 통계 숫자는 강조색 사용 가능 (예: #e8b4b8)
+
+## 출력 형식 (JSON)
+다음 형식으로 정확히 출력하세요. 불필요한 필드는 null로 설정:
+
+\`\`\`json
+{
+  "headline": {
+    "text": "영문 섹션명 또는 짧은 슬로건",
+    "x": ${layout.headline.x},
+    "y": ${layout.headline.y},
+    "fontSize": ${layout.headline.fontSize},
+    "fontWeight": "bold",
+    "color": "#333333",
+    "textAlign": "${layout.headline.align}"
+  },
+  "subheadline": {
+    "text": "핵심 메시지 (10-30자)",
+    "x": ${layout.subheadline.x},
+    "y": ${layout.subheadline.y},
+    "fontSize": ${layout.subheadline.fontSize},
+    "fontWeight": "medium",
+    "color": "#666666",
+    "textAlign": "${layout.subheadline.align}"
+  },
+  "body": null,
+  "statistics": [
+    {
+      "text": "92%",
+      "x": ${layout.statistics.x},
+      "y": ${layout.statistics.y},
+      "fontSize": ${layout.statistics.fontSize},
+      "fontWeight": "bold",
+      "color": "#ffffff"
+    }
+  ],
+  "cta": null
+}
+\`\`\`
+
+★ 중요: JSON만 출력하세요. 설명이나 다른 텍스트 없이 순수 JSON만!`;
+
+  try {
+    const response = await gemini.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+    });
+
+    const text = response.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+
+    // JSON 파싱
+    let jsonStr = text;
+    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      jsonStr = jsonMatch[1];
+    }
+
+    const parsed = JSON.parse(jsonStr) as OverlayTextContent;
+
+    // 타입 정규화 (string → OverlayTextItem 변환)
+    const normalizedOverlay: OverlayTextContent = {
+      headline: normalizeOverlayItem(parsed.headline, layout.headline),
+      subheadline: normalizeOverlayItem(parsed.subheadline, layout.subheadline),
+      body: normalizeOverlayItem(parsed.body, layout.body),
+      statistics: normalizeStatistics(parsed.statistics, layout.statistics),
+      cta: normalizeOverlayItem(parsed.cta, { x: 50, y: 90, fontSize: 16, align: 'center' }),
+    };
+
+    console.log(`[Overlay] Generated overlay text for ${sectionType}`);
+
+    return {
+      overlayText: normalizedOverlay,
+      prompt,
+    };
+  } catch (error) {
+    console.error(`[Overlay] Failed to generate overlay text for ${sectionType}:`, error);
+
+    // 폴백: 기본 오버레이 텍스트 생성
+    return {
+      overlayText: createDefaultOverlay(normalizedSection, productName, keyFeatures, layout),
+      prompt,
+    };
+  }
+}
+
+/**
+ * 오버레이 아이템 정규화 (string → OverlayTextItem)
+ */
+function normalizeOverlayItem(
+  item: OverlayTextItem | string | null | undefined,
+  defaultLayout: { x: number; y: number; fontSize: number; align: 'left' | 'center' | 'right' }
+): OverlayTextItem | undefined {
+  if (!item) return undefined;
+
+  if (typeof item === 'string') {
+    return {
+      text: item,
+      x: defaultLayout.x,
+      y: defaultLayout.y,
+      fontSize: defaultLayout.fontSize,
+      fontWeight: 'medium',
+      color: '#333333',
+      textAlign: defaultLayout.align,
+    };
+  }
+
+  return {
+    text: item.text,
+    x: item.x ?? defaultLayout.x,
+    y: item.y ?? defaultLayout.y,
+    fontSize: item.fontSize ?? defaultLayout.fontSize,
+    fontWeight: item.fontWeight ?? 'medium',
+    color: item.color ?? '#333333',
+    textAlign: item.textAlign ?? defaultLayout.align,
+  };
+}
+
+/**
+ * 통계 배열 정규화
+ */
+function normalizeStatistics(
+  stats: (OverlayStatisticItem | string)[] | null | undefined,
+  defaultLayout: { x: number; y: number; fontSize: number }
+): OverlayStatisticItem[] | undefined {
+  if (!stats || stats.length === 0) return undefined;
+
+  return stats.map((stat, idx) => {
+    if (typeof stat === 'string') {
+      return {
+        text: stat,
+        x: defaultLayout.x,
+        y: defaultLayout.y + (idx * 12),
+        fontSize: defaultLayout.fontSize,
+        fontWeight: 'bold' as const,
+        color: '#ffffff',
+      };
+    }
+    return {
+      text: stat.text,
+      x: stat.x ?? defaultLayout.x,
+      y: stat.y ?? defaultLayout.y + (idx * 12),
+      fontSize: stat.fontSize ?? defaultLayout.fontSize,
+      fontWeight: stat.fontWeight ?? 'bold',
+      color: stat.color ?? '#ffffff',
+    };
+  });
+}
+
+/**
+ * 기본 오버레이 텍스트 생성 (폴백용)
+ */
+function createDefaultOverlay(
+  sectionType: string,
+  productName: string,
+  keyFeatures: string[],
+  layout: {
+    headline: { x: number; y: number; fontSize: number; align: 'left' | 'center' | 'right' };
+    subheadline: { x: number; y: number; fontSize: number; align: 'left' | 'center' | 'right' };
+    body: { x: number; y: number; fontSize: number; align: 'left' | 'center' | 'right' };
+    statistics: { x: number; y: number; fontSize: number };
+  }
+): OverlayTextContent {
+  const sectionHeadlines: Record<string, string> = {
+    MAIN: productName.slice(0, 15),
+    HERO: 'HERO',
+    FEATURES: 'FEATURES',
+    SOCIAL_PROOF: 'REVIEWS',
+    HOW_TO_USE: 'HOW TO USE',
+    FAQ: 'FAQ',
+  };
+
+  return {
+    headline: {
+      text: sectionHeadlines[sectionType] || 'SECTION',
+      x: layout.headline.x,
+      y: layout.headline.y,
+      fontSize: layout.headline.fontSize,
+      fontWeight: 'bold',
+      color: '#333333',
+      textAlign: layout.headline.align,
+    },
+    subheadline: {
+      text: keyFeatures[0]?.slice(0, 30) || productName,
+      x: layout.subheadline.x,
+      y: layout.subheadline.y,
+      fontSize: layout.subheadline.fontSize,
+      fontWeight: 'medium',
+      color: '#666666',
+      textAlign: layout.subheadline.align,
+    },
+  };
 }

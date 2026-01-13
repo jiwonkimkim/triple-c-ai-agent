@@ -62,11 +62,25 @@ function SectionAddDivider({ onAdd }: { onAdd: () => void }) {
   );
 }
 
+interface SectionPromptUpdate {
+  sectionIndex: number;
+  sectionType: string;
+  imageUrl: string;
+  promptComponents?: {
+    orchestrationPrompt?: string;
+    categoryTemplatePrompt?: string;
+    i2iSystemPrompt?: string;
+    fixedPrompt?: string;
+    dynamicPrompt?: string;
+  };
+}
+
 interface DetailPageEditorProps {
   projectId: string;
   versionId?: string;
   initialSections?: Section[];
   onSaveSuccess?: () => void;
+  onSectionPromptUpdated?: (update: SectionPromptUpdate) => void;
 }
 
 const previewWidths = {
@@ -80,6 +94,7 @@ export function DetailPageEditor({
   versionId,
   initialSections,
   onSaveSuccess,
+  onSectionPromptUpdated,
 }: DetailPageEditorProps) {
   const { toast } = useToast();
   const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
@@ -603,6 +618,128 @@ export function DetailPageEditor({
     [sections.length, reorderSections]
   );
 
+  // ★★★ API 오버레이 형식 → 에디터 형식 변환 (NEW!)
+  const convertApiOverlayToEditorFormat = (
+    apiOverlay: {
+      headline?: { text: string; x: number; y: number; fontSize: number; fontWeight: string; color: string; textAlign?: string } | string;
+      subheadline?: { text: string; x: number; y: number; fontSize: number; fontWeight: string; color: string; textAlign?: string } | string;
+      body?: { text: string; x: number; y: number; fontSize: number; fontWeight: string; color: string; textAlign?: string } | string;
+      statistics?: Array<{ text: string; x: number; y: number; fontSize: number; fontWeight: string; color: string } | string>;
+      cta?: { text: string; x: number; y: number; fontSize: number; fontWeight: string; color: string; textAlign?: string } | string;
+    },
+    sectionId: string
+  ): Array<{
+    id: string;
+    type: 'headline' | 'subheadline' | 'body' | 'statistic' | 'cta';
+    content: string;
+    style: {
+      x: number;
+      y: number;
+      fontSize: number;
+      fontWeight: 'normal' | 'medium' | 'semibold' | 'bold';
+      fontFamily: string;
+      color: string;
+      textShadow: boolean;
+      textAlign: 'left' | 'center' | 'right';
+      opacity: number;
+      rotation: number;
+      width?: number;
+    };
+    zIndex: number;
+  }> => {
+    const result: Array<{
+      id: string;
+      type: 'headline' | 'subheadline' | 'body' | 'statistic' | 'cta';
+      content: string;
+      style: {
+        x: number;
+        y: number;
+        fontSize: number;
+        fontWeight: 'normal' | 'medium' | 'semibold' | 'bold';
+        fontFamily: string;
+        color: string;
+        textShadow: boolean;
+        textAlign: 'left' | 'center' | 'right';
+        opacity: number;
+        rotation: number;
+        width?: number;
+      };
+      zIndex: number;
+    }> = [];
+    let zIndex = 1;
+
+    const parseItem = (
+      item: { text: string; x: number; y: number; fontSize: number; fontWeight: string; color: string; textAlign?: string } | string | undefined,
+      type: 'headline' | 'subheadline' | 'body' | 'statistic' | 'cta',
+      defaultStyle: { x: number; y: number; fontSize: number; align: 'left' | 'center' | 'right' }
+    ) => {
+      if (!item) return null;
+      const isString = typeof item === 'string';
+      return {
+        id: `${sectionId}-${type}-${Date.now()}`,
+        type,
+        content: isString ? item : item.text,
+        style: {
+          x: isString ? defaultStyle.x : item.x,
+          y: isString ? defaultStyle.y : item.y,
+          fontSize: isString ? defaultStyle.fontSize : item.fontSize,
+          fontWeight: (isString ? 'medium' : item.fontWeight) as 'normal' | 'medium' | 'semibold' | 'bold',
+          fontFamily: 'Pretendard, sans-serif',
+          color: isString ? '#333333' : item.color,
+          textShadow: true,
+          textAlign: (isString ? defaultStyle.align : (item.textAlign || defaultStyle.align)) as 'left' | 'center' | 'right',
+          opacity: 100,
+          rotation: 0,
+          width: type === 'headline' || type === 'subheadline' ? 80 : undefined,
+        },
+        zIndex: zIndex++,
+      };
+    };
+
+    // Headline
+    const headline = parseItem(apiOverlay.headline, 'headline', { x: 50, y: 8, fontSize: 28, align: 'center' });
+    if (headline) result.push(headline);
+
+    // Subheadline
+    const subheadline = parseItem(apiOverlay.subheadline, 'subheadline', { x: 50, y: 18, fontSize: 16, align: 'center' });
+    if (subheadline) result.push(subheadline);
+
+    // Body
+    const body = parseItem(apiOverlay.body, 'body', { x: 50, y: 85, fontSize: 14, align: 'center' });
+    if (body) result.push(body);
+
+    // Statistics
+    if (apiOverlay.statistics && apiOverlay.statistics.length > 0) {
+      apiOverlay.statistics.forEach((stat, idx) => {
+        const isString = typeof stat === 'string';
+        result.push({
+          id: `${sectionId}-stat-${idx}-${Date.now()}`,
+          type: 'statistic',
+          content: isString ? stat : stat.text,
+          style: {
+            x: isString ? 50 : stat.x,
+            y: isString ? 50 + (idx * 12) : stat.y,
+            fontSize: isString ? 48 : stat.fontSize,
+            fontWeight: (isString ? 'bold' : stat.fontWeight) as 'normal' | 'medium' | 'semibold' | 'bold',
+            fontFamily: 'Pretendard, sans-serif',
+            color: isString ? '#ffffff' : stat.color,
+            textShadow: true,
+            textAlign: 'center',
+            opacity: 100,
+            rotation: 0,
+          },
+          zIndex: zIndex++,
+        });
+      });
+    }
+
+    // CTA
+    const cta = parseItem(apiOverlay.cta, 'cta', { x: 50, y: 90, fontSize: 16, align: 'center' });
+    if (cta) result.push(cta);
+
+    return result;
+  };
+
   // 섹션 이미지 재생성 핸들러
   const handleRegenerateSection = useCallback(async (sectionId: string, sectionIndex: number) => {
     const section = sections.find(s => s.id === sectionId);
@@ -655,16 +792,40 @@ export function DetailPageEditor({
 
       // 섹션의 첫 번째 이미지 블록 업데이트
       const imageBlock = section.blocks.find(b => b.type === 'image-overlay' || b.type === 'image');
-      if (imageBlock) {
+      if (imageBlock && imageBlock.type === 'image-overlay') {
+        // ★★★ 오버레이 텍스트도 함께 업데이트 (NEW!)
+        const newOverlayTexts = data.data.overlayText
+          ? convertApiOverlayToEditorFormat(data.data.overlayText, sectionId)
+          : imageBlock.overlayTexts; // 오버레이 없으면 기존 것 유지
+
+        updateBlock(sectionId, imageBlock.id, {
+          ...imageBlock,
+          src: data.data.imageUrl,
+          overlayTexts: newOverlayTexts,
+        });
+
+        console.log(`[Section Regenerate] Updated overlay texts:`, newOverlayTexts.length, 'items');
+      } else if (imageBlock) {
+        // 일반 이미지 블록
         updateBlock(sectionId, imageBlock.id, {
           ...imageBlock,
           src: data.data.imageUrl,
         });
       }
 
+      // ★ 프롬프트 뷰어 업데이트를 위해 콜백 호출
+      if (onSectionPromptUpdated && data.data.promptComponents) {
+        onSectionPromptUpdated({
+          sectionIndex,
+          sectionType,
+          imageUrl: data.data.imageUrl,
+          promptComponents: data.data.promptComponents,
+        });
+      }
+
       toast({
         title: '재생성 완료',
-        description: `${section.name} 섹션 이미지가 새로 생성되었습니다.`,
+        description: `${section.name} 섹션 이미지와 텍스트가 새로 생성되었습니다.`,
       });
     } catch (error) {
       console.error('[Section Regenerate] Error:', error);
@@ -676,7 +837,7 @@ export function DetailPageEditor({
     } finally {
       setRegeneratingSectionId(null);
     }
-  }, [sections, projectId, updateBlock, toast]);
+  }, [sections, projectId, updateBlock, toast, onSectionPromptUpdated]);
 
   const handleExport = useCallback(
     async (format: 'html' | 'json') => {

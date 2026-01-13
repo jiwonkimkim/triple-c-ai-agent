@@ -60,39 +60,20 @@ export default function ProjectDetailPage() {
     onDevPromptsLoaded: (prompts) => regenerationHook.setLastDevPrompts(prompts),
   });
 
-  // Load dev prompts from API response or sessionStorage
+  // Load dev prompts from API response (DB에서 가져옴)
   useEffect(() => {
     const devModeEnv = process.env.NEXT_PUBLIC_DEV_MODE?.toLowerCase();
     const isDev = process.env.NODE_ENV === 'development' || devModeEnv === 'true' || devModeEnv === '1';
 
     if (!projectId || !isDev) return;
 
-    // 1. API에서 가져온 devPrompts가 있으면 사용
+    // API에서 가져온 devPrompts 사용 (DB에서 조회됨)
     const apiDevPrompts = fetchResult?.devPrompts;
     if (apiDevPrompts) {
-      console.log('[DevPrompts] Loading from API response');
+      console.log('[DevPrompts] Loading from API (DB)');
       regenerationHook.setLastDevPrompts(apiDevPrompts);
-      // sessionStorage에도 저장
-      try {
-        sessionStorage.setItem(`devPrompts_${projectId}`, JSON.stringify(apiDevPrompts));
-      } catch (e) {
-        console.warn('Failed to save devPrompts to sessionStorage:', e);
-      }
-      return;
-    }
-
-    // 2. sessionStorage에서 불러오기 (fallback)
-    try {
-      const stored = sessionStorage.getItem(`devPrompts_${projectId}`);
-      if (stored) {
-        console.log('[DevPrompts] Loading from sessionStorage');
-        const parsed = JSON.parse(stored);
-        regenerationHook.setLastDevPrompts(parsed);
-      } else {
-        console.log('[DevPrompts] No prompts found in API or sessionStorage');
-      }
-    } catch (e) {
-      console.warn('Failed to load devPrompts from sessionStorage:', e);
+    } else {
+      console.log('[DevPrompts] No prompts found in DB');
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, fetchResult?.devPrompts]);
@@ -112,6 +93,57 @@ export default function ProjectDetailPage() {
   const handleEditorRemount = useCallback(() => {
     setEditorKey((prev) => prev + 1);
   }, []);
+
+  // ★ 섹션 재생성 시 프롬프트 뷰어 업데이트
+  const handleSectionPromptUpdated = useCallback((update: {
+    sectionIndex: number;
+    sectionType: string;
+    imageUrl: string;
+    promptComponents?: {
+      orchestrationPrompt?: string;
+      categoryTemplatePrompt?: string;
+      i2iSystemPrompt?: string;
+      fixedPrompt?: string;
+      dynamicPrompt?: string;
+    };
+  }) => {
+    const currentPrompts = regenerationHook.lastDevPrompts;
+    if (!currentPrompts) {
+      console.log('[DevPrompts] No existing prompts to update');
+      return;
+    }
+
+    // sectionImagePrompts 배열에서 해당 섹션 찾아 업데이트
+    const updatedPrompts: DevPromptInfo = {
+      ...currentPrompts,
+      sectionImagePrompts: currentPrompts.sectionImagePrompts.map((prompt, idx) => {
+        // sectionType이 매칭되거나 index가 매칭되면 업데이트
+        if (prompt.sectionType === update.sectionType || idx === update.sectionIndex) {
+          // 최종 결합 프롬프트 생성
+          const combinedPrompt = [
+            update.promptComponents?.fixedPrompt,
+            update.promptComponents?.dynamicPrompt,
+          ].filter(Boolean).join('\n\n---\n\n');
+
+          return {
+            ...prompt,
+            orchestrationPrompt: update.promptComponents?.orchestrationPrompt || prompt.orchestrationPrompt,
+            categoryTemplatePrompt: update.promptComponents?.categoryTemplatePrompt || prompt.categoryTemplatePrompt,
+            i2iSystemPrompt: update.promptComponents?.i2iSystemPrompt || prompt.i2iSystemPrompt,
+            fixedPrompt: update.promptComponents?.fixedPrompt || prompt.fixedPrompt,
+            dynamicPrompt: update.promptComponents?.dynamicPrompt || prompt.dynamicPrompt,
+            imagePrompt: combinedPrompt || prompt.imagePrompt,
+            generatedImageUrl: update.imageUrl,
+          };
+        }
+        return prompt;
+      }),
+    };
+
+    console.log(`[DevPrompts] Updated section ${update.sectionType} prompts`);
+    regenerationHook.setLastDevPrompts(updatedPrompts);
+    // DB는 섹션 재생성 API에서 자동으로 업데이트됨
+  }, [regenerationHook]);
 
   // Loading state
   if (isLoading) {
@@ -171,6 +203,7 @@ export default function ProjectDetailPage() {
                 description: '변경 사항이 저장되었습니다.',
               });
             }}
+            onSectionPromptUpdated={handleSectionPromptUpdated}
           />
         )}
 
