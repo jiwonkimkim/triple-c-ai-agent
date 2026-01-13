@@ -208,9 +208,9 @@ export default function ProjectDetailPage() {
     );
   }
 
-  // Get the latest version
+  // Get the latest version (by versionNumber, not updatedAt)
   const latestVersion = project.detailPageVersions
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
+    .sort((a, b) => b.versionNumber - a.versionNumber)[0];
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
