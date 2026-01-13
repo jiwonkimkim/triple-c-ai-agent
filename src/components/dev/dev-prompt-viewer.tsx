@@ -109,13 +109,7 @@ function PromptContent({ title, content, height = "h-[220px]" }: { title: string
 }
 
 export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
-  // 개발 환경에서만 렌더링 (NEXT_PUBLIC_DEV_MODE 체크 강화)
-  const devModeEnv = process.env.NEXT_PUBLIC_DEV_MODE?.toLowerCase();
-  const isDev = process.env.NODE_ENV === 'development' || devModeEnv === 'true' || devModeEnv === '1';
-  if (!isDev) {
-    return null;
-  }
-
+  // devPrompts가 있으면 항상 표시 (DB에서 가져온 데이터 기반)
   const hasPrompts = !!prompts;
 
   // 프롬프트가 없으면 비활성화된 버튼만 표시

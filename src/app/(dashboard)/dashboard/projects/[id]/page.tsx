@@ -62,18 +62,13 @@ export default function ProjectDetailPage() {
 
   // Load dev prompts from API response (DB에서 가져옴)
   useEffect(() => {
-    const devModeEnv = process.env.NEXT_PUBLIC_DEV_MODE?.toLowerCase();
-    const isDev = process.env.NODE_ENV === 'development' || devModeEnv === 'true' || devModeEnv === '1';
-
-    if (!projectId || !isDev) return;
+    if (!projectId) return;
 
     // API에서 가져온 devPrompts 사용 (DB에서 조회됨)
     const apiDevPrompts = fetchResult?.devPrompts;
     if (apiDevPrompts) {
       console.log('[DevPrompts] Loading from API (DB)');
       regenerationHook.setLastDevPrompts(apiDevPrompts);
-    } else {
-      console.log('[DevPrompts] No prompts found in DB');
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, fetchResult?.devPrompts]);
