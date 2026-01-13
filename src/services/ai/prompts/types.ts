@@ -80,6 +80,7 @@ export interface OverlayTextItem {
   y: number;           // 위치 (% 기준, 0-100)
   fontSize: number;    // px 단위
   fontWeight: 'normal' | 'medium' | 'semibold' | 'bold';
+  fontFamily?: string; // 폰트 패밀리 (예: "Pretendard, sans-serif")
   color: string;       // hex color (예: "#ffffff")
   textAlign?: 'left' | 'center' | 'right';
 }
@@ -91,6 +92,7 @@ export interface OverlayStatisticItem {
   y: number;
   fontSize: number;
   fontWeight: 'normal' | 'medium' | 'semibold' | 'bold';
+  fontFamily?: string; // 폰트 패밀리
   color: string;
 }
 

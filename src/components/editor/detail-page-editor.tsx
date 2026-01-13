@@ -618,14 +618,14 @@ export function DetailPageEditor({
     [sections.length, reorderSections]
   );
 
-  // ★★★ API 오버레이 형식 → 에디터 형식 변환 (NEW!)
+  // ★★★ API 오버레이 형식 → 에디터 형식 변환 (fontFamily 포함!)
   const convertApiOverlayToEditorFormat = (
     apiOverlay: {
-      headline?: { text: string; x: number; y: number; fontSize: number; fontWeight: string; color: string; textAlign?: string } | string;
-      subheadline?: { text: string; x: number; y: number; fontSize: number; fontWeight: string; color: string; textAlign?: string } | string;
-      body?: { text: string; x: number; y: number; fontSize: number; fontWeight: string; color: string; textAlign?: string } | string;
-      statistics?: Array<{ text: string; x: number; y: number; fontSize: number; fontWeight: string; color: string } | string>;
-      cta?: { text: string; x: number; y: number; fontSize: number; fontWeight: string; color: string; textAlign?: string } | string;
+      headline?: { text: string; x: number; y: number; fontSize: number; fontWeight: string; fontFamily?: string; color: string; textAlign?: string } | string;
+      subheadline?: { text: string; x: number; y: number; fontSize: number; fontWeight: string; fontFamily?: string; color: string; textAlign?: string } | string;
+      body?: { text: string; x: number; y: number; fontSize: number; fontWeight: string; fontFamily?: string; color: string; textAlign?: string } | string;
+      statistics?: Array<{ text: string; x: number; y: number; fontSize: number; fontWeight: string; fontFamily?: string; color: string } | string>;
+      cta?: { text: string; x: number; y: number; fontSize: number; fontWeight: string; fontFamily?: string; color: string; textAlign?: string } | string;
     },
     sectionId: string
   ): Array<{
@@ -669,7 +669,7 @@ export function DetailPageEditor({
     let zIndex = 1;
 
     const parseItem = (
-      item: { text: string; x: number; y: number; fontSize: number; fontWeight: string; color: string; textAlign?: string } | string | undefined,
+      item: { text: string; x: number; y: number; fontSize: number; fontWeight: string; fontFamily?: string; color: string; textAlign?: string } | string | undefined,
       type: 'headline' | 'subheadline' | 'body' | 'statistic' | 'cta',
       defaultStyle: { x: number; y: number; fontSize: number; align: 'left' | 'center' | 'right' }
     ) => {
@@ -684,7 +684,7 @@ export function DetailPageEditor({
           y: isString ? defaultStyle.y : item.y,
           fontSize: isString ? defaultStyle.fontSize : item.fontSize,
           fontWeight: (isString ? 'medium' : item.fontWeight) as 'normal' | 'medium' | 'semibold' | 'bold',
-          fontFamily: 'Pretendard, sans-serif',
+          fontFamily: isString ? 'Pretendard, sans-serif' : (item.fontFamily || 'Pretendard, sans-serif'),  // ★ AI 선택 폰트
           color: isString ? '#333333' : item.color,
           textShadow: true,
           textAlign: (isString ? defaultStyle.align : (item.textAlign || defaultStyle.align)) as 'left' | 'center' | 'right',
@@ -721,7 +721,7 @@ export function DetailPageEditor({
             y: isString ? 50 + (idx * 12) : stat.y,
             fontSize: isString ? 48 : stat.fontSize,
             fontWeight: (isString ? 'bold' : stat.fontWeight) as 'normal' | 'medium' | 'semibold' | 'bold',
-            fontFamily: 'Pretendard, sans-serif',
+            fontFamily: isString ? 'Montserrat, sans-serif' : (stat.fontFamily || 'Montserrat, sans-serif'),  // ★ AI 선택 폰트 (숫자용 기본값)
             color: isString ? '#ffffff' : stat.color,
             textShadow: true,
             textAlign: 'center',

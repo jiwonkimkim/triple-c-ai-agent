@@ -135,6 +135,93 @@ export async function POST(request: NextRequest) {
     console.log(`[Section Regenerate] Image uploaded successfully: ${uploadResult.url}`);
     console.log(`[Section Regenerate] Overlay text generated:`, JSON.stringify(result.overlayText).substring(0, 200));
 
+    // ★★★ DB에 devPrompts 업데이트 (섹션 재생성 후에도 프롬프트 유지)
+    try {
+      const latestVersion = await prisma.projectVersion.findFirst({
+        where: { projectId: project.id },
+        orderBy: { versionNumber: 'desc' },
+        select: { id: true, content: true },
+      });
+
+      if (latestVersion) {
+        const existingContent = latestVersion.content as {
+          sections?: unknown[];
+          hookMessage?: string;
+          devPrompts?: {
+            textGeneration?: { systemPrompt: string; userPrompt: string };
+            sectionImagePrompts?: Array<{
+              sectionType: string;
+              imagePrompt: string;
+              [key: string]: unknown;
+            }>;
+          };
+        } | null;
+
+        // 새 섹션 프롬프트 데이터
+        const newSectionPrompt = {
+          sectionType: validatedData.sectionType,
+          fixedPrompt: result.image.promptComponents?.fixedPrompt,
+          dynamicPrompt: result.image.promptComponents?.dynamicPrompt,
+          imagePrompt: [
+            result.image.promptComponents?.fixedPrompt,
+            result.image.promptComponents?.dynamicPrompt,
+          ].filter(Boolean).join('\n\n---\n\n') || `${validatedData.sectionType} section image`,
+          generatedImageUrl: uploadResult.url,
+          overlayText: result.overlayText,
+          overlayPrompt: result.overlayPrompt,
+        };
+
+        // 기존 devPrompts 가져오거나 새로 생성
+        const existingDevPrompts = existingContent?.devPrompts || {
+          textGeneration: {
+            systemPrompt: '(이전 생성 시 저장되지 않음)',
+            userPrompt: '(이전 생성 시 저장되지 않음)',
+          },
+          sectionImagePrompts: [],
+        };
+
+        // 해당 섹션이 이미 있는지 확인
+        const existingSectionIndex = existingDevPrompts.sectionImagePrompts?.findIndex(
+          (p) => p.sectionType === validatedData.sectionType
+        ) ?? -1;
+
+        let updatedSectionImagePrompts;
+        if (existingSectionIndex >= 0 && existingDevPrompts.sectionImagePrompts) {
+          // 기존 섹션 업데이트
+          updatedSectionImagePrompts = existingDevPrompts.sectionImagePrompts.map((p, idx) =>
+            idx === existingSectionIndex ? { ...p, ...newSectionPrompt } : p
+          );
+        } else {
+          // 새 섹션 추가
+          updatedSectionImagePrompts = [
+            ...(existingDevPrompts.sectionImagePrompts || []),
+            newSectionPrompt,
+          ];
+        }
+
+        // DB 업데이트 (JSON 타입 호환을 위해 깊은 복사)
+        const updatedContent = JSON.parse(JSON.stringify({
+          ...existingContent,
+          devPrompts: {
+            ...existingDevPrompts,
+            sectionImagePrompts: updatedSectionImagePrompts,
+          },
+        }));
+
+        await prisma.projectVersion.update({
+          where: { id: latestVersion.id },
+          data: {
+            content: updatedContent,
+          },
+        });
+
+        console.log(`[Section Regenerate] DevPrompts saved to DB for section ${validatedData.sectionType}`);
+      }
+    } catch (dbError) {
+      console.error('[Section Regenerate] Failed to update devPrompts in DB:', dbError);
+      // DB 업데이트 실패해도 이미지 생성은 성공했으므로 계속 진행
+    }
+
     return NextResponse.json({
       success: true,
       data: {

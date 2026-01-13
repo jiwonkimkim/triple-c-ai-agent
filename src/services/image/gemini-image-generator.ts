@@ -1240,6 +1240,7 @@ export async function generateSectionImageWithOverlay(
 
   // 1. 이미지 생성 (모드에 따라 다른 함수 호출)
   let generatedImage: GeminiGeneratedImage;
+  let usedImagePrompt: string = '';  // ★ 이미지 생성에 사용된 프롬프트 저장
 
   if (isI2IMode && sourceImage) {
     // I2I 모드: 제품 이미지 기반 생성
@@ -1254,6 +1255,8 @@ export async function generateSectionImageWithOverlay(
       targetAudience,
       scenarioPrompt
     );
+    // ★ 이미지에 사용된 프롬프트 저장 (revisedPrompt 우선, 없으면 scenarioPrompt)
+    usedImagePrompt = generatedImage.revisedPrompt || scenarioPrompt || '';
   } else {
     // T2I 모드: 프롬프트 기반 생성
     const t2iPrompt = imagePrompt || scenarioPrompt || `${productName} ${category} product image`;
@@ -1266,9 +1269,11 @@ export async function generateSectionImageWithOverlay(
       keyFeatures,
       targetAudience
     );
+    // ★ 이미지에 사용된 프롬프트 저장
+    usedImagePrompt = generatedImage.revisedPrompt || t2iPrompt;
   }
 
-  // 2. 오버레이 텍스트 생성 (동일한 컨텍스트 사용)
+  // 2. 오버레이 텍스트 생성 (★ 이미지 컨텍스트 전달하여 어울리는 텍스트 생성)
   const overlayResult = await generateOverlayTextForSection(
     sectionType,
     productName,
@@ -1279,7 +1284,8 @@ export async function generateSectionImageWithOverlay(
       blockIndex,
       totalBlocks,
       variationHint,
-    }
+    },
+    usedImagePrompt  // ★ 이미지 생성에 사용된 프롬프트 전달
   );
 
   console.log(`[Image+Overlay] ${sectionType} image and overlay text generated successfully`);
@@ -1293,7 +1299,8 @@ export async function generateSectionImageWithOverlay(
 
 /**
  * 섹션용 오버레이 텍스트 생성
- * - 위치, 내용, 스타일(색상, 폰트크기, 굵기, 정렬) 모두 포함
+ * - 위치, 내용, 스타일(색상, 폰트크기, 굵기, 폰트, 정렬) 모두 포함
+ * - 이미지 시나리오 컨텍스트를 기반으로 이미지와 어울리는 텍스트 생성
  */
 async function generateOverlayTextForSection(
   sectionType: string,
@@ -1305,7 +1312,8 @@ async function generateOverlayTextForSection(
     blockIndex?: number;
     totalBlocks?: number;
     variationHint?: string;
-  }
+  },
+  imageScenarioPrompt?: string  // ★ 이미지 생성에 사용된 시나리오 프롬프트
 ): Promise<{ overlayText: OverlayTextContent; prompt: string }> {
   const gemini = getGeminiClient();
 
@@ -1381,8 +1389,15 @@ async function generateOverlayTextForSection(
 
   const sensoryWords = categoryKeywords[categoryKey]?.join(', ') || '';
 
+  // ★ 이미지 시나리오 컨텍스트 (이미지와 어울리는 텍스트 생성용)
+  const imageContext = imageScenarioPrompt
+    ? `\n## 이미지 시나리오 (★ 이 이미지에 어울리는 텍스트를 작성하세요!)
+${imageScenarioPrompt}`
+    : '';
+
   const prompt = `당신은 한국 올리브영/화해 상세페이지 전문 카피라이터입니다.
 이미지 위에 배치할 오버레이 텍스트를 JSON 형식으로 생성하세요.
+★ 이미지와 조화롭게 어울리는 텍스트와 폰트를 선택하세요!
 
 ## 제품 정보
 - 제품명: ${productName}
@@ -1390,6 +1405,7 @@ async function generateOverlayTextForSection(
 - 타겟: ${targetAudience}
 - 핵심 특징: ${keyFeatures.join(', ')}
 ${blockContext}
+${imageContext}
 
 ## 섹션: ${normalizedSection}
 ${normalizedSection === 'MAIN' ? '- 목적: 시선을 끄는 메인 썸네일. 브랜드명 + 제품 슬로건' : ''}
@@ -1419,6 +1435,16 @@ ${sensoryWords}
 - 어두운 배경: headline=#ffffff, subheadline=#eeeeee, body=#cccccc
 - 통계 숫자는 강조색 사용 가능 (예: #e8b4b8)
 
+## ★ 폰트 가이드 (이미지 분위기에 맞는 폰트 선택!)
+각 텍스트마다 어울리는 fontFamily를 선택하세요:
+- 프리미엄/럭셔리: "Noto Serif KR, serif" 또는 "Playfair Display, serif"
+- 모던/깔끔: "Pretendard, sans-serif" 또는 "Noto Sans KR, sans-serif"
+- 임팩트/강조: "Black Han Sans, sans-serif"
+- 트렌디/영: "Montserrat, sans-serif" 또는 "Spoqa Han Sans Neo, sans-serif"
+- 자연/오가닉: "Nanum Myeongjo, serif"
+- 귀여움/캐주얼: "Jua, sans-serif" 또는 "Sunflower, sans-serif"
+- 손글씨/감성: "Gaegu, cursive" 또는 "Hi Melody, cursive"
+
 ## 출력 형식 (JSON)
 다음 형식으로 정확히 출력하세요. 불필요한 필드는 null로 설정:
 
@@ -1430,6 +1456,7 @@ ${sensoryWords}
     "y": ${layout.headline.y},
     "fontSize": ${layout.headline.fontSize},
     "fontWeight": "bold",
+    "fontFamily": "Pretendard, sans-serif",
     "color": "#333333",
     "textAlign": "${layout.headline.align}"
   },
@@ -1439,6 +1466,7 @@ ${sensoryWords}
     "y": ${layout.subheadline.y},
     "fontSize": ${layout.subheadline.fontSize},
     "fontWeight": "medium",
+    "fontFamily": "Noto Sans KR, sans-serif",
     "color": "#666666",
     "textAlign": "${layout.subheadline.align}"
   },
@@ -1450,6 +1478,7 @@ ${sensoryWords}
       "y": ${layout.statistics.y},
       "fontSize": ${layout.statistics.fontSize},
       "fontWeight": "bold",
+      "fontFamily": "Montserrat, sans-serif",
       "color": "#ffffff"
     }
   ],
@@ -1504,6 +1533,7 @@ ${sensoryWords}
 
 /**
  * 오버레이 아이템 정규화 (string → OverlayTextItem)
+ * - fontFamily도 처리
  */
 function normalizeOverlayItem(
   item: OverlayTextItem | string | null | undefined,
@@ -1518,6 +1548,7 @@ function normalizeOverlayItem(
       y: defaultLayout.y,
       fontSize: defaultLayout.fontSize,
       fontWeight: 'medium',
+      fontFamily: 'Pretendard, sans-serif',  // 기본 폰트
       color: '#333333',
       textAlign: defaultLayout.align,
     };
@@ -1529,6 +1560,7 @@ function normalizeOverlayItem(
     y: item.y ?? defaultLayout.y,
     fontSize: item.fontSize ?? defaultLayout.fontSize,
     fontWeight: item.fontWeight ?? 'medium',
+    fontFamily: item.fontFamily ?? 'Pretendard, sans-serif',  // ★ AI가 선택한 폰트 또는 기본값
     color: item.color ?? '#333333',
     textAlign: item.textAlign ?? defaultLayout.align,
   };
@@ -1536,6 +1568,7 @@ function normalizeOverlayItem(
 
 /**
  * 통계 배열 정규화
+ * - fontFamily도 처리
  */
 function normalizeStatistics(
   stats: (OverlayStatisticItem | string)[] | null | undefined,
@@ -1551,6 +1584,7 @@ function normalizeStatistics(
         y: defaultLayout.y + (idx * 12),
         fontSize: defaultLayout.fontSize,
         fontWeight: 'bold' as const,
+        fontFamily: 'Montserrat, sans-serif',  // 숫자에 어울리는 기본 폰트
         color: '#ffffff',
       };
     }
@@ -1560,6 +1594,7 @@ function normalizeStatistics(
       y: stat.y ?? defaultLayout.y + (idx * 12),
       fontSize: stat.fontSize ?? defaultLayout.fontSize,
       fontWeight: stat.fontWeight ?? 'bold',
+      fontFamily: stat.fontFamily ?? 'Montserrat, sans-serif',  // ★ AI가 선택한 폰트 또는 기본값
       color: stat.color ?? '#ffffff',
     };
   });

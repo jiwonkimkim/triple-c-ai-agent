@@ -103,36 +103,65 @@ export default function ProjectDetailPage() {
     };
   }) => {
     const currentPrompts = regenerationHook.lastDevPrompts;
+
+    // 최종 결합 프롬프트 생성
+    const combinedPrompt = [
+      update.promptComponents?.fixedPrompt,
+      update.promptComponents?.dynamicPrompt,
+    ].filter(Boolean).join('\n\n---\n\n');
+
+    // 새 섹션 프롬프트 데이터
+    const newSectionPrompt = {
+      sectionType: update.sectionType,
+      orchestrationPrompt: update.promptComponents?.orchestrationPrompt,
+      categoryTemplatePrompt: update.promptComponents?.categoryTemplatePrompt,
+      i2iSystemPrompt: update.promptComponents?.i2iSystemPrompt,
+      fixedPrompt: update.promptComponents?.fixedPrompt,
+      dynamicPrompt: update.promptComponents?.dynamicPrompt,
+      imagePrompt: combinedPrompt || `${update.sectionType} section image`,
+      generatedImageUrl: update.imageUrl,
+    };
+
+    // ★ 기존 devPrompts가 없으면 새로 생성
     if (!currentPrompts) {
-      console.log('[DevPrompts] No existing prompts to update');
+      console.log('[DevPrompts] Creating new devPrompts structure for section regeneration');
+      const newPrompts: DevPromptInfo = {
+        textGeneration: {
+          systemPrompt: '(이전 생성 시 저장되지 않음)',
+          userPrompt: '(이전 생성 시 저장되지 않음)',
+        },
+        sectionImagePrompts: [newSectionPrompt],
+      };
+      regenerationHook.setLastDevPrompts(newPrompts);
       return;
     }
 
-    // sectionImagePrompts 배열에서 해당 섹션 찾아 업데이트
-    const updatedPrompts: DevPromptInfo = {
-      ...currentPrompts,
-      sectionImagePrompts: currentPrompts.sectionImagePrompts.map((prompt, idx) => {
-        // sectionType이 매칭되거나 index가 매칭되면 업데이트
-        if (prompt.sectionType === update.sectionType || idx === update.sectionIndex) {
-          // 최종 결합 프롬프트 생성
-          const combinedPrompt = [
-            update.promptComponents?.fixedPrompt,
-            update.promptComponents?.dynamicPrompt,
-          ].filter(Boolean).join('\n\n---\n\n');
+    // 기존 devPrompts가 있으면 해당 섹션만 업데이트
+    // sectionImagePrompts 배열에서 해당 섹션 찾기
+    const existingIndex = currentPrompts.sectionImagePrompts.findIndex(
+      (prompt) => prompt.sectionType === update.sectionType
+    );
 
+    let updatedSectionImagePrompts;
+    if (existingIndex >= 0) {
+      // 기존 섹션 업데이트
+      updatedSectionImagePrompts = currentPrompts.sectionImagePrompts.map((prompt, idx) => {
+        if (prompt.sectionType === update.sectionType || idx === update.sectionIndex) {
           return {
             ...prompt,
-            orchestrationPrompt: update.promptComponents?.orchestrationPrompt || prompt.orchestrationPrompt,
-            categoryTemplatePrompt: update.promptComponents?.categoryTemplatePrompt || prompt.categoryTemplatePrompt,
-            i2iSystemPrompt: update.promptComponents?.i2iSystemPrompt || prompt.i2iSystemPrompt,
-            fixedPrompt: update.promptComponents?.fixedPrompt || prompt.fixedPrompt,
-            dynamicPrompt: update.promptComponents?.dynamicPrompt || prompt.dynamicPrompt,
-            imagePrompt: combinedPrompt || prompt.imagePrompt,
-            generatedImageUrl: update.imageUrl,
+            ...newSectionPrompt,
           };
         }
         return prompt;
-      }),
+      });
+    } else {
+      // 새 섹션 추가
+      updatedSectionImagePrompts = [...currentPrompts.sectionImagePrompts, newSectionPrompt];
+    }
+
+    const updatedPrompts: DevPromptInfo = {
+      ...currentPrompts,
+      sectionImagePrompts: updatedSectionImagePrompts,
     };
 
     console.log(`[DevPrompts] Updated section ${update.sectionType} prompts`);

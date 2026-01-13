@@ -212,6 +212,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       y?: number;
       fontSize?: number;
       fontWeight?: string;
+      fontFamily?: string;
       color?: string;
       textAlign?: string;
     }
@@ -221,6 +222,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       y?: number;
       fontSize?: number;
       fontWeight?: string;
+      fontFamily?: string;
       color?: string;
     }
 
@@ -381,7 +383,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           },
         };
 
-        // ★ AI가 생성한 overlayText가 있으면 우선 사용 (위치 + 스타일 포함)
+        // ★ AI가 생성한 overlayText가 있으면 우선 사용 (위치 + 스타일 + 폰트 포함)
         // 헬퍼 함수: OverlayTextItem 또는 string에서 값 추출 (항상 일관된 타입 반환)
         interface TextValueResult {
           text: string;
@@ -390,10 +392,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           y?: number;
           fontSize?: number;
           fontWeight?: string;
+          fontFamily?: string;  // ★ 폰트 패밀리 추가
           color?: string;
           textAlign?: string;
         }
-        const getTextValue = (item: { text?: string; x?: number; y?: number; fontSize?: number; fontWeight?: string; color?: string; textAlign?: string } | string | undefined | null): TextValueResult | null => {
+        const getTextValue = (item: { text?: string; x?: number; y?: number; fontSize?: number; fontWeight?: string; fontFamily?: string; color?: string; textAlign?: string } | string | undefined | null): TextValueResult | null => {
           if (!item) return null;
           if (typeof item === 'string') {
             return { text: item, hasStyle: false };
@@ -405,6 +408,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             y: item.y,
             fontSize: item.fontSize,
             fontWeight: item.fontWeight,
+            fontFamily: item.fontFamily,  // ★ AI가 선택한 폰트
             color: item.color,
             textAlign: item.textAlign,
           };
@@ -423,7 +427,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 y: headlineData.y ?? textPosition.headline.y,
                 fontSize: headlineData.fontSize ?? (isMain ? 32 : 28),
                 fontWeight: (headlineData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'bold',
-                fontFamily: 'Pretendard, sans-serif',
+                fontFamily: headlineData.fontFamily ?? 'Pretendard, sans-serif',  // ★ AI 선택 폰트
                 color: headlineData.color ?? '#ffffff',
                 textShadow: true,
                 textAlign: (headlineData.textAlign as 'left' | 'center' | 'right') ?? textPosition.headline.align,
@@ -447,7 +451,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 y: subheadlineData.y ?? (textPosition.headline.y + 12),
                 fontSize: subheadlineData.fontSize ?? (isMain ? 18 : 16),
                 fontWeight: (subheadlineData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'medium',
-                fontFamily: 'Pretendard, sans-serif',
+                fontFamily: subheadlineData.fontFamily ?? 'Pretendard, sans-serif',  // ★ AI 선택 폰트
                 color: subheadlineData.color ?? '#ffffff',
                 textShadow: true,
                 textAlign: (subheadlineData.textAlign as 'left' | 'center' | 'right') ?? textPosition.body.align,
@@ -475,7 +479,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 y: finalBodyData.y ?? (isMain ? 40 : 85),
                 fontSize: finalBodyData.fontSize ?? 14,
                 fontWeight: (finalBodyData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'normal',
-                fontFamily: 'Pretendard, sans-serif',
+                fontFamily: finalBodyData.fontFamily ?? 'Pretendard, sans-serif',  // ★ AI 선택 폰트
                 color: finalBodyData.color ?? '#ffffff',
                 textShadow: true,
                 textAlign: (finalBodyData.textAlign as 'left' | 'center' | 'right') ?? textPosition.body.align,
@@ -487,12 +491,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             });
           }
 
-          // statistics (AI 생성) - 위치/스타일 포함 가능
+          // statistics (AI 생성) - 위치/스타일/폰트 포함 가능
           if (aiOverlayText.statistics && aiOverlayText.statistics.length > 0) {
             aiOverlayText.statistics.forEach((stat, idx) => {
-              // statData를 일관된 타입으로 변환
-              const statData: { text: string; x?: number; y?: number; fontSize?: number; fontWeight?: string; color?: string } =
-                typeof stat === 'string' ? { text: stat } : { text: stat.text || '', x: stat.x, y: stat.y, fontSize: stat.fontSize, fontWeight: stat.fontWeight, color: stat.color };
+              // statData를 일관된 타입으로 변환 (fontFamily 포함)
+              const statData: { text: string; x?: number; y?: number; fontSize?: number; fontWeight?: string; fontFamily?: string; color?: string } =
+                typeof stat === 'string' ? { text: stat } : { text: stat.text || '', x: stat.x, y: stat.y, fontSize: stat.fontSize, fontWeight: stat.fontWeight, fontFamily: stat.fontFamily, color: stat.color };
               overlayTexts.push({
                 id: `${section.id}-stat-${idx}`,
                 type: 'statistic',
@@ -502,7 +506,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                   y: statData.y ?? (50 + (idx * 15)),
                   fontSize: statData.fontSize ?? 48,
                   fontWeight: (statData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'bold',
-                  fontFamily: 'Pretendard, sans-serif',
+                  fontFamily: statData.fontFamily ?? 'Montserrat, sans-serif',  // ★ AI 선택 폰트 (숫자용 기본값)
                   color: statData.color ?? '#ffffff',
                   textShadow: true,
                   textAlign: 'center',
@@ -514,7 +518,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             });
           }
 
-          // cta (AI 생성) - 위치/스타일 포함 가능
+          // cta (AI 생성) - 위치/스타일/폰트 포함 가능
           const ctaData = getTextValue(aiOverlayText.cta);
           if (ctaData) {
             overlayTexts.push({
@@ -526,7 +530,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 y: ctaData.y ?? 90,
                 fontSize: ctaData.fontSize ?? 16,
                 fontWeight: (ctaData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'semibold',
-                fontFamily: 'Pretendard, sans-serif',
+                fontFamily: ctaData.fontFamily ?? 'Pretendard, sans-serif',  // ★ AI 선택 폰트
                 color: ctaData.color ?? '#ffffff',
                 textShadow: true,
                 textAlign: 'center',
