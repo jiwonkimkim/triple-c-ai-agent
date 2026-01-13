@@ -206,8 +206,8 @@ export const LIP_SECTION_BLOCKS: Record<LipDetailSectionType, LipSectionBlockVar
     { blockIndex: 1, conceptType: 'pink-gradient-strip', promptModifier: 'simple pink to white gradient strip only', aspectRatio: '3:1' },
   ],
   KEY_MESSAGE_2: [
-    { blockIndex: 0, conceptType: 'radial-coral', promptModifier: 'soft radial gradient - white center fading to coral edges only', aspectRatio: '3:1' },
-    { blockIndex: 1, conceptType: 'solid-coral', promptModifier: 'pure solid coral color fill only', aspectRatio: '3:1' },
+    { blockIndex: 0, conceptType: 'luxury-frame', promptModifier: 'elegant rose gold thin frame border with soft pink gradient background, large empty center for text overlay, luxury presentation slide design', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'premium-accent', promptModifier: 'sophisticated gold line accents on corners with coral pink gradient, clean center text area, high-end cosmetic brand presentation style', aspectRatio: '3:1' },
   ],
   TEXT_BANNER_2: [
     { blockIndex: 0, conceptType: 'pink-white-gradient', promptModifier: 'simple horizontal gradient from pink to white only', aspectRatio: '3:1' },
@@ -363,11 +363,14 @@ CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT STRIP - NO PATTERNS NO WAVES NO DE
 `.trim(),
 
   KEY_MESSAGE_2: `
-Pure solid color or simple radial gradient background ONLY,
-soft radial gradient with white center fading to coral edges OR solid coral fill,
-completely flat empty background - absolutely NO sparkles NO geometric shapes NO glow,
-just color for message overlay,
-CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO SHAPES NO SPARKLES NO DECORATIONS
+Luxury presentation slide design for premium lip cosmetic brand,
+elegant thin rose gold or gold frame border on soft pink/coral gradient background,
+sophisticated geometric line accents on corners,
+large clean empty center area reserved for text overlay,
+high-end beauty brand keynote presentation aesthetic,
+minimalist luxury style with subtle metallic accents,
+NO product images, NO text in image, just elegant frame layout for text overlay,
+CRITICAL: Empty center for text - elegant border frame only
 `.trim(),
 
   TEXT_BANNER_2: `

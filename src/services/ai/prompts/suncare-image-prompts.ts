@@ -171,8 +171,8 @@ export const SUNCARE_SECTION_BLOCKS: Record<SuncareDetailSectionType, SuncareSec
     { blockIndex: 2, conceptType: 'filter-comparison', promptModifier: 'organic vs inorganic filter comparison visual', aspectRatio: '2:1' },
   ],
   KEY_MESSAGE_2: [
-    { blockIndex: 0, conceptType: 'radial-orange', promptModifier: 'soft radial gradient - white center fading to soft orange edges only', aspectRatio: '3:1' },
-    { blockIndex: 1, conceptType: 'solid-peach', promptModifier: 'pure solid peach (#FFDAB9) color fill only', aspectRatio: '3:1' },
+    { blockIndex: 0, conceptType: 'luxury-frame', promptModifier: 'elegant gold thin frame border with warm yellow to orange gradient background, large empty center for text overlay, luxury presentation slide design', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'premium-accent', promptModifier: 'sophisticated gold line accents on corners with peach gradient, clean center text area, high-end cosmetic brand presentation style', aspectRatio: '3:1' },
   ],
   TEXTURE_CLOSEUP: [
     { blockIndex: 0, conceptType: 'cream-swatch', promptModifier: 'cream texture swatch spreading on surface', aspectRatio: '4:3' },
@@ -355,11 +355,14 @@ CRITICAL: NO TEXT NO LABELS - visual diagram only
 `.trim(),
 
   KEY_MESSAGE_2: `
-Pure solid color or simple radial gradient background ONLY,
-soft radial gradient with white center fading to soft orange edges OR solid peach fill,
-completely flat empty background - absolutely NO golden glow NO sparkles NO geometric frames,
-just color for secondary message overlay,
-CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO GLOW EFFECTS NO DECORATIONS NO GEOMETRIC SHAPES
+Luxury presentation slide design for premium suncare brand,
+elegant thin gold frame border on warm yellow to orange/peach gradient background,
+sophisticated geometric line accents on corners,
+large clean empty center area reserved for text overlay,
+high-end suncare brand keynote presentation aesthetic,
+minimalist luxury style with subtle metallic accents,
+NO product images, NO text in image, just elegant frame layout for text overlay,
+CRITICAL: Empty center for text - elegant border frame only
 `.trim(),
 
   TEXTURE_CLOSEUP: `

@@ -280,8 +280,8 @@ export const MASKPACK_SECTION_BLOCKS: Record<MaskPackDetailSectionType, MaskPack
     { blockIndex: 2, conceptType: 'transformation-sequence', promptModifier: 'skin transformation sequence frames', aspectRatio: '3:1' },
   ],
   KEY_MESSAGE_2: [
-    { blockIndex: 0, conceptType: 'radial-mint', promptModifier: 'soft radial gradient - white center fading to mint edges only', aspectRatio: '3:1' },
-    { blockIndex: 1, conceptType: 'solid-sage', promptModifier: 'pure solid sage green color fill only', aspectRatio: '3:1' },
+    { blockIndex: 0, conceptType: 'luxury-frame', promptModifier: 'elegant gold thin frame border with soft green gradient background, large empty center for text overlay, luxury presentation slide design', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'premium-accent', promptModifier: 'sophisticated silver line accents on corners with sage green gradient, clean center text area, high-end cosmetic brand presentation style', aspectRatio: '3:1' },
   ],
   INGREDIENT_HONEY: [
     { blockIndex: 0, conceptType: 'honey-drip', promptModifier: 'golden honey dripping from dipper', aspectRatio: '3:4' },
@@ -511,11 +511,14 @@ CRITICAL: NO TEXT NO LABELS - visual comparison only
 `.trim(),
 
   KEY_MESSAGE_2: `
-Pure solid color or simple radial gradient background ONLY,
-soft radial gradient with white center fading to mint edges OR solid sage green fill,
-completely flat empty background - absolutely NO sparkles NO geometric shapes NO frames,
-just color for secondary message overlay,
-CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO GLOW EFFECTS NO DECORATIONS NO GEOMETRIC FRAMES
+Luxury presentation slide design for premium mask pack brand,
+elegant thin gold or silver frame border on soft green/sage gradient background,
+sophisticated geometric line accents on corners,
+large clean empty center area reserved for text overlay,
+high-end skincare brand keynote presentation aesthetic,
+minimalist luxury style with subtle metallic accents,
+NO product images, NO text in image, just elegant frame layout for text overlay,
+CRITICAL: Empty center for text - elegant border frame only
 `.trim(),
 
   INGREDIENT_HONEY: `

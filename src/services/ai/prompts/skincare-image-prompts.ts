@@ -161,8 +161,8 @@ export const SKINCARE_SECTION_BLOCKS: Record<SkincareDetailSectionType, SectionB
     { blockIndex: 2, conceptType: 'step-3', promptModifier: 'step 3 pat gently', aspectRatio: '1:1' },
   ],
   KEY_MESSAGE_2: [
-    { blockIndex: 0, conceptType: 'radial-mint', promptModifier: 'soft radial gradient - white center fading to mint edges only', aspectRatio: '3:1' },
-    { blockIndex: 1, conceptType: 'solid-mint', promptModifier: 'pure solid mint green color fill only', aspectRatio: '3:1' },
+    { blockIndex: 0, conceptType: 'luxury-frame', promptModifier: 'elegant gold thin frame border with soft mint gradient background, large empty center for text overlay, luxury presentation slide design', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'premium-accent', promptModifier: 'sophisticated silver line accents on corners with aqua blue gradient, clean center text area, high-end cosmetic brand presentation style', aspectRatio: '3:1' },
   ],
   PRODUCT_LINEUP: [
     { blockIndex: 0, conceptType: 'full-lineup', promptModifier: 'complete product line arranged', aspectRatio: '3:2' },
@@ -334,11 +334,14 @@ CRITICAL: NO TEXT - numbered circles and arrows only
 `.trim(),
 
   KEY_MESSAGE_2: `
-Pure solid color or simple radial gradient background ONLY,
-soft radial gradient with white center fading to mint edges OR solid mint green fill,
-completely flat empty background - absolutely NO sparkles NO geometric frames NO glow,
-just color for message overlay,
-CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO SHAPES NO SPARKLES NO DECORATIONS
+Luxury presentation slide design for premium skincare brand,
+elegant thin gold or silver frame border on soft mint/aqua gradient background,
+sophisticated geometric line accents on corners,
+large clean empty center area reserved for text overlay,
+high-end cosmetic brand keynote presentation aesthetic,
+minimalist luxury style with subtle metallic accents,
+NO product images, NO text in image, just elegant frame layout for text overlay,
+CRITICAL: Empty center for text - elegant border frame only
 `.trim(),
 
   PRODUCT_LINEUP: `

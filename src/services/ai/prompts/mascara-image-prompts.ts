@@ -204,8 +204,8 @@ export const MASCARA_SECTION_BLOCKS: Record<MascaraDetailSectionType, MascaraSec
     { blockIndex: 2, conceptType: 'durability-icons', promptModifier: 'sweat humidity clock icons infographic', aspectRatio: '3:1' },
   ],
   KEY_MESSAGE_2: [
-    { blockIndex: 0, conceptType: 'radial-gray-pink', promptModifier: 'soft radial gradient - pink center fading to dark gray edges only', aspectRatio: '3:1' },
-    { blockIndex: 1, conceptType: 'solid-black', promptModifier: 'pure solid black color fill only', aspectRatio: '3:1' },
+    { blockIndex: 0, conceptType: 'luxury-frame', promptModifier: 'elegant silver thin frame border with dark gradient background fading to hot pink, large empty center for text overlay, luxury presentation slide design', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'premium-accent', promptModifier: 'sophisticated platinum line accents on corners with black to pink gradient, clean center text area, high-end cosmetic brand presentation style', aspectRatio: '3:1' },
   ],
   HOW_TO_USE: [
     { blockIndex: 0, conceptType: 'step-sequence', promptModifier: '4-step application guide with numbered circles', aspectRatio: '4:1' },
@@ -429,11 +429,14 @@ CRITICAL: NO TEXT NO NUMBERS - icons and visuals only
 `.trim(),
 
   KEY_MESSAGE_2: `
-Pure solid color or simple radial gradient background ONLY,
-soft radial gradient with pink center fading to dark gray edges OR solid black fill,
-completely flat empty background - absolutely NO sparkles NO geometric frames NO glow,
-just color for message overlay,
-CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO SHAPES NO SPARKLES NO DECORATIONS
+Luxury presentation slide design for premium mascara brand,
+elegant thin silver or platinum frame border on dark gradient background fading to hot pink,
+sophisticated geometric line accents on corners,
+large clean empty center area reserved for text overlay,
+high-end beauty brand keynote presentation aesthetic,
+minimalist luxury style with subtle metallic accents,
+NO product images, NO text in image, just elegant frame layout for text overlay,
+CRITICAL: Empty center for text - elegant border frame only
 `.trim(),
 
   HOW_TO_USE: `
