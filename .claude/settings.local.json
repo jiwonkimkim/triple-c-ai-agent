@@ -64,21 +64,8 @@
       "Bash(git rev-parse:*)",
       "Bash(git restore:*)",
       "Bash(grep:*)",
-      "Bash(node check-versions.js:*)",
-      "WebFetch(domain:pub-81cb23a196104a328d1e9c4f4f12004d.r2.dev)",
-      "Bash(node restore-project.js:*)",
-      "Bash(node check-projects.js:*)",
-      "Bash(node check-product-images.js:*)",
-      "Bash(node check-all-projects.js:*)",
-      "Bash(node restore-projects.js:*)",
-      "Bash(node restore-all-named.js:*)",
-      "Bash(node check-project-prompts.js:*)",
-      "Bash(node check-content.js:*)",
-      "Bash(node fix-content.js:*)",
-      "Bash(node check-project.js:*)",
-      "Bash(node check-v8.js:*)",
-      "Bash(node:*)",
-      "Bash(dir /s /b \"C:\\\\Users\\\\user\\\\Desktop\\\\AI심화캠프_패스트캠퍼스\\\\git\\\\Triple_C\\\\src\\\\app\\\\\\(dashboard\\)\\\\dashboard\\\\projects\\\\[id]\")"
+      "Bash(lsof:*)",
+      "Bash(python3:*)"
     ],
     "deny": [],
     "ask": []

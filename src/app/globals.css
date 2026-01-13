@@ -19,6 +19,11 @@
   font-display: swap;
 }
 
+/* Global font family - High specificity to ensure font applies everywhere */
+html, body, * {
+  font-family: 'Cafe24Ssurround', var(--font-montserrat), 'Montserrat', system-ui, sans-serif;
+}
+
 @layer base {
   /* Default Theme */
   :root {
@@ -72,7 +77,6 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Cafe24Ssurround', var(--font-montserrat), 'Montserrat', system-ui, sans-serif;
   }
 }
 

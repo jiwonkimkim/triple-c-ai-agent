@@ -1,9 +1,9 @@
 // Hugging Face Inference API for embeddings
-const EMBEDDING_MODEL = 'sentence-transformers/all-mpnet-base-v2';
-const EMBEDDING_DIMENSION = 768;
+const EMBEDDING_MODEL = 'BAAI/bge-small-en-v1.5';
+const EMBEDDING_DIMENSION = 384;
 const MAX_BATCH_SIZE = 100;
 const MAX_INPUT_CHARS = 8000;
-const HF_API_URL = `https://router.huggingface.co/hf-inference/pipeline/feature-extraction/${EMBEDDING_MODEL}`;
+const HF_API_URL = `https://router.huggingface.co/hf-inference/models/${EMBEDDING_MODEL}`;
 
 export interface EmbeddingResult {
   text: string;

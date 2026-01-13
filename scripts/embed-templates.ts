@@ -2,8 +2,8 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const EMBEDDING_MODEL = 'sentence-transformers/all-mpnet-base-v2';
-const HF_API_URL = `https://router.huggingface.co/hf-inference/pipeline/feature-extraction/${EMBEDDING_MODEL}`;
+const EMBEDDING_MODEL = 'BAAI/bge-small-en-v1.5';
+const HF_API_URL = `https://router.huggingface.co/hf-inference/models/${EMBEDDING_MODEL}`;
 
 async function generateEmbedding(text: string): Promise<number[]> {
   const apiKey = process.env.HUGGINGFACE_API_KEY;

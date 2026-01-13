@@ -414,7 +414,7 @@ model Template {
   ratingCount   Int       @default(0) @map("rating_count")
 
   // Semantic search embedding (pgvector - Gemini 768 dimensions)
-  embedding     Unsupported("vector(768)")?
+  embedding     Unsupported("vector(384)")?
   embeddingText String?                      @map("embedding_text") @db.Text
   embeddedAt    DateTime?                    @map("embedded_at")
 
