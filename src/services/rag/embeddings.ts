@@ -3,7 +3,7 @@ const EMBEDDING_MODEL = 'sentence-transformers/all-mpnet-base-v2';
 const EMBEDDING_DIMENSION = 768;
 const MAX_BATCH_SIZE = 100;
 const MAX_INPUT_CHARS = 8000;
-const HF_API_URL = `https://api-inference.huggingface.co/pipeline/feature-extraction/${EMBEDDING_MODEL}`;
+const HF_API_URL = `https://router.huggingface.co/hf-inference/pipeline/feature-extraction/${EMBEDDING_MODEL}`;
 
 export interface EmbeddingResult {
   text: string;
