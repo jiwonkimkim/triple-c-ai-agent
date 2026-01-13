@@ -935,6 +935,23 @@ export async function generateSectionImageFromProduct(
   targetAudience?: string,
   scenarioPrompt?: string  // ★ 오케스트레이션에서 생성된 시나리오 프롬프트
 ): Promise<GeminiGeneratedImage> {
+  // ★★★ 텍스트 배경 섹션은 제품 이미지 없이 T2I로 생성해야 함
+  const isTextBackgroundSection = /^(TEXT_BANNER|KEY_MESSAGE|BENEFIT_HIGHLIGHT|DIVIDER_VISUAL)/i.test(sectionType);
+  if (isTextBackgroundSection) {
+    console.log(`[Gemini I2I] ★ TEXT BACKGROUND SECTION: ${sectionType} - Redirecting to T2I mode (no product)`);
+    // scenarioPrompt(오케스트레이션에서 생성된 순수 색상/그라디언트 프롬프트) 사용
+    const t2iPrompt = scenarioPrompt || `Pure solid color or simple gradient background for ${sectionType}, no products, no objects, just clean color fill, 8K resolution`;
+    const normalizedType = sectionType.toUpperCase().split('_')[0] as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
+    return generateSectionImageWithGemini(
+      normalizedType,
+      t2iPrompt,
+      productName,
+      category,
+      model,
+      keyFeatures,
+      targetAudience
+    );
+  }
   // MAIN 섹션: 제품명 기반 오브제 + 타겟/특징 반영
   let mainPrompt = '';
   if (sectionType === 'MAIN') {
@@ -1232,10 +1249,18 @@ export async function generateSectionImageWithOverlay(
   const normalizedSectionType = sectionType.toUpperCase().split('_')[0] as
     'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
 
-  // 모드 결정: sourceImage 유무로 T2I/I2I 결정
-  const isI2IMode = sourceImage && sourceImage.length > 0;
+  // ★★★ 텍스트 배경 섹션 감지 (제품 이미지 없이 순수 배경만 생성)
+  const isTextBackgroundSection = /^(TEXT_BANNER|KEY_MESSAGE|BENEFIT_HIGHLIGHT|DIVIDER_VISUAL)/i.test(sectionType);
+
+  // 모드 결정:
+  // - 텍스트 배경 섹션: 항상 T2I 모드 (제품 이미지 제외)
+  // - 일반 섹션: sourceImage 유무로 T2I/I2I 결정
+  const isI2IMode = !isTextBackgroundSection && sourceImage && sourceImage.length > 0;
   const mode = isI2IMode ? 'I2I' : 'T2I';
 
+  if (isTextBackgroundSection) {
+    console.log(`[Image+Overlay] ★ TEXT BACKGROUND SECTION: ${sectionType} - Forcing T2I mode (no product image)`);
+  }
   console.log(`[Image+Overlay] Generating ${sectionType} image with overlay text (${mode} mode)...`);
 
   // 1. 이미지 생성 (모드에 따라 다른 함수 호출)
