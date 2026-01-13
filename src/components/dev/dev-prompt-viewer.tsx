@@ -333,10 +333,23 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                                 </div>
                               )}
 
-                              {/* 프롬프트 구성요소가 없는 경우 */}
-                              {!section.fixedPrompt && !section.dynamicPrompt && !section.i2iSystemPrompt && (
-                                <div className="text-center py-8 text-muted-foreground">
-                                  개별 프롬프트 구성요소 없음
+                              {/* 프롬프트 구성요소가 없는 경우 - imagePrompt 표시 */}
+                              {!section.fixedPrompt && !section.dynamicPrompt && !section.i2iSystemPrompt && section.imagePrompt && (
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-300 px-2 py-1">
+                                      📝 이미지 생성 프롬프트
+                                    </Badge>
+                                    <CopyButton text={section.imagePrompt} />
+                                  </div>
+                                  <div className="rounded-lg border bg-blue-50 dark:bg-blue-950/30 p-3 max-h-[350px] overflow-y-auto">
+                                    <pre className="text-[11px] whitespace-pre-wrap font-mono text-blue-900 dark:text-blue-200 leading-relaxed">
+                                      {section.imagePrompt}
+                                    </pre>
+                                  </div>
+                                  <p className="text-[10px] text-muted-foreground italic">
+                                    * 이 섹션은 개별 프롬프트 구성요소 저장 기능 추가 전에 생성되었습니다.
+                                  </p>
                                 </div>
                               )}
                             </div>
