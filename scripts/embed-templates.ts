@@ -37,10 +37,21 @@ function buildSearchText(template: {
   description?: string | null;
   tags: string[];
   category?: string;
+  sections?: any;
 }): string {
   const parts: string[] = [template.name, template.name];
   if (template.category) parts.push(template.category.toLowerCase());
   if (template.description) parts.push(template.description);
+
+  // All section descriptions
+  if (template.sections && Array.isArray(template.sections)) {
+    for (const section of template.sections) {
+      if (section.description) {
+        parts.push(section.description);
+      }
+    }
+  }
+
   if (template.tags?.length) parts.push(template.tags.join(' '));
   return parts.join(' ').trim();
 }
@@ -57,6 +68,7 @@ async function main() {
       description: true,
       tags: true,
       category: true,
+      sections: true,
     },
   });
 

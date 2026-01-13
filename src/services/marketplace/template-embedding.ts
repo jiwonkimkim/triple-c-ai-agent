@@ -6,13 +6,14 @@ export const TEMPLATE_EMBEDDING_DIMENSION = 384;
 
 /**
  * Build search text for template embedding
- * Combines name + description + tags with name weighted higher
+ * Combines name + description + all section descriptions + tags
  */
 export function buildTemplateSearchText(template: {
   name: string;
   description?: string | null;
   tags: string[];
   category?: string;
+  sections?: any;
 }): string {
   const parts: string[] = [];
 
@@ -25,9 +26,18 @@ export function buildTemplateSearchText(template: {
     parts.push(template.category.toLowerCase());
   }
 
-  // Description
+  // Main description
   if (template.description) {
     parts.push(template.description);
+  }
+
+  // All section descriptions
+  if (template.sections && Array.isArray(template.sections)) {
+    for (const section of template.sections) {
+      if (section.description) {
+        parts.push(section.description);
+      }
+    }
   }
 
   // Tags
@@ -50,6 +60,7 @@ export async function embedTemplate(templateId: string): Promise<void> {
       description: true,
       tags: true,
       category: true,
+      sections: true,
     },
   });
 
@@ -96,6 +107,7 @@ export async function embedTemplates(
         description: true,
         tags: true,
         category: true,
+        sections: true,
       },
     });
 
