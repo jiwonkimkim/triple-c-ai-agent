@@ -31,11 +31,14 @@ export function buildTemplateSearchText(template: {
     parts.push(template.description);
   }
 
-  // All section descriptions
-  if (template.sections && Array.isArray(template.sections)) {
-    for (const section of template.sections) {
-      if (section.description) {
-        parts.push(section.description);
+  // All image descriptions from sections
+  if (template.sections && typeof template.sections === 'object') {
+    const sections = template.sections as { images?: Array<{ description?: string; prompt?: string }> };
+    if (sections.images && Array.isArray(sections.images)) {
+      for (const image of sections.images) {
+        if (image.description) {
+          parts.push(image.description);
+        }
       }
     }
   }
