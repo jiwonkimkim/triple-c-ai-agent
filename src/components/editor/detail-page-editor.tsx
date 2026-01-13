@@ -784,9 +784,22 @@ export function DetailPageEditor({
     // ID에서 섹션 타입 추출 (예: "section-MAIN-abc123" → "MAIN")
     // 형식: section-{TYPE}-{uuid} 또는 section-{TYPE}_{index}-{uuid}
     const extractSectionType = (id: string): string => {
-      const match = id.match(/section-([A-Z_]+)/i);
+      const match = id.match(/section-([A-Z_0-9]+)/i);
       if (match) {
-        return match[1].toUpperCase().split('_')[0]; // HERO_LIP_1 → HERO
+        const rawType = match[1].toUpperCase();
+
+        // ★★★ 텍스트 배경 섹션은 전체 타입 유지 (TEXT_BANNER_1, KEY_MESSAGE_2 등)
+        // 이 섹션들은 순수 색상 배경만 생성해야 함
+        const textBackgroundPrefixes = ['TEXT_BANNER', 'KEY_MESSAGE', 'BENEFIT_HIGHLIGHT', 'DIVIDER_VISUAL'];
+        for (const prefix of textBackgroundPrefixes) {
+          if (rawType.startsWith(prefix)) {
+            console.log(`[Section Regenerate] ★ Text background section detected: ${rawType}`);
+            return rawType; // 전체 타입 반환 (예: TEXT_BANNER_1)
+          }
+        }
+
+        // 일반 섹션: 첫 번째 부분만 추출 (HERO_LIP_1 → HERO)
+        return rawType.split('_')[0];
       }
       // fallback: 이름 기반 매핑
       const nameToType: Record<string, string> = {
