@@ -938,7 +938,10 @@ export async function generateSectionImagePromptFromText(
   const compositionGuide = SECTION_COMPOSITION_GUIDE[position];
 
   // ★★★ 텍스트 배경 섹션 감지 - 카테고리별 프롬프트 시스템 우회 ★★★
-  const isTextBackgroundSection = /^(TEXT_BANNER|KEY_MESSAGE|BENEFIT_HIGHLIGHT|DIVIDER_VISUAL)/.test(sectionType);
+  const isTextBackgroundSection = /^(TEXT_BANNER|KEY_MESSAGE|BENEFIT_HIGHLIGHT|DIVIDER_VISUAL)/i.test(sectionType);
+
+  // ★ 디버그 로그: sectionType 확인
+  console.log(`[Orchestration] Section type received: "${sectionType}" (isTextBackgroundSection: ${isTextBackgroundSection})`);
 
   if (isTextBackgroundSection) {
     console.log(`[Orchestration] ★ TEXT BACKGROUND SECTION: ${sectionType} - Using direct color prompt (bypassing category prompt system)`);
