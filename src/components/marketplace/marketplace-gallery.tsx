@@ -64,27 +64,8 @@ export function MarketplaceGallery({
 
   const debouncedSearch = useDebounce(search, 300);
 
-  // Build URL with query params
+  // Build URL with query params (always use regular API for now - semantic search requires Neon pgvector setup)
   const buildTemplatesUrl = () => {
-    // Use semantic search API when search query exists and semantic search is enabled
-    if (debouncedSearch && useSemanticSearch) {
-      const params = new URLSearchParams({
-        q: debouncedSearch,
-        page: page.toString(),
-        limit: '12',
-        mode: 'hybrid',
-      });
-
-      if (category === 'FREE') {
-        params.set('maxPrice', '0');
-      } else if (category !== 'all') {
-        params.set('category', category);
-      }
-
-      return `/api/marketplace/templates/search?${params}`;
-    }
-
-    // Use regular API for browsing or keyword search
     const params = new URLSearchParams({
       page: page.toString(),
       limit: '12',
