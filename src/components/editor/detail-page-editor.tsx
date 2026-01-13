@@ -781,36 +781,65 @@ export function DetailPageEditor({
 
     setRegeneratingSectionId(sectionId);
 
-    // ID에서 섹션 타입 추출 (예: "section-MAIN-abc123" → "MAIN")
-    // 형식: section-{TYPE}-{uuid} 또는 section-{TYPE}_{index}-{uuid}
-    const extractSectionType = (id: string): string => {
-      const match = id.match(/section-([A-Z_0-9]+)/i);
-      if (match) {
-        const rawType = match[1].toUpperCase();
+    // ★★★ 섹션 이름에서 타입 추출 (ID가 UUID만 포함하므로 이름 기반으로 추출)
+    const extractSectionType = (_id: string): string => {
+      const sectionName = section.name;
 
-        // ★★★ 텍스트 배경 섹션은 전체 타입 유지 (TEXT_BANNER_1, KEY_MESSAGE_2 등)
-        // 이 섹션들은 순수 색상 배경만 생성해야 함
-        const textBackgroundPrefixes = ['TEXT_BANNER', 'KEY_MESSAGE', 'BENEFIT_HIGHLIGHT', 'DIVIDER_VISUAL'];
-        for (const prefix of textBackgroundPrefixes) {
-          if (rawType.startsWith(prefix)) {
-            console.log(`[Section Regenerate] ★ Text background section detected: ${rawType}`);
-            return rawType; // 전체 타입 반환 (예: TEXT_BANNER_1)
-          }
+      // 1. 텍스트 배경 섹션 감지 (이름 기반)
+      // "KEY MESSAGE 1", "TEXT BANNER 2", "BENEFIT HIGHLIGHT", "DIVIDER VISUAL" 등
+      const textBackgroundPatterns = [
+        { pattern: /KEY\s*MESSAGE/i, type: 'KEY_MESSAGE' },
+        { pattern: /TEXT\s*BANNER/i, type: 'TEXT_BANNER' },
+        { pattern: /BENEFIT\s*HIGHLIGHT/i, type: 'BENEFIT_HIGHLIGHT' },
+        { pattern: /DIVIDER\s*VISUAL/i, type: 'DIVIDER_VISUAL' },
+      ];
+
+      for (const { pattern, type } of textBackgroundPatterns) {
+        if (pattern.test(sectionName)) {
+          // 숫자 추출 (KEY MESSAGE 1 → KEY_MESSAGE_1)
+          const numMatch = sectionName.match(/(\d+)/);
+          const fullType = numMatch ? `${type}_${numMatch[1]}` : type;
+          console.log(`[Section Regenerate] ★ Text background section detected from name: "${sectionName}" → ${fullType}`);
+          return fullType;
         }
-
-        // 일반 섹션: 첫 번째 부분만 추출 (HERO_LIP_1 → HERO)
-        return rawType.split('_')[0];
       }
-      // fallback: 이름 기반 매핑
+
+      // 2. 일반 섹션 감지 (이름 기반)
       const nameToType: Record<string, string> = {
         '메인': 'MAIN',
+        'main': 'MAIN',
         '히어로': 'HERO',
+        'hero': 'HERO',
         '특징': 'FEATURES',
+        'features': 'FEATURES',
         '사용법': 'HOW_TO_USE',
+        'how to use': 'HOW_TO_USE',
         '후기': 'SOCIAL_PROOF',
+        'social proof': 'SOCIAL_PROOF',
         'faq': 'FAQ',
       };
-      return nameToType[section.name.toLowerCase()] || section.name;
+
+      const lowerName = sectionName.toLowerCase().trim();
+
+      // 정확한 매칭 시도
+      for (const [key, value] of Object.entries(nameToType)) {
+        if (lowerName.includes(key)) {
+          console.log(`[Section Regenerate] Section type from name: "${sectionName}" → ${value}`);
+          return value;
+        }
+      }
+
+      // 3. ID에서 타입 추출 시도 (레거시 지원)
+      const match = _id.match(/section-([A-Z_]+)-/i);
+      if (match) {
+        const rawType = match[1].toUpperCase();
+        console.log(`[Section Regenerate] Section type from ID: ${rawType}`);
+        return rawType.split('_')[0];
+      }
+
+      // 4. 이름 그대로 반환 (fallback)
+      console.log(`[Section Regenerate] Using section name as type: "${sectionName}"`);
+      return sectionName.replace(/\s+/g, '_').toUpperCase();
     };
 
     const sectionType = extractSectionType(sectionId);
