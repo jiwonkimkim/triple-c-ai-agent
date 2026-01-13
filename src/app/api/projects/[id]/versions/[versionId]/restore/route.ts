@@ -80,6 +80,29 @@ function isAIFormat(sections: unknown[]): boolean {
   return 'body' in firstSection && 'type' in firstSection && !('blocks' in firstSection);
 }
 
+// 흰색 계열인지 확인 (흰색만 그림자 적용)
+function isWhiteColor(color?: string): boolean {
+  if (!color) return true; // 기본값은 흰색이므로 true
+  const c = color.toLowerCase().trim();
+  if (c === '#ffffff' || c === '#fff' || c === 'white') return true;
+  if (c.startsWith('#')) {
+    const hex = c.replace('#', '');
+    if (hex.length === 3) {
+      const r = parseInt(hex[0] + hex[0], 16);
+      const g = parseInt(hex[1] + hex[1], 16);
+      const b = parseInt(hex[2] + hex[2], 16);
+      return (r + g + b) / 3 > 200;
+    }
+    if (hex.length === 6) {
+      const r = parseInt(hex.slice(0, 2), 16);
+      const g = parseInt(hex.slice(2, 4), 16);
+      const b = parseInt(hex.slice(4, 6), 16);
+      return (r + g + b) / 3 > 200;
+    }
+  }
+  return false;
+}
+
 // AI 포맷 → 에디터 포맷 변환
 function convertAIToEditorFormat(aiSections: AISection[]): EditorSection[] {
   const editorSections: EditorSection[] = [];
@@ -107,6 +130,7 @@ function convertAIToEditorFormat(aiSections: AISection[]): EditorSection[] {
         ? { text: aiOverlayText.headline }
         : aiOverlayText.headline;
       if (headlineData?.text || section.title) {
+        const headlineColor = headlineData?.color ?? '#ffffff';
         overlayTexts.push({
           id: `${section.id}-headline`,
           type: 'headline',
@@ -117,8 +141,8 @@ function convertAIToEditorFormat(aiSections: AISection[]): EditorSection[] {
             fontSize: headlineData?.fontSize ?? (isMain ? 32 : 28),
             fontWeight: (headlineData?.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'bold',
             fontFamily: headlineData?.fontFamily ?? 'Pretendard, sans-serif',
-            color: headlineData?.color ?? '#ffffff',
-            textShadow: true,
+            color: headlineColor,
+            textShadow: isWhiteColor(headlineColor),
             textAlign: (headlineData?.textAlign as 'left' | 'center' | 'right') ?? textPosition.headline.align,
             opacity: 100,
             rotation: 0,
@@ -133,6 +157,7 @@ function convertAIToEditorFormat(aiSections: AISection[]): EditorSection[] {
         ? { text: aiOverlayText.subheadline }
         : aiOverlayText.subheadline;
       if (subheadlineData?.text) {
+        const subheadlineColor = subheadlineData.color ?? '#ffffff';
         overlayTexts.push({
           id: `${section.id}-subheadline`,
           type: 'subheadline',
@@ -143,8 +168,8 @@ function convertAIToEditorFormat(aiSections: AISection[]): EditorSection[] {
             fontSize: subheadlineData.fontSize ?? (isMain ? 18 : 16),
             fontWeight: (subheadlineData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'medium',
             fontFamily: subheadlineData.fontFamily ?? 'Pretendard, sans-serif',
-            color: subheadlineData.color ?? '#ffffff',
-            textShadow: true,
+            color: subheadlineColor,
+            textShadow: isWhiteColor(subheadlineColor),
             textAlign: (subheadlineData.textAlign as 'left' | 'center' | 'right') ?? textPosition.body.align,
             opacity: 100,
             rotation: 0,
@@ -160,6 +185,7 @@ function convertAIToEditorFormat(aiSections: AISection[]): EditorSection[] {
         : aiOverlayText.body;
       const bodyText = bodyData?.text || (section.body ? (Array.isArray(section.body) ? section.body.join('\n') : String(section.body)) : null);
       if (bodyText) {
+        const bodyColor = bodyData?.color ?? '#ffffff';
         overlayTexts.push({
           id: `${section.id}-body`,
           type: 'body',
@@ -170,8 +196,8 @@ function convertAIToEditorFormat(aiSections: AISection[]): EditorSection[] {
             fontSize: bodyData?.fontSize ?? 14,
             fontWeight: (bodyData?.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'normal',
             fontFamily: bodyData?.fontFamily ?? 'Pretendard, sans-serif',
-            color: bodyData?.color ?? '#ffffff',
-            textShadow: true,
+            color: bodyColor,
+            textShadow: isWhiteColor(bodyColor),
             textAlign: (bodyData?.textAlign as 'left' | 'center' | 'right') ?? textPosition.body.align,
             opacity: 100,
             rotation: 0,
@@ -185,6 +211,7 @@ function convertAIToEditorFormat(aiSections: AISection[]): EditorSection[] {
       if (aiOverlayText.statistics && aiOverlayText.statistics.length > 0) {
         aiOverlayText.statistics.forEach((stat, idx) => {
           const statData = typeof stat === 'string' ? { text: stat } : stat;
+          const statColor = statData.color ?? '#ffffff';
           overlayTexts.push({
             id: `${section.id}-stat-${idx}`,
             type: 'statistic',
@@ -195,8 +222,8 @@ function convertAIToEditorFormat(aiSections: AISection[]): EditorSection[] {
               fontSize: statData.fontSize ?? 48,
               fontWeight: (statData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'bold',
               fontFamily: statData.fontFamily ?? 'Montserrat, sans-serif',
-              color: statData.color ?? '#ffffff',
-              textShadow: true,
+              color: statColor,
+              textShadow: isWhiteColor(statColor),
               textAlign: 'center',
               opacity: 100,
               rotation: 0,
@@ -211,6 +238,7 @@ function convertAIToEditorFormat(aiSections: AISection[]): EditorSection[] {
         ? { text: aiOverlayText.cta }
         : aiOverlayText.cta;
       if (ctaData?.text) {
+        const ctaColor = ctaData.color ?? '#ffffff';
         overlayTexts.push({
           id: `${section.id}-cta`,
           type: 'cta',
@@ -221,8 +249,8 @@ function convertAIToEditorFormat(aiSections: AISection[]): EditorSection[] {
             fontSize: ctaData.fontSize ?? 16,
             fontWeight: (ctaData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'semibold',
             fontFamily: ctaData.fontFamily ?? 'Pretendard, sans-serif',
-            color: ctaData.color ?? '#ffffff',
-            textShadow: true,
+            color: ctaColor,
+            textShadow: isWhiteColor(ctaColor),
             textAlign: 'center',
             opacity: 100,
             rotation: 0,
@@ -231,7 +259,7 @@ function convertAIToEditorFormat(aiSections: AISection[]): EditorSection[] {
         });
       }
     } else {
-      // Fallback: use section.title and section.body
+      // Fallback: use section.title and section.body (흰색 기본값이므로 그림자 적용)
       if (section.title) {
         overlayTexts.push({
           id: `${section.id}-title`,
@@ -244,7 +272,7 @@ function convertAIToEditorFormat(aiSections: AISection[]): EditorSection[] {
             fontWeight: 'bold',
             fontFamily: 'Pretendard, sans-serif',
             color: '#ffffff',
-            textShadow: true,
+            textShadow: true, // 흰색이므로 true
             textAlign: textPosition.headline.align,
             opacity: 100,
             rotation: 0,
@@ -267,7 +295,7 @@ function convertAIToEditorFormat(aiSections: AISection[]): EditorSection[] {
             fontWeight: 'normal',
             fontFamily: 'Pretendard, sans-serif',
             color: '#ffffff',
-            textShadow: true,
+            textShadow: true, // 흰색이므로 true
             textAlign: textPosition.body.align,
             opacity: 100,
             rotation: 0,
