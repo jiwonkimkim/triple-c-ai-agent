@@ -55,7 +55,7 @@ export async function GET(
       },
     });
 
-    // Transform to frontend format
+    // Transform to frontend format (content 제외 - 네트워크 전송량 최적화)
     const formattedVersions = versions.map((v) => ({
       id: v.id,
       versionNumber: v.versionNumber,
@@ -64,7 +64,8 @@ export async function GET(
       action: v.action,
       description: v.description || `버전 ${v.versionNumber}`,
       thumbnail: v.thumbnail,
-      content: v.content as any,
+      // content 제외: base64 이미지 포함으로 수백MB 전송 방지
+      // 필요시 개별 버전 조회 API 사용
       changes: v.changes as any,
     }));
 

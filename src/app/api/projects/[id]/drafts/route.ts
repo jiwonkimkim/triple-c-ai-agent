@@ -71,14 +71,14 @@ export async function POST(
 
     // Check if we should create a new ProjectVersion
     // - Manual save: always create
-    // - Auto save: throttle to 5 minutes
+    // - Auto save: throttle to 30 minutes (네트워크 전송량 최적화)
     const lastProjectVersion = await prisma.projectVersion.findFirst({
       where: { projectId },
       orderBy: { createdAt: 'desc' },
     });
 
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-    const shouldCreateVersion = isManualSave || !lastProjectVersion || lastProjectVersion.createdAt < fiveMinutesAgo;
+    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+    const shouldCreateVersion = isManualSave || !lastProjectVersion || lastProjectVersion.createdAt < thirtyMinutesAgo;
 
     if (versionId) {
       // Update existing draft/version
