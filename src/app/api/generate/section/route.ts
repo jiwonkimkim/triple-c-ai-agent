@@ -150,6 +150,7 @@ export async function POST(request: NextRequest) {
     // ★★★ DB에 devPrompts 업데이트 (섹션 재생성 후에도 프롬프트 유지)
     let updatedDevPrompts = null;
     try {
+      // ★★★ projectVersion 테이블에서 조회 (devPrompts가 저장된 곳)
       const latestVersion = await prisma.projectVersion.findFirst({
         where: { projectId: project.id },
         orderBy: { versionNumber: 'desc' },
@@ -224,6 +225,7 @@ export async function POST(request: NextRequest) {
           devPrompts: updatedDevPrompts,
         }));
 
+        // ★★★ projectVersion 테이블 업데이트
         await prisma.projectVersion.update({
           where: { id: latestVersion.id },
           data: {

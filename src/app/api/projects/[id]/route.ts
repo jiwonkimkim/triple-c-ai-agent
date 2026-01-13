@@ -95,6 +95,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // 최신 버전의 devPrompts 조회 (DB에 저장되어 있으면 항상 반환)
+    // ★★★ projectVersion 테이블에서 조회 (devPrompts가 저장된 곳)
     let devPrompts = null;
     const latestVersion = await prisma.projectVersion.findFirst({
       where: { projectId: params.id },
