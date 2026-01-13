@@ -1,13 +1,13 @@
 import type { Metadata } from 'next';
-import { Montserrat, Playfair_Display } from 'next/font/google';
+import { Noto_Sans_KR, Playfair_Display } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import { Toaster } from '@/components/ui/toaster';
 
-// 영어 기본 폰트 - Montserrat (로고와 동일)
-const montserrat = Montserrat({
+// 한글 기본 폰트
+const notoSansKR = Noto_Sans_KR({
   subsets: ['latin'],
-  variable: '--font-montserrat',
+  weight: ['400', '500', '700'],
   display: 'swap',
 });
 
@@ -39,7 +39,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" suppressHydrationWarning>
-      <body className={`${montserrat.className} ${montserrat.variable} ${playfairDisplay.variable}`}>
+      <body className={`${notoSansKR.className} ${playfairDisplay.variable}`}>
         <Providers>
           {children}
           <Toaster />

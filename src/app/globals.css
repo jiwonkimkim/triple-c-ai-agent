@@ -2,28 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Cafe24 Ssurround - 한글 폰트 */
-@font-face {
-  font-family: 'Cafe24Ssurround';
-  font-weight: 400;
-  font-style: normal;
-  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/Cafe24Ssurround.woff') format('woff');
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Cafe24Ssurround';
-  font-weight: 700;
-  font-style: normal;
-  src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/Cafe24Ssurround.woff') format('woff');
-  font-display: swap;
-}
-
-/* Global font family - High specificity to ensure font applies everywhere */
-html, body, * {
-  font-family: 'Cafe24Ssurround', var(--font-montserrat), 'Montserrat', system-ui, sans-serif;
-}
-
 @layer base {
   /* Default Theme */
   :root {
