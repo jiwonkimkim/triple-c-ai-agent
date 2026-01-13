@@ -677,6 +677,29 @@ export function DetailPageEditor({
     }> = [];
     let zIndex = 1;
 
+    // ★ 흰색 계열인지 확인 (흰색만 그림자 적용)
+    const isWhiteColor = (color?: string): boolean => {
+      if (!color) return true;
+      const c = color.toLowerCase().trim();
+      if (c === '#ffffff' || c === '#fff' || c === 'white') return true;
+      if (c.startsWith('#')) {
+        const hex = c.replace('#', '');
+        if (hex.length === 3) {
+          const r = parseInt(hex[0] + hex[0], 16);
+          const g = parseInt(hex[1] + hex[1], 16);
+          const b = parseInt(hex[2] + hex[2], 16);
+          return (r + g + b) / 3 > 200;
+        }
+        if (hex.length === 6) {
+          const r = parseInt(hex.slice(0, 2), 16);
+          const g = parseInt(hex.slice(2, 4), 16);
+          const b = parseInt(hex.slice(4, 6), 16);
+          return (r + g + b) / 3 > 200;
+        }
+      }
+      return false;
+    };
+
     const parseItem = (
       item: { text: string; x: number; y: number; fontSize: number; fontWeight: string; fontFamily?: string; color: string; textAlign?: string } | string | undefined,
       type: 'headline' | 'subheadline' | 'body' | 'statistic' | 'cta',
@@ -684,6 +707,7 @@ export function DetailPageEditor({
     ) => {
       if (!item) return null;
       const isString = typeof item === 'string';
+      const itemColor = isString ? '#333333' : item.color;
       return {
         id: `${sectionId}-${type}-${Date.now()}`,
         type,
@@ -693,9 +717,9 @@ export function DetailPageEditor({
           y: isString ? defaultStyle.y : item.y,
           fontSize: isString ? defaultStyle.fontSize : item.fontSize,
           fontWeight: (isString ? 'medium' : item.fontWeight) as 'normal' | 'medium' | 'semibold' | 'bold',
-          fontFamily: isString ? 'Pretendard, sans-serif' : (item.fontFamily || 'Pretendard, sans-serif'),  // ★ AI 선택 폰트
-          color: isString ? '#333333' : item.color,
-          textShadow: true,
+          fontFamily: isString ? 'Pretendard, sans-serif' : (item.fontFamily || 'Pretendard, sans-serif'),
+          color: itemColor,
+          textShadow: isWhiteColor(itemColor),  // ★ 흰색만 그림자 적용
           textAlign: (isString ? defaultStyle.align : (item.textAlign || defaultStyle.align)) as 'left' | 'center' | 'right',
           opacity: 100,
           rotation: 0,
@@ -721,6 +745,7 @@ export function DetailPageEditor({
     if (apiOverlay.statistics && apiOverlay.statistics.length > 0) {
       apiOverlay.statistics.forEach((stat, idx) => {
         const isString = typeof stat === 'string';
+        const statColor = isString ? '#ffffff' : stat.color;
         result.push({
           id: `${sectionId}-stat-${idx}-${Date.now()}`,
           type: 'statistic',
@@ -730,9 +755,9 @@ export function DetailPageEditor({
             y: isString ? 50 + (idx * 12) : stat.y,
             fontSize: isString ? 48 : stat.fontSize,
             fontWeight: (isString ? 'bold' : stat.fontWeight) as 'normal' | 'medium' | 'semibold' | 'bold',
-            fontFamily: isString ? 'Montserrat, sans-serif' : (stat.fontFamily || 'Montserrat, sans-serif'),  // ★ AI 선택 폰트 (숫자용 기본값)
-            color: isString ? '#ffffff' : stat.color,
-            textShadow: true,
+            fontFamily: isString ? 'Montserrat, sans-serif' : (stat.fontFamily || 'Montserrat, sans-serif'),
+            color: statColor,
+            textShadow: isWhiteColor(statColor),  // ★ 흰색만 그림자 적용
             textAlign: 'center',
             opacity: 100,
             rotation: 0,
