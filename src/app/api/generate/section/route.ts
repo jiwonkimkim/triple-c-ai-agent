@@ -62,31 +62,43 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 제품 이미지 확인
-    if (!project.productImages || project.productImages.length === 0) {
+    // ★★★ 텍스트 배경 섹션 감지 (제품 이미지 불필요)
+    const isTextBackgroundSection = /^(TEXT_BANNER|KEY_MESSAGE|BENEFIT_HIGHLIGHT|DIVIDER_VISUAL)/i.test(
+      validatedData.sectionType
+    );
+
+    // 제품 이미지 확인 (텍스트 배경 섹션은 제외)
+    if (!isTextBackgroundSection && (!project.productImages || project.productImages.length === 0)) {
       return NextResponse.json(
         { success: false, error: '제품 이미지가 없습니다. 프로젝트에 제품 이미지를 먼저 등록해주세요.' },
         { status: 400 }
       );
     }
 
-    const productImageUrl = project.productImages[0];
+    const productImageUrl = project.productImages?.[0] || '';
     const imageModel = (validatedData.imageModel || project.imageModel || DEFAULT_IMAGE_MODEL) as GeminiImageModel;
 
     console.log(`[Section Regenerate] Starting regeneration for ${validatedData.sectionType}`);
     console.log(`[Section Regenerate] Project: ${project.id}, Product: ${project.productName}`);
-    console.log(`[Section Regenerate] Product image: ${productImageUrl}`);
+    console.log(`[Section Regenerate] Is text background section: ${isTextBackgroundSection}`);
+    if (productImageUrl) {
+      console.log(`[Section Regenerate] Product image: ${productImageUrl}`);
+    }
 
-    // 제품 이미지 전처리 (배경 제거)
-    let cleanProductImage: string;
-    try {
-      console.log('[Section Regenerate] Preprocessing product image (background removal)...');
-      cleanProductImage = await preprocessProductImage(productImageUrl, imageModel);
-      console.log('[Section Regenerate] Product image preprocessed successfully');
-    } catch (preprocessError) {
-      console.error('[Section Regenerate] Failed to preprocess image:', preprocessError);
-      // 전처리 실패 시 원본 이미지 사용
-      cleanProductImage = productImageUrl;
+    // 제품 이미지 전처리 (배경 제거) - 텍스트 배경 섹션은 건너뜀
+    let cleanProductImage: string = '';
+    if (!isTextBackgroundSection && productImageUrl) {
+      try {
+        console.log('[Section Regenerate] Preprocessing product image (background removal)...');
+        cleanProductImage = await preprocessProductImage(productImageUrl, imageModel);
+        console.log('[Section Regenerate] Product image preprocessed successfully');
+      } catch (preprocessError) {
+        console.error('[Section Regenerate] Failed to preprocess image:', preprocessError);
+        // 전처리 실패 시 원본 이미지 사용
+        cleanProductImage = productImageUrl;
+      }
+    } else if (isTextBackgroundSection) {
+      console.log('[Section Regenerate] ★ Text background section - skipping product image preprocessing');
     }
 
     // 브랜드 스타일에서 이미지 키워드 추출
