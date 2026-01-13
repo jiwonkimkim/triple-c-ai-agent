@@ -1,27 +1,25 @@
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Singleton OpenAI client
-let openaiClient: OpenAI | null = null;
+// Singleton Gemini client
+let geminiClient: GoogleGenerativeAI | null = null;
 
-function getOpenAIClient(): OpenAI | null {
-  if (!openaiClient) {
-    if (!process.env.OPENAI_API_KEY) {
+function getGeminiClient(): GoogleGenerativeAI | null {
+  if (!geminiClient) {
+    if (!process.env.GOOGLE_AI_API_KEY) {
       return null;
     }
 
-    openaiClient = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+    geminiClient = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
   }
 
-  return openaiClient;
+  return geminiClient;
 }
 
-// Embedding model configuration
-const EMBEDDING_MODEL = 'text-embedding-3-small';
-const EMBEDDING_DIMENSION = 1536;
-const MAX_BATCH_SIZE = 100; // OpenAI allows up to 2048, but we use 100 for safety
-const MAX_INPUT_TOKENS = 8191; // Model limit
+// Embedding model configuration (Gemini)
+const EMBEDDING_MODEL = 'text-embedding-004';
+const EMBEDDING_DIMENSION = 768;
+const MAX_BATCH_SIZE = 100;
+const MAX_INPUT_CHARS = 10000; // Gemini limit
 
 export interface EmbeddingResult {
   text: string;
@@ -30,57 +28,48 @@ export interface EmbeddingResult {
 }
 
 /**
- * Generate embedding for a single text
+ * Generate embedding for a single text using Gemini
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
-  const client = getOpenAIClient();
+  const client = getGeminiClient();
 
   if (!client) {
-    throw new Error('OpenAI client not available. OPENAI_API_KEY is not set.');
+    throw new Error('Gemini client not available. GOOGLE_AI_API_KEY is not set.');
   }
 
-  // Truncate if too long
-  const truncatedText = truncateText(text, MAX_INPUT_TOKENS);
+  const truncatedText = truncateText(text, MAX_INPUT_CHARS);
+  const model = client.getGenerativeModel({ model: EMBEDDING_MODEL });
 
-  const response = await client.embeddings.create({
-    model: EMBEDDING_MODEL,
-    input: truncatedText,
-    dimensions: EMBEDDING_DIMENSION,
-  });
-
-  return response.data[0].embedding;
+  const result = await model.embedContent(truncatedText);
+  return result.embedding.values;
 }
 
 /**
  * Generate embeddings for multiple texts in batches
  */
 export async function generateEmbeddings(texts: string[]): Promise<EmbeddingResult[]> {
-  const client = getOpenAIClient();
+  const client = getGeminiClient();
 
   if (!client) {
-    throw new Error('OpenAI client not available. OPENAI_API_KEY is not set.');
+    throw new Error('Gemini client not available. GOOGLE_AI_API_KEY is not set.');
   }
 
+  const model = client.getGenerativeModel({ model: EMBEDDING_MODEL });
   const results: EmbeddingResult[] = [];
 
   // Process in batches
   for (let i = 0; i < texts.length; i += MAX_BATCH_SIZE) {
     const batch = texts.slice(i, i + MAX_BATCH_SIZE);
-    const truncatedBatch = batch.map((text) => truncateText(text, MAX_INPUT_TOKENS));
 
-    const response = await client.embeddings.create({
-      model: EMBEDDING_MODEL,
-      input: truncatedBatch,
-      dimensions: EMBEDDING_DIMENSION,
-    });
+    // Gemini doesn't support batch embedding, process one by one
+    for (const text of batch) {
+      const truncatedText = truncateText(text, MAX_INPUT_CHARS);
+      const result = await model.embedContent(truncatedText);
 
-    for (let j = 0; j < batch.length; j++) {
       results.push({
-        text: batch[j],
-        embedding: response.data[j].embedding,
-        tokenCount: response.usage?.total_tokens
-          ? Math.floor(response.usage.total_tokens / batch.length)
-          : estimateTokens(batch[j]),
+        text,
+        embedding: result.embedding.values,
+        tokenCount: estimateTokens(text),
       });
     }
   }
@@ -120,22 +109,16 @@ export function cosineSimilarity(a: number[], b: number[]): number {
  * Estimate token count for a text (rough approximation)
  */
 function estimateTokens(text: string): number {
-  // OpenAI uses ~4 characters per token on average for English
   return Math.ceil(text.length / 4);
 }
 
 /**
- * Truncate text to fit within token limit
+ * Truncate text to fit within character limit
  */
-function truncateText(text: string, maxTokens: number): string {
-  const estimatedTokens = estimateTokens(text);
-
-  if (estimatedTokens <= maxTokens) {
+function truncateText(text: string, maxChars: number): string {
+  if (text.length <= maxChars) {
     return text;
   }
-
-  // Rough truncation based on character count
-  const maxChars = maxTokens * 4;
   return text.slice(0, maxChars);
 }
 

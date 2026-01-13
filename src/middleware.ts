@@ -35,7 +35,9 @@ export default withAuth(
         }
 
         // Marketplace browsing is public (GET only)
-        if (pathname === '/api/marketplace/templates') {
+        if (pathname === '/api/marketplace/templates' ||
+            pathname === '/api/marketplace/templates/search' ||
+            pathname.match(/^\/api\/marketplace\/templates\/[^/]+\/similar$/)) {
           return true;
         }
 

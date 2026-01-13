@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { publishTemplate, unpublishTemplate } from '@/lib/marketplace';
 import { MARKETPLACE_CONFIG } from '@/lib/stripe';
+import { embedTemplate } from '@/services/marketplace/template-embedding';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -54,6 +55,12 @@ export async function POST(
     if (!result.success) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
+
+    // Generate embedding for semantic search (async, non-blocking)
+    embedTemplate(templateId).catch((embedError) => {
+      console.error('Failed to embed template:', embedError);
+      // Don't fail the publish if embedding fails
+    });
 
     return NextResponse.json({
       message: 'Template published successfully',

@@ -2,12 +2,14 @@
 // Database: PostgreSQL
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
 }
 
 // ============================================
@@ -410,6 +412,11 @@ model Template {
   downloadCount Int       @default(0) @map("download_count")
   rating        Float?
   ratingCount   Int       @default(0) @map("rating_count")
+
+  // Semantic search embedding (pgvector - Gemini 768 dimensions)
+  embedding     Unsupported("vector(768)")?
+  embeddingText String?                      @map("embedding_text") @db.Text
+  embeddedAt    DateTime?                    @map("embedded_at")
 
   // Relations
   user      User?              @relation(fields: [userId], references: [id], onDelete: SetNull)

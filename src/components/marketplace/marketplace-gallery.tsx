@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import useSWR from 'swr';
-import { Search, SlidersHorizontal, Loader2, Layout } from 'lucide-react';
+import { Search, SlidersHorizontal, Loader2, Layout, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Toggle } from '@/components/ui/toggle';
 import {
   Select,
   SelectContent,
@@ -55,6 +56,7 @@ export function MarketplaceGallery({
   const [category, setCategory] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [page, setPage] = useState(1);
+  const [useSemanticSearch, setUseSemanticSearch] = useState(true);
   const [purchaseTemplate, setPurchaseTemplate] =
     useState<MarketplaceTemplateData | null>(null);
   const [previewTemplate, setPreviewTemplate] =
@@ -64,6 +66,25 @@ export function MarketplaceGallery({
 
   // Build URL with query params
   const buildTemplatesUrl = () => {
+    // Use semantic search API when search query exists and semantic search is enabled
+    if (debouncedSearch && useSemanticSearch) {
+      const params = new URLSearchParams({
+        q: debouncedSearch,
+        page: page.toString(),
+        limit: '12',
+        mode: 'hybrid',
+      });
+
+      if (category === 'FREE') {
+        params.set('maxPrice', '0');
+      } else if (category !== 'all') {
+        params.set('category', category);
+      }
+
+      return `/api/marketplace/templates/search?${params}`;
+    }
+
+    // Use regular API for browsing or keyword search
     const params = new URLSearchParams({
       page: page.toString(),
       limit: '12',
@@ -152,13 +173,23 @@ export function MarketplaceGallery({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="템플릿 검색..."
+            placeholder={useSemanticSearch ? "의미로 검색... (예: 여름 메이크업)" : "키워드 검색..."}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
           />
         </div>
         <div className="flex gap-2">
+          <Toggle
+            pressed={useSemanticSearch}
+            onPressedChange={setUseSemanticSearch}
+            aria-label="시멘틱 검색"
+            className="gap-1.5"
+            title={useSemanticSearch ? "AI 의미 검색 활성화" : "키워드 검색 모드"}
+          >
+            <Sparkles className={`h-4 w-4 ${useSemanticSearch ? 'text-primary' : ''}`} />
+            <span className="hidden sm:inline text-xs">AI</span>
+          </Toggle>
           <Select value={category} onValueChange={setCategory}>
             <SelectTrigger className="w-[120px]">
               <SlidersHorizontal className="h-4 w-4 mr-2" />
