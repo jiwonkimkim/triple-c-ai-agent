@@ -1352,6 +1352,7 @@ export async function generateSectionImageWithOverlay(
  * 섹션용 오버레이 텍스트 생성
  * - 위치, 내용, 스타일(색상, 폰트크기, 굵기, 폰트, 정렬) 모두 포함
  * - 이미지 시나리오 컨텍스트를 기반으로 이미지와 어울리는 텍스트 생성
+ * - ★ 텍스트 배경 섹션은 임팩트 있는 대형 타이포그래피 스타일 적용
  */
 async function generateOverlayTextForSection(
   sectionType: string,
@@ -1368,9 +1369,24 @@ async function generateOverlayTextForSection(
 ): Promise<{ overlayText: OverlayTextContent; prompt: string }> {
   const gemini = getGeminiClient();
 
+  // ★★★ 텍스트 배경 섹션 감지 (임팩트 있는 타이포그래피 적용)
+  const isTextBackgroundSection = /^(TEXT_BANNER|KEY_MESSAGE|BENEFIT_HIGHLIGHT|DIVIDER_VISUAL)/i.test(sectionType);
+
   // 섹션 타입 정규화
   const normalizedSection = sectionType.toUpperCase().split('_')[0] as
     'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
+
+  // ★★★ 텍스트 배경 섹션용 특별 레이아웃 (올리브영 스타일)
+  const textBannerLayout = {
+    // 상단 작은 서브텍스트 (브랜드명/섹션명)
+    headline: { x: 50, y: 15, fontSize: 14, align: 'center' as const },
+    // 중앙 대형 메인 헤드라인 (★ 핵심!)
+    subheadline: { x: 50, y: 45, fontSize: 48, align: 'center' as const },
+    // 하단 보조 메시지
+    body: { x: 50, y: 70, fontSize: 18, align: 'center' as const },
+    // 통계 (필요시)
+    statistics: { x: 50, y: 85, fontSize: 32 },
+  };
 
   // 섹션별 레이아웃 가이드
   const sectionLayouts: Record<string, {
@@ -1417,7 +1433,10 @@ async function generateOverlayTextForSection(
     },
   };
 
-  const layout = sectionLayouts[normalizedSection] || sectionLayouts.FEATURES;
+  // ★ 텍스트 배경 섹션이면 특별 레이아웃, 아니면 일반 레이아웃
+  const layout = isTextBackgroundSection
+    ? textBannerLayout
+    : (sectionLayouts[normalizedSection] || sectionLayouts.FEATURES);
 
   // 블록별 컨텍스트
   const blockContext = blockOptions?.variationHint
@@ -1446,7 +1465,89 @@ async function generateOverlayTextForSection(
 ${imageScenarioPrompt}`
     : '';
 
-  const prompt = `당신은 한국 올리브영/화해 상세페이지 전문 카피라이터입니다.
+  // ★★★ 텍스트 배경 섹션용 특별 프롬프트 (올리브영 상세페이지 스타일)
+  const textBannerPrompt = `당신은 한국 올리브영 상세페이지 전문 디자이너입니다.
+순수 색상 배경 위에 올라갈 **임팩트 있는 대형 타이포그래피**를 만들어주세요.
+
+## 제품 정보
+- 제품명: ${productName}
+- 카테고리: ${category}
+- 타겟: ${targetAudience}
+- 핵심 특징: ${keyFeatures.join(', ')}
+
+## ★★★ 올리브영 텍스트 배너 스타일 가이드
+
+### 레이아웃 구성 (3단 구조)
+1. **상단 (y: 20%)**: 작은 서브텍스트 (브랜드명, 영문 카테고리, 해시태그 등)
+   - fontSize: 14-16px, fontWeight: medium, color: #666666
+
+2. **중앙 (y: 45-50%)**: ★ 대형 메인 카피 (핵심 메시지!) ★
+   - fontSize: 36-48px (화면의 주인공!)
+   - fontWeight: bold 또는 900
+   - color: #222222 또는 #333333
+   - 예시: "3초 얼굴형 교정카라", "단 3초만에 완성되는", "촉촉함이 다르다"
+
+3. **하단 (y: 70-75%)**: 보조 메시지 또는 해시태그
+   - fontSize: 16-20px
+   - color: #555555
+   - 예시: "넓어 보이는 #이마 라인 축소", "하루종일 유지되는 완벽한 Holding"
+
+### 카피 작성 규칙
+- 메인 카피는 **짧고 임팩트 있게** (10-20자)
+- 숫자 강조: "3초", "48시간", "92%"
+- 해시태그 스타일: #키워드
+- 의성어/의태어 활용: "촉촉", "탱글탱글", "쫀쫀"
+- 문제→해결 구조: "건조한 피부? → 촉촉함을 되찾다"
+
+### 폰트 선택
+- 메인 카피: "Pretendard, sans-serif" (weight: 700-900)
+- 서브 텍스트: "Noto Sans KR, sans-serif" (weight: 400-500)
+- 영문 강조: "Montserrat, sans-serif" (weight: 700)
+
+## 출력 형식 (JSON)
+headline = 상단 서브텍스트, subheadline = 메인 대형 카피, body = 하단 보조 메시지
+
+\`\`\`json
+{
+  "headline": {
+    "text": "브랜드명 또는 영문 카테고리 (예: Fix&Fit, Skincare #01)",
+    "x": 50,
+    "y": 20,
+    "fontSize": 14,
+    "fontWeight": "500",
+    "fontFamily": "Noto Sans KR, sans-serif",
+    "color": "#666666",
+    "textAlign": "center"
+  },
+  "subheadline": {
+    "text": "★ 대형 메인 카피 (10-20자, 임팩트 있게!)",
+    "x": 50,
+    "y": 48,
+    "fontSize": 42,
+    "fontWeight": "800",
+    "fontFamily": "Pretendard, sans-serif",
+    "color": "#222222",
+    "textAlign": "center"
+  },
+  "body": {
+    "text": "보조 메시지 또는 #해시태그 스타일",
+    "x": 50,
+    "y": 72,
+    "fontSize": 18,
+    "fontWeight": "500",
+    "fontFamily": "Noto Sans KR, sans-serif",
+    "color": "#555555",
+    "textAlign": "center"
+  },
+  "statistics": null,
+  "cta": null
+}
+\`\`\`
+
+★ 중요: 메인 카피(subheadline)가 가장 크고 눈에 띄어야 합니다! JSON만 출력하세요.`;
+
+  // 일반 섹션용 프롬프트
+  const normalPrompt = `당신은 한국 올리브영/화해 상세페이지 전문 카피라이터입니다.
 이미지 위에 배치할 오버레이 텍스트를 JSON 형식으로 생성하세요.
 ★ 이미지와 조화롭게 어울리는 텍스트와 폰트를 선택하세요!
 
@@ -1538,6 +1639,9 @@ ${sensoryWords}
 \`\`\`
 
 ★ 중요: JSON만 출력하세요. 설명이나 다른 텍스트 없이 순수 JSON만!`;
+
+  // ★ 텍스트 배경 섹션이면 특별 프롬프트, 아니면 일반 프롬프트
+  const prompt = isTextBackgroundSection ? textBannerPrompt : normalPrompt;
 
   try {
     const response = await gemini.models.generateContent({
