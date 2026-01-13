@@ -109,26 +109,7 @@ function PromptContent({ title, content, height = "h-[220px]" }: { title: string
 }
 
 export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
-  // devPrompts가 있으면 항상 표시 (DB에서 가져온 데이터 기반)
   const hasPrompts = !!prompts;
-
-  // 프롬프트가 없으면 비활성화된 버튼만 표시
-  if (!hasPrompts) {
-    return (
-      <Button
-        variant="outline"
-        size="sm"
-        className={`gap-2 ${className}`}
-        disabled
-      >
-        <Terminal className="h-4 w-4" />
-        <span>DEV: 프롬프트 보기</span>
-        <Badge variant="secondary" className="ml-1 text-[10px]">
-          생성 필요
-        </Badge>
-      </Button>
-    );
-  }
 
   return (
     <Dialog>
@@ -156,6 +137,16 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
           </DialogTitle>
         </DialogHeader>
 
+        {!hasPrompts ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <Terminal className="h-16 w-16 text-muted-foreground/30 mb-4" />
+            <h3 className="text-lg font-medium mb-2">프롬프트 데이터 없음</h3>
+            <p className="text-muted-foreground max-w-md">
+              이 프로젝트는 프롬프트 저장 기능 추가 전에 생성되었습니다.<br />
+              <strong>&quot;재생성&quot;</strong> 버튼을 클릭하면 프롬프트가 저장됩니다.
+            </p>
+          </div>
+        ) : (
         <Tabs defaultValue="text" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="text">텍스트 생성</TabsTrigger>
@@ -429,6 +420,7 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
             )}
           </TabsContent>
         </Tabs>
+        )}
       </DialogContent>
     </Dialog>
   );
