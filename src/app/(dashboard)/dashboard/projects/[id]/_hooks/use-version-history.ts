@@ -124,7 +124,9 @@ export function useVersionHistory(
       }
 
       await fetchVersions();
-      queryClient.invalidateQueries({ queryKey: ['project', projectId] });
+      // ★ refetchQueries를 사용하여 프로젝트 데이터가 실제로 새로고침될 때까지 대기
+      // invalidateQueries는 쿼리를 stale로 표시만 하고 실제 refetch를 기다리지 않음
+      await queryClient.refetchQueries({ queryKey: ['project', projectId] });
 
       toast({
         title: '복원 완료',

@@ -77,7 +77,8 @@
       "Bash(node fix-content.js:*)",
       "Bash(node check-project.js:*)",
       "Bash(node check-v8.js:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(dir /s /b \"C:\\\\Users\\\\user\\\\Desktop\\\\AI심화캠프_패스트캠퍼스\\\\git\\\\Triple_C\\\\src\\\\app\\\\\\(dashboard\\)\\\\dashboard\\\\projects\\\\[id]\")"
     ],
     "deny": [],
     "ask": []
