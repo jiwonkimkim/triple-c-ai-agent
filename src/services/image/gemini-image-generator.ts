@@ -1284,7 +1284,33 @@ export async function generateSectionImageWithOverlay(
     usedImagePrompt = generatedImage.revisedPrompt || scenarioPrompt || '';
   } else {
     // T2I 모드: 프롬프트 기반 생성
-    const t2iPrompt = imagePrompt || scenarioPrompt || `${productName} ${category} product image`;
+    // ★★★ 텍스트 배경 섹션일 때는 제품 없는 순수 색상 프롬프트 사용
+    let t2iPrompt: string;
+    if (isTextBackgroundSection) {
+      // 카테고리별 색상 매핑 (orchestration-service.ts와 동일)
+      const categoryColorMap: Record<string, { primary: string; gradient: string; name: string }> = {
+        lip: { primary: '#FFB6C1', gradient: 'soft pink to coral', name: 'pink' },
+        skincare: { primary: '#98D8AA', gradient: 'white to soft mint', name: 'mint' },
+        mascara: { primary: '#1a1a1a', gradient: 'black to hot pink', name: 'black' },
+        maskpack: { primary: '#98D8AA', gradient: 'soft green to white', name: 'green' },
+        suncare: { primary: '#FFD700', gradient: 'warm yellow to white', name: 'yellow' },
+      };
+      const lowerCategory = category.toLowerCase();
+      const detectedCategory = Object.keys(categoryColorMap).find(key => lowerCategory.includes(key)) || 'skincare';
+      const colorInfo = categoryColorMap[detectedCategory];
+
+      t2iPrompt = imagePrompt || scenarioPrompt ||
+        `Pure solid ${colorInfo.name} (${colorInfo.primary}) color fill only, ` +
+        `OR simple horizontal gradient from ${colorInfo.gradient}, ` +
+        `completely flat empty background, ` +
+        `absolutely NO products NO objects NO shapes NO textures NO patterns NO decorations, ` +
+        `just clean solid color or gradient for text overlay, ` +
+        `8K resolution, text-free image only`;
+      console.log(`[Image+Overlay] ★ Text background section ${sectionType}: Using pure color prompt (no product)`);
+    } else {
+      t2iPrompt = imagePrompt || scenarioPrompt || `${productName} ${category} product image`;
+    }
+
     generatedImage = await generateSectionImageWithGemini(
       normalizedSectionType,
       t2iPrompt,
