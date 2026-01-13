@@ -316,16 +316,20 @@ function PreviewImageOverlay({ block, isMain = false }: { block: EditorBlock; is
       {/* 오버레이 텍스트들 */}
       {overlayTexts.map((text: OverlayText) => {
         const style = text.style || {};
+        const align = style.textAlign || 'center';
+        // ★ textAlign에 따라 transform 기준점 조정 (편집창과 동일하게)
+        const translateX = align === 'left' ? '0' : align === 'right' ? '-100%' : '-50%';
+
         const textStyle: React.CSSProperties = {
           position: 'absolute',
           left: `${style.x || 50}%`,
           top: `${style.y || 50}%`,
-          transform: `translate(-50%, -50%) rotate(${style.rotation || 0}deg)`,
+          transform: `translate(${translateX}, -50%) rotate(${style.rotation || 0}deg)`,
           fontSize: `${style.fontSize || 24}px`,
           fontWeight: style.fontWeight || 'normal',
           fontFamily: style.fontFamily || 'inherit',
           color: style.color || '#ffffff',
-          textAlign: (style.textAlign as 'left' | 'center' | 'right') || 'center',
+          textAlign: (align as 'left' | 'center' | 'right'),
           opacity: (style.opacity ?? 100) / 100,
           textShadow: style.textShadow ? '2px 2px 4px rgba(0,0,0,0.5)' : 'none',
           zIndex: text.zIndex || 1,
