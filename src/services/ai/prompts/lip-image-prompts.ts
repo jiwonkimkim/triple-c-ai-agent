@@ -190,28 +190,28 @@ export const LIP_SECTION_BLOCKS: Record<LipDetailSectionType, LipSectionBlockVar
     { blockIndex: 2, conceptType: 'applicator-detail', promptModifier: 'doe-foot applicator with product texture visible', aspectRatio: '4:3' },
   ],
   TEXT_BANNER_1: [
-    { blockIndex: 0, conceptType: 'gradient-banner', promptModifier: 'soft pink to coral gradient with ample text space', aspectRatio: '3:1' },
-    { blockIndex: 1, conceptType: 'abstract-flow', promptModifier: 'abstract flowing pink shapes with soft blur', aspectRatio: '2:1' },
+    { blockIndex: 0, conceptType: 'solid-pink', promptModifier: 'pure solid soft pink (#FFB6C1) color fill only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'pink-coral-gradient', promptModifier: 'simple horizontal gradient from soft pink to coral only', aspectRatio: '3:1' },
   ],
   KEY_MESSAGE_1: [
-    { blockIndex: 0, conceptType: 'center-focus', promptModifier: 'radial pink gradient with bright center for text focus', aspectRatio: '1:1' },
-    { blockIndex: 1, conceptType: 'soft-blur', promptModifier: 'soft blurred lip product silhouette as background', aspectRatio: '4:3' },
+    { blockIndex: 0, conceptType: 'radial-pink', promptModifier: 'soft radial gradient - white center fading to pink edges only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'solid-rose', promptModifier: 'pure solid rose pink color fill only', aspectRatio: '3:1' },
   ],
   BENEFIT_HIGHLIGHT_1: [
-    { blockIndex: 0, conceptType: 'split-layout', promptModifier: 'split pink background for icon and text placement', aspectRatio: '2:1' },
-    { blockIndex: 1, conceptType: 'card-style', promptModifier: 'card-style background with subtle rose shadow', aspectRatio: '3:2' },
+    { blockIndex: 0, conceptType: 'split-pink-white', promptModifier: 'simple two-color split - left pink right white only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'solid-blush', promptModifier: 'pure solid blush pink color fill only', aspectRatio: '3:1' },
   ],
   DIVIDER_VISUAL_1: [
-    { blockIndex: 0, conceptType: 'wave-divider', promptModifier: 'elegant pink wave pattern divider', aspectRatio: '6:1' },
-    { blockIndex: 1, conceptType: 'line-accent', promptModifier: 'thin rose gold decorative line with subtle ornament', aspectRatio: '8:1' },
+    { blockIndex: 0, conceptType: 'solid-pink-strip', promptModifier: 'pure solid pink horizontal strip only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'pink-gradient-strip', promptModifier: 'simple pink to white gradient strip only', aspectRatio: '3:1' },
   ],
   KEY_MESSAGE_2: [
-    { blockIndex: 0, conceptType: 'center-focus', promptModifier: 'soft coral gradient with ethereal glow center', aspectRatio: '1:1' },
-    { blockIndex: 1, conceptType: 'geometric-minimal', promptModifier: 'minimal geometric shapes in pink framing center', aspectRatio: '3:2' },
+    { blockIndex: 0, conceptType: 'radial-coral', promptModifier: 'soft radial gradient - white center fading to coral edges only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'solid-coral', promptModifier: 'pure solid coral color fill only', aspectRatio: '3:1' },
   ],
   TEXT_BANNER_2: [
-    { blockIndex: 0, conceptType: 'closing-gradient', promptModifier: 'elegant pink to white fade with sparkle elements', aspectRatio: '3:1' },
-    { blockIndex: 1, conceptType: 'abstract-minimal', promptModifier: 'minimal abstract pink accent at corners', aspectRatio: '2:1' },
+    { blockIndex: 0, conceptType: 'pink-white-gradient', promptModifier: 'simple horizontal gradient from pink to white only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'solid-light-pink', promptModifier: 'pure solid light pink color fill only', aspectRatio: '3:1' },
   ],
   COLOR_SWATCHES: [
     { blockIndex: 0, conceptType: 'arm-swatches', promptModifier: 'color swatches on arm skin in gradient arrangement', aspectRatio: '3:2' },
@@ -331,75 +331,51 @@ CRITICAL: NO TEXT NO PRODUCT NAMES - visual only
 `.trim(),
 
   TEXT_BANNER_1: `
-Clean elegant banner background for text overlay,
-soft pink to coral gradient background,
-ample negative space in center for large typography,
-subtle abstract lip-inspired shapes at edges only,
-professional Korean lip cosmetic brand aesthetic,
-feminine romantic elegant mood,
-soft lighting with gentle pink glow,
-visually balanced horizontal composition for text placement,
-premium K-beauty lip marketing style,
-CRITICAL: NO TEXT NO LETTERS - pure gradient background only, text will be added later
+Pure solid color or simple gradient background ONLY,
+soft pink (#FFB6C1) solid fill OR simple pink to coral horizontal gradient,
+completely flat empty background - absolutely NO objects NO shapes NO textures,
+just color fill for text overlay,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO SHAPES NO PATTERNS NO DECORATIONS NO SPARKLES
 `.trim(),
 
   KEY_MESSAGE_1: `
-Focused background design for key message highlight,
-soft radial pink gradient drawing attention to center,
-ethereal dreamy feminine atmosphere with subtle rose glow,
-blurred abstract shapes or lip product silhouette in background,
-clean space for impactful single message,
-Korean beauty lip editorial style,
-luxury lip cosmetic campaign aesthetic,
-elegant and romantic sophisticated mood,
-CRITICAL: NO TEXT NO LETTERS - visual background only
+Pure solid color or simple radial gradient background ONLY,
+soft radial gradient with white center fading to pink edges OR solid rose pink fill,
+completely flat empty background - absolutely NO objects NO silhouettes NO blur effects,
+just color for message overlay,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO SHAPES NO GLOW EFFECTS NO DECORATIONS
 `.trim(),
 
   BENEFIT_HIGHLIGHT_1: `
-Clean infographic-style background layout for lip product benefits,
-organized sections for benefit icons and descriptions,
-soft pink and coral color blocks or gradient sections,
-space for 3-4 benefit points with icon placeholders,
-professional lip cosmetic ingredient benefit layout,
-Korean lip care brand explanation style,
-scientific yet feminine approachable design,
-clean organized visual hierarchy with rose accents,
-CRITICAL: NO TEXT NO ICONS - background layout only
+Pure solid color or simple split-tone background ONLY,
+solid pink fill OR simple two-color split (pink and white),
+completely flat empty background - absolutely NO icons NO shapes NO textures,
+just color zones for benefit text overlay,
+CRITICAL: ONLY SOLID COLORS OR SIMPLE GRADIENTS - NO ICONS NO SHAPES NO DECORATIONS NO ACCENTS
 `.trim(),
 
   DIVIDER_VISUAL_1: `
-Elegant section divider visual element,
-decorative transition between lip product content sections,
-subtle wave pattern or flowing line design in pink tones,
-gradient color transition strip from coral to pink,
-minimal rose gold ornamental accent,
-Korean lip beauty page design aesthetic,
-smooth visual flow element with feminine touch,
-thin horizontal decorative band,
-CRITICAL: NO TEXT - decorative visual only
+Pure solid color horizontal strip ONLY,
+solid pink strip OR simple pink to white gradient strip,
+completely flat thin color band - absolutely NO patterns NO waves NO ornaments,
+just a color strip,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT STRIP - NO PATTERNS NO WAVES NO DECORATIONS
 `.trim(),
 
   KEY_MESSAGE_2: `
-Elegant background for secondary key message,
-soft coral to pink gradient with ethereal center glow,
-dreamy romantic atmosphere with subtle sparkle,
-minimal geometric frames in rose gold,
-clean open space for impactful typography,
-luxury K-beauty lip campaign style,
-sophisticated feminine mood,
-CRITICAL: NO TEXT NO LETTERS - visual background only
+Pure solid color or simple radial gradient background ONLY,
+soft radial gradient with white center fading to coral edges OR solid coral fill,
+completely flat empty background - absolutely NO sparkles NO geometric shapes NO glow,
+just color for message overlay,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO SHAPES NO SPARKLES NO DECORATIONS
 `.trim(),
 
   TEXT_BANNER_2: `
-Closing banner background for final text message,
-elegant pink to white fade gradient,
-subtle sparkle or light bokeh overlay effect,
-minimal abstract pink accent elements at corners,
-professional Korean lip cosmetic brand closing aesthetic,
-feminine romantic elegant mood for call-to-action,
-clean composition with ample text space,
-premium beauty marketing closing style,
-CRITICAL: NO TEXT NO LETTERS - pure background only
+Pure solid color or simple gradient background ONLY,
+simple horizontal gradient from pink to white OR solid light pink fill,
+completely flat empty background - absolutely NO sparkles NO bokeh NO corner accents,
+just color fill for closing text overlay,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO SHAPES NO SPARKLES NO DECORATIONS
 `.trim(),
 
   COLOR_SWATCHES: `

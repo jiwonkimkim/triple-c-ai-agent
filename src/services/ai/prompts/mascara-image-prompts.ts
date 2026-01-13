@@ -148,8 +148,8 @@ export const MASCARA_SECTION_BLOCKS: Record<MascaraDetailSectionType, MascaraSec
     { blockIndex: 2, conceptType: 'wand-reveal', promptModifier: 'tube with wand pulled out showing formula', aspectRatio: '4:3' },
   ],
   TEXT_BANNER_1: [
-    { blockIndex: 0, conceptType: 'gradient-banner', promptModifier: 'dramatic black to hot pink gradient with ample text space', aspectRatio: '3:1' },
-    { blockIndex: 1, conceptType: 'abstract-flow', promptModifier: 'abstract flowing black shapes with pink accent blur', aspectRatio: '2:1' },
+    { blockIndex: 0, conceptType: 'solid-black', promptModifier: 'pure solid black (#1a1a1a) color fill only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'black-pink-gradient', promptModifier: 'simple horizontal gradient from black to hot pink only', aspectRatio: '3:1' },
   ],
   VARIANT_LINEUP: [
     { blockIndex: 0, conceptType: 'side-by-side', promptModifier: '3-4 variants arranged side by side', aspectRatio: '3:1' },
@@ -162,8 +162,8 @@ export const MASCARA_SECTION_BLOCKS: Record<MascaraDetailSectionType, MascaraSec
     { blockIndex: 2, conceptType: 'transformation', promptModifier: 'dramatic lash transformation sequence', aspectRatio: '3:1' },
   ],
   KEY_MESSAGE_1: [
-    { blockIndex: 0, conceptType: 'center-focus', promptModifier: 'radial black gradient with hot pink center glow for text focus', aspectRatio: '1:1' },
-    { blockIndex: 1, conceptType: 'soft-blur', promptModifier: 'soft blurred mascara wand silhouette as background', aspectRatio: '4:3' },
+    { blockIndex: 0, conceptType: 'radial-black-pink', promptModifier: 'soft radial gradient - hot pink center fading to black edges only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'solid-dark-gray', promptModifier: 'pure solid dark gray (#2d2d2d) color fill only', aspectRatio: '3:1' },
   ],
   WAND_CLOSEUP: [
     { blockIndex: 0, conceptType: 'macro-bristles', promptModifier: 'extreme macro shot of wand bristles', aspectRatio: '4:3' },
@@ -176,8 +176,8 @@ export const MASCARA_SECTION_BLOCKS: Record<MascaraDetailSectionType, MascaraSec
     { blockIndex: 2, conceptType: 'side-profile', promptModifier: 'side profile emphasizing lash curl', aspectRatio: '4:3' },
   ],
   BENEFIT_HIGHLIGHT_1: [
-    { blockIndex: 0, conceptType: 'split-layout', promptModifier: 'split black and pink background for icon and text placement', aspectRatio: '2:1' },
-    { blockIndex: 1, conceptType: 'card-style', promptModifier: 'card-style background with subtle dark shadow', aspectRatio: '3:2' },
+    { blockIndex: 0, conceptType: 'split-black-pink', promptModifier: 'simple two-color split - left black right hot pink only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'solid-charcoal', promptModifier: 'pure solid charcoal (#333333) color fill only', aspectRatio: '3:1' },
   ],
   CURL_EFFECT_VISUAL: [
     { blockIndex: 0, conceptType: 'curl-diagram', promptModifier: 'lash curl angle diagram with measurement', aspectRatio: '16:9' },
@@ -190,8 +190,8 @@ export const MASCARA_SECTION_BLOCKS: Record<MascaraDetailSectionType, MascaraSec
     { blockIndex: 2, conceptType: 'consistency-shot', promptModifier: 'smooth non-clumpy consistency close-up', aspectRatio: '1:1' },
   ],
   DIVIDER_VISUAL_1: [
-    { blockIndex: 0, conceptType: 'wave-divider', promptModifier: 'elegant black wave pattern divider with pink accent', aspectRatio: '6:1' },
-    { blockIndex: 1, conceptType: 'line-accent', promptModifier: 'thin hot pink decorative line with subtle ornament', aspectRatio: '8:1' },
+    { blockIndex: 0, conceptType: 'solid-black-strip', promptModifier: 'pure solid black horizontal strip only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'pink-gradient-strip', promptModifier: 'simple black to hot pink gradient strip only', aspectRatio: '3:1' },
   ],
   LASH_DETAIL_MACRO: [
     { blockIndex: 0, conceptType: 'individual-lashes', promptModifier: 'ultra macro individual lash separation', aspectRatio: '4:3' },
@@ -204,8 +204,8 @@ export const MASCARA_SECTION_BLOCKS: Record<MascaraDetailSectionType, MascaraSec
     { blockIndex: 2, conceptType: 'durability-icons', promptModifier: 'sweat humidity clock icons infographic', aspectRatio: '3:1' },
   ],
   KEY_MESSAGE_2: [
-    { blockIndex: 0, conceptType: 'center-focus', promptModifier: 'soft black to gray gradient with ethereal pink glow center', aspectRatio: '1:1' },
-    { blockIndex: 1, conceptType: 'geometric-minimal', promptModifier: 'minimal geometric shapes in black framing center', aspectRatio: '3:2' },
+    { blockIndex: 0, conceptType: 'radial-gray-pink', promptModifier: 'soft radial gradient - pink center fading to dark gray edges only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'solid-black', promptModifier: 'pure solid black color fill only', aspectRatio: '3:1' },
   ],
   HOW_TO_USE: [
     { blockIndex: 0, conceptType: 'step-sequence', promptModifier: '4-step application guide with numbered circles', aspectRatio: '4:1' },
@@ -218,8 +218,8 @@ export const MASCARA_SECTION_BLOCKS: Record<MascaraDetailSectionType, MascaraSec
     { blockIndex: 2, conceptType: 'strip-angles', promptModifier: 'horizontal strip of different angles', aspectRatio: '4:1' },
   ],
   TEXT_BANNER_2: [
-    { blockIndex: 0, conceptType: 'closing-gradient', promptModifier: 'elegant black to hot pink fade with sparkle elements', aspectRatio: '3:1' },
-    { blockIndex: 1, conceptType: 'abstract-minimal', promptModifier: 'minimal abstract black accent with pink glow at corners', aspectRatio: '2:1' },
+    { blockIndex: 0, conceptType: 'black-pink-gradient', promptModifier: 'simple horizontal gradient from black to hot pink only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'solid-hot-pink', promptModifier: 'pure solid hot pink (#FF1493) color fill only', aspectRatio: '3:1' },
   ],
   COMPETITOR_COMPARE: [
     { blockIndex: 0, conceptType: 'vs-comparison', promptModifier: 'side by side competitor vs product comparison', aspectRatio: '2:1' },
@@ -294,16 +294,11 @@ CRITICAL: NO TEXT NO PRODUCT NAMES - visual only
 `.trim(),
 
   TEXT_BANNER_1: `
-Clean bold banner background for text overlay,
-dramatic black to hot pink gradient background,
-ample negative space in center for large typography,
-subtle abstract brush stroke shapes at edges only,
-professional Korean mascara brand aesthetic,
-dramatic bold glamorous mood,
-edgy lighting with pink neon glow,
-visually balanced horizontal composition for text placement,
-premium K-beauty mascara marketing style,
-CRITICAL: NO TEXT NO LETTERS - pure gradient background only, text will be added later
+Pure solid color or simple gradient background ONLY,
+solid black (#1a1a1a) fill OR simple black to hot pink horizontal gradient,
+completely flat empty background - absolutely NO objects NO brush strokes NO shapes,
+just color fill for text overlay,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO SHAPES NO PATTERNS NO NEON EFFECTS
 `.trim(),
 
   VARIANT_LINEUP: `
@@ -332,15 +327,11 @@ CRITICAL: NO TEXT NO LABELS - visual comparison only
 `.trim(),
 
   KEY_MESSAGE_1: `
-Focused background design for key message highlight,
-radial black gradient drawing attention to center,
-hot pink neon glow creating ethereal dramatic atmosphere,
-blurred abstract shapes or mascara wand silhouette in background,
-clean space for impactful single message,
-Korean beauty mascara editorial style,
-edgy bold mascara campaign aesthetic,
-dramatic and confident sophisticated mood,
-CRITICAL: NO TEXT NO LETTERS - visual background only
+Pure solid color or simple radial gradient background ONLY,
+soft radial gradient with hot pink center fading to black edges OR solid dark gray fill,
+completely flat empty background - absolutely NO silhouettes NO neon effects NO blur,
+just color for message overlay,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO SHAPES NO GLOW EFFECTS NO DECORATIONS
 `.trim(),
 
   WAND_CLOSEUP: `
@@ -370,15 +361,11 @@ CRITICAL: NO TEXT overlays on image
 `.trim(),
 
   BENEFIT_HIGHLIGHT_1: `
-Clean infographic-style background layout for mascara product benefits,
-organized sections for benefit icons and descriptions,
-black and hot pink color blocks or gradient sections,
-space for 3-4 benefit points with icon placeholders,
-professional mascara ingredient and technology benefit layout,
-Korean eye makeup brand explanation style,
-bold yet clean approachable design,
-clean organized visual hierarchy with dramatic accents,
-CRITICAL: NO TEXT NO ICONS - background layout only
+Pure solid color or simple split-tone background ONLY,
+solid charcoal fill OR simple two-color split (black and hot pink),
+completely flat empty background - absolutely NO icons NO shapes NO textures,
+just color zones for benefit text overlay,
+CRITICAL: ONLY SOLID COLORS OR SIMPLE GRADIENTS - NO ICONS NO SHAPES NO DECORATIONS NO ACCENTS
 `.trim(),
 
   CURL_EFFECT_VISUAL: `
@@ -408,15 +395,11 @@ CRITICAL: NO TEXT - texture focus only
 `.trim(),
 
   DIVIDER_VISUAL_1: `
-Elegant section divider visual element,
-decorative transition between mascara content sections,
-subtle wave pattern or flowing brush stroke design in black tones,
-gradient color transition strip from black to hot pink,
-minimal neon ornamental accent,
-Korean mascara beauty page design aesthetic,
-smooth visual flow element with dramatic touch,
-thin horizontal decorative band,
-CRITICAL: NO TEXT - decorative visual only
+Pure solid color horizontal strip ONLY,
+solid black strip OR simple black to hot pink gradient strip,
+completely flat thin color band - absolutely NO patterns NO waves NO brush strokes,
+just a color strip,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT STRIP - NO PATTERNS NO WAVES NO DECORATIONS
 `.trim(),
 
   LASH_DETAIL_MACRO: `
@@ -446,14 +429,11 @@ CRITICAL: NO TEXT NO NUMBERS - icons and visuals only
 `.trim(),
 
   KEY_MESSAGE_2: `
-Elegant background for secondary key message,
-soft black to gray gradient with ethereal pink center glow,
-dreamy dramatic atmosphere with subtle sparkle,
-minimal geometric frames in black and silver,
-clean open space for impactful typography,
-edgy K-beauty mascara campaign style,
-sophisticated bold mood,
-CRITICAL: NO TEXT NO LETTERS - visual background only
+Pure solid color or simple radial gradient background ONLY,
+soft radial gradient with pink center fading to dark gray edges OR solid black fill,
+completely flat empty background - absolutely NO sparkles NO geometric frames NO glow,
+just color for message overlay,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO SHAPES NO SPARKLES NO DECORATIONS
 `.trim(),
 
   HOW_TO_USE: `
@@ -485,15 +465,11 @@ CRITICAL: NO TEXT NO LABELS - grid visuals only
 `.trim(),
 
   TEXT_BANNER_2: `
-Closing banner background for final text message,
-elegant black to hot pink fade gradient,
-subtle sparkle or neon light bokeh overlay effect,
-minimal abstract black accent elements at corners,
-professional Korean mascara brand closing aesthetic,
-dramatic bold glamorous mood for call-to-action,
-clean composition with ample text space,
-premium mascara marketing closing style,
-CRITICAL: NO TEXT NO LETTERS - pure background only
+Pure solid color or simple gradient background ONLY,
+simple horizontal gradient from black to hot pink OR solid hot pink fill,
+completely flat empty background - absolutely NO sparkles NO bokeh NO corner accents,
+just color fill for closing text overlay,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO SHAPES NO SPARKLES NO DECORATIONS
 `.trim(),
 
   COMPETITOR_COMPARE: `

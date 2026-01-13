@@ -82,24 +82,24 @@ export interface TextBackgroundBlockVariation {
 
 export const TEXT_BACKGROUND_BLOCKS: Record<TextBackgroundSectionType, TextBackgroundBlockVariation[]> = {
   TEXT_BANNER: [
-    { blockIndex: 0, conceptType: 'gradient-banner', promptModifier: 'smooth gradient background with ample text space', aspectRatio: '3:1' },
-    { blockIndex: 1, conceptType: 'abstract-flow', promptModifier: 'abstract flowing shapes with soft blur', aspectRatio: '2:1' },
-    { blockIndex: 2, conceptType: 'minimal-accent', promptModifier: 'minimal background with subtle corner accent', aspectRatio: '16:9' },
+    { blockIndex: 0, conceptType: 'solid-color', promptModifier: 'pure solid single color fill background', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'horizontal-gradient', promptModifier: 'simple horizontal two-tone gradient only', aspectRatio: '2:1' },
+    { blockIndex: 2, conceptType: 'vertical-gradient', promptModifier: 'simple vertical two-tone gradient only', aspectRatio: '16:9' },
   ],
   KEY_MESSAGE: [
-    { blockIndex: 0, conceptType: 'center-focus', promptModifier: 'radial gradient with bright center for text focus', aspectRatio: '1:1' },
-    { blockIndex: 1, conceptType: 'soft-blur', promptModifier: 'soft blurred product silhouette as background', aspectRatio: '4:3' },
-    { blockIndex: 2, conceptType: 'geometric-minimal', promptModifier: 'minimal geometric shapes framing center', aspectRatio: '3:2' },
+    { blockIndex: 0, conceptType: 'radial-gradient', promptModifier: 'soft radial gradient with lighter center', aspectRatio: '1:1' },
+    { blockIndex: 1, conceptType: 'solid-color', promptModifier: 'pure solid single color fill background', aspectRatio: '4:3' },
+    { blockIndex: 2, conceptType: 'diagonal-gradient', promptModifier: 'simple diagonal two-tone gradient only', aspectRatio: '3:2' },
   ],
   BENEFIT_HIGHLIGHT: [
-    { blockIndex: 0, conceptType: 'split-layout', promptModifier: 'split background for icon and text placement', aspectRatio: '2:1' },
-    { blockIndex: 1, conceptType: 'card-style', promptModifier: 'card-style background with subtle shadow', aspectRatio: '3:2' },
-    { blockIndex: 2, conceptType: 'icon-ready', promptModifier: 'clean background with circular icon placeholder areas', aspectRatio: '16:9' },
+    { blockIndex: 0, conceptType: 'split-two-tone', promptModifier: 'simple two-color split background - left and right different solid colors', aspectRatio: '2:1' },
+    { blockIndex: 1, conceptType: 'solid-color', promptModifier: 'pure solid single color fill background', aspectRatio: '3:2' },
+    { blockIndex: 2, conceptType: 'horizontal-gradient', promptModifier: 'simple horizontal two-tone gradient only', aspectRatio: '16:9' },
   ],
   DIVIDER_VISUAL: [
-    { blockIndex: 0, conceptType: 'wave-divider', promptModifier: 'elegant wave pattern divider', aspectRatio: '6:1' },
-    { blockIndex: 1, conceptType: 'line-accent', promptModifier: 'thin decorative line with subtle ornament', aspectRatio: '8:1' },
-    { blockIndex: 2, conceptType: 'fade-transition', promptModifier: 'color fade transition strip', aspectRatio: '4:1' },
+    { blockIndex: 0, conceptType: 'solid-strip', promptModifier: 'pure solid color horizontal strip', aspectRatio: '6:1' },
+    { blockIndex: 1, conceptType: 'gradient-strip', promptModifier: 'simple horizontal gradient strip only', aspectRatio: '8:1' },
+    { blockIndex: 2, conceptType: 'two-tone-strip', promptModifier: 'simple two-color fade strip', aspectRatio: '4:1' },
   ],
 };
 
@@ -109,51 +109,39 @@ export const TEXT_BACKGROUND_BLOCKS: Record<TextBackgroundSectionType, TextBackg
 
 export const TEXT_BACKGROUND_BASE_PROMPTS: Record<TextBackgroundSectionType, string> = {
   TEXT_BANNER: `
-Clean elegant banner background for text overlay,
-smooth gradient or solid color background,
-ample negative space in center for large typography,
-subtle texture or abstract element at edges only,
-professional Korean cosmetic brand aesthetic,
-soft lighting with no harsh shadows,
-visually balanced composition for horizontal text placement,
-premium beauty brand marketing style,
-CRITICAL: NO TEXT NO LETTERS - pure background only, text will be added later
+Pure solid color or simple two-tone gradient background only,
+completely flat minimal background with zero objects or elements,
+single color fill or smooth horizontal/vertical gradient,
+absolutely nothing except color - no shapes no textures no patterns no objects,
+empty canvas style background for text overlay,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO SHAPES NO TEXTURES NO PATTERNS NO DECORATIONS
 `.trim(),
 
   KEY_MESSAGE: `
-Focused background design for key message highlight,
-soft radial gradient drawing attention to center,
-ethereal dreamy atmosphere with subtle glow,
-blurred abstract shapes or product silhouette in background,
-clean space for impactful single message,
-Korean beauty editorial style,
-luxury cosmetic campaign aesthetic,
-elegant and sophisticated mood,
-CRITICAL: NO TEXT NO LETTERS - visual background only
+Pure solid color or soft radial gradient background only,
+completely empty background with single color or gentle color fade,
+center-bright gradient or uniform solid fill,
+absolutely nothing except color - no shapes no objects no silhouettes,
+clean empty canvas for impactful message overlay,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO SHAPES NO BLUR EFFECTS NO DECORATIONS
 `.trim(),
 
   BENEFIT_HIGHLIGHT: `
-Clean infographic-style background layout,
-organized sections for benefit icons and descriptions,
-soft color blocks or gradient sections,
-space for 3-4 benefit points with icon placeholders,
-professional cosmetic ingredient benefit layout,
-Korean skincare brand explanation style,
-scientific yet approachable design,
-clean organized visual hierarchy,
-CRITICAL: NO TEXT NO ICONS - background layout only
+Pure solid color or simple split-tone background only,
+flat color blocks or horizontal gradient sections,
+completely empty background with color zones only,
+no icons no shapes no textures - pure color fill only,
+clean color canvas for benefit information overlay,
+CRITICAL: ONLY SOLID COLORS OR SIMPLE GRADIENTS - NO ICONS NO SHAPES NO TEXTURES NO DECORATIONS
 `.trim(),
 
   DIVIDER_VISUAL: `
-Elegant section divider visual element,
-decorative transition between content sections,
-subtle wave pattern or flowing line design,
-gradient color transition strip,
-minimal ornamental accent,
-Korean beauty page design aesthetic,
-smooth visual flow element,
-thin horizontal decorative band,
-CRITICAL: NO TEXT - decorative visual only
+Pure solid color or simple horizontal gradient strip only,
+thin color band background - completely flat and minimal,
+single color or two-tone horizontal fade only,
+no patterns no waves no ornaments - just color,
+clean color transition strip,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT STRIP - NO PATTERNS NO WAVES NO DECORATIONS
 `.trim(),
 };
 
@@ -230,17 +218,16 @@ Mood: ${colorTheme.mood}
     ? additionalKeywords.join(', ')
     : '';
 
-  // 프롬프트 조합
+  // 프롬프트 조합 - 극도로 단순화된 배경만 생성
   const prompt = `
-[CRITICAL: NO TEXT IN IMAGE - Generate pure visual background only. Do not include any text, letters, words, numbers, labels, or typography. This is a background for text overlay.]
-${productReference}
+[CRITICAL: PURE COLOR BACKGROUND ONLY - Generate ONLY solid color or simple gradient. ABSOLUTELY NO objects, products, shapes, textures, patterns, decorations, or any visual elements. Just flat color fill.]
 ${colorInfo}
-[BLOCK VARIATION: ${blockModifier}]
+[BACKGROUND TYPE: ${blockModifier}]
 ${basePrompt}
-${brandModifier}
-${additionalModifiers}
-professional e-commerce detail page background, high-end cosmetic marketing, clean minimal design, ample space for text overlay
---negative text, letters, words, numbers, typography, Korean text, English text, any characters, logos, labels, watermark, busy background, cluttered design, low quality, blurry
+Use colors: ${colorTheme.primary} and ${colorTheme.secondary} only.
+Mood reference: ${colorTheme.mood}
+IMPORTANT: Output must be a completely flat, empty background with ONLY color - nothing else.
+--negative text, letters, words, numbers, typography, products, bottles, tubes, packaging, leaves, plants, botanical, flowers, water, droplets, bubbles, shapes, geometric, abstract, patterns, textures, ornaments, decorations, waves, lines, sparkles, glitter, bokeh, blur effects, shadows, objects, silhouettes, icons, symbols, hands, faces, people, any visual elements except pure color
 `.trim().replace(/\n+/g, ', ').replace(/,\s*,/g, ',');
 
   return prompt;

@@ -129,8 +129,8 @@ export const SUNCARE_SECTION_BLOCKS: Record<SuncareDetailSectionType, SuncareSec
     { blockIndex: 2, conceptType: 'summer-mood', promptModifier: 'product in bright summer beach/outdoor context', aspectRatio: '4:3' },
   ],
   TEXT_BANNER_1: [
-    { blockIndex: 0, conceptType: 'gradient-banner', promptModifier: 'warm yellow to orange gradient with ample text space', aspectRatio: '3:1' },
-    { blockIndex: 1, conceptType: 'abstract-flow', promptModifier: 'abstract flowing sunray shapes with soft blur', aspectRatio: '2:1' },
+    { blockIndex: 0, conceptType: 'solid-yellow', promptModifier: 'pure solid warm yellow (#FFD700) color fill only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'yellow-white-gradient', promptModifier: 'simple horizontal gradient from warm yellow to white only', aspectRatio: '3:1' },
   ],
   KEY_BENEFITS: [
     { blockIndex: 0, conceptType: 'triple-icons', promptModifier: 'three circular benefit icons in a row', aspectRatio: '3:1' },
@@ -139,8 +139,8 @@ export const SUNCARE_SECTION_BLOCKS: Record<SuncareDetailSectionType, SuncareSec
     { blockIndex: 3, conceptType: 'single-benefit-3', promptModifier: 'third benefit icon enlarged with description space', aspectRatio: '1:1' },
   ],
   KEY_MESSAGE_1: [
-    { blockIndex: 0, conceptType: 'center-focus', promptModifier: 'radial warm yellow gradient with bright center for text focus', aspectRatio: '1:1' },
-    { blockIndex: 1, conceptType: 'soft-blur', promptModifier: 'soft blurred sunray as background', aspectRatio: '4:3' },
+    { blockIndex: 0, conceptType: 'radial-yellow', promptModifier: 'soft radial gradient - white center fading to warm yellow edges only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'solid-orange', promptModifier: 'pure solid soft orange (#FFB347) color fill only', aspectRatio: '3:1' },
   ],
   ACTIVE_INGREDIENTS: [
     { blockIndex: 0, conceptType: 'molecule-showcase', promptModifier: 'scientific molecular structure floating on white', aspectRatio: '4:3' },
@@ -148,8 +148,8 @@ export const SUNCARE_SECTION_BLOCKS: Record<SuncareDetailSectionType, SuncareSec
     { blockIndex: 2, conceptType: 'lab-aesthetic', promptModifier: 'clinical laboratory research aesthetic', aspectRatio: '16:9' },
   ],
   BENEFIT_HIGHLIGHT_1: [
-    { blockIndex: 0, conceptType: 'split-layout', promptModifier: 'split yellow and white background for icon and text placement', aspectRatio: '2:1' },
-    { blockIndex: 1, conceptType: 'card-style', promptModifier: 'card-style background with subtle warm shadow', aspectRatio: '3:2' },
+    { blockIndex: 0, conceptType: 'split-yellow-white', promptModifier: 'simple two-color split - left warm yellow right white only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'solid-cream', promptModifier: 'pure solid cream (#FFFDD0) color fill only', aspectRatio: '3:1' },
   ],
   FREE_SYSTEM: [
     { blockIndex: 0, conceptType: 'checklist-layout', promptModifier: '7-free system checklist with crossed-out icons', aspectRatio: '3:4' },
@@ -162,8 +162,8 @@ export const SUNCARE_SECTION_BLOCKS: Record<SuncareDetailSectionType, SuncareSec
     { blockIndex: 2, conceptType: 'ingredient-detail', promptModifier: 'single hero ingredient macro shot', aspectRatio: '4:3' },
   ],
   DIVIDER_VISUAL_1: [
-    { blockIndex: 0, conceptType: 'wave-divider', promptModifier: 'elegant warm orange wave pattern divider', aspectRatio: '6:1' },
-    { blockIndex: 1, conceptType: 'line-accent', promptModifier: 'thin golden decorative line with sunray ornament', aspectRatio: '8:1' },
+    { blockIndex: 0, conceptType: 'solid-orange-strip', promptModifier: 'pure solid warm orange horizontal strip only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'yellow-orange-gradient-strip', promptModifier: 'simple yellow to orange gradient strip only', aspectRatio: '3:1' },
   ],
   UV_PROTECTION_TECH: [
     { blockIndex: 0, conceptType: 'uv-diagram', promptModifier: 'UVA/UVB blocking mechanism diagram', aspectRatio: '16:9' },
@@ -171,8 +171,8 @@ export const SUNCARE_SECTION_BLOCKS: Record<SuncareDetailSectionType, SuncareSec
     { blockIndex: 2, conceptType: 'filter-comparison', promptModifier: 'organic vs inorganic filter comparison visual', aspectRatio: '2:1' },
   ],
   KEY_MESSAGE_2: [
-    { blockIndex: 0, conceptType: 'center-focus', promptModifier: 'soft orange gradient with ethereal golden glow center', aspectRatio: '1:1' },
-    { blockIndex: 1, conceptType: 'geometric-minimal', promptModifier: 'minimal geometric shapes in warm yellow framing center', aspectRatio: '3:2' },
+    { blockIndex: 0, conceptType: 'radial-orange', promptModifier: 'soft radial gradient - white center fading to soft orange edges only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'solid-peach', promptModifier: 'pure solid peach (#FFDAB9) color fill only', aspectRatio: '3:1' },
   ],
   TEXTURE_CLOSEUP: [
     { blockIndex: 0, conceptType: 'cream-swatch', promptModifier: 'cream texture swatch spreading on surface', aspectRatio: '4:3' },
@@ -185,8 +185,8 @@ export const SUNCARE_SECTION_BLOCKS: Record<SuncareDetailSectionType, SuncareSec
     { blockIndex: 2, conceptType: 'amount-guide', promptModifier: 'proper amount demonstration on fingers', aspectRatio: '1:1' },
   ],
   TEXT_BANNER_2: [
-    { blockIndex: 0, conceptType: 'closing-gradient', promptModifier: 'elegant yellow to white fade with sunray sparkle elements', aspectRatio: '3:1' },
-    { blockIndex: 1, conceptType: 'abstract-minimal', promptModifier: 'minimal abstract warm accent at corners', aspectRatio: '2:1' },
+    { blockIndex: 0, conceptType: 'yellow-white-gradient', promptModifier: 'simple horizontal gradient from yellow to white only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'solid-light-yellow', promptModifier: 'pure solid light yellow (#FFFACD) color fill only', aspectRatio: '3:1' },
   ],
   BRAND_CLOSING: [
     { blockIndex: 0, conceptType: 'brand-story', promptModifier: 'brand logo with warm gradient closing banner', aspectRatio: '3:2' },
@@ -254,16 +254,11 @@ CRITICAL: NO TEXT NO NUMBERS on product or background - visual only
 `.trim(),
 
   TEXT_BANNER_1: `
-Clean elegant banner background for text overlay,
-warm yellow to orange gradient background,
-ample negative space in center for large typography,
-subtle sunray shapes at edges only,
-professional Korean suncare brand aesthetic,
-bright protective summer mood,
-soft lighting with warm golden glow,
-visually balanced horizontal composition for text placement,
-premium K-beauty suncare marketing style,
-CRITICAL: NO TEXT NO LETTERS - pure gradient background only, text will be added later
+Pure solid color or simple gradient background ONLY,
+solid warm yellow (#FFD700) fill OR simple horizontal gradient from warm yellow to white,
+completely flat empty background - absolutely NO sunray shapes NO light effects NO decorations,
+just clean color fill for text overlay,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO PATTERNS NO SUN RAYS NO SPARKLES
 `.trim(),
 
   KEY_BENEFITS: `
@@ -280,15 +275,11 @@ CRITICAL: NO TEXT - icon symbols only
 `.trim(),
 
   KEY_MESSAGE_1: `
-Focused background design for key message highlight,
-radial warm yellow gradient drawing attention to center,
-ethereal sunny atmosphere with subtle golden glow,
-blurred abstract shapes or sun silhouette in background,
-clean space for impactful single message,
-Korean beauty suncare editorial style,
-bright summer protection campaign aesthetic,
-warm and protective sophisticated mood,
-CRITICAL: NO TEXT NO LETTERS - visual background only
+Pure solid color or simple radial gradient background ONLY,
+soft radial gradient with white center fading to warm yellow edges OR solid soft orange fill,
+completely flat empty background - absolutely NO golden glow NO sun silhouette NO abstract shapes,
+just color for key message overlay,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO PATTERNS NO GLOW EFFECTS NO DECORATIONS
 `.trim(),
 
   ACTIVE_INGREDIENTS: `
@@ -306,15 +297,11 @@ CRITICAL: NO TEXT NO CHEMICAL FORMULAS - visual structures only
 `.trim(),
 
   BENEFIT_HIGHLIGHT_1: `
-Clean infographic-style background layout for suncare product benefits,
-organized sections for benefit icons and descriptions,
-warm yellow and white color blocks or gradient sections,
-space for 3-4 benefit points with icon placeholders,
-professional suncare UV protection benefit layout,
-Korean derma skincare brand explanation style,
-scientific yet warm approachable design,
-clean organized visual hierarchy with sun accents,
-CRITICAL: NO TEXT NO ICONS - background layout only
+Pure solid color or simple split-tone background ONLY,
+simple two-color split (warm yellow and white) OR solid cream fill,
+completely flat empty background - absolutely NO icons NO sun accents NO visual hierarchy,
+just color zones for benefit text overlay,
+CRITICAL: ONLY SOLID COLORS OR SIMPLE GRADIENTS - NO ICONS NO SHAPES NO DECORATIONS NO SUN ELEMENTS
 `.trim(),
 
   FREE_SYSTEM: `
@@ -346,15 +333,11 @@ CRITICAL: NO TEXT NO LABELS - pure botanical visual
 `.trim(),
 
   DIVIDER_VISUAL_1: `
-Elegant section divider visual element,
-decorative transition between suncare content sections,
-subtle wave pattern or flowing sunray line design in warm tones,
-gradient color transition strip from yellow to soft orange,
-minimal golden ornamental accent,
-Korean suncare beauty page design aesthetic,
-smooth visual flow element with warm summer touch,
-thin horizontal decorative band,
-CRITICAL: NO TEXT - decorative visual only
+Pure solid color or simple gradient horizontal strip ONLY,
+solid warm orange strip OR simple yellow to orange gradient strip,
+completely flat empty strip - absolutely NO wave patterns NO sunray designs NO ornamental accents,
+just clean color strip for section divider,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO DECORATIONS NO PATTERNS NO SUN ELEMENTS NO ORNAMENTS
 `.trim(),
 
   UV_PROTECTION_TECH: `
@@ -372,14 +355,11 @@ CRITICAL: NO TEXT NO LABELS - visual diagram only
 `.trim(),
 
   KEY_MESSAGE_2: `
-Elegant background for secondary key message,
-soft orange to white gradient with ethereal golden center glow,
-dreamy sunny atmosphere with subtle sparkle,
-minimal geometric frames in warm yellow,
-clean open space for impactful typography,
-bright K-beauty suncare campaign style,
-sophisticated warm mood,
-CRITICAL: NO TEXT NO LETTERS - visual background only
+Pure solid color or simple radial gradient background ONLY,
+soft radial gradient with white center fading to soft orange edges OR solid peach fill,
+completely flat empty background - absolutely NO golden glow NO sparkles NO geometric frames,
+just color for secondary message overlay,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO GLOW EFFECTS NO DECORATIONS NO GEOMETRIC SHAPES
 `.trim(),
 
   TEXTURE_CLOSEUP: `
@@ -411,15 +391,11 @@ CRITICAL: NO TEXT - numbered circles and demonstration only
 `.trim(),
 
   TEXT_BANNER_2: `
-Closing banner background for final text message,
-elegant yellow to white fade gradient,
-subtle sunray sparkle or light bokeh overlay effect,
-minimal abstract warm accent elements at corners,
-professional Korean suncare brand closing aesthetic,
-bright protective summer mood for call-to-action,
-clean composition with ample text space,
-premium suncare marketing closing style,
-CRITICAL: NO TEXT NO LETTERS - pure background only
+Pure solid color or simple gradient background ONLY,
+simple horizontal gradient from yellow to white OR solid light yellow fill,
+completely flat empty background - absolutely NO sparkles NO bokeh NO warm accent elements,
+just clean color for closing text overlay,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO DECORATIONS NO LIGHT EFFECTS NO SUN ELEMENTS
 `.trim(),
 
   BRAND_CLOSING: `

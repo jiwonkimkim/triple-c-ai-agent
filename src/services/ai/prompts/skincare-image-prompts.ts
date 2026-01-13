@@ -120,8 +120,8 @@ export const SKINCARE_SECTION_BLOCKS: Record<SkincareDetailSectionType, SectionB
     { blockIndex: 2, conceptType: 'droplet-macro', promptModifier: 'macro shot with water droplets on surface', aspectRatio: '4:3' },
   ],
   TEXT_BANNER_1: [
-    { blockIndex: 0, conceptType: 'gradient-banner', promptModifier: 'clean white to soft mint gradient with ample text space', aspectRatio: '3:1' },
-    { blockIndex: 1, conceptType: 'abstract-flow', promptModifier: 'abstract flowing water shapes with soft blur', aspectRatio: '2:1' },
+    { blockIndex: 0, conceptType: 'solid-mint', promptModifier: 'pure solid soft mint (#98D8AA) color fill only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'white-mint-gradient', promptModifier: 'simple horizontal gradient from white to soft mint only', aspectRatio: '3:1' },
   ],
   REVIEW_SHOWCASE: [
     { blockIndex: 0, conceptType: 'review-cards', promptModifier: 'review cards with speech bubbles layout', aspectRatio: '3:2' },
@@ -129,8 +129,8 @@ export const SKINCARE_SECTION_BLOCKS: Record<SkincareDetailSectionType, SectionB
     { blockIndex: 2, conceptType: 'rating-summary', promptModifier: 'rating summary infographic', aspectRatio: '2:1' },
   ],
   KEY_MESSAGE_1: [
-    { blockIndex: 0, conceptType: 'center-focus', promptModifier: 'soft aqua radial gradient with bright center for text focus', aspectRatio: '1:1' },
-    { blockIndex: 1, conceptType: 'soft-blur', promptModifier: 'soft blurred water droplets as background', aspectRatio: '4:3' },
+    { blockIndex: 0, conceptType: 'radial-aqua', promptModifier: 'soft radial gradient - white center fading to aqua blue edges only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'solid-light-blue', promptModifier: 'pure solid light blue (#E0F4FF) color fill only', aspectRatio: '3:1' },
   ],
   EFFICACY_VISUAL: [
     { blockIndex: 0, conceptType: 'skin-layer', promptModifier: 'cross-section skin layer absorption diagram', aspectRatio: '4:3' },
@@ -138,8 +138,8 @@ export const SKINCARE_SECTION_BLOCKS: Record<SkincareDetailSectionType, SectionB
     { blockIndex: 2, conceptType: 'moisture-meter', promptModifier: 'hydration level meter visualization', aspectRatio: '1:1' },
   ],
   BENEFIT_HIGHLIGHT_1: [
-    { blockIndex: 0, conceptType: 'split-layout', promptModifier: 'split aqua blue background for icon and text placement', aspectRatio: '2:1' },
-    { blockIndex: 1, conceptType: 'card-style', promptModifier: 'card-style background with subtle water shadow', aspectRatio: '3:2' },
+    { blockIndex: 0, conceptType: 'split-aqua-white', promptModifier: 'simple two-color split - left aqua blue right white only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'solid-sky-blue', promptModifier: 'pure solid sky blue (#87CEEB) color fill only', aspectRatio: '3:1' },
   ],
   INGREDIENT_TECH: [
     { blockIndex: 0, conceptType: 'molecule-3d', promptModifier: '3D molecular structure floating', aspectRatio: '1:1' },
@@ -152,8 +152,8 @@ export const SKINCARE_SECTION_BLOCKS: Record<SkincareDetailSectionType, SectionB
     { blockIndex: 2, conceptType: 'close-up-skin', promptModifier: 'extreme close-up dewy skin texture', aspectRatio: '4:3' },
   ],
   DIVIDER_VISUAL_1: [
-    { blockIndex: 0, conceptType: 'wave-divider', promptModifier: 'elegant aqua wave pattern divider', aspectRatio: '6:1' },
-    { blockIndex: 1, conceptType: 'line-accent', promptModifier: 'thin blue decorative line with water droplet ornament', aspectRatio: '8:1' },
+    { blockIndex: 0, conceptType: 'solid-aqua-strip', promptModifier: 'pure solid aqua blue horizontal strip only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'mint-gradient-strip', promptModifier: 'simple white to mint gradient strip only', aspectRatio: '3:1' },
   ],
   STEP_GUIDE: [
     { blockIndex: 0, conceptType: 'step-1', promptModifier: 'step 1 dispense product', aspectRatio: '1:1' },
@@ -161,8 +161,8 @@ export const SKINCARE_SECTION_BLOCKS: Record<SkincareDetailSectionType, SectionB
     { blockIndex: 2, conceptType: 'step-3', promptModifier: 'step 3 pat gently', aspectRatio: '1:1' },
   ],
   KEY_MESSAGE_2: [
-    { blockIndex: 0, conceptType: 'center-focus', promptModifier: 'soft white to mint gradient with ethereal glow center', aspectRatio: '1:1' },
-    { blockIndex: 1, conceptType: 'geometric-minimal', promptModifier: 'minimal geometric shapes in aqua framing center', aspectRatio: '3:2' },
+    { blockIndex: 0, conceptType: 'radial-mint', promptModifier: 'soft radial gradient - white center fading to mint edges only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'solid-mint', promptModifier: 'pure solid mint green color fill only', aspectRatio: '3:1' },
   ],
   PRODUCT_LINEUP: [
     { blockIndex: 0, conceptType: 'full-lineup', promptModifier: 'complete product line arranged', aspectRatio: '3:2' },
@@ -170,8 +170,8 @@ export const SKINCARE_SECTION_BLOCKS: Record<SkincareDetailSectionType, SectionB
     { blockIndex: 2, conceptType: 'routine-order', promptModifier: 'products in routine order sequence', aspectRatio: '4:1' },
   ],
   TEXT_BANNER_2: [
-    { blockIndex: 0, conceptType: 'closing-gradient', promptModifier: 'elegant white to soft blue fade with subtle sparkle elements', aspectRatio: '3:1' },
-    { blockIndex: 1, conceptType: 'abstract-minimal', promptModifier: 'minimal abstract water droplet accent at corners', aspectRatio: '2:1' },
+    { blockIndex: 0, conceptType: 'white-blue-gradient', promptModifier: 'simple horizontal gradient from white to soft blue only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'solid-light-mint', promptModifier: 'pure solid light mint color fill only', aspectRatio: '3:1' },
   ],
   SIZE_OPTIONS: [
     { blockIndex: 0, conceptType: 'size-comparison', promptModifier: 'multiple sizes side by side comparison', aspectRatio: '3:1' },
@@ -242,16 +242,11 @@ CRITICAL: ABSOLUTELY NO TEXT NO LETTERS on product or background
 `.trim(),
 
   TEXT_BANNER_1: `
-Clean elegant banner background for text overlay,
-soft white to mint gradient background,
-ample negative space in center for large typography,
-subtle water droplet or bubble shapes at edges only,
-professional Korean skincare brand aesthetic,
-pure clean fresh mood,
-soft lighting with gentle aqua glow,
-visually balanced horizontal composition for text placement,
-premium K-beauty skincare marketing style,
-CRITICAL: NO TEXT NO LETTERS - pure gradient background only, text will be added later
+Pure solid color or simple gradient background ONLY,
+soft mint (#98D8AA) solid fill OR simple white to mint horizontal gradient,
+completely flat empty background - absolutely NO objects NO water droplets NO shapes,
+just color fill for text overlay,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO SHAPES NO PATTERNS NO DECORATIONS
 `.trim(),
 
   REVIEW_SHOWCASE: `
@@ -267,15 +262,11 @@ CRITICAL: NO TEXT - only UI mockup shapes and icons
 `.trim(),
 
   KEY_MESSAGE_1: `
-Focused background design for key message highlight,
-soft radial aqua gradient drawing attention to center,
-ethereal clean atmosphere with subtle water glow,
-blurred abstract shapes or skincare product silhouette in background,
-clean space for impactful single message,
-Korean beauty skincare editorial style,
-luxury pharmacy skincare campaign aesthetic,
-pure and fresh sophisticated mood,
-CRITICAL: NO TEXT NO LETTERS - visual background only
+Pure solid color or simple radial gradient background ONLY,
+soft radial gradient with white center fading to aqua blue edges OR solid light blue fill,
+completely flat empty background - absolutely NO objects NO silhouettes NO water glow,
+just color for message overlay,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO SHAPES NO GLOW EFFECTS NO DECORATIONS
 `.trim(),
 
   EFFICACY_VISUAL: `
@@ -291,15 +282,11 @@ CRITICAL: NO TEXT NO LABELS - pure visual diagram only
 `.trim(),
 
   BENEFIT_HIGHLIGHT_1: `
-Clean infographic-style background layout for skincare product benefits,
-organized sections for benefit icons and descriptions,
-soft aqua blue and white color blocks or gradient sections,
-space for 3-4 benefit points with icon placeholders,
-professional skincare ingredient benefit layout,
-Korean pharmacy skincare brand explanation style,
-scientific yet clean approachable design,
-clean organized visual hierarchy with water droplet accents,
-CRITICAL: NO TEXT NO ICONS - background layout only
+Pure solid color or simple split-tone background ONLY,
+solid sky blue fill OR simple two-color split (aqua blue and white),
+completely flat empty background - absolutely NO icons NO shapes NO water droplets,
+just color zones for benefit text overlay,
+CRITICAL: ONLY SOLID COLORS OR SIMPLE GRADIENTS - NO ICONS NO SHAPES NO DECORATIONS NO ACCENTS
 `.trim(),
 
   INGREDIENT_TECH: `
@@ -326,15 +313,11 @@ CRITICAL: NO TEXT overlays on image
 `.trim(),
 
   DIVIDER_VISUAL_1: `
-Elegant section divider visual element,
-decorative transition between skincare content sections,
-subtle wave pattern or flowing water line design in aqua tones,
-gradient color transition strip from white to soft blue,
-minimal water droplet ornamental accent,
-Korean skincare beauty page design aesthetic,
-smooth visual flow element with clean fresh touch,
-thin horizontal decorative band,
-CRITICAL: NO TEXT - decorative visual only
+Pure solid color horizontal strip ONLY,
+solid aqua blue strip OR simple white to mint gradient strip,
+completely flat thin color band - absolutely NO patterns NO waves NO water droplets,
+just a color strip,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT STRIP - NO PATTERNS NO WAVES NO DECORATIONS
 `.trim(),
 
   STEP_GUIDE: `
@@ -351,14 +334,11 @@ CRITICAL: NO TEXT - numbered circles and arrows only
 `.trim(),
 
   KEY_MESSAGE_2: `
-Elegant background for secondary key message,
-soft white to mint gradient with ethereal center glow,
-dreamy clean atmosphere with subtle sparkle,
-minimal geometric frames in soft aqua,
-clean open space for impactful typography,
-luxury K-beauty skincare campaign style,
-sophisticated fresh mood,
-CRITICAL: NO TEXT NO LETTERS - visual background only
+Pure solid color or simple radial gradient background ONLY,
+soft radial gradient with white center fading to mint edges OR solid mint green fill,
+completely flat empty background - absolutely NO sparkles NO geometric frames NO glow,
+just color for message overlay,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO SHAPES NO SPARKLES NO DECORATIONS
 `.trim(),
 
   PRODUCT_LINEUP: `
@@ -375,15 +355,11 @@ CRITICAL: NO TEXT NO LABELS on products
 `.trim(),
 
   TEXT_BANNER_2: `
-Closing banner background for final text message,
-elegant white to soft blue fade gradient,
-subtle water sparkle or light bokeh overlay effect,
-minimal abstract water droplet accent elements at corners,
-professional Korean skincare brand closing aesthetic,
-pure clean fresh mood for call-to-action,
-clean composition with ample text space,
-premium pharmacy skincare marketing closing style,
-CRITICAL: NO TEXT NO LETTERS - pure background only
+Pure solid color or simple gradient background ONLY,
+simple horizontal gradient from white to soft blue OR solid light mint fill,
+completely flat empty background - absolutely NO sparkles NO bokeh NO water droplets,
+just color fill for closing text overlay,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO SHAPES NO SPARKLES NO DECORATIONS
 `.trim(),
 
   SIZE_OPTIONS: `

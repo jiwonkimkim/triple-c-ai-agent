@@ -224,8 +224,8 @@ export const MASKPACK_SECTION_BLOCKS: Record<MaskPackDetailSectionType, MaskPack
     { blockIndex: 2, conceptType: 'lifestyle-hero', promptModifier: 'mask packets in spa-like setting', aspectRatio: '4:3' },
   ],
   TEXT_BANNER_1: [
-    { blockIndex: 0, conceptType: 'gradient-banner', promptModifier: 'soft green to white gradient with ample text space', aspectRatio: '3:1' },
-    { blockIndex: 1, conceptType: 'abstract-flow', promptModifier: 'abstract flowing botanical shapes with soft blur', aspectRatio: '2:1' },
+    { blockIndex: 0, conceptType: 'solid-green', promptModifier: 'pure solid soft green (#98D8AA) color fill only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'green-white-gradient', promptModifier: 'simple horizontal gradient from soft green to white only', aspectRatio: '3:1' },
   ],
   KEY_INGREDIENTS: [
     { blockIndex: 0, conceptType: 'botanical-flatlay', promptModifier: 'fresh botanical ingredients flat lay arrangement', aspectRatio: '1:1' },
@@ -238,8 +238,8 @@ export const MASKPACK_SECTION_BLOCKS: Record<MaskPackDetailSectionType, MaskPack
     { blockIndex: 2, conceptType: 'light-refraction', promptModifier: 'light refracting through translucent essence', aspectRatio: '1:1' },
   ],
   KEY_MESSAGE_1: [
-    { blockIndex: 0, conceptType: 'center-focus', promptModifier: 'radial soft green gradient with bright center for text focus', aspectRatio: '1:1' },
-    { blockIndex: 1, conceptType: 'soft-blur', promptModifier: 'soft blurred botanical leaves as background', aspectRatio: '4:3' },
+    { blockIndex: 0, conceptType: 'radial-green', promptModifier: 'soft radial gradient - white center fading to soft green edges only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'solid-mint', promptModifier: 'pure solid mint (#C6EBC5) color fill only', aspectRatio: '3:1' },
   ],
   SHEET_MATERIAL: [
     { blockIndex: 0, conceptType: 'fabric-macro', promptModifier: 'sheet fabric texture extreme close-up', aspectRatio: '4:3' },
@@ -252,8 +252,8 @@ export const MASKPACK_SECTION_BLOCKS: Record<MaskPackDetailSectionType, MaskPack
     { blockIndex: 2, conceptType: 'ingredient-pairing', promptModifier: 'each packet paired with its key ingredient', aspectRatio: '16:9' },
   ],
   BENEFIT_HIGHLIGHT_1: [
-    { blockIndex: 0, conceptType: 'split-layout', promptModifier: 'split green and white background for icon and text placement', aspectRatio: '2:1' },
-    { blockIndex: 1, conceptType: 'card-style', promptModifier: 'card-style background with subtle botanical shadow', aspectRatio: '3:2' },
+    { blockIndex: 0, conceptType: 'split-green-white', promptModifier: 'simple two-color split - left soft green right white only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'solid-light-green', promptModifier: 'pure solid light green (#F0FFF0) color fill only', aspectRatio: '3:1' },
   ],
   INGREDIENT_TEATREE: [
     { blockIndex: 0, conceptType: 'teatree-branch', promptModifier: 'fresh tea tree branch with leaves and oil drops', aspectRatio: '4:3' },
@@ -266,8 +266,8 @@ export const MASKPACK_SECTION_BLOCKS: Record<MaskPackDetailSectionType, MaskPack
     { blockIndex: 2, conceptType: 'gentle-soothing', promptModifier: 'gentle soothing calming effect visual', aspectRatio: '3:2' },
   ],
   DIVIDER_VISUAL_1: [
-    { blockIndex: 0, conceptType: 'wave-divider', promptModifier: 'elegant soft green wave pattern divider', aspectRatio: '6:1' },
-    { blockIndex: 1, conceptType: 'line-accent', promptModifier: 'thin botanical green decorative line with leaf ornament', aspectRatio: '8:1' },
+    { blockIndex: 0, conceptType: 'solid-green-strip', promptModifier: 'pure solid soft green horizontal strip only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'green-gradient-strip', promptModifier: 'simple green to white gradient strip only', aspectRatio: '3:1' },
   ],
   MODEL_WEARING: [
     { blockIndex: 0, conceptType: 'spa-moment', promptModifier: 'model wearing mask in relaxing spa setting', aspectRatio: '3:4' },
@@ -280,8 +280,8 @@ export const MASKPACK_SECTION_BLOCKS: Record<MaskPackDetailSectionType, MaskPack
     { blockIndex: 2, conceptType: 'transformation-sequence', promptModifier: 'skin transformation sequence frames', aspectRatio: '3:1' },
   ],
   KEY_MESSAGE_2: [
-    { blockIndex: 0, conceptType: 'center-focus', promptModifier: 'soft mint gradient with ethereal glow center', aspectRatio: '1:1' },
-    { blockIndex: 1, conceptType: 'geometric-minimal', promptModifier: 'minimal geometric shapes in soft green framing center', aspectRatio: '3:2' },
+    { blockIndex: 0, conceptType: 'radial-mint', promptModifier: 'soft radial gradient - white center fading to mint edges only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'solid-sage', promptModifier: 'pure solid sage green color fill only', aspectRatio: '3:1' },
   ],
   INGREDIENT_HONEY: [
     { blockIndex: 0, conceptType: 'honey-drip', promptModifier: 'golden honey dripping from dipper', aspectRatio: '3:4' },
@@ -299,8 +299,8 @@ export const MASKPACK_SECTION_BLOCKS: Record<MaskPackDetailSectionType, MaskPack
     { blockIndex: 2, conceptType: 'timing-visual', promptModifier: '15-20 minute timer visualization', aspectRatio: '1:1' },
   ],
   TEXT_BANNER_2: [
-    { blockIndex: 0, conceptType: 'closing-gradient', promptModifier: 'elegant green to white fade with sparkle elements', aspectRatio: '3:1' },
-    { blockIndex: 1, conceptType: 'abstract-minimal', promptModifier: 'minimal abstract botanical accent at corners', aspectRatio: '2:1' },
+    { blockIndex: 0, conceptType: 'green-white-gradient', promptModifier: 'simple horizontal gradient from green to white only', aspectRatio: '3:1' },
+    { blockIndex: 1, conceptType: 'solid-light-green', promptModifier: 'pure solid light green color fill only', aspectRatio: '3:1' },
   ],
   MASK_FIT_CLOSEUP: [
     { blockIndex: 0, conceptType: 'face-contour-fit', promptModifier: 'mask adhering perfectly to facial contours', aspectRatio: '3:4' },
@@ -378,16 +378,11 @@ CRITICAL: NO TEXT NO PRODUCT NAMES - visual only
 `.trim(),
 
   TEXT_BANNER_1: `
-Clean elegant banner background for text overlay,
-soft green to white gradient background,
-ample negative space in center for large typography,
-subtle botanical leaf shapes at edges only,
-professional Korean sheet mask brand aesthetic,
-fresh natural spa-like mood,
-soft lighting with gentle green glow,
-visually balanced horizontal composition for text placement,
-premium K-beauty skincare marketing style,
-CRITICAL: NO TEXT NO LETTERS - pure gradient background only, text will be added later
+Pure solid color or simple gradient background ONLY,
+soft green (#98D8AA) solid fill OR simple green to white horizontal gradient,
+completely flat empty background - absolutely NO objects NO botanical shapes NO leaves,
+just color fill for text overlay,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO SHAPES NO PATTERNS NO DECORATIONS
 `.trim(),
 
   KEY_INGREDIENTS: `
@@ -417,15 +412,11 @@ CRITICAL: NO TEXT - texture focus only
 `.trim(),
 
   KEY_MESSAGE_1: `
-Focused background design for key message highlight,
-soft radial green gradient drawing attention to center,
-ethereal fresh atmosphere with subtle botanical glow,
-blurred abstract shapes or leaf silhouette in background,
-clean space for impactful single message,
-Korean beauty sheet mask editorial style,
-natural spa-like campaign aesthetic,
-fresh and soothing sophisticated mood,
-CRITICAL: NO TEXT NO LETTERS - visual background only
+Pure solid color or simple radial gradient background ONLY,
+soft radial gradient with white center fading to soft green edges OR solid mint fill,
+completely flat empty background - absolutely NO objects NO leaf silhouettes NO botanical glow,
+just color for message overlay,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO SHAPES NO GLOW EFFECTS NO DECORATIONS
 `.trim(),
 
   SHEET_MATERIAL: `
@@ -454,15 +445,11 @@ CRITICAL: NO TEXT NO INGREDIENT NAMES - color coding only
 `.trim(),
 
   BENEFIT_HIGHLIGHT_1: `
-Clean infographic-style background layout for sheet mask product benefits,
-organized sections for benefit icons and descriptions,
-soft green and white color blocks or gradient sections,
-space for 3-4 benefit points with icon placeholders,
-professional sheet mask ingredient benefit layout,
-Korean natural skincare brand explanation style,
-botanical yet clean approachable design,
-clean organized visual hierarchy with leaf accents,
-CRITICAL: NO TEXT NO ICONS - background layout only
+Pure solid color or simple split-tone background ONLY,
+solid light green fill OR simple two-color split (soft green and white),
+completely flat empty background - absolutely NO icons NO shapes NO leaf accents,
+just color zones for benefit text overlay,
+CRITICAL: ONLY SOLID COLORS OR SIMPLE GRADIENTS - NO ICONS NO SHAPES NO DECORATIONS NO ACCENTS
 `.trim(),
 
   INGREDIENT_TEATREE: `
@@ -491,15 +478,11 @@ CRITICAL: NO TEXT - centella visual only
 `.trim(),
 
   DIVIDER_VISUAL_1: `
-Elegant section divider visual element,
-decorative transition between sheet mask content sections,
-subtle wave pattern or flowing botanical line design in green tones,
-gradient color transition strip from white to soft mint,
-minimal leaf ornamental accent,
-Korean natural skincare beauty page design aesthetic,
-smooth visual flow element with botanical touch,
-thin horizontal decorative band,
-CRITICAL: NO TEXT - decorative visual only
+Pure solid color or simple gradient horizontal strip ONLY,
+solid soft green strip OR simple green to white gradient strip,
+completely flat empty strip - absolutely NO patterns NO wave designs NO botanical lines,
+just clean color strip for section divider,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO DECORATIONS NO LEAVES NO PATTERNS NO ORNAMENTS
 `.trim(),
 
   MODEL_WEARING: `
@@ -528,14 +511,11 @@ CRITICAL: NO TEXT NO LABELS - visual comparison only
 `.trim(),
 
   KEY_MESSAGE_2: `
-Elegant background for secondary key message,
-soft mint to white gradient with ethereal center glow,
-dreamy fresh atmosphere with subtle sparkle,
-minimal geometric frames in soft green,
-clean open space for impactful typography,
-natural K-beauty sheet mask campaign style,
-sophisticated fresh mood,
-CRITICAL: NO TEXT NO LETTERS - visual background only
+Pure solid color or simple radial gradient background ONLY,
+soft radial gradient with white center fading to mint edges OR solid sage green fill,
+completely flat empty background - absolutely NO sparkles NO geometric shapes NO frames,
+just color for secondary message overlay,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO GLOW EFFECTS NO DECORATIONS NO GEOMETRIC FRAMES
 `.trim(),
 
   INGREDIENT_HONEY: `
@@ -579,15 +559,11 @@ CRITICAL: NO TEXT - numbered circles and visuals only
 `.trim(),
 
   TEXT_BANNER_2: `
-Closing banner background for final text message,
-elegant green to white fade gradient,
-subtle botanical sparkle or light bokeh overlay effect,
-minimal abstract leaf accent elements at corners,
-professional Korean sheet mask brand closing aesthetic,
-fresh natural spa-like mood for call-to-action,
-clean composition with ample text space,
-premium natural skincare marketing closing style,
-CRITICAL: NO TEXT NO LETTERS - pure background only
+Pure solid color or simple gradient background ONLY,
+simple horizontal gradient from green to white OR solid light green fill,
+completely flat empty background - absolutely NO sparkles NO bokeh NO leaf accents,
+just clean color for closing text overlay,
+CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO DECORATIONS NO PATTERNS NO BOTANICAL ELEMENTS
 `.trim(),
 
   MASK_FIT_CLOSEUP: `
