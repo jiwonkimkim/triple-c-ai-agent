@@ -511,8 +511,15 @@ export function ImageOverlayBlockRenderer({
 
   // ★ 레이어 드래그 앤 드롭 핸들러
   const handleLayerDragStart = (e: React.DragEvent, layerId: string) => {
+    e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', layerId);
+    e.dataTransfer.setData('application/x-layer-id', layerId);
     setLayerDragId(layerId);
+    // 드래그 이미지 설정 (선택사항)
+    const dragImage = e.currentTarget as HTMLElement;
+    if (dragImage) {
+      e.dataTransfer.setDragImage(dragImage, 10, 10);
+    }
   };
 
   const handleLayerDragOver = (e: React.DragEvent, targetId: string) => {
@@ -1313,7 +1320,7 @@ export function ImageOverlayBlockRenderer({
                 {getLayerTree().map(({ layer: text, depth }) => (
                     <div
                       key={text.id}
-                      draggable={!text.isFolder}
+                      draggable={text.isFolder ? undefined : "true"}
                       onDragStart={(e) => {
                         if (text.isFolder) {
                           e.preventDefault();
@@ -1325,17 +1332,28 @@ export function ImageOverlayBlockRenderer({
                       onDragOver={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        if (text.isFolder) {
+                        if (text.isFolder && layerDragId && layerDragId !== text.id) {
+                          setLayerDropTargetId(text.id);
+                        }
+                      }}
+                      onDragEnter={(e) => {
+                        e.preventDefault();
+                        if (text.isFolder && layerDragId && layerDragId !== text.id) {
                           setLayerDropTargetId(text.id);
                         }
                       }}
                       onDragLeave={(e) => {
                         e.stopPropagation();
+                        // 자식 요소로 이동할 때는 무시
+                        const relatedTarget = e.relatedTarget as HTMLElement;
+                        if (relatedTarget && e.currentTarget.contains(relatedTarget)) {
+                          return;
+                        }
                         setLayerDropTargetId(null);
                       }}
                       onDrop={(e) => handleLayerDrop(e, text.id)}
                       className={cn(
-                        'flex items-center gap-1 py-2 transition-colors',
+                        'flex items-center gap-1 py-2 transition-colors select-none',
                         !text.isFolder && 'cursor-grab active:cursor-grabbing',
                         selectedLayerIds.has(text.id)
                           ? 'bg-blue-600/30'
@@ -1343,16 +1361,23 @@ export function ImageOverlayBlockRenderer({
                             ? 'bg-zinc-700/50'
                             : 'hover:bg-zinc-800',
                         hiddenLayerIds.has(text.id) && 'opacity-40',
-                        layerDragId === text.id && 'opacity-50 border-2 border-dashed border-blue-400',
-                        layerDropTargetId === text.id && text.isFolder && 'bg-yellow-500/30 ring-2 ring-yellow-400'
+                        layerDragId === text.id && 'opacity-50 border-2 border-dashed border-blue-400 bg-blue-900/30',
+                        layerDropTargetId === text.id && text.isFolder && 'bg-yellow-500/30 ring-2 ring-yellow-400 ring-inset'
                       )}
                       style={{ paddingLeft: `${4 + depth * 16}px`, paddingRight: '8px' }}
-                      onClick={(e) => handleLayerSelect(text.id, e.ctrlKey || e.metaKey)}
+                      onClick={(e) => {
+                        // 드래그 중이면 클릭 무시
+                        if (layerDragId) return;
+                        handleLayerSelect(text.id, e.ctrlKey || e.metaKey);
+                      }}
                     >
-                      {/* ★ 드래그 핸들 아이콘 (폴더가 아닌 경우만) */}
+                      {/* ★ 드래그 핸들 아이콘 (폴더가 아닌 경우) / 펼치기 버튼 (폴더인 경우) */}
                       {!text.isFolder ? (
-                        <div className="w-6 h-6 flex items-center justify-center text-zinc-500 hover:text-zinc-300 flex-shrink-0">
-                          <GripVertical className="h-4 w-4" />
+                        <div
+                          className="w-6 h-6 flex items-center justify-center text-zinc-500 hover:text-zinc-300 flex-shrink-0"
+                          onMouseDown={(e) => e.stopPropagation()}
+                        >
+                          <GripVertical className="h-4 w-4 pointer-events-none" />
                         </div>
                       ) : (
                         <button
@@ -1361,10 +1386,11 @@ export function ImageOverlayBlockRenderer({
                             e.stopPropagation();
                             handleToggleFolderExpand(text.id);
                           }}
+                          onMouseDown={(e) => e.stopPropagation()}
                         >
                           <ChevronRight
                             className={cn(
-                              'h-4 w-4 transition-transform',
+                              'h-4 w-4 transition-transform pointer-events-none',
                               text.isExpanded && 'rotate-90'
                             )}
                           />
@@ -1383,11 +1409,13 @@ export function ImageOverlayBlockRenderer({
                           e.stopPropagation();
                           handleToggleLayerVisibility(text.id);
                         }}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        draggable={false}
                       >
                         {hiddenLayerIds.has(text.id) ? (
-                          <EyeOff className="h-3.5 w-3.5" />
+                          <EyeOff className="h-3.5 w-3.5 pointer-events-none" />
                         ) : (
-                          <Eye className="h-3.5 w-3.5" />
+                          <Eye className="h-3.5 w-3.5 pointer-events-none" />
                         )}
                       </button>
 
@@ -1403,11 +1431,13 @@ export function ImageOverlayBlockRenderer({
                           e.stopPropagation();
                           handleToggleLayerLock(text.id);
                         }}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        draggable={false}
                       >
                         {lockedLayerIds.has(text.id) ? (
-                          <Lock className="h-3 w-3" />
+                          <Lock className="h-3 w-3 pointer-events-none" />
                         ) : (
-                          <Unlock className="h-3 w-3" />
+                          <Unlock className="h-3 w-3 pointer-events-none" />
                         )}
                       </button>
 
