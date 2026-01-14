@@ -1277,40 +1277,33 @@ export function ImageOverlayBlockRenderer({
           </div>
 
           {/* 레이어 리스트 - 트리 구조 (폴더 지원) */}
-          <div className="flex-1 overflow-y-auto">
-            {/* 드래그 중일 때 루트로 이동 드롭 영역 */}
-            {layerDragId && (
-              <div
-                className={cn(
-                  'mx-2 mt-2 mb-1 py-2 border-2 border-dashed rounded text-center text-xs transition-colors',
-                  layerDropTargetId === 'root'
-                    ? 'border-green-400 bg-green-500/20 text-green-300'
-                    : 'border-zinc-600 text-zinc-500 hover:border-zinc-500'
-                )}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setLayerDropTargetId('root');
-                }}
-                onDragLeave={() => setLayerDropTargetId(null)}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  const draggedLayerId = e.dataTransfer.getData('text/plain');
-                  if (draggedLayerId) {
-                    onUpdate({
-                      overlayTexts: block.overlayTexts.map((text) =>
-                        text.id === draggedLayerId
-                          ? { ...text, parentId: undefined }
-                          : text
-                      ),
-                    });
-                  }
-                  setLayerDragId(null);
-                  setLayerDropTargetId(null);
-                }}
-              >
-                📤 여기에 놓으면 폴더에서 꺼냄
-              </div>
-            )}
+          {/* 빈 공간에 드롭하면 폴더에서 꺼냄 */}
+          <div
+            className="flex-1 overflow-y-auto"
+            onDragOver={(e) => {
+              e.preventDefault();
+              // 폴더가 아닌 곳에 드래그 중이면 root 표시
+              if (layerDragId && !layerDropTargetId) {
+                setLayerDropTargetId('root');
+              }
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              const draggedLayerId = e.dataTransfer.getData('text/plain');
+              // 폴더 위가 아닌 빈 공간에 드롭하면 폴더에서 꺼냄
+              if (draggedLayerId && layerDropTargetId === 'root') {
+                onUpdate({
+                  overlayTexts: block.overlayTexts.map((text) =>
+                    text.id === draggedLayerId
+                      ? { ...text, parentId: undefined }
+                      : text
+                  ),
+                });
+              }
+              setLayerDragId(null);
+              setLayerDropTargetId(null);
+            }}
+          >
             {block.overlayTexts.length === 0 ? (
               <div className="text-xs text-zinc-500 text-center py-6">
                 레이어가 없습니다
@@ -1332,26 +1325,41 @@ export function ImageOverlayBlockRenderer({
                       onDragOver={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        if (text.isFolder && layerDragId && layerDragId !== text.id) {
-                          setLayerDropTargetId(text.id);
+                        if (layerDragId && layerDragId !== text.id) {
+                          // 폴더면 해당 폴더로, 아니면 root로 (폴더에서 꺼냄)
+                          setLayerDropTargetId(text.isFolder ? text.id : 'root');
                         }
                       }}
                       onDragEnter={(e) => {
                         e.preventDefault();
-                        if (text.isFolder && layerDragId && layerDragId !== text.id) {
-                          setLayerDropTargetId(text.id);
+                        e.stopPropagation();
+                        if (layerDragId && layerDragId !== text.id) {
+                          setLayerDropTargetId(text.isFolder ? text.id : 'root');
                         }
                       }}
                       onDragLeave={(e) => {
                         e.stopPropagation();
-                        // 자식 요소로 이동할 때는 무시
-                        const relatedTarget = e.relatedTarget as HTMLElement;
-                        if (relatedTarget && e.currentTarget.contains(relatedTarget)) {
-                          return;
-                        }
-                        setLayerDropTargetId(null);
                       }}
-                      onDrop={(e) => handleLayerDrop(e, text.id)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const draggedLayerId = e.dataTransfer.getData('text/plain');
+                        if (text.isFolder) {
+                          // 폴더에 드롭 -> 폴더 안으로 이동
+                          handleLayerDrop(e, text.id);
+                        } else if (draggedLayerId) {
+                          // 일반 레이어에 드롭 -> 폴더에서 꺼냄 (root로)
+                          onUpdate({
+                            overlayTexts: block.overlayTexts.map((t) =>
+                              t.id === draggedLayerId
+                                ? { ...t, parentId: undefined }
+                                : t
+                            ),
+                          });
+                          setLayerDragId(null);
+                          setLayerDropTargetId(null);
+                        }
+                      }}
                       className={cn(
                         'flex items-center gap-1 py-2 transition-colors select-none',
                         !text.isFolder && 'cursor-grab active:cursor-grabbing',
