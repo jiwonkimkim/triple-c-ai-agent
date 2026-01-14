@@ -1313,6 +1313,15 @@ export function ImageOverlayBlockRenderer({
                 {getLayerTree().map(({ layer: text, depth }) => (
                     <div
                       key={text.id}
+                      draggable={!text.isFolder}
+                      onDragStart={(e) => {
+                        if (text.isFolder) {
+                          e.preventDefault();
+                          return;
+                        }
+                        handleLayerDragStart(e, text.id);
+                      }}
+                      onDragEnd={handleLayerDragEnd}
                       onDragOver={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -1327,6 +1336,7 @@ export function ImageOverlayBlockRenderer({
                       onDrop={(e) => handleLayerDrop(e, text.id)}
                       className={cn(
                         'flex items-center gap-1 py-2 transition-colors',
+                        !text.isFolder && 'cursor-grab active:cursor-grabbing',
                         selectedLayerIds.has(text.id)
                           ? 'bg-blue-600/30'
                           : selectedTextId === text.id
@@ -1339,23 +1349,14 @@ export function ImageOverlayBlockRenderer({
                       style={{ paddingLeft: `${4 + depth * 16}px`, paddingRight: '8px' }}
                       onClick={(e) => handleLayerSelect(text.id, e.ctrlKey || e.metaKey)}
                     >
-                      {/* ★ 드래그 핸들 (폴더가 아닌 경우만) */}
+                      {/* ★ 드래그 핸들 아이콘 (폴더가 아닌 경우만) */}
                       {!text.isFolder ? (
-                        <div
-                          draggable
-                          onDragStart={(e) => {
-                            e.stopPropagation();
-                            handleLayerDragStart(e, text.id);
-                          }}
-                          onDragEnd={handleLayerDragEnd}
-                          className="w-5 h-5 flex items-center justify-center cursor-grab active:cursor-grabbing text-zinc-500 hover:text-zinc-300"
-                          title="드래그하여 폴더로 이동"
-                        >
-                          <GripVertical className="h-3.5 w-3.5" />
+                        <div className="w-6 h-6 flex items-center justify-center text-zinc-500 hover:text-zinc-300 flex-shrink-0">
+                          <GripVertical className="h-4 w-4" />
                         </div>
                       ) : (
                         <button
-                          className="w-5 h-5 flex items-center justify-center text-yellow-400 hover:text-yellow-300"
+                          className="w-6 h-6 flex items-center justify-center text-yellow-400 hover:text-yellow-300 flex-shrink-0"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleToggleFolderExpand(text.id);
@@ -1363,7 +1364,7 @@ export function ImageOverlayBlockRenderer({
                         >
                           <ChevronRight
                             className={cn(
-                              'h-3.5 w-3.5 transition-transform',
+                              'h-4 w-4 transition-transform',
                               text.isExpanded && 'rotate-90'
                             )}
                           />
