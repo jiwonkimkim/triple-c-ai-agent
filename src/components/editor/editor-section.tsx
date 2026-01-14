@@ -229,7 +229,7 @@ export function EditorSection({
         'flex items-center justify-between px-4 py-2 border-b',
         isMain
           ? 'bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-t-xl'
-          : 'bg-muted/50'
+          : 'bg-muted/50 rounded-t-lg'
       )}>
         <div className="flex items-center gap-2">
           {!isMain && <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab" />}
