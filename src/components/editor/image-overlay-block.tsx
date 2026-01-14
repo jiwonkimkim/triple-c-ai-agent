@@ -780,17 +780,31 @@ export function ImageOverlayBlockRenderer({
         </div>
       )}
 
-      {/* 선택된 텍스트 편집 패널 */}
+      {/* 선택된 텍스트 편집 패널 - 섹션 왼쪽에 위치 */}
       {isSelected && selectedText && (
-        <div className="absolute bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t p-3 space-y-3">
-          {/* 첫 번째 줄: 폰트 & 크기 */}
-          <div className="flex gap-2 items-center">
-            {/* 폰트 선택 */}
+        <div className="absolute top-0 right-full mr-2 w-48 bg-background/95 backdrop-blur border rounded-lg shadow-lg p-3 space-y-3 max-h-[90vh] overflow-y-auto">
+          {/* 헤더 */}
+          <div className="flex items-center justify-between border-b pb-2">
+            <span className="text-xs font-medium">텍스트 편집</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 text-destructive hover:text-destructive"
+              onClick={() => handleDeleteOverlayText(selectedTextId!)}
+              title="텍스트 삭제"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+
+          {/* 폰트 선택 */}
+          <div className="space-y-1.5">
+            <label className="text-xs text-muted-foreground">폰트</label>
             <Select
               value={selectedText.style.fontFamily || 'Pretendard, sans-serif'}
               onValueChange={(value) => handleUpdateStyle(selectedTextId!, { fontFamily: value })}
             >
-              <SelectTrigger className="w-36 h-8 text-xs">
+              <SelectTrigger className="w-full h-8 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -801,61 +815,71 @@ export function ImageOverlayBlockRenderer({
                 ))}
               </SelectContent>
             </Select>
-
-            {/* 폰트 크기 */}
-            <div className="flex items-center gap-1">
-              <Input
-                type="number"
-                value={selectedText.style.fontSize || 16}
-                onChange={(e) => handleUpdateStyle(selectedTextId!, { fontSize: Number(e.target.value) })}
-                className="w-16 h-8 text-xs"
-                min={8}
-                max={200}
-              />
-              <span className="text-xs text-muted-foreground">px</span>
-            </div>
-
-            {/* 굵기 */}
-            <Select
-              value={selectedText.style.fontWeight || 'normal'}
-              onValueChange={(value) => handleUpdateStyle(selectedTextId!, { fontWeight: value as 'normal' | 'medium' | 'semibold' | 'bold' })}
-            >
-              <SelectTrigger className="w-24 h-8 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="normal">
-                  <span style={{ fontWeight: 400 }}>Regular</span>
-                </SelectItem>
-                <SelectItem value="medium">
-                  <span style={{ fontWeight: 500 }}>Medium</span>
-                </SelectItem>
-                <SelectItem value="semibold">
-                  <span style={{ fontWeight: 600 }}>Semibold</span>
-                </SelectItem>
-                <SelectItem value="bold">
-                  <span style={{ fontWeight: 700 }}>Bold</span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* 색상 */}
-            <input
-              type="color"
-              value={selectedText.style.color || '#ffffff'}
-              onChange={(e) => handleUpdateStyle(selectedTextId!, { color: e.target.value })}
-              className="w-8 h-8 rounded cursor-pointer border"
-              title="텍스트 색상"
-            />
           </div>
 
-          {/* 두 번째 줄: 정렬 & 너비 */}
-          <div className="flex gap-2 items-center">
-            {/* 정렬 */}
-            <div className="flex border rounded">
+          {/* 크기 & 굵기 */}
+          <div className="flex gap-2">
+            <div className="flex-1 space-y-1.5">
+              <label className="text-xs text-muted-foreground">크기</label>
+              <div className="flex items-center gap-1">
+                <Input
+                  type="number"
+                  value={selectedText.style.fontSize || 16}
+                  onChange={(e) => handleUpdateStyle(selectedTextId!, { fontSize: Number(e.target.value) })}
+                  className="w-full h-8 text-xs"
+                  min={8}
+                  max={200}
+                />
+                <span className="text-xs text-muted-foreground">px</span>
+              </div>
+            </div>
+            <div className="flex-1 space-y-1.5">
+              <label className="text-xs text-muted-foreground">굵기</label>
+              <Select
+                value={selectedText.style.fontWeight || 'normal'}
+                onValueChange={(value) => handleUpdateStyle(selectedTextId!, { fontWeight: value as 'normal' | 'medium' | 'semibold' | 'bold' })}
+              >
+                <SelectTrigger className="w-full h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="normal">Regular</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="semibold">Semibold</SelectItem>
+                  <SelectItem value="bold">Bold</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* 색상 */}
+          <div className="space-y-1.5">
+            <label className="text-xs text-muted-foreground">색상</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={selectedText.style.color || '#ffffff'}
+                onChange={(e) => handleUpdateStyle(selectedTextId!, { color: e.target.value })}
+                className="w-8 h-8 rounded cursor-pointer border flex-shrink-0"
+                title="텍스트 색상"
+              />
+              <Input
+                type="text"
+                value={selectedText.style.color || '#ffffff'}
+                onChange={(e) => handleUpdateStyle(selectedTextId!, { color: e.target.value })}
+                className="flex-1 h-8 text-xs font-mono"
+                placeholder="#ffffff"
+              />
+            </div>
+          </div>
+
+          {/* 정렬 */}
+          <div className="space-y-1.5">
+            <label className="text-xs text-muted-foreground">정렬</label>
+            <div className="flex border rounded w-full">
               <button
                 className={cn(
-                  'p-1.5',
+                  'flex-1 p-1.5 flex justify-center',
                   selectedText.style.textAlign === 'left' && 'bg-primary text-primary-foreground'
                 )}
                 onClick={() => handleUpdateStyle(selectedTextId!, { textAlign: 'left' })}
@@ -865,7 +889,7 @@ export function ImageOverlayBlockRenderer({
               </button>
               <button
                 className={cn(
-                  'p-1.5',
+                  'flex-1 p-1.5 flex justify-center',
                   selectedText.style.textAlign === 'center' && 'bg-primary text-primary-foreground'
                 )}
                 onClick={() => handleUpdateStyle(selectedTextId!, { textAlign: 'center' })}
@@ -875,7 +899,7 @@ export function ImageOverlayBlockRenderer({
               </button>
               <button
                 className={cn(
-                  'p-1.5',
+                  'flex-1 p-1.5 flex justify-center',
                   selectedText.style.textAlign === 'right' && 'bg-primary text-primary-foreground'
                 )}
                 onClick={() => handleUpdateStyle(selectedTextId!, { textAlign: 'right' })}
@@ -884,17 +908,19 @@ export function ImageOverlayBlockRenderer({
                 <AlignRight className="h-4 w-4" />
               </button>
             </div>
+          </div>
 
-            {/* 텍스트 박스 너비 */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs text-muted-foreground whitespace-nowrap">너비</span>
+          {/* 너비 */}
+          <div className="space-y-1.5">
+            <label className="text-xs text-muted-foreground">텍스트 박스 너비</label>
+            <div className="flex items-center gap-2">
               <Slider
                 value={[selectedText.style.width || 0]}
                 onValueChange={([value]) => handleUpdateStyle(selectedTextId!, { width: value === 0 ? undefined : value })}
                 min={0}
                 max={100}
                 step={1}
-                className="w-24"
+                className="flex-1"
               />
               <Input
                 type="number"
@@ -910,21 +936,12 @@ export function ImageOverlayBlockRenderer({
               />
               <span className="text-xs text-muted-foreground">%</span>
             </div>
+          </div>
 
-            {/* 텍스트 그림자 */}
-            <button
-              className={cn(
-                'px-2 py-1 text-xs border rounded',
-                selectedText.style.textShadow && 'bg-primary text-primary-foreground'
-              )}
-              onClick={() => handleUpdateStyle(selectedTextId!, { textShadow: !selectedText.style.textShadow })}
-            >
-              그림자
-            </button>
-
-            {/* 투명도 */}
-            <div className="flex items-center gap-2 flex-1">
-              <span className="text-xs text-muted-foreground">투명도</span>
+          {/* 투명도 */}
+          <div className="space-y-1.5">
+            <label className="text-xs text-muted-foreground">투명도</label>
+            <div className="flex items-center gap-2">
               <Slider
                 value={[selectedText.style.opacity || 100]}
                 onValueChange={([value]) => handleUpdateStyle(selectedTextId!, { opacity: value })}
@@ -933,18 +950,22 @@ export function ImageOverlayBlockRenderer({
                 step={1}
                 className="flex-1"
               />
-              <span className="text-xs w-8">{selectedText.style.opacity || 100}%</span>
+              <span className="text-xs w-10 text-right">{selectedText.style.opacity || 100}%</span>
             </div>
+          </div>
 
-            {/* 삭제 */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-destructive hover:text-destructive"
-              onClick={() => handleDeleteOverlayText(selectedTextId!)}
+          {/* 그림자 토글 */}
+          <div className="flex items-center justify-between">
+            <label className="text-xs text-muted-foreground">텍스트 그림자</label>
+            <button
+              className={cn(
+                'px-3 py-1 text-xs border rounded transition-colors',
+                selectedText.style.textShadow ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
+              )}
+              onClick={() => handleUpdateStyle(selectedTextId!, { textShadow: !selectedText.style.textShadow })}
             >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+              {selectedText.style.textShadow ? 'ON' : 'OFF'}
+            </button>
           </div>
         </div>
       )}
