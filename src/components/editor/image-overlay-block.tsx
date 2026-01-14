@@ -780,9 +780,9 @@ export function ImageOverlayBlockRenderer({
         </div>
       )}
 
-      {/* 선택된 텍스트 편집 패널 - 섹션 왼쪽에 위치 */}
+      {/* 선택된 텍스트 편집 패널 - 에디터 왼쪽에 고정 위치 */}
       {isSelected && selectedText && (
-        <div className="absolute top-0 right-full mr-2 w-48 bg-background/95 backdrop-blur border rounded-lg shadow-lg p-3 space-y-3 max-h-[90vh] overflow-y-auto">
+        <div className="fixed top-20 left-4 w-52 bg-background/95 backdrop-blur border rounded-lg shadow-xl p-3 space-y-3 max-h-[calc(100vh-6rem)] overflow-y-auto z-50">
           {/* 헤더 */}
           <div className="flex items-center justify-between border-b pb-2">
             <span className="text-xs font-medium">텍스트 편집</span>
