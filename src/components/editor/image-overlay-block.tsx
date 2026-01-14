@@ -510,6 +510,17 @@ export function ImageOverlayBlockRenderer({
     return false;
   }, [hiddenLayerIds, block.overlayTexts]);
 
+  // ★ 다음 폴더 번호 계산
+  const getNextFolderNumber = useCallback(() => {
+    const folderNumbers = block.overlayTexts
+      .filter((t) => t.isFolder)
+      .map((t) => {
+        const match = t.content.match(/^레이어\s*(\d+)$/);
+        return match ? parseInt(match[1], 10) : 0;
+      });
+    return Math.max(0, ...folderNumbers) + 1;
+  }, [block.overlayTexts]);
+
   // ★ 레이어 드래그 앤 드롭 핸들러 (마우스 이벤트 기반)
   const handleLayerMouseDown = useCallback((e: React.MouseEvent, layerId: string) => {
     // 버튼 클릭은 무시
@@ -592,10 +603,11 @@ export function ImageOverlayBlockRenderer({
       } else if (targetLayer && draggedLayer && !draggedLayer.isFolder) {
         // ★ 일반 레이어에 드롭 -> 새 폴더 생성 후 모든 레이어 합침
         const newFolderId = `folder-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const folderNumber = getNextFolderNumber();
         const newFolder: OverlayText = {
           id: newFolderId,
           type: 'folder',
-          content: '새 폴더',
+          content: `레이어 ${folderNumber}`,
           style: {
             x: 0,
             y: 0,
@@ -639,7 +651,7 @@ export function ImageOverlayBlockRenderer({
     if (selectedLayerIds.size > 1) {
       setSelectedLayerIds(new Set());
     }
-  }, [isLayerDragging, layerDragId, layerDropTargetId, block.overlayTexts, onUpdate, selectedLayerIds]);
+  }, [isLayerDragging, layerDragId, layerDropTargetId, block.overlayTexts, onUpdate, selectedLayerIds, getNextFolderNumber]);
 
   // 레이어 드래그 마우스 이벤트 등록
   useEffect(() => {
@@ -760,10 +772,11 @@ export function ImageOverlayBlockRenderer({
   // ★ 폴더 레이어 생성
   const handleCreateFolder = () => {
     const maxZIndex = Math.max(...block.overlayTexts.map((t) => t.zIndex || 0), 0);
+    const folderNumber = getNextFolderNumber();
     const newFolder: OverlayText = {
       id: generateId(),
       type: 'folder',
-      content: '새 폴더',
+      content: `레이어 ${folderNumber}`,
       style: {
         x: 50,
         y: 50,
