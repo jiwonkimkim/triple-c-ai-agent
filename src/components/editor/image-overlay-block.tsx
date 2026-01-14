@@ -190,6 +190,8 @@ export function ImageOverlayBlockRenderer({
   const [showLayerPanel, setShowLayerPanel] = useState(false);
   const [hiddenLayerIds, setHiddenLayerIds] = useState<Set<string>>(new Set());
   const [lockedLayerIds, setLockedLayerIds] = useState<Set<string>>(new Set()); // 잠금 상태
+  const [layerDragId, setLayerDragId] = useState<string | null>(null); // 레이어 패널 드래그 중인 레이어
+  const [layerDropTargetId, setLayerDropTargetId] = useState<string | null>(null); // 드롭 대상 폴더
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [resizeDirection, setResizeDirection] = useState<'left' | 'right' | 'both' | 'corner-tl' | 'corner-tr' | 'corner-bl' | 'corner-br'>('both');
@@ -492,6 +494,81 @@ export function ImageOverlayBlockRenderer({
     });
   };
 
+  // ★ 레이어가 숨겨져 있는지 확인 (부모 폴더 포함)
+  const isLayerHidden = useCallback((layerId: string): boolean => {
+    // 직접 숨겨진 경우
+    if (hiddenLayerIds.has(layerId)) return true;
+
+    // 부모 폴더가 숨겨진 경우 재귀적으로 확인
+    const layer = block.overlayTexts.find((t) => t.id === layerId);
+    if (layer?.parentId) {
+      return isLayerHidden(layer.parentId);
+    }
+
+    return false;
+  }, [hiddenLayerIds, block.overlayTexts]);
+
+  // ★ 레이어 드래그 앤 드롭 핸들러
+  const handleLayerDragStart = (e: React.DragEvent, layerId: string) => {
+    e.dataTransfer.setData('text/plain', layerId);
+    setLayerDragId(layerId);
+  };
+
+  const handleLayerDragOver = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    const targetLayer = block.overlayTexts.find((t) => t.id === targetId);
+    // 폴더에만 드롭 가능
+    if (targetLayer?.isFolder) {
+      setLayerDropTargetId(targetId);
+    }
+  };
+
+  const handleLayerDragLeave = () => {
+    setLayerDropTargetId(null);
+  };
+
+  const handleLayerDrop = (e: React.DragEvent, targetFolderId: string) => {
+    e.preventDefault();
+    const draggedLayerId = e.dataTransfer.getData('text/plain');
+
+    if (!draggedLayerId || draggedLayerId === targetFolderId) {
+      setLayerDragId(null);
+      setLayerDropTargetId(null);
+      return;
+    }
+
+    // 자기 자신의 하위 폴더로 이동 방지
+    const isDescendant = (parentId: string, childId: string): boolean => {
+      const child = block.overlayTexts.find((t) => t.id === childId);
+      if (!child?.parentId) return false;
+      if (child.parentId === parentId) return true;
+      return isDescendant(parentId, child.parentId);
+    };
+
+    if (isDescendant(draggedLayerId, targetFolderId)) {
+      setLayerDragId(null);
+      setLayerDropTargetId(null);
+      return;
+    }
+
+    // 폴더로 이동
+    onUpdate({
+      overlayTexts: block.overlayTexts.map((text) =>
+        text.id === draggedLayerId
+          ? { ...text, parentId: targetFolderId }
+          : text
+      ),
+    });
+
+    setLayerDragId(null);
+    setLayerDropTargetId(null);
+  };
+
+  const handleLayerDragEnd = () => {
+    setLayerDragId(null);
+    setLayerDropTargetId(null);
+  };
+
   // 레이어 잠금/잠금해제 토글
   const handleToggleLayerLock = (textId: string) => {
     setLockedLayerIds((prev) => {
@@ -769,7 +846,7 @@ export function ImageOverlayBlockRenderer({
 
         {/* 오버레이 텍스트들 (레이어) - 숨겨진 레이어 제외 */}
         {block.overlayTexts
-          .filter((t) => !hiddenLayerIds.has(t.id))
+          .filter((t) => !t.isFolder && !isLayerHidden(t.id))
           .sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0))
           .map((overlayText) => (
             <div
@@ -1189,6 +1266,12 @@ export function ImageOverlayBlockRenderer({
                 {getLayerTree().map(({ layer: text, depth }) => (
                     <div
                       key={text.id}
+                      draggable={!text.isFolder} // 폴더가 아닌 레이어만 드래그 가능
+                      onDragStart={(e) => handleLayerDragStart(e, text.id)}
+                      onDragOver={(e) => handleLayerDragOver(e, text.id)}
+                      onDragLeave={handleLayerDragLeave}
+                      onDrop={(e) => handleLayerDrop(e, text.id)}
+                      onDragEnd={handleLayerDragEnd}
                       className={cn(
                         'flex items-center gap-1 py-2 cursor-pointer transition-colors',
                         selectedLayerIds.has(text.id)
@@ -1196,7 +1279,9 @@ export function ImageOverlayBlockRenderer({
                           : selectedTextId === text.id
                             ? 'bg-zinc-700/50'
                             : 'hover:bg-zinc-800',
-                        hiddenLayerIds.has(text.id) && 'opacity-40'
+                        hiddenLayerIds.has(text.id) && 'opacity-40',
+                        layerDragId === text.id && 'opacity-50',
+                        layerDropTargetId === text.id && text.isFolder && 'bg-yellow-500/30 ring-2 ring-yellow-400'
                       )}
                       style={{ paddingLeft: `${8 + depth * 16}px`, paddingRight: '8px' }}
                       onClick={(e) => handleLayerSelect(text.id, e.ctrlKey || e.metaKey)}
