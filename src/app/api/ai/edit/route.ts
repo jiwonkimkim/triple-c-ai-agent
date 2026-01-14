@@ -234,9 +234,25 @@ export async function POST(request: NextRequest) {
     console.log('[AI Edit] Request body:', {
       message: message?.substring(0, 50),
       hasTargetElement: !!targetElement,
+      targetElementType: targetElement?.type,
       allElementsCount: allElements?.length,
+      allElementsTypes: allElements?.map(el => el.type),
       editType,
     });
+
+    // 🔍 DEBUG: 섹션 미선택 시 allElements 상세 로그
+    if (!targetElement && allElements) {
+      console.log('[AI Edit] 🔍 DEBUG - No target, processing allElements:', {
+        totalCount: allElements.length,
+        elementDetails: allElements.map(el => ({
+          id: el.id?.substring(0, 8),
+          type: el.type,
+          hasContent: !!el.content,
+          hasOverlayTexts: !!el.overlayTexts,
+          overlayTextsCount: el.overlayTexts?.length,
+        })),
+      });
+    }
 
     if (!message?.trim()) {
       console.log('[AI Edit] Empty message');
@@ -401,15 +417,36 @@ export async function POST(request: NextRequest) {
         updatedElement: { content: result },
       });
     } else if (allElements) {
+      // 🔍 DEBUG: 전체 페이지 수정 진입
+      console.log('[AI Edit] 🔍 DEBUG - Entering allElements branch (full page edit)');
+
       // 전체 페이지 수정 - 텍스트 요소 및 image-overlay 블록 포함
       const editableElements = allElements.filter(
         (el) => el.type === 'text' || el.type === 'heading' || el.type === 'image-overlay'
       );
       console.log('[AI Edit] Filtering elements: total', allElements.length, '-> editable', editableElements.length);
 
+      // 🔍 DEBUG: 필터링된 요소 상세
+      console.log('[AI Edit] 🔍 DEBUG - Editable elements:', editableElements.map(el => ({
+        id: el.id?.substring(0, 8),
+        type: el.type,
+      })));
+
+      if (editableElements.length === 0) {
+        console.log('[AI Edit] 🔍 DEBUG - No editable elements found!');
+        return NextResponse.json({
+          success: false,
+          error: '편집 가능한 요소가 없습니다'
+        }, { status: 400 });
+      }
+
       const prompt = buildFullPageEditPrompt(message, editableElements);
       console.log('[AI Edit] Full page prompt length:', prompt.length, 'chars');
+      console.log('[AI Edit] 🔍 DEBUG - Prompt preview:', prompt.substring(0, 200));
+
       const result = await callAI(prompt, provider!);
+      console.log('[AI Edit] 🔍 DEBUG - AI result length:', result.length);
+      console.log('[AI Edit] 🔍 DEBUG - AI result preview:', result.substring(0, 300));
 
       try {
         // Clean up markdown code blocks if present
@@ -424,7 +461,11 @@ export async function POST(request: NextRequest) {
         }
         cleanResult = cleanResult.trim();
 
+        console.log('[AI Edit] 🔍 DEBUG - Clean result preview:', cleanResult.substring(0, 200));
+
         const updatedElements = JSON.parse(cleanResult);
+        console.log('[AI Edit] 🔍 DEBUG - Parsed elements count:', updatedElements?.length);
+
         // 원본 요소와 병합
         const updatedMap = new Map<string, EditableElement>(
           updatedElements.map((el: EditableElement) => [el.id, el])
@@ -449,11 +490,19 @@ export async function POST(request: NextRequest) {
           }
           return el;
         });
+
+        console.log('[AI Edit] 🔍 DEBUG - Merged elements count:', mergedElements.length);
+        console.log('[AI Edit] 🔍 DEBUG - Returning success response with updatedElements');
+
         return NextResponse.json({
           success: true,
           updatedElements: mergedElements,
         });
-      } catch {
+      } catch (parseError) {
+        // 🔍 DEBUG: JSON 파싱 실패
+        console.log('[AI Edit] 🔍 DEBUG - JSON parse failed:', parseError);
+        console.log('[AI Edit] 🔍 DEBUG - Using fallback (adding 수정됨 suffix)');
+
         // JSON 파싱 실패 시 텍스트 요소들만 수정
         const updatedElements = allElements.map((el) => {
           if (el.type === 'text' || el.type === 'heading') {
