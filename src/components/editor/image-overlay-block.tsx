@@ -1289,9 +1289,9 @@ export function ImageOverlayBlockRenderer({
             }}
             onDrop={(e) => {
               e.preventDefault();
-              const draggedLayerId = e.dataTransfer.getData('text/plain');
+              const draggedLayerId = e.dataTransfer.getData('text/plain') || layerDragId;
               // 폴더 위가 아닌 빈 공간에 드롭하면 폴더에서 꺼냄
-              if (draggedLayerId && layerDropTargetId === 'root') {
+              if (draggedLayerId && (layerDropTargetId === 'root' || !layerDropTargetId)) {
                 onUpdate({
                   overlayTexts: block.overlayTexts.map((text) =>
                     text.id === draggedLayerId
@@ -1343,11 +1343,28 @@ export function ImageOverlayBlockRenderer({
                       onDrop={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        const draggedLayerId = e.dataTransfer.getData('text/plain');
+                        const draggedLayerId = e.dataTransfer.getData('text/plain') || layerDragId;
+
+                        if (!draggedLayerId || draggedLayerId === text.id) {
+                          setLayerDragId(null);
+                          setLayerDropTargetId(null);
+                          return;
+                        }
+
                         if (text.isFolder) {
-                          // 폴더에 드롭 -> 폴더 안으로 이동
-                          handleLayerDrop(e, text.id);
-                        } else if (draggedLayerId) {
+                          // 폴더에 드롭 -> 폴더 안으로 이동 + 폴더 자동 펼치기
+                          onUpdate({
+                            overlayTexts: block.overlayTexts.map((t) => {
+                              if (t.id === draggedLayerId) {
+                                return { ...t, parentId: text.id };
+                              }
+                              if (t.id === text.id && !t.isExpanded) {
+                                return { ...t, isExpanded: true };
+                              }
+                              return t;
+                            }),
+                          });
+                        } else {
                           // 일반 레이어에 드롭 -> 폴더에서 꺼냄 (root로)
                           onUpdate({
                             overlayTexts: block.overlayTexts.map((t) =>
@@ -1356,9 +1373,9 @@ export function ImageOverlayBlockRenderer({
                                 : t
                             ),
                           });
-                          setLayerDragId(null);
-                          setLayerDropTargetId(null);
                         }
+                        setLayerDragId(null);
+                        setLayerDropTargetId(null);
                       }}
                       className={cn(
                         'flex items-center gap-1 py-2 transition-colors select-none',
