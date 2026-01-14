@@ -1274,6 +1274,14 @@ export function ImageOverlayBlockRenderer({
             ))}
           </div>
 
+          {/* 드래그 중 상태 표시 */}
+          {isLayerDragging && layerDragId && (
+            <div className="mx-2 mb-1 py-1.5 px-3 bg-blue-500/20 border border-blue-400/50 rounded text-xs text-blue-300 flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
+              <span>이동 중... 폴더에 놓으면 이동, 다른 곳에 놓으면 꺼냄</span>
+            </div>
+          )}
+
           {/* 레이어 리스트 - 트리 구조 (폴더 지원) */}
           <div className="flex-1 overflow-y-auto">
             {block.overlayTexts.length === 0 ? (
@@ -1292,15 +1300,14 @@ export function ImageOverlayBlockRenderer({
                         }
                       }}
                       className={cn(
-                        'flex items-center gap-1 py-2 transition-colors select-none',
-                        !text.isFolder && 'cursor-grab active:cursor-grabbing',
+                        'flex items-center gap-1 py-2 transition-colors select-none cursor-default',
                         selectedLayerIds.has(text.id)
                           ? 'bg-blue-600/30'
                           : selectedTextId === text.id
                             ? 'bg-zinc-700/50'
                             : 'hover:bg-zinc-800',
                         hiddenLayerIds.has(text.id) && 'opacity-40',
-                        layerDragId === text.id && 'opacity-50 border-2 border-dashed border-blue-400 bg-blue-900/30',
+                        layerDragId === text.id && 'opacity-60 bg-blue-500/40 ring-2 ring-blue-400 scale-[1.02] shadow-lg z-10',
                         layerDropTargetId === text.id && text.isFolder && 'bg-yellow-500/30 ring-2 ring-yellow-400 ring-inset'
                       )}
                       style={{ paddingLeft: `${4 + depth * 16}px`, paddingRight: '8px' }}
