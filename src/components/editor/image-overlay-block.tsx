@@ -42,6 +42,8 @@ import {
   Bold,
   Upload,
   X,
+  Paintbrush,
+  ClipboardPaste,
 } from 'lucide-react';
 import type { ImageOverlayBlock, OverlayText, OverlayTextStyle } from '@/stores/editor-store';
 
@@ -165,8 +167,33 @@ export function ImageOverlayBlockRenderer({
   const [resizeStartFontSize, setResizeStartFontSize] = useState(0);
   const [resizeStartPosX, setResizeStartPosX] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
+  const [copiedStyle, setCopiedStyle] = useState<Partial<OverlayTextStyle> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 서식 복사 - 위치(x, y)는 제외하고 스타일만 복사
+  const handleCopyStyle = useCallback(() => {
+    if (!selectedTextId) return;
+    const text = block.overlayTexts.find(t => t.id === selectedTextId);
+    if (!text) return;
+
+    // 위치와 크기 정보는 제외하고 순수 스타일만 복사
+    const { x, y, width, ...styleOnly } = text.style;
+    setCopiedStyle(styleOnly);
+  }, [selectedTextId, block.overlayTexts]);
+
+  // 서식 붙여넣기
+  const handlePasteStyle = useCallback(() => {
+    if (!selectedTextId || !copiedStyle) return;
+
+    onUpdate({
+      overlayTexts: block.overlayTexts.map((text) =>
+        text.id === selectedTextId
+          ? { ...text, style: { ...text.style, ...copiedStyle } }
+          : text
+      ),
+    });
+  }, [selectedTextId, copiedStyle, block.overlayTexts, onUpdate]);
 
   // 드래그 시작
   const handleDragStart = useCallback((e: React.MouseEvent, textId: string) => {
@@ -793,7 +820,32 @@ export function ImageOverlayBlockRenderer({
           {/* 헤더 */}
           <div className="flex items-center justify-between border-b pb-2">
             <span className="text-xs font-medium">텍스트 편집</span>
-            <div className="flex gap-1">
+            <div className="flex gap-0.5">
+              {/* 서식 복사 */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "h-6 w-6",
+                  copiedStyle && "text-primary"
+                )}
+                onClick={handleCopyStyle}
+                title="서식 복사"
+              >
+                <Paintbrush className="h-3.5 w-3.5" />
+              </Button>
+              {/* 서식 붙여넣기 */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={handlePasteStyle}
+                disabled={!copiedStyle}
+                title={copiedStyle ? "서식 붙여넣기" : "복사된 서식 없음"}
+              >
+                <ClipboardPaste className="h-3.5 w-3.5" />
+              </Button>
+              {/* 삭제 */}
               <Button
                 variant="ghost"
                 size="icon"
@@ -803,6 +855,7 @@ export function ImageOverlayBlockRenderer({
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
+              {/* 닫기 */}
               <Button
                 variant="ghost"
                 size="icon"
