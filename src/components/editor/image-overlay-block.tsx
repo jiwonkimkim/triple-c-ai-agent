@@ -715,7 +715,7 @@ export function ImageOverlayBlockRenderer({
   return (
     <div
       className={cn(
-        'relative rounded-lg transition-all',
+        'relative transition-all',
         isSelected && 'ring-2 ring-primary'
       )}
       onClick={onSelect}
