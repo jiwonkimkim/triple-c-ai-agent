@@ -54,6 +54,7 @@ import {
   FolderOpen,
   ChevronRight,
   CornerDownRight,
+  GripVertical,
 } from 'lucide-react';
 import type { ImageOverlayBlock, OverlayText, OverlayTextStyle } from '@/stores/editor-store';
 
@@ -1312,28 +1313,47 @@ export function ImageOverlayBlockRenderer({
                 {getLayerTree().map(({ layer: text, depth }) => (
                     <div
                       key={text.id}
-                      draggable={!text.isFolder} // 폴더가 아닌 레이어만 드래그 가능
-                      onDragStart={(e) => handleLayerDragStart(e, text.id)}
-                      onDragOver={(e) => handleLayerDragOver(e, text.id)}
-                      onDragLeave={handleLayerDragLeave}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (text.isFolder) {
+                          setLayerDropTargetId(text.id);
+                        }
+                      }}
+                      onDragLeave={(e) => {
+                        e.stopPropagation();
+                        setLayerDropTargetId(null);
+                      }}
                       onDrop={(e) => handleLayerDrop(e, text.id)}
-                      onDragEnd={handleLayerDragEnd}
                       className={cn(
-                        'flex items-center gap-1 py-2 cursor-pointer transition-colors',
+                        'flex items-center gap-1 py-2 transition-colors',
                         selectedLayerIds.has(text.id)
                           ? 'bg-blue-600/30'
                           : selectedTextId === text.id
                             ? 'bg-zinc-700/50'
                             : 'hover:bg-zinc-800',
                         hiddenLayerIds.has(text.id) && 'opacity-40',
-                        layerDragId === text.id && 'opacity-50',
+                        layerDragId === text.id && 'opacity-50 border-2 border-dashed border-blue-400',
                         layerDropTargetId === text.id && text.isFolder && 'bg-yellow-500/30 ring-2 ring-yellow-400'
                       )}
-                      style={{ paddingLeft: `${8 + depth * 16}px`, paddingRight: '8px' }}
+                      style={{ paddingLeft: `${4 + depth * 16}px`, paddingRight: '8px' }}
                       onClick={(e) => handleLayerSelect(text.id, e.ctrlKey || e.metaKey)}
                     >
-                      {/* ★ 폴더 펼치기/접기 버튼 (폴더인 경우만) */}
-                      {text.isFolder ? (
+                      {/* ★ 드래그 핸들 (폴더가 아닌 경우만) */}
+                      {!text.isFolder ? (
+                        <div
+                          draggable
+                          onDragStart={(e) => {
+                            e.stopPropagation();
+                            handleLayerDragStart(e, text.id);
+                          }}
+                          onDragEnd={handleLayerDragEnd}
+                          className="w-5 h-5 flex items-center justify-center cursor-grab active:cursor-grabbing text-zinc-500 hover:text-zinc-300"
+                          title="드래그하여 폴더로 이동"
+                        >
+                          <GripVertical className="h-3.5 w-3.5" />
+                        </div>
+                      ) : (
                         <button
                           className="w-5 h-5 flex items-center justify-center text-yellow-400 hover:text-yellow-300"
                           onClick={(e) => {
@@ -1348,8 +1368,6 @@ export function ImageOverlayBlockRenderer({
                             )}
                           />
                         </button>
-                      ) : (
-                        <div className="w-5" /> // 폴더 아닌 경우 여백
                       )}
 
                       {/* 가시성 토글 */}
