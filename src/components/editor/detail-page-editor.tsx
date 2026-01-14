@@ -1380,6 +1380,7 @@ export function DetailPageEditor({
       <div className="flex flex-1 overflow-hidden">
         {/* Editor canvas */}
         <div
+          id="editor-scroll-area"
           className="relative flex-1 overflow-y-auto bg-muted/30 p-6"
           onClick={() => {
             selectBlock(null);

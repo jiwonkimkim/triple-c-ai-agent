@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -814,10 +815,9 @@ export function ImageOverlayBlockRenderer({
         </div>
       )}
 
-      {/* 선택된 텍스트 편집 패널 - 텍스트 선택 시에만 팝업으로 표시 */}
-      {/* top-52 = 208px: 대시보드 헤더(64px) + 메인 패딩(24px) + ProjectHeader(60px) + EditorToolbar(52px) + 여유(8px) */}
-      {isSelected && selectedText && (
-        <div className="fixed top-52 bottom-4 left-4 w-52 bg-background/95 backdrop-blur border rounded-lg shadow-xl p-3 space-y-3 overflow-y-auto z-50">
+      {/* 선택된 텍스트 편집 패널 - 에디터 스크롤 영역 내 sticky 배치 */}
+      {isSelected && selectedText && typeof document !== 'undefined' && document.getElementById('editor-scroll-area') && createPortal(
+        <div className="sticky top-4 left-4 w-52 max-h-[calc(100vh-16rem)] bg-background/95 backdrop-blur border rounded-lg shadow-xl p-3 space-y-3 overflow-y-auto z-50 float-left mr-4">
           {/* 헤더 */}
           <div className="flex items-center justify-between border-b pb-2">
             <span className="text-xs font-medium">텍스트 편집</span>
@@ -1039,7 +1039,8 @@ export function ImageOverlayBlockRenderer({
               {selectedText.style.textShadow ? 'ON' : 'OFF'}
             </button>
           </div>
-        </div>
+        </div>,
+        document.getElementById('editor-scroll-area')!
       )}
     </div>
   );
