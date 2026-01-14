@@ -243,8 +243,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: '수정 요청을 입력해주세요' }, { status: 400 });
     }
 
-    // 이미지 편집 요청 처리 (editType이 image이거나 메시지에서 이미지 관련 키워드 감지)
-    const shouldEditImage = editType === 'image' || editType === 'both' || isImageEditRequest(message);
+    // 이미지 편집 요청 처리 (editType이 image 또는 both인 경우에만)
+    // editType이 'text'일 때는 메시지 키워드와 관계없이 텍스트만 수정
+    const shouldEditImage = editType === 'image' || editType === 'both';
 
     if (shouldEditImage && targetElement?.type === 'image-overlay') {
       console.log('[AI Edit] Image edit requested for image-overlay block');
