@@ -830,9 +830,9 @@ export function ImageOverlayBlockRenderer({
         </div>
       )}
 
-      {/* 선택된 텍스트 편집 패널 - fixed 배치 (상단 헤더 아래) */}
+      {/* 선택된 텍스트 편집 패널 - fixed 배치 (메인 섹션 시작 높이에 맞춤) */}
       {isSelected && selectedText && (
-        <div className="fixed top-[220px] bottom-6 left-6 w-52 bg-background/95 backdrop-blur border rounded-lg shadow-xl p-3 space-y-3 overflow-y-auto z-50">
+        <div className="fixed top-[224px] bottom-6 left-6 w-52 bg-background/95 backdrop-blur border rounded-lg shadow-xl p-3 space-y-3 overflow-y-auto z-50">
           {/* 헤더 */}
           <div className="flex items-center justify-between border-b pb-2">
             <span className="text-xs font-medium">텍스트 편집</span>
