@@ -50,6 +50,10 @@ import {
   Ungroup,
   Lock,
   Unlock,
+  Folder,
+  FolderOpen,
+  ChevronRight,
+  CornerDownRight,
 } from 'lucide-react';
 import type { ImageOverlayBlock, OverlayText, OverlayTextStyle } from '@/stores/editor-store';
 
@@ -157,6 +161,14 @@ const defaultStylesByType: Record<OverlayText['type'], Partial<OverlayTextStyle>
     padding: '12px 24px',
     textAlign: 'center',
     // CTA 버튼은 보통 짧아서 width 없음
+  },
+  folder: {
+    // 폴더는 컨테이너 레이어이므로 렌더링되지 않음
+    x: 0,
+    y: 0,
+    fontSize: 0,
+    fontWeight: 'normal',
+    color: 'transparent',
   },
 };
 
@@ -584,6 +596,108 @@ export function ImageOverlayBlockRenderer({
     setSelectedTextId(null);
   };
 
+  // ★ 폴더 레이어 생성
+  const handleCreateFolder = () => {
+    const maxZIndex = Math.max(...block.overlayTexts.map((t) => t.zIndex || 0), 0);
+    const newFolder: OverlayText = {
+      id: generateId(),
+      type: 'folder',
+      content: '새 폴더',
+      style: {
+        x: 50,
+        y: 50,
+        fontSize: 16,
+        fontWeight: 'normal',
+        color: '#ffffff',
+      },
+      zIndex: maxZIndex + 1,
+      isFolder: true,
+      isExpanded: true,
+    };
+
+    onUpdate({ overlayTexts: [...block.overlayTexts, newFolder] });
+    setSelectedTextId(newFolder.id);
+  };
+
+  // ★ 선택된 레이어들을 폴더 안으로 이동
+  const handleMoveToFolder = (folderId: string) => {
+    if (selectedLayerIds.size === 0) return;
+
+    // 폴더 자체는 이동 대상에서 제외
+    const layersToMove = Array.from(selectedLayerIds).filter((id) => {
+      const layer = block.overlayTexts.find((t) => t.id === id);
+      return layer && !layer.isFolder && id !== folderId;
+    });
+
+    if (layersToMove.length === 0) return;
+
+    onUpdate({
+      overlayTexts: block.overlayTexts.map((text) =>
+        layersToMove.includes(text.id)
+          ? { ...text, parentId: folderId }
+          : text
+      ),
+    });
+
+    setSelectedLayerIds(new Set());
+  };
+
+  // ★ 레이어를 폴더에서 꺼내기 (최상위로)
+  const handleRemoveFromFolder = (layerId: string) => {
+    onUpdate({
+      overlayTexts: block.overlayTexts.map((text) =>
+        text.id === layerId ? { ...text, parentId: undefined } : text
+      ),
+    });
+  };
+
+  // ★ 폴더 펼치기/접기 토글
+  const handleToggleFolderExpand = (folderId: string) => {
+    onUpdate({
+      overlayTexts: block.overlayTexts.map((text) =>
+        text.id === folderId ? { ...text, isExpanded: !text.isExpanded } : text
+      ),
+    });
+  };
+
+  // ★ 폴더 목록 가져오기 (선택된 레이어를 넣을 수 있는 폴더들)
+  const availableFolders = block.overlayTexts.filter((t) => t.isFolder);
+
+  // ★ 중첩 레이어 구조를 트리 형태로 정렬
+  const getLayerTree = () => {
+    const rootLayers = block.overlayTexts.filter((t) => !t.parentId);
+    const childrenMap = new Map<string, OverlayText[]>();
+
+    block.overlayTexts.forEach((layer) => {
+      if (layer.parentId) {
+        const children = childrenMap.get(layer.parentId) || [];
+        children.push(layer);
+        childrenMap.set(layer.parentId, children);
+      }
+    });
+
+    // 재귀적으로 트리 구조 생성
+    const buildTree = (layers: OverlayText[], depth: number = 0): Array<{ layer: OverlayText; depth: number }> => {
+      const result: Array<{ layer: OverlayText; depth: number }> = [];
+
+      layers
+        .sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0))
+        .forEach((layer) => {
+          result.push({ layer, depth });
+
+          // 폴더이고 펼쳐져 있으면 자식 레이어 추가
+          if (layer.isFolder && layer.isExpanded) {
+            const children = childrenMap.get(layer.id) || [];
+            result.push(...buildTree(children, depth + 1));
+          }
+        });
+
+      return result;
+    };
+
+    return buildTree(rootLayers);
+  };
+
   // 이미지 업로드
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -933,8 +1047,8 @@ export function ImageOverlayBlockRenderer({
             </div>
           </div>
 
-          {/* 툴바 - 합치기, 전체선택 등 */}
-          <div className="flex items-center gap-1 px-2 py-1.5 bg-zinc-850 border-b border-zinc-700">
+          {/* 툴바 - 그룹, 폴더 등 */}
+          <div className="flex items-center gap-1 px-2 py-1.5 bg-zinc-850 border-b border-zinc-700 flex-wrap">
             <Button
               variant="ghost"
               size="sm"
@@ -986,6 +1100,45 @@ export function ImageOverlayBlockRenderer({
               <Ungroup className="h-3 w-3" />
               해제
             </Button>
+            <div className="w-px h-4 bg-zinc-700 mx-1" />
+            {/* ★ 폴더 생성 버튼 */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 text-[10px] text-yellow-400 hover:text-yellow-300 hover:bg-zinc-700 flex items-center gap-1"
+              onClick={handleCreateFolder}
+              title="새 폴더 만들기"
+            >
+              <Folder className="h-3 w-3" />
+              폴더
+            </Button>
+            {/* ★ 폴더로 이동 드롭다운 */}
+            {selectedLayerIds.size > 0 && availableFolders.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-[10px] text-green-400 hover:text-green-300 hover:bg-zinc-700 flex items-center gap-1"
+                  >
+                    <CornerDownRight className="h-3 w-3" />
+                    이동
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-40 bg-zinc-800 border-zinc-600">
+                  {availableFolders.map((folder) => (
+                    <DropdownMenuItem
+                      key={folder.id}
+                      onClick={() => handleMoveToFolder(folder.id)}
+                      className="text-xs text-zinc-200 focus:bg-zinc-700 focus:text-zinc-100"
+                    >
+                      <Folder className="h-3 w-3 mr-2 text-yellow-400" />
+                      {folder.content}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
 
           {/* 미니 프리뷰 */}
@@ -1025,7 +1178,7 @@ export function ImageOverlayBlockRenderer({
             ))}
           </div>
 
-          {/* 레이어 리스트 - 포토샵 스타일 */}
+          {/* 레이어 리스트 - 트리 구조 (폴더 지원) */}
           <div className="flex-1 overflow-y-auto">
             {block.overlayTexts.length === 0 ? (
               <div className="text-xs text-zinc-500 text-center py-6">
@@ -1033,13 +1186,11 @@ export function ImageOverlayBlockRenderer({
               </div>
             ) : (
               <div className="divide-y divide-zinc-800">
-                {[...block.overlayTexts]
-                  .sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0))
-                  .map((text) => (
+                {getLayerTree().map(({ layer: text, depth }) => (
                     <div
                       key={text.id}
                       className={cn(
-                        'flex items-center gap-2 px-2 py-2 cursor-pointer transition-colors',
+                        'flex items-center gap-1 py-2 cursor-pointer transition-colors',
                         selectedLayerIds.has(text.id)
                           ? 'bg-blue-600/30'
                           : selectedTextId === text.id
@@ -1047,8 +1198,29 @@ export function ImageOverlayBlockRenderer({
                             : 'hover:bg-zinc-800',
                         hiddenLayerIds.has(text.id) && 'opacity-40'
                       )}
+                      style={{ paddingLeft: `${8 + depth * 16}px`, paddingRight: '8px' }}
                       onClick={(e) => handleLayerSelect(text.id, e.ctrlKey || e.metaKey)}
                     >
+                      {/* ★ 폴더 펼치기/접기 버튼 (폴더인 경우만) */}
+                      {text.isFolder ? (
+                        <button
+                          className="w-5 h-5 flex items-center justify-center text-yellow-400 hover:text-yellow-300"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleFolderExpand(text.id);
+                          }}
+                        >
+                          <ChevronRight
+                            className={cn(
+                              'h-3.5 w-3.5 transition-transform',
+                              text.isExpanded && 'rotate-90'
+                            )}
+                          />
+                        </button>
+                      ) : (
+                        <div className="w-5" /> // 폴더 아닌 경우 여백
+                      )}
+
                       {/* 가시성 토글 */}
                       <button
                         className={cn(
@@ -1089,22 +1261,30 @@ export function ImageOverlayBlockRenderer({
                         )}
                       </button>
 
-                      {/* 레이어 썸네일 - 텍스트 스타일 미리보기 */}
+                      {/* 레이어 썸네일 */}
                       <div
-                        className="w-10 h-10 rounded border border-zinc-600 flex items-center justify-center overflow-hidden flex-shrink-0"
+                        className="w-8 h-8 rounded border border-zinc-600 flex items-center justify-center overflow-hidden flex-shrink-0"
                         style={{
-                          backgroundColor: text.style.backgroundColor || 'transparent',
+                          backgroundColor: text.isFolder ? '#3b3b3b' : (text.style.backgroundColor || 'transparent'),
                         }}
                       >
-                        <span
-                          className="text-[8px] font-bold truncate px-0.5"
-                          style={{
-                            color: text.style.color || '#fff',
-                            fontFamily: text.style.fontFamily,
-                          }}
-                        >
-                          {text.content.substring(0, 4)}
-                        </span>
+                        {text.isFolder ? (
+                          text.isExpanded ? (
+                            <FolderOpen className="h-4 w-4 text-yellow-400" />
+                          ) : (
+                            <Folder className="h-4 w-4 text-yellow-400" />
+                          )
+                        ) : (
+                          <span
+                            className="text-[7px] font-bold truncate px-0.5"
+                            style={{
+                              color: text.style.color || '#fff',
+                              fontFamily: text.style.fontFamily,
+                            }}
+                          >
+                            {text.content.substring(0, 3)}
+                          </span>
+                        )}
                       </div>
 
                       {/* 레이어 정보 */}
@@ -1115,10 +1295,28 @@ export function ImageOverlayBlockRenderer({
                           )}
                           {text.content}
                         </div>
-                        <div className="text-[10px] text-zinc-500">
-                          {text.type} · {text.style.fontSize}px
+                        <div className="text-[10px] text-zinc-500 flex items-center gap-1">
+                          {text.isFolder ? (
+                            <span className="text-yellow-400/70">폴더</span>
+                          ) : (
+                            <>
+                              {text.type} · {text.style.fontSize}px
+                            </>
+                          )}
                           {text.groupId && (
-                            <span className="ml-1 text-blue-400/70">그룹</span>
+                            <span className="text-blue-400/70">그룹</span>
+                          )}
+                          {text.parentId && (
+                            <button
+                              className="text-red-400/70 hover:text-red-400 ml-1"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveFromFolder(text.id);
+                              }}
+                              title="폴더에서 꺼내기"
+                            >
+                              ✕
+                            </button>
                           )}
                         </div>
                       </div>

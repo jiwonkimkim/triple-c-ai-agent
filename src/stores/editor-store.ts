@@ -62,11 +62,15 @@ export interface OverlayTextStyle {
 
 export interface OverlayText {
   id: string;
-  type: 'headline' | 'subheadline' | 'body' | 'statistic' | 'cta';
+  type: 'headline' | 'subheadline' | 'body' | 'statistic' | 'cta' | 'folder';
   content: string;
   style: OverlayTextStyle;
   zIndex?: number; // 레이어 순서
   groupId?: string; // 그룹 ID (같은 groupId를 가진 레이어들은 함께 이동)
+  // 중첩 레이어 (폴더 구조)
+  parentId?: string; // 부모 레이어(폴더) ID
+  isFolder?: boolean; // 폴더 레이어 여부
+  isExpanded?: boolean; // 폴더 펼침 상태
 }
 
 export interface ImageOverlayBlock {
