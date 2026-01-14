@@ -46,7 +46,8 @@ import {
   ClipboardPaste,
   Eye,
   EyeOff,
-  Merge,
+  Group,
+  Ungroup,
   Lock,
   Unlock,
 } from 'lucide-react';
@@ -212,20 +213,40 @@ export function ImageOverlayBlockRenderer({
   }, []);
 
   // 드래그 중 - 범위 제한 없이 자유롭게 이동 가능 (밖으로 나갈 수 있음)
+  // ★ 그룹화된 레이어들은 함께 이동
   const handleDrag = useCallback((e: MouseEvent) => {
     if (!isDragging || !selectedTextId || !containerRef.current) return;
 
     const rect = containerRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    const newX = ((e.clientX - rect.left) / rect.width) * 100;
+    const newY = ((e.clientY - rect.top) / rect.height) * 100;
 
-    // 범위 제한 없음 - 텍스트가 이미지 밖으로 나갈 수 있음
+    // 선택된 텍스트 찾기
+    const selectedText = block.overlayTexts.find(t => t.id === selectedTextId);
+    if (!selectedText) return;
+
+    // 이동량 계산
+    const deltaX = newX - selectedText.style.x;
+    const deltaY = newY - selectedText.style.y;
+
+    // 같은 그룹의 레이어들도 함께 이동
+    const groupId = selectedText.groupId;
+
     onUpdate({
-      overlayTexts: block.overlayTexts.map((text) =>
-        text.id === selectedTextId
-          ? { ...text, style: { ...text.style, x, y } }
-          : text
-      ),
+      overlayTexts: block.overlayTexts.map((text) => {
+        // 선택된 텍스트이거나, 같은 그룹에 속한 텍스트인 경우 이동
+        if (text.id === selectedTextId || (groupId && text.groupId === groupId)) {
+          return {
+            ...text,
+            style: {
+              ...text.style,
+              x: text.style.x + deltaX,
+              y: text.style.y + deltaY,
+            },
+          };
+        }
+        return text;
+      }),
     });
   }, [isDragging, selectedTextId, block.overlayTexts, onUpdate]);
 
@@ -479,45 +500,66 @@ export function ImageOverlayBlockRenderer({
     setSelectedTextId(textId);
   };
 
-  // 선택된 레이어들 합치기
-  const handleMergeLayers = () => {
+  // 선택된 레이어들 그룹화 (스타일과 위치 유지, 함께 이동)
+  const handleGroupLayers = () => {
     if (selectedLayerIds.size < 2) return;
 
-    const selectedTexts = block.overlayTexts
-      .filter((t) => selectedLayerIds.has(t.id))
-      .sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+    // 잠긴 레이어는 제외
+    const selectableIds = Array.from(selectedLayerIds).filter(id => !lockedLayerIds.has(id));
+    if (selectableIds.length < 2) return;
 
-    if (selectedTexts.length < 2) return;
+    // 새 그룹 ID 생성
+    const newGroupId = `group-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    // 가장 아래 레이어를 기준으로 합침
-    const baseText = selectedTexts[0];
-    const mergedContent = selectedTexts.map((t) => t.content).join('\n');
+    // 선택된 레이어들에 같은 groupId 부여 (기존 스타일과 위치 유지)
+    onUpdate({
+      overlayTexts: block.overlayTexts.map((text) =>
+        selectableIds.includes(text.id)
+          ? { ...text, groupId: newGroupId }
+          : text
+      ),
+    });
 
-    // 중심 위치 계산 (평균)
-    const avgX = selectedTexts.reduce((sum, t) => sum + t.style.x, 0) / selectedTexts.length;
-    const avgY = selectedTexts.reduce((sum, t) => sum + t.style.y, 0) / selectedTexts.length;
-
-    // 합쳐진 레이어 생성
-    const mergedText: OverlayText = {
-      ...baseText,
-      id: generateId(),
-      content: mergedContent,
-      style: {
-        ...baseText.style,
-        x: avgX,
-        y: avgY,
-      },
-      zIndex: Math.max(...selectedTexts.map((t) => t.zIndex || 0)),
-    };
-
-    // 기존 선택된 레이어들 제거하고 합쳐진 레이어 추가
-    const newOverlayTexts = block.overlayTexts.filter((t) => !selectedLayerIds.has(t.id));
-    newOverlayTexts.push(mergedText);
-
-    onUpdate({ overlayTexts: newOverlayTexts });
-    setSelectedLayerIds(new Set([mergedText.id]));
-    setSelectedTextId(mergedText.id);
+    // 선택 해제
+    setSelectedLayerIds(new Set());
   };
+
+  // 그룹 해제
+  const handleUngroupLayers = () => {
+    if (selectedLayerIds.size === 0 && !selectedTextId) return;
+
+    // 선택된 레이어들 또는 현재 선택된 레이어의 그룹 해제
+    const idsToUngroup = selectedLayerIds.size > 0
+      ? Array.from(selectedLayerIds)
+      : selectedTextId ? [selectedTextId] : [];
+
+    if (idsToUngroup.length === 0) return;
+
+    // 선택된 레이어들의 groupId 찾기
+    const groupIdsToRemove = new Set<string>();
+    block.overlayTexts.forEach((text) => {
+      if (idsToUngroup.includes(text.id) && text.groupId) {
+        groupIdsToRemove.add(text.groupId);
+      }
+    });
+
+    // 해당 그룹의 모든 레이어에서 groupId 제거
+    onUpdate({
+      overlayTexts: block.overlayTexts.map((text) =>
+        text.groupId && groupIdsToRemove.has(text.groupId)
+          ? { ...text, groupId: undefined }
+          : text
+      ),
+    });
+
+    setSelectedLayerIds(new Set());
+  };
+
+  // 선택된 레이어 중 그룹화된 것이 있는지 확인
+  const hasGroupedSelection = Array.from(selectedLayerIds).some((id) => {
+    const text = block.overlayTexts.find((t) => t.id === id);
+    return text?.groupId;
+  }) || (selectedTextId && block.overlayTexts.find((t) => t.id === selectedTextId)?.groupId);
 
   // 전체 선택
   const handleSelectAll = () => {
@@ -853,7 +895,7 @@ export function ImageOverlayBlockRenderer({
 
       {/* 레이어 패널 - 포토샵 스타일 (텍스트 편집 패널 오른쪽) */}
       {isSelected && showLayerPanel && (
-        <div className="fixed top-[224px] bottom-6 left-[270px] w-72 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl overflow-hidden z-50 flex flex-col">
+        <div className="fixed top-[224px] bottom-6 left-[330px] w-72 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl overflow-hidden z-50 flex flex-col">
           {/* 헤더 - 포토샵 스타일 */}
           <div className="flex items-center justify-between px-3 py-2 bg-zinc-800 border-b border-zinc-700">
             <span className="text-xs font-medium text-zinc-300">레이어</span>
@@ -905,12 +947,28 @@ export function ImageOverlayBlockRenderer({
                   ? "text-blue-400 hover:text-blue-300"
                   : "text-zinc-600 cursor-not-allowed"
               )}
-              onClick={handleMergeLayers}
+              onClick={handleGroupLayers}
               disabled={selectedLayerIds.size < 2}
-              title="선택한 레이어 합치기 (2개 이상 선택 필요)"
+              title="선택한 레이어 그룹화 (함께 이동)"
             >
-              <Merge className="h-3 w-3" />
-              합치기
+              <Group className="h-3 w-3" />
+              그룹
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "h-6 px-2 text-[10px] hover:bg-zinc-700 flex items-center gap-1",
+                hasGroupedSelection
+                  ? "text-orange-400 hover:text-orange-300"
+                  : "text-zinc-600 cursor-not-allowed"
+              )}
+              onClick={handleUngroupLayers}
+              disabled={!hasGroupedSelection}
+              title="그룹 해제"
+            >
+              <Ungroup className="h-3 w-3" />
+              해제
             </Button>
           </div>
 
@@ -1035,11 +1093,17 @@ export function ImageOverlayBlockRenderer({
 
                       {/* 레이어 정보 */}
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs text-zinc-200 truncate">
+                        <div className="text-xs text-zinc-200 truncate flex items-center gap-1">
+                          {text.groupId && (
+                            <Group className="h-3 w-3 text-blue-400 flex-shrink-0" />
+                          )}
                           {text.content}
                         </div>
                         <div className="text-[10px] text-zinc-500">
                           {text.type} · {text.style.fontSize}px
+                          {text.groupId && (
+                            <span className="ml-1 text-blue-400/70">그룹</span>
+                          )}
                         </div>
                       </div>
 
@@ -1104,229 +1168,237 @@ export function ImageOverlayBlockRenderer({
         </div>
       )}
 
-      {/* 선택된 텍스트 편집 패널 - fixed 배치 (메인 섹션 시작 높이에 맞춤) */}
+      {/* 선택된 텍스트 편집 패널 - 다크 테마 (레이어 패널과 동일) */}
       {isSelected && selectedText && (
-        <div className="fixed top-[224px] bottom-6 left-6 w-52 bg-background/95 backdrop-blur border rounded-lg shadow-xl p-3 space-y-3 overflow-y-auto z-50">
-          {/* 헤더 */}
-          <div className="flex items-center justify-between border-b pb-2">
-            <span className="text-xs font-medium">텍스트 편집</span>
+        <div className="fixed top-[224px] bottom-6 left-6 w-72 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl overflow-hidden z-50 flex flex-col">
+          {/* 헤더 - 포토샵 스타일 */}
+          <div className="flex items-center justify-between px-3 py-2 bg-zinc-800 border-b border-zinc-700">
+            <span className="text-xs font-medium text-zinc-300">텍스트 편집</span>
             <div className="flex gap-0.5">
               {/* 서식 복사 */}
-              <Button
-                variant="ghost"
-                size="icon"
+              <button
                 className={cn(
-                  "h-6 w-6",
-                  copiedStyle && "text-primary"
+                  "w-6 h-6 flex items-center justify-center rounded hover:bg-zinc-700",
+                  copiedStyle ? "text-blue-400" : "text-zinc-400 hover:text-zinc-200"
                 )}
                 onClick={handleCopyStyle}
                 title="서식 복사"
               >
                 <Paintbrush className="h-3.5 w-3.5" />
-              </Button>
+              </button>
               {/* 서식 붙여넣기 */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
+              <button
+                className={cn(
+                  "w-6 h-6 flex items-center justify-center rounded",
+                  copiedStyle
+                    ? "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700"
+                    : "text-zinc-600 cursor-not-allowed"
+                )}
                 onClick={handlePasteStyle}
                 disabled={!copiedStyle}
                 title={copiedStyle ? "서식 붙여넣기" : "복사된 서식 없음"}
               >
                 <ClipboardPaste className="h-3.5 w-3.5" />
-              </Button>
+              </button>
               {/* 삭제 */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 text-destructive hover:text-destructive"
+              <button
+                className="w-6 h-6 flex items-center justify-center rounded text-red-400 hover:text-red-300 hover:bg-zinc-700"
                 onClick={() => handleDeleteOverlayText(selectedTextId!)}
                 title="텍스트 삭제"
               >
                 <Trash2 className="h-3.5 w-3.5" />
-              </Button>
+              </button>
               {/* 닫기 */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
+              <button
+                className="w-6 h-6 flex items-center justify-center rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700"
                 onClick={() => setSelectedTextId(null)}
                 title="닫기"
               >
                 <X className="h-3.5 w-3.5" />
-              </Button>
+              </button>
             </div>
           </div>
 
-          {/* 폰트 선택 */}
-          <div className="space-y-1.5">
-            <label className="text-xs text-muted-foreground">폰트</label>
-            <Select
-              value={selectedText.style.fontFamily || 'Pretendard, sans-serif'}
-              onValueChange={(value) => handleUpdateStyle(selectedTextId!, { fontFamily: value })}
-            >
-              <SelectTrigger className="w-full h-8 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {fontOptions.map((font) => (
-                  <SelectItem key={font.value} value={font.value} style={{ fontFamily: font.value }}>
-                    {font.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* 크기 & 굵기 */}
-          <div className="flex gap-2">
-            <div className="flex-1 space-y-1.5">
-              <label className="text-xs text-muted-foreground">크기</label>
-              <div className="flex items-center gap-1">
-                <Input
-                  type="number"
-                  value={selectedText.style.fontSize || 16}
-                  onChange={(e) => handleUpdateStyle(selectedTextId!, { fontSize: Number(e.target.value) })}
-                  className="w-full h-8 text-xs"
-                  min={8}
-                  max={200}
-                />
-                <span className="text-xs text-muted-foreground">px</span>
-              </div>
-            </div>
-            <div className="flex-1 space-y-1.5">
-              <label className="text-xs text-muted-foreground">굵기</label>
+          {/* 스크롤 가능한 컨텐츠 영역 */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-3">
+            {/* 폰트 선택 */}
+            <div className="space-y-1.5">
+              <label className="text-xs text-zinc-400">폰트</label>
               <Select
-                value={selectedText.style.fontWeight || 'normal'}
-                onValueChange={(value) => handleUpdateStyle(selectedTextId!, { fontWeight: value as 'normal' | 'medium' | 'semibold' | 'bold' })}
+                value={selectedText.style.fontFamily || 'Pretendard, sans-serif'}
+                onValueChange={(value) => handleUpdateStyle(selectedTextId!, { fontFamily: value })}
               >
-                <SelectTrigger className="w-full h-8 text-xs">
+                <SelectTrigger className="w-full h-8 text-xs bg-zinc-800 border-zinc-600 text-zinc-200">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="normal">Regular</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="semibold">Semibold</SelectItem>
-                  <SelectItem value="bold">Bold</SelectItem>
+                <SelectContent className="bg-zinc-800 border-zinc-600">
+                  {fontOptions.map((font) => (
+                    <SelectItem key={font.value} value={font.value} style={{ fontFamily: font.value }} className="text-zinc-200 focus:bg-zinc-700 focus:text-zinc-100">
+                      {font.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
-          </div>
 
-          {/* 색상 */}
-          <div className="space-y-1.5">
-            <label className="text-xs text-muted-foreground">색상</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                value={selectedText.style.color || '#ffffff'}
-                onChange={(e) => handleUpdateStyle(selectedTextId!, { color: e.target.value })}
-                className="w-8 h-8 rounded cursor-pointer border flex-shrink-0"
-                title="텍스트 색상"
-              />
-              <Input
-                type="text"
-                value={selectedText.style.color || '#ffffff'}
-                onChange={(e) => handleUpdateStyle(selectedTextId!, { color: e.target.value })}
-                className="flex-1 h-8 text-xs font-mono"
-                placeholder="#ffffff"
-              />
+            {/* 크기 & 굵기 */}
+            <div className="flex gap-2">
+              <div className="flex-1 space-y-1.5">
+                <label className="text-xs text-zinc-400">크기</label>
+                <div className="flex items-center gap-1">
+                  <Input
+                    type="number"
+                    value={selectedText.style.fontSize || 16}
+                    onChange={(e) => handleUpdateStyle(selectedTextId!, { fontSize: Number(e.target.value) })}
+                    className="w-full h-8 text-xs bg-zinc-800 border-zinc-600 text-zinc-200"
+                    min={8}
+                    max={200}
+                  />
+                  <span className="text-xs text-zinc-500">px</span>
+                </div>
+              </div>
+              <div className="flex-1 space-y-1.5">
+                <label className="text-xs text-zinc-400">굵기</label>
+                <Select
+                  value={selectedText.style.fontWeight || 'normal'}
+                  onValueChange={(value) => handleUpdateStyle(selectedTextId!, { fontWeight: value as 'normal' | 'medium' | 'semibold' | 'bold' })}
+                >
+                  <SelectTrigger className="w-full h-8 text-xs bg-zinc-800 border-zinc-600 text-zinc-200">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-800 border-zinc-600">
+                    <SelectItem value="normal" className="text-zinc-200 focus:bg-zinc-700">Regular</SelectItem>
+                    <SelectItem value="medium" className="text-zinc-200 focus:bg-zinc-700">Medium</SelectItem>
+                    <SelectItem value="semibold" className="text-zinc-200 focus:bg-zinc-700">Semibold</SelectItem>
+                    <SelectItem value="bold" className="text-zinc-200 focus:bg-zinc-700">Bold</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
 
-          {/* 정렬 */}
-          <div className="space-y-1.5">
-            <label className="text-xs text-muted-foreground">정렬</label>
-            <div className="flex border rounded w-full">
+            {/* 색상 */}
+            <div className="space-y-1.5">
+              <label className="text-xs text-zinc-400">색상</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={selectedText.style.color || '#ffffff'}
+                  onChange={(e) => handleUpdateStyle(selectedTextId!, { color: e.target.value })}
+                  className="w-8 h-8 rounded cursor-pointer border border-zinc-600 flex-shrink-0 bg-zinc-800"
+                  title="텍스트 색상"
+                />
+                <Input
+                  type="text"
+                  value={selectedText.style.color || '#ffffff'}
+                  onChange={(e) => handleUpdateStyle(selectedTextId!, { color: e.target.value })}
+                  className="flex-1 h-8 text-xs font-mono bg-zinc-800 border-zinc-600 text-zinc-200"
+                  placeholder="#ffffff"
+                />
+              </div>
+            </div>
+
+            {/* 정렬 */}
+            <div className="space-y-1.5">
+              <label className="text-xs text-zinc-400">정렬</label>
+              <div className="flex border border-zinc-600 rounded w-full overflow-hidden">
+                <button
+                  className={cn(
+                    'flex-1 p-1.5 flex justify-center transition-colors',
+                    selectedText.style.textAlign === 'left'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
+                  )}
+                  onClick={() => handleUpdateStyle(selectedTextId!, { textAlign: 'left' })}
+                  title="왼쪽 정렬"
+                >
+                  <AlignLeft className="h-4 w-4" />
+                </button>
+                <button
+                  className={cn(
+                    'flex-1 p-1.5 flex justify-center border-x border-zinc-600 transition-colors',
+                    selectedText.style.textAlign === 'center'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
+                  )}
+                  onClick={() => handleUpdateStyle(selectedTextId!, { textAlign: 'center' })}
+                  title="가운데 정렬"
+                >
+                  <AlignCenter className="h-4 w-4" />
+                </button>
+                <button
+                  className={cn(
+                    'flex-1 p-1.5 flex justify-center transition-colors',
+                    selectedText.style.textAlign === 'right'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
+                  )}
+                  onClick={() => handleUpdateStyle(selectedTextId!, { textAlign: 'right' })}
+                  title="오른쪽 정렬"
+                >
+                  <AlignRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* 너비 */}
+            <div className="space-y-1.5">
+              <label className="text-xs text-zinc-400">텍스트 박스 너비</label>
+              <div className="flex items-center gap-2">
+                <Slider
+                  value={[selectedText.style.width || 0]}
+                  onValueChange={([value]) => handleUpdateStyle(selectedTextId!, { width: value === 0 ? undefined : value })}
+                  min={0}
+                  max={100}
+                  step={1}
+                  className="flex-1"
+                />
+                <Input
+                  type="number"
+                  value={selectedText.style.width || ''}
+                  onChange={(e) => {
+                    const value = e.target.value === '' ? undefined : Math.max(0, Math.min(100, Number(e.target.value)));
+                    handleUpdateStyle(selectedTextId!, { width: value === 0 ? undefined : value });
+                  }}
+                  placeholder="자동"
+                  className="w-14 h-7 text-xs text-center px-1 bg-zinc-800 border-zinc-600 text-zinc-200"
+                  min={0}
+                  max={100}
+                />
+                <span className="text-xs text-zinc-500">%</span>
+              </div>
+            </div>
+
+            {/* 투명도 */}
+            <div className="space-y-1.5">
+              <label className="text-xs text-zinc-400">투명도</label>
+              <div className="flex items-center gap-2">
+                <Slider
+                  value={[selectedText.style.opacity || 100]}
+                  onValueChange={([value]) => handleUpdateStyle(selectedTextId!, { opacity: value })}
+                  min={0}
+                  max={100}
+                  step={1}
+                  className="flex-1"
+                />
+                <span className="text-xs w-10 text-right text-zinc-400">{selectedText.style.opacity || 100}%</span>
+              </div>
+            </div>
+
+            {/* 그림자 토글 */}
+            <div className="flex items-center justify-between">
+              <label className="text-xs text-zinc-400">텍스트 그림자</label>
               <button
                 className={cn(
-                  'flex-1 p-1.5 flex justify-center',
-                  selectedText.style.textAlign === 'left' && 'bg-primary text-primary-foreground'
+                  'px-3 py-1 text-xs border border-zinc-600 rounded transition-colors',
+                  selectedText.style.textShadow
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
                 )}
-                onClick={() => handleUpdateStyle(selectedTextId!, { textAlign: 'left' })}
-                title="왼쪽 정렬"
+                onClick={() => handleUpdateStyle(selectedTextId!, { textShadow: !selectedText.style.textShadow })}
               >
-                <AlignLeft className="h-4 w-4" />
-              </button>
-              <button
-                className={cn(
-                  'flex-1 p-1.5 flex justify-center',
-                  selectedText.style.textAlign === 'center' && 'bg-primary text-primary-foreground'
-                )}
-                onClick={() => handleUpdateStyle(selectedTextId!, { textAlign: 'center' })}
-                title="가운데 정렬"
-              >
-                <AlignCenter className="h-4 w-4" />
-              </button>
-              <button
-                className={cn(
-                  'flex-1 p-1.5 flex justify-center',
-                  selectedText.style.textAlign === 'right' && 'bg-primary text-primary-foreground'
-                )}
-                onClick={() => handleUpdateStyle(selectedTextId!, { textAlign: 'right' })}
-                title="오른쪽 정렬"
-              >
-                <AlignRight className="h-4 w-4" />
+                {selectedText.style.textShadow ? 'ON' : 'OFF'}
               </button>
             </div>
-          </div>
-
-          {/* 너비 */}
-          <div className="space-y-1.5">
-            <label className="text-xs text-muted-foreground">텍스트 박스 너비</label>
-            <div className="flex items-center gap-2">
-              <Slider
-                value={[selectedText.style.width || 0]}
-                onValueChange={([value]) => handleUpdateStyle(selectedTextId!, { width: value === 0 ? undefined : value })}
-                min={0}
-                max={100}
-                step={1}
-                className="flex-1"
-              />
-              <Input
-                type="number"
-                value={selectedText.style.width || ''}
-                onChange={(e) => {
-                  const value = e.target.value === '' ? undefined : Math.max(0, Math.min(100, Number(e.target.value)));
-                  handleUpdateStyle(selectedTextId!, { width: value === 0 ? undefined : value });
-                }}
-                placeholder="자동"
-                className="w-14 h-7 text-xs text-center px-1"
-                min={0}
-                max={100}
-              />
-              <span className="text-xs text-muted-foreground">%</span>
-            </div>
-          </div>
-
-          {/* 투명도 */}
-          <div className="space-y-1.5">
-            <label className="text-xs text-muted-foreground">투명도</label>
-            <div className="flex items-center gap-2">
-              <Slider
-                value={[selectedText.style.opacity || 100]}
-                onValueChange={([value]) => handleUpdateStyle(selectedTextId!, { opacity: value })}
-                min={0}
-                max={100}
-                step={1}
-                className="flex-1"
-              />
-              <span className="text-xs w-10 text-right">{selectedText.style.opacity || 100}%</span>
-            </div>
-          </div>
-
-          {/* 그림자 토글 */}
-          <div className="flex items-center justify-between">
-            <label className="text-xs text-muted-foreground">텍스트 그림자</label>
-            <button
-              className={cn(
-                'px-3 py-1 text-xs border rounded transition-colors',
-                selectedText.style.textShadow ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
-              )}
-              onClick={() => handleUpdateStyle(selectedTextId!, { textShadow: !selectedText.style.textShadow })}
-            >
-              {selectedText.style.textShadow ? 'ON' : 'OFF'}
-            </button>
           </div>
         </div>
       )}

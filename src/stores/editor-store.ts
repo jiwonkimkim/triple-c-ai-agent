@@ -66,6 +66,7 @@ export interface OverlayText {
   content: string;
   style: OverlayTextStyle;
   zIndex?: number; // 레이어 순서
+  groupId?: string; // 그룹 ID (같은 groupId를 가진 레이어들은 함께 이동)
 }
 
 export interface ImageOverlayBlock {
