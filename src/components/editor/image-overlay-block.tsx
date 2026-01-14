@@ -516,9 +516,18 @@ export function ImageOverlayBlockRenderer({
     if ((e.target as HTMLElement).closest('button')) return;
 
     e.preventDefault();
-    setLayerDragId(layerId);
+
+    // 멀티 셀렉트: 선택된 레이어 중 하나를 드래그하면 모두 함께 이동
+    // 선택 안 된 레이어를 드래그하면 해당 레이어만 이동
+    if (selectedLayerIds.size > 1 && selectedLayerIds.has(layerId)) {
+      // 멀티 드래그 - layerDragId는 대표로 하나만 저장, 실제 이동은 selectedLayerIds 전체
+      setLayerDragId(layerId);
+    } else {
+      // 단일 드래그
+      setLayerDragId(layerId);
+    }
     setIsLayerDragging(true);
-  }, []);
+  }, [selectedLayerIds]);
 
   const handleLayerMouseMove = useCallback((e: MouseEvent) => {
     if (!isLayerDragging || !layerDragId) return;
@@ -529,16 +538,17 @@ export function ImageOverlayBlockRenderer({
 
     if (layerElement) {
       const targetId = layerElement.getAttribute('data-layer-id');
-      const targetLayer = block.overlayTexts.find((t) => t.id === targetId);
 
       if (targetId && targetId !== layerDragId) {
-        // 폴더면 해당 폴더로, 아니면 root로
-        setLayerDropTargetId(targetLayer?.isFolder ? targetId : 'root');
+        // 폴더든 일반 레이어든 드롭 타겟으로 설정 (일반 레이어에 드롭하면 폴더 생성)
+        setLayerDropTargetId(targetId);
+      } else {
+        setLayerDropTargetId('root');
       }
     } else {
       setLayerDropTargetId('root');
     }
-  }, [isLayerDragging, layerDragId, block.overlayTexts]);
+  }, [isLayerDragging, layerDragId]);
 
   const handleLayerMouseUp = useCallback(() => {
     if (!isLayerDragging || !layerDragId) {
@@ -546,13 +556,31 @@ export function ImageOverlayBlockRenderer({
       return;
     }
 
+    // 이동할 레이어 ID 목록 결정 (멀티 셀렉트 또는 단일)
+    const layersToMove: string[] = selectedLayerIds.size > 1 && selectedLayerIds.has(layerDragId)
+      ? Array.from(selectedLayerIds).filter((id) => {
+          const layer = block.overlayTexts.find((t) => t.id === id);
+          return layer && !layer.isFolder; // 폴더는 이동 대상에서 제외
+        })
+      : [layerDragId];
+
     if (layerDropTargetId && layerDropTargetId !== 'root') {
-      // 폴더에 드롭 -> 폴더 안으로 이동
       const targetLayer = block.overlayTexts.find((t) => t.id === layerDropTargetId);
+      const draggedLayer = block.overlayTexts.find((t) => t.id === layerDragId);
+
+      // 자기 자신에게 드롭하는 경우 무시
+      if (layersToMove.includes(layerDropTargetId)) {
+        setLayerDragId(null);
+        setLayerDropTargetId(null);
+        setIsLayerDragging(false);
+        return;
+      }
+
       if (targetLayer?.isFolder) {
+        // 폴더에 드롭 -> 선택된 모든 레이어를 폴더 안으로 이동
         onUpdate({
           overlayTexts: block.overlayTexts.map((t) => {
-            if (t.id === layerDragId) {
+            if (layersToMove.includes(t.id)) {
               return { ...t, parentId: layerDropTargetId };
             }
             if (t.id === layerDropTargetId && !t.isExpanded) {
@@ -561,12 +589,45 @@ export function ImageOverlayBlockRenderer({
             return t;
           }),
         });
+      } else if (targetLayer && draggedLayer && !draggedLayer.isFolder) {
+        // ★ 일반 레이어에 드롭 -> 새 폴더 생성 후 모든 레이어 합침
+        const newFolderId = `folder-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const newFolder: OverlayText = {
+          id: newFolderId,
+          type: 'folder',
+          content: '새 폴더',
+          style: {
+            x: 0,
+            y: 0,
+            fontSize: 0,
+            fontWeight: 'normal',
+            color: 'transparent',
+          },
+          isFolder: true,
+          isExpanded: true,
+          parentId: targetLayer.parentId, // 타겟 레이어의 부모를 상속
+        };
+
+        // 선택된 모든 레이어 + 타겟 레이어를 새 폴더로 이동
+        const allLayersToFolder = [...layersToMove, layerDropTargetId];
+
+        onUpdate({
+          overlayTexts: [
+            ...block.overlayTexts.map((t) => {
+              if (allLayersToFolder.includes(t.id)) {
+                return { ...t, parentId: newFolderId };
+              }
+              return t;
+            }),
+            newFolder,
+          ],
+        });
       }
     } else if (layerDropTargetId === 'root') {
-      // 빈 곳에 드롭 -> 폴더에서 꺼냄
+      // 빈 곳에 드롭 -> 선택된 모든 레이어를 폴더에서 꺼냄
       onUpdate({
         overlayTexts: block.overlayTexts.map((t) =>
-          t.id === layerDragId ? { ...t, parentId: undefined } : t
+          layersToMove.includes(t.id) ? { ...t, parentId: undefined } : t
         ),
       });
     }
@@ -574,7 +635,11 @@ export function ImageOverlayBlockRenderer({
     setLayerDragId(null);
     setLayerDropTargetId(null);
     setIsLayerDragging(false);
-  }, [isLayerDragging, layerDragId, layerDropTargetId, block.overlayTexts, onUpdate]);
+    // 멀티 드래그 후 선택 해제
+    if (selectedLayerIds.size > 1) {
+      setSelectedLayerIds(new Set());
+    }
+  }, [isLayerDragging, layerDragId, layerDropTargetId, block.overlayTexts, onUpdate, selectedLayerIds]);
 
   // 레이어 드래그 마우스 이벤트 등록
   useEffect(() => {
@@ -1274,14 +1339,6 @@ export function ImageOverlayBlockRenderer({
             ))}
           </div>
 
-          {/* 드래그 중 상태 표시 */}
-          {isLayerDragging && layerDragId && (
-            <div className="mx-2 mb-1 py-1.5 px-3 bg-blue-500/20 border border-blue-400/50 rounded text-xs text-blue-300 flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-              <span>이동 중... 폴더에 놓으면 이동, 다른 곳에 놓으면 꺼냄</span>
-            </div>
-          )}
-
           {/* 레이어 리스트 - 트리 구조 (폴더 지원) */}
           <div className="flex-1 overflow-y-auto">
             {block.overlayTexts.length === 0 ? (
@@ -1307,8 +1364,9 @@ export function ImageOverlayBlockRenderer({
                             ? 'bg-zinc-700/50'
                             : 'hover:bg-zinc-800',
                         hiddenLayerIds.has(text.id) && 'opacity-40',
-                        layerDragId === text.id && 'opacity-60 bg-blue-500/40 ring-2 ring-blue-400 scale-[1.02] shadow-lg z-10',
-                        layerDropTargetId === text.id && text.isFolder && 'bg-yellow-500/30 ring-2 ring-yellow-400 ring-inset'
+                        layerDragId === text.id && 'opacity-60 bg-blue-500/40 ring-2 ring-blue-400 scale-[1.02] shadow-lg z-10 pointer-events-none',
+                        layerDropTargetId === text.id && text.isFolder && 'bg-yellow-500/30 ring-2 ring-yellow-400 ring-inset',
+                        layerDropTargetId === text.id && !text.isFolder && 'bg-green-500/30 ring-2 ring-green-400 ring-inset'
                       )}
                       style={{ paddingLeft: `${4 + depth * 16}px`, paddingRight: '8px' }}
                       onClick={(e) => {
