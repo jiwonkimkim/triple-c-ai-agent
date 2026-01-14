@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,6 +44,8 @@ import {
   X,
   Paintbrush,
   ClipboardPaste,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import type { ImageOverlayBlock, OverlayText, OverlayTextStyle } from '@/stores/editor-store';
 
@@ -159,6 +160,7 @@ export function ImageOverlayBlockRenderer({
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
   const [showImageSettings, setShowImageSettings] = useState(false);
   const [showLayerPanel, setShowLayerPanel] = useState(false);
+  const [hiddenLayerIds, setHiddenLayerIds] = useState<Set<string>>(new Set());
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [resizeDirection, setResizeDirection] = useState<'left' | 'right' | 'both' | 'corner-tl' | 'corner-tr' | 'corner-bl' | 'corner-br'>('both');
@@ -169,23 +171,8 @@ export function ImageOverlayBlockRenderer({
   const [resizeStartPosX, setResizeStartPosX] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [copiedStyle, setCopiedStyle] = useState<Partial<OverlayTextStyle> | null>(null);
-  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // 포털 타겟 요소 찾기 (마운트 후)
-  useEffect(() => {
-    const findTarget = () => {
-      const target = document.getElementById('editor-scroll-area');
-      if (target) {
-        setPortalTarget(target);
-      }
-    };
-    findTarget();
-    // DOM이 늦게 로드될 수 있으므로 약간의 지연 후 재시도
-    const timer = setTimeout(findTarget, 100);
-    return () => clearTimeout(timer);
-  }, []);
 
   // 서식 복사 - 위치(x, y)는 제외하고 스타일만 복사
   const handleCopyStyle = useCallback(() => {
@@ -443,6 +430,19 @@ export function ImageOverlayBlockRenderer({
     setSelectedTextId(newText.id);
   };
 
+  // 레이어 숨기기/보이기 토글
+  const handleToggleLayerVisibility = (textId: string) => {
+    setHiddenLayerIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(textId)) {
+        newSet.delete(textId);
+      } else {
+        newSet.add(textId);
+      }
+      return newSet;
+    });
+  };
+
   // 이미지 업로드
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -512,8 +512,9 @@ export function ImageOverlayBlockRenderer({
           />
         )}
 
-        {/* 오버레이 텍스트들 (레이어) */}
+        {/* 오버레이 텍스트들 (레이어) - 숨겨진 레이어 제외 */}
         {block.overlayTexts
+          .filter((t) => !hiddenLayerIds.has(t.id))
           .sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0))
           .map((overlayText) => (
             <div
@@ -762,10 +763,57 @@ export function ImageOverlayBlockRenderer({
         </div>
       )}
 
-      {/* 레이어 패널 */}
+      {/* 레이어 패널 - fixed 배치 (텍스트 편집 패널 반대편) */}
       {isSelected && showLayerPanel && (
-        <div className="absolute top-12 right-2 w-56 bg-background/95 backdrop-blur border rounded-lg shadow-lg p-2 max-h-64 overflow-y-auto">
-          <div className="text-xs font-medium text-muted-foreground mb-2 px-1">레이어</div>
+        <div className="fixed top-[224px] bottom-6 right-6 w-64 bg-background/95 backdrop-blur border rounded-lg shadow-xl p-3 overflow-y-auto z-50">
+          {/* 헤더 */}
+          <div className="flex items-center justify-between border-b pb-2 mb-3">
+            <span className="text-xs font-medium">레이어</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={() => setShowLayerPanel(false)}
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+
+          {/* 미니 프리뷰 */}
+          <div className="relative w-full aspect-[3/4] bg-muted rounded border mb-3 overflow-hidden">
+            {block.src && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={block.src}
+                alt="미니 프리뷰"
+                className="w-full h-full object-cover opacity-50"
+              />
+            )}
+            {/* 레이어 위치 표시 */}
+            {block.overlayTexts.map((text) => (
+              <div
+                key={text.id}
+                className={cn(
+                  'absolute rounded transition-all cursor-pointer',
+                  hiddenLayerIds.has(text.id)
+                    ? 'bg-muted-foreground/20 border border-dashed border-muted-foreground/40'
+                    : selectedTextId === text.id
+                      ? 'bg-primary/60 border-2 border-primary'
+                      : 'bg-primary/30 border border-primary/50 hover:bg-primary/40'
+                )}
+                style={{
+                  left: `${Math.max(0, Math.min(90, text.style.x - 5))}%`,
+                  top: `${Math.max(0, Math.min(90, text.style.y - 5))}%`,
+                  width: `${Math.min(20, text.style.width || 10)}%`,
+                  height: '10%',
+                }}
+                onClick={() => setSelectedTextId(text.id)}
+                title={text.content}
+              />
+            ))}
+          </div>
+
+          {/* 레이어 리스트 */}
           {block.overlayTexts.length === 0 ? (
             <div className="text-xs text-muted-foreground text-center py-4">
               텍스트가 없습니다
@@ -778,20 +826,48 @@ export function ImageOverlayBlockRenderer({
                   <div
                     key={text.id}
                     className={cn(
-                      'flex items-center gap-1 px-2 py-1.5 rounded text-xs cursor-pointer hover:bg-muted',
-                      selectedTextId === text.id && 'bg-primary/10 ring-1 ring-primary'
+                      'flex items-center gap-2 px-2 py-2 rounded text-xs cursor-pointer hover:bg-muted transition-colors',
+                      selectedTextId === text.id && 'bg-primary/10 ring-1 ring-primary',
+                      hiddenLayerIds.has(text.id) && 'opacity-50'
                     )}
                     onClick={() => setSelectedTextId(text.id)}
                   >
-                    <Type className="h-3 w-3 flex-shrink-0" />
+                    {/* 눈 아이콘 - 보이기/숨기기 */}
+                    <button
+                      className={cn(
+                        'p-1 rounded transition-colors flex-shrink-0',
+                        hiddenLayerIds.has(text.id)
+                          ? 'text-muted-foreground hover:bg-muted'
+                          : 'text-foreground hover:bg-muted'
+                      )}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleLayerVisibility(text.id);
+                      }}
+                      title={hiddenLayerIds.has(text.id) ? '레이어 보이기' : '레이어 숨기기'}
+                    >
+                      {hiddenLayerIds.has(text.id) ? (
+                        <EyeOff className="h-3.5 w-3.5" />
+                      ) : (
+                        <Eye className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+
+                    {/* 레이어 타입 아이콘 */}
+                    <Type className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
+
+                    {/* 레이어 내용 */}
                     <span className="flex-1 truncate">{text.content}</span>
-                    <div className="flex gap-0.5">
+
+                    {/* 액션 버튼들 */}
+                    <div className="flex gap-0.5 flex-shrink-0">
                       <button
                         className="p-0.5 hover:bg-muted-foreground/20 rounded"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleMoveLayer(text.id, 'up');
                         }}
+                        title="위로 이동"
                       >
                         <ChevronUp className="h-3 w-3" />
                       </button>
@@ -801,6 +877,7 @@ export function ImageOverlayBlockRenderer({
                           e.stopPropagation();
                           handleMoveLayer(text.id, 'down');
                         }}
+                        title="아래로 이동"
                       >
                         <ChevronDown className="h-3 w-3" />
                       </button>
@@ -810,6 +887,7 @@ export function ImageOverlayBlockRenderer({
                           e.stopPropagation();
                           handleDuplicateLayer(text.id);
                         }}
+                        title="복제"
                       >
                         <Copy className="h-3 w-3" />
                       </button>
@@ -819,6 +897,7 @@ export function ImageOverlayBlockRenderer({
                           e.stopPropagation();
                           handleDeleteOverlayText(text.id);
                         }}
+                        title="삭제"
                       >
                         <Trash2 className="h-3 w-3" />
                       </button>
