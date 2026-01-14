@@ -991,17 +991,21 @@ export function DetailPageEditor({
         ? sections.flatMap(s => s.blocks).find(b => b.id === selectedBlockId)
         : null;
 
-      const allBlocks = selectedBlock ? undefined : sections.flatMap(s => s.blocks);
+      // 섹션 데이터 준비 (섹션 이름 포함) - 섹션 미선택 시에만
+      const sectionsData = selectedBlock ? undefined : sections.map(s => ({
+        id: s.id,
+        name: s.name,
+        blocks: s.blocks,
+      }));
 
       // 🔍 DEBUG: 요청 전 데이터 로깅
       console.log('[FE AI Edit] 🔍 DEBUG - Request data:', {
         hasSelectedBlock: !!selectedBlock,
         selectedBlockId,
-        allBlocksCount: allBlocks?.length,
-        allBlocksTypes: allBlocks?.map(b => b.type),
+        hasSectionsData: !!sectionsData,
+        sectionsCount: sectionsData?.length,
+        sectionNames: sectionsData?.map(s => s.name),
         editType,
-        sectionsCount: sections.length,
-        sectionBlockCounts: sections.map(s => ({ id: s.id.substring(0, 8), blocksCount: s.blocks.length })),
       });
 
       const response = await fetch('/api/ai/edit', {
@@ -1011,7 +1015,7 @@ export function DetailPageEditor({
           projectId,
           message: userMessage,
           targetElement: selectedBlock,
-          allElements: allBlocks,
+          sectionsData, // 섹션 데이터 (이름 포함)
           editType, // 편집 유형 전송
         }),
       });
@@ -1027,6 +1031,8 @@ export function DetailPageEditor({
       console.log('[FE AI Edit] 🔍 DEBUG - Response data:', {
         success: data.success,
         hasUpdatedElement: !!data.updatedElement,
+        hasUpdatedSections: !!data.updatedSections,
+        updatedSectionsCount: data.updatedSections?.length,
         hasUpdatedElements: !!data.updatedElements,
         updatedElementsCount: data.updatedElements?.length,
         error: data.error,
@@ -1050,11 +1056,72 @@ export function DetailPageEditor({
         } else {
           aiResponseContent = '선택한 블록의 텍스트를 수정했습니다.';
         }
+      } else if (data.updatedSections) {
+        // 🔍 DEBUG: 섹션 데이터로 전체 수정 응답 처리 (새로운 방식)
+        console.log('[FE AI Edit] 🔍 DEBUG - Processing updatedSections:', {
+          updatedSectionsCount: data.updatedSections.length,
+          sectionNames: data.updatedSections.map((s: { name: string }) => s.name),
+        });
+
+        // 원본 섹션과 병합하여 업데이트
+        const mergedSections = sections.map(originalSection => {
+          const updatedSection = data.updatedSections.find(
+            (us: { id: string }) => us.id === originalSection.id
+          );
+
+          if (!updatedSection) {
+            return originalSection;
+          }
+
+          // 블록 병합 - 원본 블록 속성 유지하면서 content/overlayTexts만 업데이트
+          const mergedBlocks = originalSection.blocks.map(originalBlock => {
+            const updatedBlock = updatedSection.blocks?.find(
+              (ub: { id: string }) => ub.id === originalBlock.id
+            );
+
+            if (!updatedBlock) {
+              return originalBlock;
+            }
+
+            // image-overlay인 경우 overlayTexts만 업데이트
+            if (originalBlock.type === 'image-overlay' && updatedBlock.overlayTexts) {
+              const mergedOverlayTexts = originalBlock.overlayTexts?.map(original => {
+                const updatedText = updatedBlock.overlayTexts?.find(
+                  (u: { id: string }) => u.id === original.id
+                );
+                if (updatedText) {
+                  return { ...original, content: updatedText.content };
+                }
+                return original;
+              });
+              return { ...originalBlock, overlayTexts: mergedOverlayTexts };
+            }
+
+            // text/heading인 경우 content 업데이트
+            if (updatedBlock.content !== undefined) {
+              return { ...originalBlock, content: updatedBlock.content };
+            }
+
+            return originalBlock;
+          });
+
+          return {
+            ...originalSection,
+            blocks: mergedBlocks,
+          };
+        });
+
+        console.log('[FE AI Edit] 🔍 DEBUG - Setting mergedSections:', {
+          sectionsCount: mergedSections.length,
+          totalBlocks: mergedSections.reduce((sum, s) => sum + s.blocks.length, 0),
+        });
+
+        setSections(mergedSections);
+        aiResponseContent = '페이지를 수정했습니다.';
       } else if (data.updatedElements) {
-        // 🔍 DEBUG: 전체 수정 응답 처리
-        console.log('[FE AI Edit] 🔍 DEBUG - Processing updatedElements:', {
+        // 🔍 DEBUG: 이전 방식 호환성 (updatedElements)
+        console.log('[FE AI Edit] 🔍 DEBUG - Processing updatedElements (legacy):', {
           updatedElementsCount: data.updatedElements.length,
-          updatedElementIds: data.updatedElements.map((el: EditorBlock) => el.id?.substring(0, 8)),
         });
 
         // Update all blocks - reconstruct sections
@@ -1063,29 +1130,18 @@ export function DetailPageEditor({
             section.blocks.some(b => b.id === el.id)
           );
 
-          // 🔍 DEBUG: 섹션별 블록 필터링 결과
-          console.log('[FE AI Edit] 🔍 DEBUG - Section filtering:', {
-            sectionId: section.id.substring(0, 8),
-            originalBlocksCount: section.blocks.length,
-            filteredBlocksCount: filteredBlocks.length,
-          });
-
           return {
             ...section,
             blocks: filteredBlocks,
           };
         });
 
-        console.log('[FE AI Edit] 🔍 DEBUG - Setting updatedSections:', {
-          sectionsCount: updatedSections.length,
-          totalBlocks: updatedSections.reduce((sum, s) => sum + s.blocks.length, 0),
-        });
-
         setSections(updatedSections);
         aiResponseContent = '페이지 전체를 수정했습니다.';
       } else {
         // 🔍 DEBUG: 응답에 업데이트 데이터 없음
-        console.log('[FE AI Edit] 🔍 DEBUG - No updatedElement or updatedElements in response!');
+        console.log('[FE AI Edit] 🔍 DEBUG - No update data in response!');
+        aiResponseContent = '수정할 내용이 없습니다.';
       }
 
       const aiChatMessage: ChatMessage = {

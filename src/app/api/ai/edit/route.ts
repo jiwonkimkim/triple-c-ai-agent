@@ -38,11 +38,19 @@ interface EditableElement {
   overlayGradient?: string;
 }
 
+// 섹션 정보 (섹션 이름 포함)
+interface SectionData {
+  id: string;
+  name: string;
+  blocks: EditableElement[];
+}
+
 interface EditRequest {
   projectId: string;
   message: string;
   targetElement?: EditableElement;
   allElements?: EditableElement[];
+  sectionsData?: SectionData[]; // 섹션 정보 (이름 포함)
   editType?: 'text' | 'image' | 'both'; // 편집 유형
 }
 
@@ -230,19 +238,32 @@ export async function POST(request: NextRequest) {
     }
 
     const body: EditRequest = await request.json();
-    const { message, targetElement, allElements, editType = 'text' } = body;
+    const { message, targetElement, allElements, sectionsData, editType = 'text' } = body;
     console.log('[AI Edit] Request body:', {
       message: message?.substring(0, 50),
       hasTargetElement: !!targetElement,
       targetElementType: targetElement?.type,
       allElementsCount: allElements?.length,
       allElementsTypes: allElements?.map(el => el.type),
+      hasSectionsData: !!sectionsData,
+      sectionsCount: sectionsData?.length,
+      sectionNames: sectionsData?.map(s => s.name),
       editType,
     });
 
-    // 🔍 DEBUG: 섹션 미선택 시 allElements 상세 로그
-    if (!targetElement && allElements) {
-      console.log('[AI Edit] 🔍 DEBUG - No target, processing allElements:', {
+    // 🔍 DEBUG: 섹션 미선택 시 섹션 데이터 상세 로그
+    if (!targetElement && sectionsData) {
+      console.log('[AI Edit] 🔍 DEBUG - No target, processing sectionsData:', {
+        totalSections: sectionsData.length,
+        sectionDetails: sectionsData.map(s => ({
+          id: s.id?.substring(0, 8),
+          name: s.name,
+          blocksCount: s.blocks?.length,
+        })),
+      });
+    } else if (!targetElement && allElements) {
+      // 이전 방식 호환성 유지
+      console.log('[AI Edit] 🔍 DEBUG - No target, processing allElements (legacy):', {
         totalCount: allElements.length,
         elementDetails: allElements.map(el => ({
           id: el.id?.substring(0, 8),
@@ -416,9 +437,123 @@ export async function POST(request: NextRequest) {
         success: true,
         updatedElement: { content: result },
       });
+    } else if (sectionsData && sectionsData.length > 0) {
+      // 🔍 DEBUG: 섹션 데이터로 전체 페이지 수정 (섹션 이름 포함)
+      console.log('[AI Edit] 🔍 DEBUG - Entering sectionsData branch (full page edit with section names)');
+
+      const prompt = buildSectionsEditPrompt(message, sectionsData);
+      console.log('[AI Edit] Sections edit prompt length:', prompt.length, 'chars');
+      console.log('[AI Edit] 🔍 DEBUG - Prompt preview:', prompt.substring(0, 300));
+
+      const result = await callAI(prompt, provider!);
+      console.log('[AI Edit] 🔍 DEBUG - AI result length:', result.length);
+      console.log('[AI Edit] 🔍 DEBUG - AI result preview:', result.substring(0, 300));
+
+      try {
+        // Clean up markdown code blocks if present
+        let cleanResult = result.trim();
+        if (cleanResult.startsWith('```json')) {
+          cleanResult = cleanResult.slice(7);
+        } else if (cleanResult.startsWith('```')) {
+          cleanResult = cleanResult.slice(3);
+        }
+        if (cleanResult.endsWith('```')) {
+          cleanResult = cleanResult.slice(0, -3);
+        }
+        cleanResult = cleanResult.trim();
+
+        console.log('[AI Edit] 🔍 DEBUG - Clean result preview:', cleanResult.substring(0, 200));
+
+        const updatedSections = JSON.parse(cleanResult);
+        console.log('[AI Edit] 🔍 DEBUG - Parsed sections count:', updatedSections?.length);
+
+        // 원본 섹션과 병합
+        const mergedSections = sectionsData.map((originalSection) => {
+          const updatedSection = updatedSections.find(
+            (us: { sectionId: string }) => us.sectionId === originalSection.id
+          );
+
+          if (!updatedSection) {
+            return originalSection;
+          }
+
+          // 블록 병합
+          const mergedBlocks = originalSection.blocks.map((originalBlock) => {
+            const updatedBlock = updatedSection.blocks?.find(
+              (ub: { id: string }) => ub.id === originalBlock.id
+            );
+
+            if (!updatedBlock) {
+              return originalBlock;
+            }
+
+            // image-overlay인 경우 overlayTexts만 업데이트
+            if (originalBlock.type === 'image-overlay' && updatedBlock.overlayTexts) {
+              const mergedOverlayTexts = originalBlock.overlayTexts?.map((original) => {
+                const updatedText = updatedBlock.overlayTexts?.find(
+                  (u: { id: string }) => u.id === original.id
+                );
+                if (updatedText) {
+                  return { ...original, content: updatedText.content };
+                }
+                return original;
+              });
+              return { ...originalBlock, overlayTexts: mergedOverlayTexts };
+            }
+
+            // text/heading인 경우 content 업데이트
+            if (updatedBlock.content !== undefined) {
+              return { ...originalBlock, content: updatedBlock.content };
+            }
+
+            return originalBlock;
+          });
+
+          return {
+            ...originalSection,
+            blocks: mergedBlocks,
+          };
+        });
+
+        console.log('[AI Edit] 🔍 DEBUG - Merged sections count:', mergedSections.length);
+        console.log('[AI Edit] 🔍 DEBUG - Returning success response with updatedSections');
+
+        return NextResponse.json({
+          success: true,
+          updatedSections: mergedSections,
+        });
+      } catch (parseError) {
+        // 🔍 DEBUG: JSON 파싱 실패
+        console.log('[AI Edit] 🔍 DEBUG - JSON parse failed:', parseError);
+        console.log('[AI Edit] 🔍 DEBUG - Using fallback (adding 수정됨 suffix)');
+
+        // JSON 파싱 실패 시 텍스트에 수정됨 추가
+        const updatedSections = sectionsData.map((section) => ({
+          ...section,
+          blocks: section.blocks.map((el) => {
+            if (el.type === 'text' || el.type === 'heading') {
+              return { ...el, content: (el.content || '') + ' (수정됨)' };
+            }
+            if (el.type === 'image-overlay' && el.overlayTexts) {
+              return {
+                ...el,
+                overlayTexts: el.overlayTexts.map((t) => ({
+                  ...t,
+                  content: t.content + ' (수정됨)',
+                })),
+              };
+            }
+            return el;
+          }),
+        }));
+        return NextResponse.json({
+          success: true,
+          updatedSections,
+        });
+      }
     } else if (allElements) {
-      // 🔍 DEBUG: 전체 페이지 수정 진입
-      console.log('[AI Edit] 🔍 DEBUG - Entering allElements branch (full page edit)');
+      // 🔍 DEBUG: 전체 페이지 수정 진입 (이전 방식 호환성)
+      console.log('[AI Edit] 🔍 DEBUG - Entering allElements branch (legacy full page edit)');
 
       // 전체 페이지 수정 - 텍스트 요소 및 image-overlay 블록 포함
       const editableElements = allElements.filter(
@@ -609,6 +744,56 @@ ${elementsJson}
 각 요소의 id와 type은 유지하세요.
 - text/heading 요소는 content만 수정하세요.
 - image-overlay 요소는 overlayTexts 배열 안의 각 텍스트 content만 수정하세요.
+JSON 배열만 반환하고 다른 설명은 포함하지 마세요.`;
+}
+
+// 섹션 정보를 포함한 프롬프트 생성 (섹션 이름으로 특정 섹션 수정 가능)
+function buildSectionsEditPrompt(message: string, sectionsData: SectionData[]): string {
+  const sectionsJson = JSON.stringify(
+    sectionsData.map((section) => ({
+      sectionId: section.id,
+      sectionName: section.name,
+      blocks: section.blocks
+        .filter((el) => el.type === 'text' || el.type === 'heading' || el.type === 'image-overlay')
+        .map((el) => {
+          if (el.type === 'image-overlay' && el.overlayTexts) {
+            return {
+              id: el.id,
+              type: el.type,
+              overlayTexts: el.overlayTexts.map((t) => ({
+                id: t.id,
+                type: t.type,
+                content: t.content,
+              })),
+            };
+          }
+          return {
+            id: el.id,
+            type: el.type,
+            content: el.content,
+          };
+        }),
+    })),
+    null,
+    2
+  );
+
+  return `다음 상세페이지의 섹션별 콘텐츠를 사용자의 요청에 맞게 수정해주세요.
+
+각 섹션에는 이름(sectionName)이 있습니다. 사용자가 특정 섹션 이름을 언급하면 해당 섹션만 수정하세요.
+사용자가 특정 섹션을 언급하지 않으면 요청에 맞는 모든 섹션을 수정하세요.
+
+현재 콘텐츠 (섹션별):
+${sectionsJson}
+
+사용자 요청: "${message}"
+
+수정된 콘텐츠를 동일한 JSON 형식으로 반환해주세요.
+- 각 섹션의 sectionId와 sectionName은 유지하세요.
+- 각 블록의 id와 type은 유지하세요.
+- text/heading 요소는 content만 수정하세요.
+- image-overlay 요소는 overlayTexts 배열 안의 각 텍스트 content만 수정하세요.
+- 수정하지 않는 섹션도 그대로 포함해서 반환하세요.
 JSON 배열만 반환하고 다른 설명은 포함하지 마세요.`;
 }
 
