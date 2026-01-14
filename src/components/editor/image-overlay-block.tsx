@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -168,8 +169,23 @@ export function ImageOverlayBlockRenderer({
   const [resizeStartPosX, setResizeStartPosX] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [copiedStyle, setCopiedStyle] = useState<Partial<OverlayTextStyle> | null>(null);
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 포털 타겟 요소 찾기 (마운트 후)
+  useEffect(() => {
+    const findTarget = () => {
+      const target = document.getElementById('editor-scroll-area');
+      if (target) {
+        setPortalTarget(target);
+      }
+    };
+    findTarget();
+    // DOM이 늦게 로드될 수 있으므로 약간의 지연 후 재시도
+    const timer = setTimeout(findTarget, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // 서식 복사 - 위치(x, y)는 제외하고 스타일만 복사
   const handleCopyStyle = useCallback(() => {
@@ -814,9 +830,9 @@ export function ImageOverlayBlockRenderer({
         </div>
       )}
 
-      {/* 선택된 텍스트 편집 패널 - fixed 배치 */}
-      {isSelected && selectedText && (
-        <div className="fixed top-52 bottom-4 left-4 w-52 bg-background/95 backdrop-blur border rounded-lg shadow-xl p-3 space-y-3 overflow-y-auto z-50">
+      {/* 선택된 텍스트 편집 패널 - 에디터 스크롤 영역 내 absolute 배치 */}
+      {isSelected && selectedText && portalTarget && createPortal(
+        <div className="absolute top-4 left-4 w-52 max-h-[calc(100%-2rem)] bg-background/95 backdrop-blur border rounded-lg shadow-xl p-3 space-y-3 overflow-y-auto z-50">
           {/* 헤더 */}
           <div className="flex items-center justify-between border-b pb-2">
             <span className="text-xs font-medium">텍스트 편집</span>
@@ -1038,7 +1054,8 @@ export function ImageOverlayBlockRenderer({
               {selectedText.style.textShadow ? 'ON' : 'OFF'}
             </button>
           </div>
-        </div>
+        </div>,
+        portalTarget
       )}
     </div>
   );
