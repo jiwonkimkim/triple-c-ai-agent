@@ -46,6 +46,9 @@ import {
   ClipboardPaste,
   Eye,
   EyeOff,
+  Merge,
+  Lock,
+  Unlock,
 } from 'lucide-react';
 import type { ImageOverlayBlock, OverlayText, OverlayTextStyle } from '@/stores/editor-store';
 
@@ -158,9 +161,11 @@ export function ImageOverlayBlockRenderer({
   onUpdate,
 }: ImageOverlayBlockRendererProps) {
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
+  const [selectedLayerIds, setSelectedLayerIds] = useState<Set<string>>(new Set()); // 멀티 선택
   const [showImageSettings, setShowImageSettings] = useState(false);
   const [showLayerPanel, setShowLayerPanel] = useState(false);
   const [hiddenLayerIds, setHiddenLayerIds] = useState<Set<string>>(new Set());
+  const [lockedLayerIds, setLockedLayerIds] = useState<Set<string>>(new Set()); // 잠금 상태
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [resizeDirection, setResizeDirection] = useState<'left' | 'right' | 'both' | 'corner-tl' | 'corner-tr' | 'corner-bl' | 'corner-br'>('both');
@@ -441,6 +446,89 @@ export function ImageOverlayBlockRenderer({
       }
       return newSet;
     });
+  };
+
+  // 레이어 잠금/잠금해제 토글
+  const handleToggleLayerLock = (textId: string) => {
+    setLockedLayerIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(textId)) {
+        newSet.delete(textId);
+      } else {
+        newSet.add(textId);
+      }
+      return newSet;
+    });
+  };
+
+  // 멀티 선택 토글 (Ctrl/Cmd + 클릭)
+  const handleLayerSelect = (textId: string, isMultiSelect: boolean) => {
+    if (isMultiSelect) {
+      setSelectedLayerIds((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(textId)) {
+          newSet.delete(textId);
+        } else {
+          newSet.add(textId);
+        }
+        return newSet;
+      });
+    } else {
+      setSelectedLayerIds(new Set([textId]));
+    }
+    setSelectedTextId(textId);
+  };
+
+  // 선택된 레이어들 합치기
+  const handleMergeLayers = () => {
+    if (selectedLayerIds.size < 2) return;
+
+    const selectedTexts = block.overlayTexts
+      .filter((t) => selectedLayerIds.has(t.id))
+      .sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+
+    if (selectedTexts.length < 2) return;
+
+    // 가장 아래 레이어를 기준으로 합침
+    const baseText = selectedTexts[0];
+    const mergedContent = selectedTexts.map((t) => t.content).join('\n');
+
+    // 중심 위치 계산 (평균)
+    const avgX = selectedTexts.reduce((sum, t) => sum + t.style.x, 0) / selectedTexts.length;
+    const avgY = selectedTexts.reduce((sum, t) => sum + t.style.y, 0) / selectedTexts.length;
+
+    // 합쳐진 레이어 생성
+    const mergedText: OverlayText = {
+      ...baseText,
+      id: generateId(),
+      content: mergedContent,
+      style: {
+        ...baseText.style,
+        x: avgX,
+        y: avgY,
+      },
+      zIndex: Math.max(...selectedTexts.map((t) => t.zIndex || 0)),
+    };
+
+    // 기존 선택된 레이어들 제거하고 합쳐진 레이어 추가
+    const newOverlayTexts = block.overlayTexts.filter((t) => !selectedLayerIds.has(t.id));
+    newOverlayTexts.push(mergedText);
+
+    onUpdate({ overlayTexts: newOverlayTexts });
+    setSelectedLayerIds(new Set([mergedText.id]));
+    setSelectedTextId(mergedText.id);
+  };
+
+  // 전체 선택
+  const handleSelectAll = () => {
+    const allIds = new Set(block.overlayTexts.map((t) => t.id));
+    setSelectedLayerIds(allIds);
+  };
+
+  // 선택 해제
+  const handleDeselectAll = () => {
+    setSelectedLayerIds(new Set());
+    setSelectedTextId(null);
   };
 
   // 이미지 업로드
@@ -763,30 +851,77 @@ export function ImageOverlayBlockRenderer({
         </div>
       )}
 
-      {/* 레이어 패널 - fixed 배치 (텍스트 편집 패널 반대편) */}
+      {/* 레이어 패널 - 포토샵 스타일 (텍스트 편집 패널 오른쪽) */}
       {isSelected && showLayerPanel && (
-        <div className="fixed top-[224px] bottom-6 right-6 w-64 bg-background/95 backdrop-blur border rounded-lg shadow-xl p-3 overflow-y-auto z-50">
-          {/* 헤더 */}
-          <div className="flex items-center justify-between border-b pb-2 mb-3">
-            <span className="text-xs font-medium">레이어</span>
+        <div className="fixed top-[224px] bottom-6 left-[270px] w-72 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl overflow-hidden z-50 flex flex-col">
+          {/* 헤더 - 포토샵 스타일 */}
+          <div className="flex items-center justify-between px-3 py-2 bg-zinc-800 border-b border-zinc-700">
+            <span className="text-xs font-medium text-zinc-300">레이어</span>
+            <div className="flex items-center gap-1">
+              {/* 선택된 레이어 수 표시 */}
+              {selectedLayerIds.size > 1 && (
+                <span className="text-[10px] text-zinc-500 mr-2">
+                  {selectedLayerIds.size}개 선택됨
+                </span>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700"
+                onClick={() => setShowLayerPanel(false)}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
+
+          {/* 툴바 - 합치기, 전체선택 등 */}
+          <div className="flex items-center gap-1 px-2 py-1.5 bg-zinc-850 border-b border-zinc-700">
             <Button
               variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              onClick={() => setShowLayerPanel(false)}
+              size="sm"
+              className="h-6 px-2 text-[10px] text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700"
+              onClick={handleSelectAll}
+              title="전체 선택"
             >
-              <X className="h-3.5 w-3.5" />
+              전체
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 text-[10px] text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700"
+              onClick={handleDeselectAll}
+              title="선택 해제"
+            >
+              해제
+            </Button>
+            <div className="w-px h-4 bg-zinc-700 mx-1" />
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "h-6 px-2 text-[10px] hover:bg-zinc-700 flex items-center gap-1",
+                selectedLayerIds.size >= 2
+                  ? "text-blue-400 hover:text-blue-300"
+                  : "text-zinc-600 cursor-not-allowed"
+              )}
+              onClick={handleMergeLayers}
+              disabled={selectedLayerIds.size < 2}
+              title="선택한 레이어 합치기 (2개 이상 선택 필요)"
+            >
+              <Merge className="h-3 w-3" />
+              합치기
             </Button>
           </div>
 
           {/* 미니 프리뷰 */}
-          <div className="relative w-full aspect-[3/4] bg-muted rounded border mb-3 overflow-hidden">
+          <div className="relative w-full aspect-[3/4] bg-zinc-950 border-b border-zinc-700 overflow-hidden flex-shrink-0">
             {block.src && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={block.src}
                 alt="미니 프리뷰"
-                className="w-full h-full object-cover opacity-50"
+                className="w-full h-full object-cover opacity-40"
               />
             )}
             {/* 레이어 위치 표시 */}
@@ -794,118 +929,178 @@ export function ImageOverlayBlockRenderer({
               <div
                 key={text.id}
                 className={cn(
-                  'absolute rounded transition-all cursor-pointer',
+                  'absolute transition-all cursor-pointer',
                   hiddenLayerIds.has(text.id)
-                    ? 'bg-muted-foreground/20 border border-dashed border-muted-foreground/40'
-                    : selectedTextId === text.id
-                      ? 'bg-primary/60 border-2 border-primary'
-                      : 'bg-primary/30 border border-primary/50 hover:bg-primary/40'
+                    ? 'bg-zinc-600/30 border border-dashed border-zinc-500'
+                    : selectedLayerIds.has(text.id)
+                      ? 'bg-blue-500/60 border-2 border-blue-400'
+                      : selectedTextId === text.id
+                        ? 'bg-blue-500/40 border border-blue-400'
+                        : 'bg-white/20 border border-white/40 hover:bg-white/30'
                 )}
                 style={{
-                  left: `${Math.max(0, Math.min(90, text.style.x - 5))}%`,
-                  top: `${Math.max(0, Math.min(90, text.style.y - 5))}%`,
-                  width: `${Math.min(20, text.style.width || 10)}%`,
-                  height: '10%',
+                  left: `${Math.max(2, Math.min(88, text.style.x - 5))}%`,
+                  top: `${Math.max(2, Math.min(88, text.style.y - 5))}%`,
+                  width: `${Math.max(8, Math.min(25, text.style.width || 12))}%`,
+                  height: '8%',
+                  borderRadius: '2px',
                 }}
-                onClick={() => setSelectedTextId(text.id)}
+                onClick={(e) => handleLayerSelect(text.id, e.ctrlKey || e.metaKey)}
                 title={text.content}
               />
             ))}
           </div>
 
-          {/* 레이어 리스트 */}
-          {block.overlayTexts.length === 0 ? (
-            <div className="text-xs text-muted-foreground text-center py-4">
-              텍스트가 없습니다
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {[...block.overlayTexts]
-                .sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0))
-                .map((text) => (
-                  <div
-                    key={text.id}
-                    className={cn(
-                      'flex items-center gap-2 px-2 py-2 rounded text-xs cursor-pointer hover:bg-muted transition-colors',
-                      selectedTextId === text.id && 'bg-primary/10 ring-1 ring-primary',
-                      hiddenLayerIds.has(text.id) && 'opacity-50'
-                    )}
-                    onClick={() => setSelectedTextId(text.id)}
-                  >
-                    {/* 눈 아이콘 - 보이기/숨기기 */}
-                    <button
+          {/* 레이어 리스트 - 포토샵 스타일 */}
+          <div className="flex-1 overflow-y-auto">
+            {block.overlayTexts.length === 0 ? (
+              <div className="text-xs text-zinc-500 text-center py-6">
+                레이어가 없습니다
+              </div>
+            ) : (
+              <div className="divide-y divide-zinc-800">
+                {[...block.overlayTexts]
+                  .sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0))
+                  .map((text) => (
+                    <div
+                      key={text.id}
                       className={cn(
-                        'p-1 rounded transition-colors flex-shrink-0',
-                        hiddenLayerIds.has(text.id)
-                          ? 'text-muted-foreground hover:bg-muted'
-                          : 'text-foreground hover:bg-muted'
+                        'flex items-center gap-2 px-2 py-2 cursor-pointer transition-colors',
+                        selectedLayerIds.has(text.id)
+                          ? 'bg-blue-600/30'
+                          : selectedTextId === text.id
+                            ? 'bg-zinc-700/50'
+                            : 'hover:bg-zinc-800',
+                        hiddenLayerIds.has(text.id) && 'opacity-40'
                       )}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleToggleLayerVisibility(text.id);
-                      }}
-                      title={hiddenLayerIds.has(text.id) ? '레이어 보이기' : '레이어 숨기기'}
+                      onClick={(e) => handleLayerSelect(text.id, e.ctrlKey || e.metaKey)}
                     >
-                      {hiddenLayerIds.has(text.id) ? (
-                        <EyeOff className="h-3.5 w-3.5" />
-                      ) : (
-                        <Eye className="h-3.5 w-3.5" />
-                      )}
-                    </button>
+                      {/* 가시성 토글 */}
+                      <button
+                        className={cn(
+                          'w-5 h-5 flex items-center justify-center rounded transition-colors',
+                          hiddenLayerIds.has(text.id)
+                            ? 'text-zinc-600 hover:text-zinc-400'
+                            : 'text-zinc-400 hover:text-zinc-200'
+                        )}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleLayerVisibility(text.id);
+                        }}
+                      >
+                        {hiddenLayerIds.has(text.id) ? (
+                          <EyeOff className="h-3.5 w-3.5" />
+                        ) : (
+                          <Eye className="h-3.5 w-3.5" />
+                        )}
+                      </button>
 
-                    {/* 레이어 타입 아이콘 */}
-                    <Type className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
+                      {/* 잠금 토글 */}
+                      <button
+                        className={cn(
+                          'w-5 h-5 flex items-center justify-center rounded transition-colors',
+                          lockedLayerIds.has(text.id)
+                            ? 'text-yellow-500 hover:text-yellow-400'
+                            : 'text-zinc-600 hover:text-zinc-400'
+                        )}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleToggleLayerLock(text.id);
+                        }}
+                      >
+                        {lockedLayerIds.has(text.id) ? (
+                          <Lock className="h-3 w-3" />
+                        ) : (
+                          <Unlock className="h-3 w-3" />
+                        )}
+                      </button>
 
-                    {/* 레이어 내용 */}
-                    <span className="flex-1 truncate">{text.content}</span>
+                      {/* 레이어 썸네일 - 텍스트 스타일 미리보기 */}
+                      <div
+                        className="w-10 h-10 rounded border border-zinc-600 flex items-center justify-center overflow-hidden flex-shrink-0"
+                        style={{
+                          backgroundColor: text.style.backgroundColor || 'transparent',
+                        }}
+                      >
+                        <span
+                          className="text-[8px] font-bold truncate px-0.5"
+                          style={{
+                            color: text.style.color || '#fff',
+                            fontFamily: text.style.fontFamily,
+                          }}
+                        >
+                          {text.content.substring(0, 4)}
+                        </span>
+                      </div>
 
-                    {/* 액션 버튼들 */}
-                    <div className="flex gap-0.5 flex-shrink-0">
-                      <button
-                        className="p-0.5 hover:bg-muted-foreground/20 rounded"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleMoveLayer(text.id, 'up');
-                        }}
-                        title="위로 이동"
-                      >
-                        <ChevronUp className="h-3 w-3" />
-                      </button>
-                      <button
-                        className="p-0.5 hover:bg-muted-foreground/20 rounded"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleMoveLayer(text.id, 'down');
-                        }}
-                        title="아래로 이동"
-                      >
-                        <ChevronDown className="h-3 w-3" />
-                      </button>
-                      <button
-                        className="p-0.5 hover:bg-muted-foreground/20 rounded"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDuplicateLayer(text.id);
-                        }}
-                        title="복제"
-                      >
-                        <Copy className="h-3 w-3" />
-                      </button>
-                      <button
-                        className="p-0.5 hover:bg-destructive/20 rounded text-destructive"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteOverlayText(text.id);
-                        }}
-                        title="삭제"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
+                      {/* 레이어 정보 */}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-zinc-200 truncate">
+                          {text.content}
+                        </div>
+                        <div className="text-[10px] text-zinc-500">
+                          {text.type} · {text.style.fontSize}px
+                        </div>
+                      </div>
+
+                      {/* 순서 조절 버튼 */}
+                      <div className="flex flex-col gap-0.5">
+                        <button
+                          className="w-4 h-4 flex items-center justify-center text-zinc-500 hover:text-zinc-300 hover:bg-zinc-700 rounded"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMoveLayer(text.id, 'up');
+                          }}
+                        >
+                          <ChevronUp className="h-3 w-3" />
+                        </button>
+                        <button
+                          className="w-4 h-4 flex items-center justify-center text-zinc-500 hover:text-zinc-300 hover:bg-zinc-700 rounded"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMoveLayer(text.id, 'down');
+                          }}
+                        >
+                          <ChevronDown className="h-3 w-3" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+              </div>
+            )}
+          </div>
+
+          {/* 하단 액션 바 */}
+          <div className="flex items-center justify-between px-2 py-1.5 bg-zinc-800 border-t border-zinc-700">
+            <div className="flex gap-1">
+              <button
+                className="w-6 h-6 flex items-center justify-center text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700 rounded"
+                onClick={() => handleDuplicateLayer(selectedTextId!)}
+                disabled={!selectedTextId}
+                title="레이어 복제"
+              >
+                <Copy className="h-3.5 w-3.5" />
+              </button>
+              <button
+                className="w-6 h-6 flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-zinc-700 rounded"
+                onClick={() => {
+                  if (selectedLayerIds.size > 0) {
+                    selectedLayerIds.forEach((id) => handleDeleteOverlayText(id));
+                    setSelectedLayerIds(new Set());
+                  } else if (selectedTextId) {
+                    handleDeleteOverlayText(selectedTextId);
+                  }
+                }}
+                disabled={!selectedTextId && selectedLayerIds.size === 0}
+                title="레이어 삭제"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
             </div>
-          )}
+            <span className="text-[10px] text-zinc-500">
+              {block.overlayTexts.length}개 레이어
+            </span>
+          </div>
         </div>
       )}
 
