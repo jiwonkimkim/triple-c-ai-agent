@@ -193,6 +193,7 @@ export function ImageOverlayBlockRenderer({
   const [lockedLayerIds, setLockedLayerIds] = useState<Set<string>>(new Set()); // 잠금 상태
   const [layerDragId, setLayerDragId] = useState<string | null>(null); // 레이어 패널 드래그 중인 레이어
   const [layerDropTargetId, setLayerDropTargetId] = useState<string | null>(null); // 드롭 대상 폴더
+  const [isLayerDragging, setIsLayerDragging] = useState(false); // 레이어 드래그 중 여부
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [resizeDirection, setResizeDirection] = useState<'left' | 'right' | 'both' | 'corner-tl' | 'corner-tr' | 'corner-bl' | 'corner-br'>('both');
@@ -509,86 +510,83 @@ export function ImageOverlayBlockRenderer({
     return false;
   }, [hiddenLayerIds, block.overlayTexts]);
 
-  // ★ 레이어 드래그 앤 드롭 핸들러
-  const handleLayerDragStart = (e: React.DragEvent, layerId: string) => {
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', layerId);
-    e.dataTransfer.setData('application/x-layer-id', layerId);
+  // ★ 레이어 드래그 앤 드롭 핸들러 (마우스 이벤트 기반)
+  const handleLayerMouseDown = useCallback((e: React.MouseEvent, layerId: string) => {
+    // 버튼 클릭은 무시
+    if ((e.target as HTMLElement).closest('button')) return;
+
+    e.preventDefault();
     setLayerDragId(layerId);
-    // 드래그 이미지 설정 (선택사항)
-    const dragImage = e.currentTarget as HTMLElement;
-    if (dragImage) {
-      e.dataTransfer.setDragImage(dragImage, 10, 10);
+    setIsLayerDragging(true);
+  }, []);
+
+  const handleLayerMouseMove = useCallback((e: MouseEvent) => {
+    if (!isLayerDragging || !layerDragId) return;
+
+    // 마우스 위치에서 타겟 요소 찾기
+    const elementsUnderMouse = document.elementsFromPoint(e.clientX, e.clientY);
+    const layerElement = elementsUnderMouse.find(el => el.getAttribute('data-layer-id'));
+
+    if (layerElement) {
+      const targetId = layerElement.getAttribute('data-layer-id');
+      const targetLayer = block.overlayTexts.find((t) => t.id === targetId);
+
+      if (targetId && targetId !== layerDragId) {
+        // 폴더면 해당 폴더로, 아니면 root로
+        setLayerDropTargetId(targetLayer?.isFolder ? targetId : 'root');
+      }
+    } else {
+      setLayerDropTargetId('root');
     }
-  };
+  }, [isLayerDragging, layerDragId, block.overlayTexts]);
 
-  const handleLayerDragOver = (e: React.DragEvent, targetId: string) => {
-    e.preventDefault();
-    const targetLayer = block.overlayTexts.find((t) => t.id === targetId);
-    // 폴더에만 드롭 가능
-    if (targetLayer?.isFolder) {
-      setLayerDropTargetId(targetId);
-    }
-  };
-
-  const handleLayerDragLeave = () => {
-    setLayerDropTargetId(null);
-  };
-
-  const handleLayerDrop = (e: React.DragEvent, targetId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const draggedLayerId = e.dataTransfer.getData('text/plain');
-
-    // 대상이 폴더인지 확인
-    const targetLayer = block.overlayTexts.find((t) => t.id === targetId);
-    if (!targetLayer?.isFolder) {
-      setLayerDragId(null);
-      setLayerDropTargetId(null);
+  const handleLayerMouseUp = useCallback(() => {
+    if (!isLayerDragging || !layerDragId) {
+      setIsLayerDragging(false);
       return;
     }
 
-    if (!draggedLayerId || draggedLayerId === targetId) {
-      setLayerDragId(null);
-      setLayerDropTargetId(null);
-      return;
+    if (layerDropTargetId && layerDropTargetId !== 'root') {
+      // 폴더에 드롭 -> 폴더 안으로 이동
+      const targetLayer = block.overlayTexts.find((t) => t.id === layerDropTargetId);
+      if (targetLayer?.isFolder) {
+        onUpdate({
+          overlayTexts: block.overlayTexts.map((t) => {
+            if (t.id === layerDragId) {
+              return { ...t, parentId: layerDropTargetId };
+            }
+            if (t.id === layerDropTargetId && !t.isExpanded) {
+              return { ...t, isExpanded: true };
+            }
+            return t;
+          }),
+        });
+      }
+    } else if (layerDropTargetId === 'root') {
+      // 빈 곳에 드롭 -> 폴더에서 꺼냄
+      onUpdate({
+        overlayTexts: block.overlayTexts.map((t) =>
+          t.id === layerDragId ? { ...t, parentId: undefined } : t
+        ),
+      });
     }
-
-    // 자기 자신의 하위 폴더로 이동 방지
-    const isDescendant = (parentId: string, childId: string): boolean => {
-      const child = block.overlayTexts.find((t) => t.id === childId);
-      if (!child?.parentId) return false;
-      if (child.parentId === parentId) return true;
-      return isDescendant(parentId, child.parentId);
-    };
-
-    if (isDescendant(draggedLayerId, targetId)) {
-      setLayerDragId(null);
-      setLayerDropTargetId(null);
-      return;
-    }
-
-    // 폴더로 이동 + 폴더 자동 펼치기
-    onUpdate({
-      overlayTexts: block.overlayTexts.map((text) => {
-        if (text.id === draggedLayerId) {
-          return { ...text, parentId: targetId };
-        }
-        if (text.id === targetId && !text.isExpanded) {
-          return { ...text, isExpanded: true };
-        }
-        return text;
-      }),
-    });
 
     setLayerDragId(null);
     setLayerDropTargetId(null);
-  };
+    setIsLayerDragging(false);
+  }, [isLayerDragging, layerDragId, layerDropTargetId, block.overlayTexts, onUpdate]);
 
-  const handleLayerDragEnd = () => {
-    setLayerDragId(null);
-    setLayerDropTargetId(null);
-  };
+  // 레이어 드래그 마우스 이벤트 등록
+  useEffect(() => {
+    if (isLayerDragging) {
+      window.addEventListener('mousemove', handleLayerMouseMove);
+      window.addEventListener('mouseup', handleLayerMouseUp);
+      return () => {
+        window.removeEventListener('mousemove', handleLayerMouseMove);
+        window.removeEventListener('mouseup', handleLayerMouseUp);
+      };
+    }
+  }, [isLayerDragging, handleLayerMouseMove, handleLayerMouseUp]);
 
   // 레이어 잠금/잠금해제 토글
   const handleToggleLayerLock = (textId: string) => {
@@ -1277,33 +1275,7 @@ export function ImageOverlayBlockRenderer({
           </div>
 
           {/* 레이어 리스트 - 트리 구조 (폴더 지원) */}
-          {/* 빈 공간에 드롭하면 폴더에서 꺼냄 */}
-          <div
-            className="flex-1 overflow-y-auto"
-            onDragOver={(e) => {
-              e.preventDefault();
-              // 폴더가 아닌 곳에 드래그 중이면 root 표시
-              if (layerDragId && !layerDropTargetId) {
-                setLayerDropTargetId('root');
-              }
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              const draggedLayerId = e.dataTransfer.getData('text/plain') || layerDragId;
-              // 폴더 위가 아닌 빈 공간에 드롭하면 폴더에서 꺼냄
-              if (draggedLayerId && (layerDropTargetId === 'root' || !layerDropTargetId)) {
-                onUpdate({
-                  overlayTexts: block.overlayTexts.map((text) =>
-                    text.id === draggedLayerId
-                      ? { ...text, parentId: undefined }
-                      : text
-                  ),
-                });
-              }
-              setLayerDragId(null);
-              setLayerDropTargetId(null);
-            }}
-          >
+          <div className="flex-1 overflow-y-auto">
             {block.overlayTexts.length === 0 ? (
               <div className="text-xs text-zinc-500 text-center py-6">
                 레이어가 없습니다
@@ -1313,69 +1285,11 @@ export function ImageOverlayBlockRenderer({
                 {getLayerTree().map(({ layer: text, depth }) => (
                     <div
                       key={text.id}
-                      draggable={text.isFolder ? undefined : "true"}
-                      onDragStart={(e) => {
-                        if (text.isFolder) {
-                          e.preventDefault();
-                          return;
+                      data-layer-id={text.id}
+                      onMouseDown={(e) => {
+                        if (!text.isFolder) {
+                          handleLayerMouseDown(e, text.id);
                         }
-                        handleLayerDragStart(e, text.id);
-                      }}
-                      onDragEnd={handleLayerDragEnd}
-                      onDragOver={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (layerDragId && layerDragId !== text.id) {
-                          // 폴더면 해당 폴더로, 아니면 root로 (폴더에서 꺼냄)
-                          setLayerDropTargetId(text.isFolder ? text.id : 'root');
-                        }
-                      }}
-                      onDragEnter={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (layerDragId && layerDragId !== text.id) {
-                          setLayerDropTargetId(text.isFolder ? text.id : 'root');
-                        }
-                      }}
-                      onDragLeave={(e) => {
-                        e.stopPropagation();
-                      }}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const draggedLayerId = e.dataTransfer.getData('text/plain') || layerDragId;
-
-                        if (!draggedLayerId || draggedLayerId === text.id) {
-                          setLayerDragId(null);
-                          setLayerDropTargetId(null);
-                          return;
-                        }
-
-                        if (text.isFolder) {
-                          // 폴더에 드롭 -> 폴더 안으로 이동 + 폴더 자동 펼치기
-                          onUpdate({
-                            overlayTexts: block.overlayTexts.map((t) => {
-                              if (t.id === draggedLayerId) {
-                                return { ...t, parentId: text.id };
-                              }
-                              if (t.id === text.id && !t.isExpanded) {
-                                return { ...t, isExpanded: true };
-                              }
-                              return t;
-                            }),
-                          });
-                        } else {
-                          // 일반 레이어에 드롭 -> 폴더에서 꺼냄 (root로)
-                          onUpdate({
-                            overlayTexts: block.overlayTexts.map((t) =>
-                              t.id === draggedLayerId
-                                ? { ...t, parentId: undefined }
-                                : t
-                            ),
-                          });
-                        }
-                        setLayerDragId(null);
-                        setLayerDropTargetId(null);
                       }}
                       className={cn(
                         'flex items-center gap-1 py-2 transition-colors select-none',
@@ -1392,7 +1306,7 @@ export function ImageOverlayBlockRenderer({
                       style={{ paddingLeft: `${4 + depth * 16}px`, paddingRight: '8px' }}
                       onClick={(e) => {
                         // 드래그 중이면 클릭 무시
-                        if (layerDragId) return;
+                        if (isLayerDragging) return;
                         handleLayerSelect(text.id, e.ctrlKey || e.metaKey);
                       }}
                     >
