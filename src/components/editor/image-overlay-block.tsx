@@ -527,11 +527,20 @@ export function ImageOverlayBlockRenderer({
     setLayerDropTargetId(null);
   };
 
-  const handleLayerDrop = (e: React.DragEvent, targetFolderId: string) => {
+  const handleLayerDrop = (e: React.DragEvent, targetId: string) => {
     e.preventDefault();
+    e.stopPropagation();
     const draggedLayerId = e.dataTransfer.getData('text/plain');
 
-    if (!draggedLayerId || draggedLayerId === targetFolderId) {
+    // 대상이 폴더인지 확인
+    const targetLayer = block.overlayTexts.find((t) => t.id === targetId);
+    if (!targetLayer?.isFolder) {
+      setLayerDragId(null);
+      setLayerDropTargetId(null);
+      return;
+    }
+
+    if (!draggedLayerId || draggedLayerId === targetId) {
       setLayerDragId(null);
       setLayerDropTargetId(null);
       return;
@@ -545,19 +554,23 @@ export function ImageOverlayBlockRenderer({
       return isDescendant(parentId, child.parentId);
     };
 
-    if (isDescendant(draggedLayerId, targetFolderId)) {
+    if (isDescendant(draggedLayerId, targetId)) {
       setLayerDragId(null);
       setLayerDropTargetId(null);
       return;
     }
 
-    // 폴더로 이동
+    // 폴더로 이동 + 폴더 자동 펼치기
     onUpdate({
-      overlayTexts: block.overlayTexts.map((text) =>
-        text.id === draggedLayerId
-          ? { ...text, parentId: targetFolderId }
-          : text
-      ),
+      overlayTexts: block.overlayTexts.map((text) => {
+        if (text.id === draggedLayerId) {
+          return { ...text, parentId: targetId };
+        }
+        if (text.id === targetId && !text.isExpanded) {
+          return { ...text, isExpanded: true };
+        }
+        return text;
+      }),
     });
 
     setLayerDragId(null);
@@ -1257,6 +1270,39 @@ export function ImageOverlayBlockRenderer({
 
           {/* 레이어 리스트 - 트리 구조 (폴더 지원) */}
           <div className="flex-1 overflow-y-auto">
+            {/* 드래그 중일 때 루트로 이동 드롭 영역 */}
+            {layerDragId && (
+              <div
+                className={cn(
+                  'mx-2 mt-2 mb-1 py-2 border-2 border-dashed rounded text-center text-xs transition-colors',
+                  layerDropTargetId === 'root'
+                    ? 'border-green-400 bg-green-500/20 text-green-300'
+                    : 'border-zinc-600 text-zinc-500 hover:border-zinc-500'
+                )}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setLayerDropTargetId('root');
+                }}
+                onDragLeave={() => setLayerDropTargetId(null)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const draggedLayerId = e.dataTransfer.getData('text/plain');
+                  if (draggedLayerId) {
+                    onUpdate({
+                      overlayTexts: block.overlayTexts.map((text) =>
+                        text.id === draggedLayerId
+                          ? { ...text, parentId: undefined }
+                          : text
+                      ),
+                    });
+                  }
+                  setLayerDragId(null);
+                  setLayerDropTargetId(null);
+                }}
+              >
+                📤 여기에 놓으면 폴더에서 꺼냄
+              </div>
+            )}
             {block.overlayTexts.length === 0 ? (
               <div className="text-xs text-zinc-500 text-center py-6">
                 레이어가 없습니다
