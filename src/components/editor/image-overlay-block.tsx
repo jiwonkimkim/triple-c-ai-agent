@@ -815,8 +815,9 @@ export function ImageOverlayBlockRenderer({
       )}
 
       {/* 선택된 텍스트 편집 패널 - 텍스트 선택 시에만 팝업으로 표시 */}
+      {/* top-36 = 144px: 대시보드 헤더(64px) + 에디터 툴바(48px) + 여유(32px) */}
       {isSelected && selectedText && (
-        <div className="fixed top-28 bottom-4 left-4 w-52 bg-background/95 backdrop-blur border rounded-lg shadow-xl p-3 space-y-3 overflow-y-auto z-50">
+        <div className="fixed top-36 bottom-4 left-4 w-52 bg-background/95 backdrop-blur border rounded-lg shadow-xl p-3 space-y-3 overflow-y-auto z-50">
           {/* 헤더 */}
           <div className="flex items-center justify-between border-b pb-2">
             <span className="text-xs font-medium">텍스트 편집</span>
