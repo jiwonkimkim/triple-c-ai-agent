@@ -57,9 +57,17 @@ interface ImageOverlayBlockRendererProps {
   block: ImageOverlayBlock & { id: string };
   isSelected: boolean;
   isMain?: boolean;  // MAIN 섹션 여부 - 1:1 비율 적용
+  previewMode?: 'desktop' | 'tablet' | 'mobile';  // 미리보기 모드 (텍스트 크기 비율 조절)
   onSelect: () => void;
   onUpdate: (updates: Partial<ImageOverlayBlock>) => void;
 }
+
+// 미리보기 모드별 스케일 비율 (데스크톱 기준)
+const previewScales = {
+  desktop: 1,
+  tablet: 0.75,    // 672/896 ≈ 0.75
+  mobile: 0.43,    // 384/896 ≈ 0.43
+};
 
 // 폰트 옵션 (카테고리별 분류)
 const fontOptions = [
@@ -158,9 +166,12 @@ export function ImageOverlayBlockRenderer({
   block,
   isSelected,
   isMain = false,
+  previewMode = 'desktop',
   onSelect,
   onUpdate,
 }: ImageOverlayBlockRendererProps) {
+  // 미리보기 모드에 따른 스케일 계산
+  const scale = previewScales[previewMode];
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
   const [selectedLayerIds, setSelectedLayerIds] = useState<Set<string>>(new Set()); // 멀티 선택
   const [showImageSettings, setShowImageSettings] = useState(false);
@@ -684,14 +695,15 @@ export function ImageOverlayBlockRenderer({
                   className="bg-transparent border-none outline-none resize-none w-full min-w-[100px]"
                   style={{
                     color: overlayText.style.color || '#ffffff',
-                    fontSize: `${overlayText.style.fontSize || 16}px`,
+                    // ★ 미리보기 모드에 따라 폰트 크기 비율 조절
+                    fontSize: `${(overlayText.style.fontSize || 16) * scale}px`,
                     fontWeight: overlayText.style.fontWeight === 'bold' ? 700 :
                                overlayText.style.fontWeight === 'semibold' ? 600 :
                                overlayText.style.fontWeight === 'medium' ? 500 : 400,
                     fontFamily: overlayText.style.fontFamily || 'Pretendard, sans-serif',
                     textShadow: overlayText.style.textShadow ? '0 2px 8px rgba(0,0,0,0.8)' : undefined,
                     textAlign: overlayText.style.textAlign || 'center',
-                    letterSpacing: overlayText.style.letterSpacing ? `${overlayText.style.letterSpacing}px` : undefined,
+                    letterSpacing: overlayText.style.letterSpacing ? `${overlayText.style.letterSpacing * scale}px` : undefined,
                     lineHeight: overlayText.style.lineHeight || 1.4,
                   }}
                 />
@@ -701,14 +713,15 @@ export function ImageOverlayBlockRenderer({
                     color: overlayText.style.color || '#ffffff',
                     backgroundColor: overlayText.style.backgroundColor,
                     padding: overlayText.style.padding,
-                    fontSize: `${overlayText.style.fontSize || 16}px`,
+                    // ★ 미리보기 모드에 따라 폰트 크기 비율 조절
+                    fontSize: `${(overlayText.style.fontSize || 16) * scale}px`,
                     fontWeight: overlayText.style.fontWeight === 'bold' ? 700 :
                                overlayText.style.fontWeight === 'semibold' ? 600 :
                                overlayText.style.fontWeight === 'medium' ? 500 : 400,
                     fontFamily: overlayText.style.fontFamily || 'Pretendard, sans-serif',
                     textShadow: overlayText.style.textShadow ? '0 2px 8px rgba(0,0,0,0.8)' : undefined,
                     textAlign: overlayText.style.textAlign || 'center',
-                    letterSpacing: overlayText.style.letterSpacing ? `${overlayText.style.letterSpacing}px` : undefined,
+                    letterSpacing: overlayText.style.letterSpacing ? `${overlayText.style.letterSpacing * scale}px` : undefined,
                     lineHeight: overlayText.style.lineHeight || 1.4,
                     borderRadius: overlayText.style.padding ? '4px' : undefined,
                     // width 설정 시: 사용자가 조절한 너비 내에서 줄바꿈 허용

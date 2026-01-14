@@ -17,11 +17,12 @@ interface BlockRendererProps {
   block: EditorBlock;
   isSelected: boolean;
   isMain?: boolean;  // MAIN 섹션 여부 - 1:1 비율 적용
+  previewMode?: 'desktop' | 'tablet' | 'mobile';  // 미리보기 모드 (텍스트 크기 비율 조절)
   onSelect: () => void;
   onUpdate: (updates: Partial<EditorBlock>) => void;
 }
 
-export function BlockRenderer({ block, isSelected, isMain = false, onSelect, onUpdate }: BlockRendererProps) {
+export function BlockRenderer({ block, isSelected, isMain = false, previewMode = 'desktop', onSelect, onUpdate }: BlockRendererProps) {
   switch (block.type) {
     case 'heading':
       return (
@@ -59,6 +60,7 @@ export function BlockRenderer({ block, isSelected, isMain = false, onSelect, onU
           block={block as ImageOverlayBlockType & { id: string }}
           isSelected={isSelected}
           isMain={isMain}
+          previewMode={previewMode}
           onSelect={onSelect}
           onUpdate={onUpdate}
         />

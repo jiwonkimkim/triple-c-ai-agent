@@ -84,6 +84,8 @@ interface EditorSectionProps {
   isMain?: boolean;
   /** 섹션 이미지 재생성 중 여부 */
   isRegenerating?: boolean;
+  /** 미리보기 모드 (텍스트 크기 비율 조절용) */
+  previewMode?: 'desktop' | 'tablet' | 'mobile';
   onSelectSection: () => void;
   onSelectBlock: (blockId: string | null) => void;
   onUpdateSection: (updates: Partial<Omit<Section, 'id'>>) => void;
@@ -150,6 +152,7 @@ export function EditorSection({
   isSelected,
   isMain = false,
   isRegenerating = false,
+  previewMode = 'desktop',
   onSelectSection,
   onSelectBlock,
   onUpdateSection,
@@ -435,6 +438,7 @@ export function EditorSection({
                     block={block}
                     isSelected={selectedBlockId === block.id}
                     isMain={isMain}
+                    previewMode={previewMode}
                     onSelect={() => onSelectBlock(block.id)}
                     onUpdate={(updates) => onUpdateBlock(block.id, updates)}
                   />

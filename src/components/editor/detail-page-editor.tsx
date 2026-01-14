@@ -1471,6 +1471,7 @@ export function DetailPageEditor({
                             isSelected={selectedSectionId === section.id}
                             isMain={isMain}
                             isRegenerating={regeneratingSectionId === section.id}
+                            previewMode={previewMode}
                             onSelectSection={() => selectSection(section.id)}
                             onSelectBlock={selectBlock}
                             onUpdateSection={(updates) => updateSection(section.id, updates)}
