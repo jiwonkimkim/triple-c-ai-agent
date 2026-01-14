@@ -41,6 +41,7 @@ import {
   AlignRight,
   Bold,
   Upload,
+  X,
 } from 'lucide-react';
 import type { ImageOverlayBlock, OverlayText, OverlayTextStyle } from '@/stores/editor-store';
 
@@ -426,6 +427,12 @@ export function ImageOverlayBlockRenderer({
       <div
         ref={containerRef}
         className="relative bg-muted overflow-visible"
+        onClick={(e) => {
+          // 이미지 빈 공간 클릭 시 텍스트 선택 해제
+          if (e.target === containerRef.current || e.target === containerRef.current?.querySelector('img')) {
+            setSelectedTextId(null);
+          }
+        }}
       >
         {block.src ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -780,21 +787,32 @@ export function ImageOverlayBlockRenderer({
         </div>
       )}
 
-      {/* 선택된 텍스트 편집 패널 - 에디터 왼쪽에 고정 위치 */}
+      {/* 선택된 텍스트 편집 패널 - 텍스트 선택 시에만 팝업으로 표시 */}
       {isSelected && selectedText && (
-        <div className="fixed top-20 left-4 w-52 bg-background/95 backdrop-blur border rounded-lg shadow-xl p-3 space-y-3 max-h-[calc(100vh-6rem)] overflow-y-auto z-50">
+        <div className="fixed top-32 left-4 w-52 bg-background/95 backdrop-blur border rounded-lg shadow-xl p-3 space-y-3 max-h-[calc(100vh-9rem)] overflow-y-auto z-50">
           {/* 헤더 */}
           <div className="flex items-center justify-between border-b pb-2">
             <span className="text-xs font-medium">텍스트 편집</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 text-destructive hover:text-destructive"
-              onClick={() => handleDeleteOverlayText(selectedTextId!)}
-              title="텍스트 삭제"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-destructive hover:text-destructive"
+                onClick={() => handleDeleteOverlayText(selectedTextId!)}
+                title="텍스트 삭제"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => setSelectedTextId(null)}
+                title="닫기"
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </div>
           </div>
 
           {/* 폰트 선택 */}
