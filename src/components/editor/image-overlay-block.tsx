@@ -906,9 +906,12 @@ export function ImageOverlayBlockRenderer({
         </div>
       )}
 
-      {/* 레이어 패널 - 포토샵 스타일 (텍스트 편집 패널 오른쪽) */}
+      {/* 레이어 패널 - 포토샵 스타일 (텍스트 편집 패널이 있으면 오른쪽, 없으면 왼쪽) */}
       {isSelected && showLayerPanel && (
-        <div className="fixed top-[224px] bottom-6 left-[330px] w-72 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl overflow-hidden z-50 flex flex-col">
+        <div className={cn(
+          "fixed top-[224px] bottom-6 w-72 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl overflow-hidden z-50 flex flex-col transition-all duration-200",
+          selectedText ? "left-[330px]" : "left-6"
+        )}>
           {/* 헤더 - 포토샵 스타일 */}
           <div className="flex items-center justify-between px-3 py-2 bg-zinc-800 border-b border-zinc-700">
             <span className="text-xs font-medium text-zinc-300">레이어</span>
