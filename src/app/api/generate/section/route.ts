@@ -10,6 +10,7 @@ import {
   DEFAULT_IMAGE_MODEL,
 } from '@/services/image/gemini-image-generator';
 import { uploadGeneratedImage } from '@/services/image/image-upload-service';
+import { generateSectionImagePromptFromText } from '@/services/ai/orchestration-service';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // 60초 타임아웃
@@ -105,7 +106,39 @@ export async function POST(request: NextRequest) {
     const brandStyle = project.brandProfile?.styleGuide as { imageKeywords?: string[] } | null;
     const additionalPrompt = brandStyle?.imageKeywords?.join(', ');
 
-    // ★★★ 섹션 이미지 + 오버레이 텍스트 통합 재생성 (NEW!)
+    // ★★★ 섹션 오케스트레이션 프롬프트 생성 (초기 생성과 동일한 프로세스!)
+    // 1. 프로젝트의 최신 버전에서 섹션 데이터 가져오기
+    const latestVersion = await prisma.projectVersion.findFirst({
+      where: { projectId: project.id },
+      orderBy: { versionNumber: 'desc' },
+      select: { content: true },
+    });
+
+    // 섹션 타입에 해당하는 섹션 찾기
+    type SectionData = { type: string; title?: string; body?: string };
+    const sections = (latestVersion?.content as { sections?: SectionData[] } | null)?.sections || [];
+    const existingSection = sections.find((s: SectionData) =>
+      s.type?.toUpperCase() === validatedData.sectionType.toUpperCase()
+    );
+
+    // 2. 오케스트레이션 프롬프트 생성 (초기 생성과 동일한 함수 사용!)
+    console.log(`[Section Regenerate] ★ Generating orchestration prompt for ${validatedData.sectionType}...`);
+    const sectionPrompt = await generateSectionImagePromptFromText(
+      {
+        type: validatedData.sectionType,
+        title: existingSection?.title || validatedData.sectionType,
+        body: existingSection?.body || '',
+      },
+      project.productName || 'Product',
+      project.category || 'General',
+      project.keyFeatures || [],
+      project.targetAudience || '일반 소비자',
+      additionalPrompt  // brandStyle
+    );
+
+    console.log(`[Section Regenerate] ★ Orchestration prompt: ${sectionPrompt.imagePrompt.substring(0, 150)}...`);
+
+    // ★★★ 섹션 이미지 + 오버레이 텍스트 통합 재생성
     console.log(`[Section Regenerate] Generating ${validatedData.sectionType} image with overlay text...`);
     const result = await generateSectionImageWithOverlay(
       cleanProductImage,
@@ -117,7 +150,7 @@ export async function POST(request: NextRequest) {
       {
         additionalPrompt,
         model: imageModel,
-        scenarioPrompt: undefined, // 섹션 재생성 시에는 새로운 시나리오 생성
+        scenarioPrompt: sectionPrompt.imagePrompt,  // ★ 오케스트레이션 프롬프트 전달!
         blockIndex: validatedData.sectionIndex,
         totalBlocks: 1,
       }
