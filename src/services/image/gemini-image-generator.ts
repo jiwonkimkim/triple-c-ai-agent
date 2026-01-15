@@ -1595,57 +1595,76 @@ ${normalizedSection === 'FAQ' ? '- 목적: 자주 묻는 질문 답변' : ''}
 ## 참고할 감각 키워드
 ${sensoryWords}
 
-## ★ 위치/스타일 가이드 (섹션별 기본값)
-- headline: x=${layout.headline.x}%, y=${layout.headline.y}%, fontSize=${layout.headline.fontSize}px, align=${layout.headline.align}
-- subheadline: x=${layout.subheadline.x}%, y=${layout.subheadline.y}%, fontSize=${layout.subheadline.fontSize}px, align=${layout.subheadline.align}
-- body: x=${layout.body.x}%, y=${layout.body.y}%, fontSize=${layout.body.fontSize}px, align=${layout.body.align}
-- statistics: x=${layout.statistics.x}%, y=${layout.statistics.y}%, fontSize=${layout.statistics.fontSize}px
+## ★ 위치/스타일 가이드 (자유롭게 배치!)
+아래는 참고용 기본값입니다. **이미지 구도와 디자인에 맞게 자유롭게 위치(x, y), 크기(fontSize), 색상(color)을 조정하세요!**
+- x: 0-100% (왼쪽~오른쪽), y: 0-100% (위~아래)
+- 기본 참고값:
+  - headline: x=${layout.headline.x}%, y=${layout.headline.y}%, fontSize=${layout.headline.fontSize}px
+  - subheadline: x=${layout.subheadline.x}%, y=${layout.subheadline.y}%, fontSize=${layout.subheadline.fontSize}px
+  - body: x=${layout.body.x}%, y=${layout.body.y}%, fontSize=${layout.body.fontSize}px
 
-## 텍스트 길이 규칙
+## 텍스트 길이 & 줄바꿈 규칙
 - headline: 5-15자 (영문 섹션명 또는 짧은 슬로건)
 - subheadline: 10-30자 (핵심 메시지)
-- body: 20-50자 (부연 설명, 필요시에만)
+- body: 20-50자 (부연 설명)
 - statistics: 숫자+단위 (예: "92%", "48H", "3.5배")
+- **줄바꿈**: 디자인상 필요할 때만 \\n 사용 (억지로 넣지 마세요!)
+  - 예: "하루종일\\n촉촉하게" (강조 효과) 또는 "3초 만에 완성" (한 줄)
+  - width 속성 (0-100%): 긴 텍스트의 자동 줄바꿈 영역
 
-## 색상 가이드
-- 밝은 배경: headline=#333333, subheadline=#666666, body=#888888
-- 어두운 배경: headline=#ffffff, subheadline=#eeeeee, body=#cccccc
-- 통계 숫자는 강조색 사용 가능 (예: #e8b4b8)
+## ★ 색상 가이드 (이미지에 맞게 자유롭게!)
+배경색과 대비되는 색상을 선택하세요:
+- 밝은 배경: #222222, #333333, #444444, #555555, #666666
+- 어두운 배경: #ffffff, #f5f5f5, #eeeeee, #dddddd
+- 포인트 색상: #e8b4b8 (핑크), #4a90d9 (블루), #5cb85c (그린), #f0ad4e (오렌지)
+- **이미지 톤에 맞는 색상을 자유롭게 선택하세요!**
 
 ${generateFontGuideForAI()}
 
 ## 출력 형식 (JSON)
-다음 형식으로 정확히 출력하세요. 불필요한 필드는 null로 설정:
+다음 형식으로 출력하세요. **위치(x,y), 색상(color), 폰트(fontFamily)는 이미지에 맞게 자유롭게 선택!**
 
 \`\`\`json
 {
   "headline": {
     "text": "영문 섹션명 또는 짧은 슬로건",
-    "x": ${layout.headline.x},
-    "y": ${layout.headline.y},
-    "fontSize": ${layout.headline.fontSize},
+    "x": 50,
+    "y": 10,
+    "fontSize": 16,
     "fontWeight": "bold",
-    "fontFamily": "Pretendard, sans-serif",
-    "color": "#333333",
-    "textAlign": "${layout.headline.align}"
+    "fontFamily": "(이미지 분위기에 맞는 폰트 선택)",
+    "color": "(배경과 대비되는 색상)",
+    "textAlign": "center",
+    "width": null
   },
   "subheadline": {
-    "text": "핵심 메시지 (10-30자)",
-    "x": ${layout.subheadline.x},
-    "y": ${layout.subheadline.y},
-    "fontSize": ${layout.subheadline.fontSize},
-    "fontWeight": "medium",
-    "fontFamily": "Noto Sans KR, sans-serif",
-    "color": "#666666",
-    "textAlign": "${layout.subheadline.align}"
+    "text": "핵심 메시지\\n(줄바꿈 가능)",
+    "x": 50,
+    "y": 45,
+    "fontSize": 32,
+    "fontWeight": "bold",
+    "fontFamily": "(이미지 분위기에 맞는 폰트 선택)",
+    "color": "(배경과 대비되는 색상)",
+    "textAlign": "center",
+    "width": 80
   },
-  "body": null,
+  "body": {
+    "text": "부연 설명 텍스트 (필요시에만)",
+    "x": 50,
+    "y": 75,
+    "fontSize": 14,
+    "fontWeight": "normal",
+    "fontFamily": "(이미지 분위기에 맞는 폰트 선택)",
+    "color": "(배경과 대비되는 색상)",
+    "textAlign": "center",
+    "width": 70
+  },
   "statistics": [
     {
       "text": "92%",
-      "x": ${layout.statistics.x},
-      "y": ${layout.statistics.y},
-      "fontSize": ${layout.statistics.fontSize},
+      "x": 50,
+      "y": 60,
+      "fontSize": 48,
       "fontWeight": "bold",
       "fontFamily": "Montserrat, sans-serif",
       "color": "#ffffff"
@@ -1655,7 +1674,11 @@ ${generateFontGuideForAI()}
 }
 \`\`\`
 
-★ 중요: JSON만 출력하세요. 설명이나 다른 텍스트 없이 순수 JSON만!`;
+★ 중요:
+- JSON만 출력하세요
+- 위치/색상/폰트는 이미지 구도에 맞게 **자유롭게** 조정
+- 줄바꿈: text에 \\n 사용 또는 width 설정 (0-100%)
+- 불필요한 필드는 null로`;
 
   // ★ 텍스트 배경 섹션이면 특별 프롬프트, 아니면 일반 프롬프트
   const prompt = isTextBackgroundSection ? textBannerPrompt : normalPrompt;

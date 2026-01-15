@@ -980,9 +980,7 @@ export function ImageOverlayBlockRenderer({
                     textAlign: overlayText.style.textAlign || 'center',
                     letterSpacing: overlayText.style.letterSpacing ? `${overlayText.style.letterSpacing * scale}px` : undefined,
                     lineHeight: overlayText.style.lineHeight || 1.4,
-                    // width 설정 시: 사용자가 조절한 너비 내에서 줄바꿈 허용
-                    // width 미설정 시: 자동 줄바꿈 방지 (이동해도 줄어들지 않음)
-                    whiteSpace: overlayText.style.width ? 'pre-wrap' : 'nowrap',
+                    whiteSpace: 'pre-line', // \n 줄바꿈 항상 적용
                   }}
                 >
                   {overlayText.content}
@@ -1872,8 +1870,7 @@ export function ImageOverlayBlockPreview({
               textAlign: overlayText.style.textAlign || 'center',
               letterSpacing: overlayText.style.letterSpacing ? `${overlayText.style.letterSpacing}px` : undefined,
               lineHeight: overlayText.style.lineHeight || 1.4,
-              borderRadius: overlayText.style.padding ? '4px' : undefined,
-              whiteSpace: overlayText.style.width ? 'pre-wrap' : 'nowrap',
+              whiteSpace: 'pre-line', // \n 줄바꿈 항상 적용
             }}
           >
             {overlayText.content}
