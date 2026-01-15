@@ -630,6 +630,9 @@ export function DetailPageEditor({
   // ★★★ API 오버레이 형식 → 에디터 형식 변환 (fontFamily 포함!)
   const convertApiOverlayToEditorFormat = (
     apiOverlay: {
+      // ★ 새 형식: AI 자유 디자인 텍스트 배열
+      texts?: Array<{ text: string; x: number; y: number; fontSize: number; fontWeight: string; fontFamily?: string; color: string; textAlign?: string }>;
+      // 기존 형식 (하위 호환)
       headline?: { text: string; x: number; y: number; fontSize: number; fontWeight: string; fontFamily?: string; color: string; textAlign?: string } | string;
       subheadline?: { text: string; x: number; y: number; fontSize: number; fontWeight: string; fontFamily?: string; color: string; textAlign?: string } | string;
       body?: { text: string; x: number; y: number; fontSize: number; fontWeight: string; fontFamily?: string; color: string; textAlign?: string } | string;
@@ -700,6 +703,35 @@ export function DetailPageEditor({
       return false;
     };
 
+    // ★★★ 새 형식: texts 배열이 있으면 우선 사용 (AI 자유 디자인)
+    if (apiOverlay.texts && Array.isArray(apiOverlay.texts) && apiOverlay.texts.length > 0) {
+      console.log(`[convertApiOverlay] ★ Using texts array format (${apiOverlay.texts.length} items)`);
+      apiOverlay.texts.forEach((item, idx) => {
+        const textColor = item.color ?? '#333333';
+        result.push({
+          id: `${sectionId}-text-${idx}-${Date.now()}`,
+          type: idx === 0 ? 'headline' : 'body',  // 첫 번째는 headline, 나머지는 body
+          content: item.text || '',
+          style: {
+            x: item.x ?? 50,
+            y: item.y ?? (30 + idx * 15),
+            fontSize: item.fontSize ?? 24,
+            fontWeight: (item.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'medium',
+            fontFamily: item.fontFamily ?? 'Pretendard, sans-serif',
+            color: textColor,
+            textShadow: isWhiteColor(textColor),
+            textAlign: (item.textAlign as 'left' | 'center' | 'right') ?? 'center',
+            opacity: 100,
+            rotation: 0,
+            width: 80,
+          },
+          zIndex: zIndex++,
+        });
+      });
+      return result;  // texts 배열 처리 후 바로 반환
+    }
+
+    // ★ 기존 형식: headline/subheadline/body/statistics/cta 개별 필드
     const parseItem = (
       item: { text: string; x: number; y: number; fontSize: number; fontWeight: string; fontFamily?: string; color: string; textAlign?: string } | string | undefined,
       type: 'headline' | 'subheadline' | 'body' | 'statistic' | 'cta',
