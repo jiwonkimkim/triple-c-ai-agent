@@ -3,7 +3,7 @@
  * 채팅 상태 관리 및 메시지 전송 훅
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSSEStream } from './use-sse-stream';
 
@@ -139,6 +139,15 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
     },
   });
 
+  // 자동 트리거 실행 여부 추적
+  const autoTriggerExecutedRef = useRef(false);
+  const startStreamRef = useRef(startStream);
+
+  // startStream 참조 업데이트
+  useEffect(() => {
+    startStreamRef.current = startStream;
+  }, [startStream]);
+
   // 초기 메시지 로드
   useEffect(() => {
     const loadMessages = async () => {
@@ -161,16 +170,18 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
         setMessages(loadedMessages);
 
         // 마지막 메시지가 user이고 그 후에 assistant 응답이 없으면 자동으로 Agent 실행
-        if (loadedMessages.length >= 2) {
+        // 단, 한 번만 실행
+        if (!autoTriggerExecutedRef.current && loadedMessages.length >= 2) {
           const lastMessage = loadedMessages[loadedMessages.length - 1];
           const secondLastMessage = loadedMessages[loadedMessages.length - 2];
 
           // 마지막이 user 메시지이고, 그 전이 assistant 메시지인 경우 (초기 메시지가 처리되지 않은 상태)
           if (lastMessage.role === 'user' && secondLastMessage.role === 'assistant') {
             console.log('[useChat] 처리되지 않은 초기 메시지 감지, Agent 자동 실행');
+            autoTriggerExecutedRef.current = true;
             // 약간의 딜레이 후 Agent 실행 (UI 렌더링 완료 후)
             setTimeout(() => {
-              startStream(`/api/chat/${conversationId}/messages`, {
+              startStreamRef.current(`/api/chat/${conversationId}/messages`, {
                 content: lastMessage.content,
                 autoTrigger: true, // 자동 트리거 표시
               });
@@ -185,7 +196,7 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
     };
 
     loadMessages();
-  }, [conversationId, startStream]);
+  }, [conversationId]); // startStream 의존성 제거
 
   // 메시지 전송
   const sendMessage = useCallback(

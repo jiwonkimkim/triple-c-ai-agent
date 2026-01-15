@@ -5,7 +5,7 @@
  * 대화형 프로젝트 생성 페이지
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, MoreVertical, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,9 @@ export default function ChatPage() {
   const router = useRouter();
   const conversationId = params.conversationId as string;
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const [userScrolledUp, setUserScrolledUp] = useState(false);
+  const prevMessageCountRef = useRef(0);
 
   const {
     messages,
@@ -43,10 +46,34 @@ export default function ChatPage() {
     },
   });
 
-  // 메시지가 추가되면 스크롤
+  // 스크롤 위치 감지
+  const handleScroll = useCallback(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    // 스크롤이 하단에서 100px 이상 떨어져 있으면 사용자가 위로 스크롤한 것으로 간주
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+    setUserScrolledUp(!isNearBottom);
+  }, []);
+
+  // 새 메시지가 추가될 때만 스크롤 (사용자가 위로 스크롤 중이 아닐 때)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping]);
+    const messageCount = messages.length;
+    const isNewMessage = messageCount > prevMessageCountRef.current;
+    prevMessageCountRef.current = messageCount;
+
+    // 새 메시지가 추가되었고, 사용자가 위로 스크롤 중이 아닐 때만 스크롤
+    if (isNewMessage && !userScrolledUp) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages.length, userScrolledUp]);
+
+  // 타이핑 시작 시 스크롤 (사용자가 위로 스크롤 중이 아닐 때만)
+  useEffect(() => {
+    if (isTyping && !userScrolledUp) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [isTyping, userScrolledUp]);
 
   // 대화 삭제
   const handleDelete = async () => {
@@ -122,7 +149,11 @@ export default function ChatPage() {
       </header>
 
       {/* 메시지 영역 */}
-      <div className="flex-1 overflow-y-auto">
+      <div
+        ref={messagesContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto"
+      >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center mb-4">
