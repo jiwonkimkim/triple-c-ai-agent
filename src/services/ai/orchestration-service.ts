@@ -334,7 +334,31 @@ export function buildBrandMoodKeywords(brandContext?: BrandContext | null): stri
     moodParts.push(brandContext.imageKeywords.slice(0, 3).join(' '));
   }
 
-  return moodParts.length > 0 ? `[BRAND MOOD: ${moodParts.join(', ')}]` : '';
+  // ★★★ 이미지 키워드를 장식 오브제로도 명시 (커피 → 커피콩 등)
+  const decorativeObjects: string[] = [];
+  if (brandContext.imageKeywords) {
+    for (const keyword of brandContext.imageKeywords) {
+      const lower = keyword.toLowerCase();
+      if (lower.includes('커피') || lower.includes('coffee')) {
+        decorativeObjects.push('coffee beans', 'roasted coffee beans scattered');
+      } else if (lower.includes('녹차') || lower.includes('green tea') || lower.includes('말차')) {
+        decorativeObjects.push('green tea leaves', 'matcha powder');
+      } else if (lower.includes('꽃') || lower.includes('flower') || lower.includes('플로럴')) {
+        decorativeObjects.push('flower petals', 'delicate blooms');
+      } else if (lower.includes('자연') || lower.includes('natural') || lower.includes('보타니컬')) {
+        decorativeObjects.push('botanical leaves', 'natural elements');
+      }
+    }
+  }
+
+  let result = moodParts.length > 0 ? `[BRAND MOOD: ${moodParts.join(', ')}]` : '';
+
+  // ★★★ 장식 오브제 명시적 추가
+  if (decorativeObjects.length > 0) {
+    result += ` [BRAND DECORATIVE ELEMENTS: Include ${decorativeObjects.join(', ')} as decorative props around the product]`;
+  }
+
+  return result;
 }
 
 /**
