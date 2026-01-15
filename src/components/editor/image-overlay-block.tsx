@@ -74,60 +74,9 @@ const previewScales = {
   mobile: 0.43,    // 384/896 ≈ 0.43
 };
 
-// 폰트 옵션 (카테고리별 분류) - 모두 OFL 라이선스, 상업적 이용 가능
-const fontOptions = [
-  // 고딕 계열 (Sans-serif)
-  { value: 'Pretendard, sans-serif', label: 'Pretendard', category: '고딕' },
-  { value: 'Noto Sans KR, sans-serif', label: 'Noto Sans KR', category: '고딕' },
-  { value: 'Nanum Gothic, sans-serif', label: '나눔고딕', category: '고딕' },
-  { value: 'Gothic A1, sans-serif', label: 'Gothic A1', category: '고딕' },
-  { value: 'Gowun Dodum, sans-serif', label: '고운돋움', category: '고딕' },
-  { value: 'Spoqa Han Sans Neo, sans-serif', label: '스포카 한 산스', category: '고딕' },
-  { value: 'IBM Plex Sans KR, sans-serif', label: 'IBM Plex Sans', category: '고딕' },
-  { value: 'Stylish, sans-serif', label: 'Stylish', category: '고딕' },
-
-  // 명조 계열 (Serif)
-  { value: 'Nanum Myeongjo, serif', label: '나눔명조', category: '명조' },
-  { value: 'Noto Serif KR, serif', label: 'Noto Serif KR', category: '명조' },
-  { value: 'Gowun Batang, serif', label: '고운바탕', category: '명조' },
-  { value: 'Song Myung, serif', label: '송명', category: '명조' },
-  { value: 'Hahmlet, serif', label: 'Hahmlet', category: '명조' },
-  { value: 'KoPub Batang, serif', label: '코퍼브 바탕', category: '명조' },
-
-  // 디스플레이/타이틀 (Display) - 카피용 강조 폰트
-  { value: 'Black Han Sans, sans-serif', label: '검은고딕', category: '타이틀' },
-  { value: 'Jua, sans-serif', label: '주아', category: '타이틀' },
-  { value: 'Do Hyeon, sans-serif', label: '도현', category: '타이틀' },
-  { value: 'Gugi, sans-serif', label: '구기', category: '타이틀' },
-  { value: 'Sunflower, sans-serif', label: '해바라기', category: '타이틀' },
-  { value: 'Dokdo, cursive', label: '독도', category: '타이틀' },
-  { value: 'East Sea Dokdo, cursive', label: '동해독도', category: '타이틀' },
-  { value: 'Yeon Sung, cursive', label: '연성', category: '타이틀' },
-  { value: 'Kirang Haerang, cursive', label: '기랑해랑', category: '타이틀' },
-  { value: 'Poor Story, cursive', label: 'Poor Story', category: '타이틀' },
-
-  // 손글씨/캘리 (Handwriting)
-  { value: 'Gaegu, cursive', label: '개구', category: '손글씨' },
-  { value: 'Hi Melody, cursive', label: '하이멜로디', category: '손글씨' },
-  { value: 'Gamja Flower, cursive', label: '감자꽃', category: '손글씨' },
-  { value: 'Cute Font, cursive', label: '귀여운 폰트', category: '손글씨' },
-  { value: 'Nanum Pen Script, cursive', label: '나눔펜', category: '손글씨' },
-  { value: 'Nanum Brush Script, cursive', label: '나눔붓', category: '손글씨' },
-  { value: 'Single Day, cursive', label: 'Single Day', category: '손글씨' },
-  { value: 'Dongle, sans-serif', label: '동글', category: '손글씨' },
-
-  // 특수/코딩 (Special)
-  { value: 'Nanum Gothic Coding, monospace', label: '나눔고딕코딩', category: '특수' },
-  { value: 'Black And White Picture, sans-serif', label: '흑백사진', category: '특수' },
-  { value: 'Orbit, sans-serif', label: 'Orbit', category: '특수' },
-
-  // 영문 (English)
-  { value: 'Arial, sans-serif', label: 'Arial', category: '영문' },
-  { value: 'Georgia, serif', label: 'Georgia', category: '영문' },
-  { value: 'Impact, sans-serif', label: 'Impact', category: '영문' },
-  { value: 'Montserrat, sans-serif', label: 'Montserrat', category: '영문' },
-  { value: 'Playfair Display, serif', label: 'Playfair Display', category: '영문' },
-];
+// 폰트 옵션 - 공유 상수에서 import (추가 시 자동 반영)
+import { getFontOptionsForEditor } from '@/constants/fonts';
+const fontOptions = getFontOptionsForEditor();
 
 // 텍스트 타입별 기본 스타일
 // width가 설정되면 화면 안에서 줄바꿈됨, 이동해도 동적으로 줄어들지 않음

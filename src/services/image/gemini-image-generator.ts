@@ -1,5 +1,6 @@
 import { GoogleGenAI } from '@google/genai';
 import type { OverlayTextContent, OverlayTextItem, OverlayStatisticItem } from '@/services/ai/prompts/types';
+import { generateFontGuideForAI } from '@/constants/fonts';
 
 // Singleton Gemini client
 let geminiClient: GoogleGenAI | null = null;
@@ -1526,10 +1527,7 @@ ${imageScenarioPrompt}`
 - 의성어/의태어 활용: "촉촉", "탱글탱글", "쫀쫀"
 - 문제→해결 구조: "건조한 피부? → 촉촉함을 되찾다"
 
-### 폰트 선택
-- 메인 카피: "Pretendard, sans-serif" (weight: 700-900)
-- 서브 텍스트: "Noto Sans KR, sans-serif" (weight: 400-500)
-- 영문 강조: "Montserrat, sans-serif" (weight: 700)
+${generateFontGuideForAI()}
 
 ## 출력 형식 (JSON)
 headline = 상단 서브텍스트, subheadline = 메인 대형 카피, body = 하단 보조 메시지
@@ -1614,15 +1612,7 @@ ${sensoryWords}
 - 어두운 배경: headline=#ffffff, subheadline=#eeeeee, body=#cccccc
 - 통계 숫자는 강조색 사용 가능 (예: #e8b4b8)
 
-## ★ 폰트 가이드 (이미지 분위기에 맞는 폰트 선택!)
-각 텍스트마다 어울리는 fontFamily를 선택하세요:
-- 프리미엄/럭셔리: "Noto Serif KR, serif" 또는 "Playfair Display, serif"
-- 모던/깔끔: "Pretendard, sans-serif" 또는 "Noto Sans KR, sans-serif"
-- 임팩트/강조: "Black Han Sans, sans-serif"
-- 트렌디/영: "Montserrat, sans-serif" 또는 "Spoqa Han Sans Neo, sans-serif"
-- 자연/오가닉: "Nanum Myeongjo, serif"
-- 귀여움/캐주얼: "Jua, sans-serif" 또는 "Sunflower, sans-serif"
-- 손글씨/감성: "Gaegu, cursive" 또는 "Hi Melody, cursive"
+${generateFontGuideForAI()}
 
 ## 출력 형식 (JSON)
 다음 형식으로 정확히 출력하세요. 불필요한 필드는 null로 설정:
