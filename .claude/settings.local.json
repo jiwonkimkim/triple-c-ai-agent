@@ -67,7 +67,8 @@
       "Bash(lsof:*)",
       "Bash(python3:*)",
       "Bash(export DATABASE_URL:*)",
-      "Bash(npx prisma db execute:*)"
+      "Bash(npx prisma db execute:*)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []
