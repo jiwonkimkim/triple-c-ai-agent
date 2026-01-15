@@ -102,17 +102,17 @@ export async function semanticSearchTemplates(
     keyword_scores AS (
       SELECT
         id,
-        GREATEST(
-          CASE WHEN name ILIKE ${'%' + query + '%'} THEN 0.5 ELSE 0 END,
-          CASE WHEN description ILIKE ${'%' + query + '%'} THEN 0.3 ELSE 0 END,
-          CASE WHEN embedding_text ILIKE ${'%' + query + '%'} THEN 0.4 ELSE 0 END,
-          CASE WHEN array_to_string(tags, ' ') ILIKE ${'%' + query + '%'} THEN 0.2 ELSE 0 END,
-          -- Also match individual words from the query
+        -- 합산 방식: 여러 필드에서 매칭되면 점수가 누적됨
+        (
+          CASE WHEN name ILIKE ${'%' + query + '%'} THEN 0.5 ELSE 0 END +
+          CASE WHEN description ILIKE ${'%' + query + '%'} THEN 0.3 ELSE 0 END +
+          CASE WHEN array_to_string(tags, ' ') ILIKE ${'%' + query + '%'} THEN 0.2 ELSE 0 END +
+          -- 개별 단어 매칭 (2자 이상 단어들이 모두 포함되면 보너스)
           CASE WHEN embedding_text ILIKE ALL(
             SELECT '%' || word || '%'
             FROM unnest(string_to_array(${query}, ' ')) AS word
             WHERE length(word) >= 2
-          ) THEN 0.35 ELSE 0 END
+          ) THEN 0.4 ELSE 0 END
         ) as keyword_score
       FROM templates
       WHERE
@@ -168,16 +168,15 @@ export async function semanticSearchTemplates(
     ),
     keyword_scores AS (
       SELECT id,
-        GREATEST(
-          CASE WHEN name ILIKE ${'%' + query + '%'} THEN 0.5 ELSE 0 END,
-          CASE WHEN description ILIKE ${'%' + query + '%'} THEN 0.3 ELSE 0 END,
-          CASE WHEN embedding_text ILIKE ${'%' + query + '%'} THEN 0.4 ELSE 0 END,
-          CASE WHEN array_to_string(tags, ' ') ILIKE ${'%' + query + '%'} THEN 0.2 ELSE 0 END,
+        (
+          CASE WHEN name ILIKE ${'%' + query + '%'} THEN 0.5 ELSE 0 END +
+          CASE WHEN description ILIKE ${'%' + query + '%'} THEN 0.3 ELSE 0 END +
+          CASE WHEN array_to_string(tags, ' ') ILIKE ${'%' + query + '%'} THEN 0.2 ELSE 0 END +
           CASE WHEN embedding_text ILIKE ALL(
             SELECT '%' || word || '%'
             FROM unnest(string_to_array(${query}, ' ')) AS word
             WHERE length(word) >= 2
-          ) THEN 0.35 ELSE 0 END
+          ) THEN 0.4 ELSE 0 END
         ) as keyword_score
       FROM templates
       WHERE is_published = true
