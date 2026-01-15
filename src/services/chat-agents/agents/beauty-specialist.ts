@@ -21,6 +21,7 @@ function getModel() {
     _model = new ChatGoogleGenerativeAI({
       model: 'gemini-2.0-flash-exp',
       temperature: 0.3,
+      apiKey: process.env.GOOGLE_AI_API_KEY,
     });
   }
   return _model;

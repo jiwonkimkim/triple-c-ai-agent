@@ -18,6 +18,7 @@ function getModel() {
     _model = new ChatGoogleGenerativeAI({
       model: 'gemini-2.0-flash-exp',
       temperature: 0.1, // 낮은 temperature로 일관된 분류
+      apiKey: process.env.GOOGLE_AI_API_KEY,
     });
   }
   return _model;
