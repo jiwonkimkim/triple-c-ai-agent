@@ -35,6 +35,124 @@ export const BEAUTY_SUBCATEGORIES = [
 
 export type BeautySubCategory = (typeof BEAUTY_SUBCATEGORIES)[number];
 
+// ============================================
+// 뷰티 서브카테고리별 전문가 데이터
+// ============================================
+
+export interface BeautySpecialistData {
+  name: string;
+  emoji: string;
+  trends: string[];           // 요즘 인기 트렌드
+  keywords: string[];         // 자동 감지용 키워드
+  keyPoints: string[];        // 물어볼 핵심 포인트
+  recommendedSections: string[];  // 추천 섹션 구성
+  tipsForCopy: string[];      // 카피 작성 팁
+}
+
+export const BEAUTY_SPECIALIST_DATA: Record<BeautySubCategory, BeautySpecialistData> = {
+  lip: {
+    name: '립 메이크업',
+    emoji: '💄',
+    trends: ['워터 틴트', '글로시 립', '매트 립스틱', '립 플럼퍼', '멀티밤'],
+    keywords: ['립', '립스틱', '립틴트', '틴트', '립밤', '립글로스', '립플럼퍼', '립라이너'],
+    keyPoints: ['발색력', '지속력', '보습력', '텍스처(매트/글로시/벨벳)', '향'],
+    recommendedSections: ['HERO', 'KEY_MESSAGE', 'COLOR_SHOWCASE', 'TEXTURE', 'HOW_TO_USE', 'SOCIAL_PROOF'],
+    tipsForCopy: ['발색 표현은 구체적으로', '지속력은 시간으로 표현', '입술 타입별 추천 언급'],
+  },
+  skincare: {
+    name: '스킨케어',
+    emoji: '✨',
+    trends: ['비타민C 세럼', '레티놀', '시카 크림', '나이아신아마이드', '펩타이드'],
+    keywords: ['세럼', '크림', '토너', '에센스', '앰플', '로션', '스킨', '모이스처라이저'],
+    keyPoints: ['주요 성분', '피부 고민(주름/미백/보습/진정)', '피부 타입', '사용 순서'],
+    recommendedSections: ['HERO', 'KEY_MESSAGE', 'INGREDIENTS', 'BEFORE_AFTER', 'HOW_TO_USE', 'ROUTINE', 'SOCIAL_PROOF'],
+    tipsForCopy: ['성분 효능을 쉽게 설명', '피부 고민 공감 메시지', '과학적 근거 언급'],
+  },
+  suncare: {
+    name: '선케어',
+    emoji: '☀️',
+    trends: ['톤업 선크림', '무기자차', '선스틱', '선쿠션', '비건 선크림'],
+    keywords: ['선크림', '선스틱', '선블록', '자외선', 'spf', 'pa', '썬크림', '썬스틱'],
+    keyPoints: ['SPF/PA 지수', '백탁 여부', '지속력', '촉촉/산뜻 타입', '톤업 효과'],
+    recommendedSections: ['HERO', 'KEY_MESSAGE', 'UV_PROTECTION', 'TEXTURE', 'DAILY_USE', 'HOW_TO_USE'],
+    tipsForCopy: ['자외선 차단 수치 강조', '백탁 없음/톤업 효과 어필', '데일리 사용 편의성'],
+  },
+  mascara: {
+    name: '아이 메이크업',
+    emoji: '👁️',
+    trends: ['롱래쉬 마스카라', '볼륨 마스카라', '컬링 마스카라', '브로우 마스카라'],
+    keywords: ['마스카라', '아이라이너', '아이브로우', '속눈썹', '눈썹'],
+    keyPoints: ['효과(롱래쉬/볼륨/컬링)', '지속력', '번짐 방지', '클렌징 용이성'],
+    recommendedSections: ['HERO', 'KEY_MESSAGE', 'EFFECT_SHOWCASE', 'BEFORE_AFTER', 'HOW_TO_USE', 'SOCIAL_PROOF'],
+    tipsForCopy: ['눈매 변화 강조', '번짐 없는 지속력', '다양한 연출법 제안'],
+  },
+  maskpack: {
+    name: '마스크팩',
+    emoji: '🧖',
+    trends: ['시트마스크', '슬리핑팩', '워시오프팩', '모델링팩', '패드마스크'],
+    keywords: ['마스크팩', '시트마스크', '슬리핑팩', '팩', '패드', '필오프'],
+    keyPoints: ['주요 성분', '효과(보습/진정/미백/탄력)', '사용 시간', '사용 빈도'],
+    recommendedSections: ['HERO', 'KEY_MESSAGE', 'INGREDIENTS', 'HOW_TO_USE', 'BEFORE_AFTER', 'SOCIAL_PROOF'],
+    tipsForCopy: ['즉각적인 효과 강조', '사용 후 피부 느낌 묘사', '꿀팁 제공'],
+  },
+  cushion: {
+    name: '베이스 메이크업',
+    emoji: '🪞',
+    trends: ['글로우 쿠션', '커버 쿠션', '톤업 쿠션', '비건 파운데이션', '스킨케어 쿠션'],
+    keywords: ['쿠션', '파운데이션', 'bb크림', 'cc크림', '베이스', '프라이머'],
+    keyPoints: ['커버력', '지속력', '피부 표현(글로우/세미매트)', '호수(색상)', 'SPF'],
+    recommendedSections: ['HERO', 'KEY_MESSAGE', 'COVERAGE', 'SHADE_GUIDE', 'HOW_TO_USE', 'BEFORE_AFTER'],
+    tipsForCopy: ['자연스러운 피부 표현 강조', '다양한 피부톤 대응', '지속력 시간 표기'],
+  },
+  eyeshadow: {
+    name: '아이섀도우',
+    emoji: '🎨',
+    trends: ['글리터 섀도우', '매트 팔레트', '멀티 팔레트', '리퀴드 섀도우', '스틱 섀도우'],
+    keywords: ['아이섀도우', '섀도우', '팔레트', '글리터', '아이섀도'],
+    keyPoints: ['발색력', '지속력', '펄감/매트감', '색상 구성', '가루날림'],
+    recommendedSections: ['HERO', 'KEY_MESSAGE', 'COLOR_PALETTE', 'TEXTURE', 'LOOK_TUTORIAL', 'HOW_TO_USE'],
+    tipsForCopy: ['다양한 연출 룩 제안', '색상별 특징 설명', '데일리/파티 구분'],
+  },
+  cleanser: {
+    name: '클렌징',
+    emoji: '🫧',
+    trends: ['오일 클렌저', '폼 클렌저', '클렌징 밤', '미셀라 워터', '저자극 클렌저'],
+    keywords: ['클렌저', '클렌징', '폼클렌저', '오일클렌저', '세안', '세안제', '클렌징폼'],
+    keyPoints: ['세정력', '자극도', '이중세안 필요 여부', '피부 타입', '주요 성분'],
+    recommendedSections: ['HERO', 'KEY_MESSAGE', 'CLEANSING_POWER', 'INGREDIENTS', 'HOW_TO_USE', 'SOCIAL_PROOF'],
+    tipsForCopy: ['깔끔한 세정력 강조', '순한 성분 어필', '촉촉한 세안 후 느낌'],
+  },
+  other_beauty: {
+    name: '기타 뷰티',
+    emoji: '💅',
+    trends: ['바디케어', '핸드크림', '헤어케어', '네일', '향수'],
+    keywords: ['바디', '핸드크림', '헤어', '샴푸', '트리트먼트', '향수', '네일'],
+    keyPoints: ['주요 효과', '향', '사용 부위', '지속력'],
+    recommendedSections: ['HERO', 'KEY_MESSAGE', 'FEATURES', 'HOW_TO_USE', 'SOCIAL_PROOF'],
+    tipsForCopy: ['일상 속 편리함 강조', '향 묘사 구체적으로', '선물용 어필'],
+  },
+};
+
+// 키워드로 서브카테고리 자동 감지
+export function detectBeautySubCategory(text: string): BeautySubCategory | null {
+  const lowerText = text.toLowerCase();
+
+  for (const [subCategory, data] of Object.entries(BEAUTY_SPECIALIST_DATA)) {
+    if (data.keywords.some(keyword => lowerText.includes(keyword))) {
+      return subCategory as BeautySubCategory;
+    }
+  }
+
+  return null;
+}
+
+// 뷰티 키워드인지 확인
+export function isBeautyKeyword(text: string): boolean {
+  const lowerText = text.toLowerCase();
+  const allKeywords = Object.values(BEAUTY_SPECIALIST_DATA).flatMap(d => d.keywords);
+  return allKeywords.some(keyword => lowerText.includes(keyword));
+}
+
 export const COPY_LENGTHS = ['short', 'medium', 'long'] as const;
 export type CopyLength = (typeof COPY_LENGTHS)[number];
 
@@ -161,6 +279,26 @@ export interface MessageMetadata {
     theme: string;
     tone: string;
   };
+
+  // 자동 감지 정보 (Product Detector용)
+  autoDetected?: {
+    category: string;
+    subCategory: string;
+  };
+
+  // 감지된 제품 정보
+  detectedProduct?: {
+    category: string | null;
+    subCategory: string | null;
+    productType: string | null;
+    confidence: number;
+  };
+
+  // Discovery 모드
+  discoveryMode?: 'trending' | 'seasonal' | 'beginner' | 'category_explore';
+
+  // 전문가 서브카테고리
+  specialist?: string;
 }
 
 export interface SuggestionOption {

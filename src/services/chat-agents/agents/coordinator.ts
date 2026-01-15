@@ -1,65 +1,43 @@
 /**
- * Coordinator Agent
+ * Coordinator Agent (v2)
  * 대화 흐름 관리 및 다음 Agent 라우팅 결정
+ * 뷰티 특화 Consultative 아키텍처
  */
 
-import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { AgentType } from '@prisma/client';
 import { ChatAgentState } from '../graph';
 import {
   ChatMessage,
-  NextAction,
   getMissingFields,
   isDataComplete,
+  detectBeautySubCategory,
+  isBeautyKeyword,
+  BEAUTY_SPECIALIST_DATA,
 } from '../types';
-import { parseIntent, getRecommendedAgent } from './intent-parser';
+import { parseIntent } from './intent-parser';
+import { detectProduct } from './product-detector';
+import { isDiscoveryRequest } from './discovery';
 
-// Lazy initialization to avoid build-time API key requirement
-let _model: ChatGoogleGenerativeAI | null = null;
-function getModel() {
-  if (!_model) {
-    _model = new ChatGoogleGenerativeAI({
-      model: 'gemini-2.0-flash-exp',
-      temperature: 0.3,
-    });
-  }
-  return _model;
-}
+// 환영 메시지 생성
+function createWelcomeMessage(): ChatMessage {
+  return {
+    id: `msg_${Date.now()}`,
+    role: 'assistant',
+    content: `안녕하세요! 상세페이지 제작 도우미예요 ✨
 
-const COORDINATOR_SYSTEM_PROMPT = `당신은 마케팅 콘텐츠 생성 서비스의 대화 조율자입니다.
-사용자와의 대화를 분석하여 다음에 어떤 Agent가 처리해야 하는지 결정합니다.
+저는 뷰티 제품 상세페이지 제작을 전문으로 도와드려요.
 
-## 사용 가능한 Agent:
-- INTAKE: 제품명, 카테고리, 특징 등 기본 정보 수집
-- CLARIFIER: 애매한 답변에 대해 명확화 질문
-- SUGGESTER: 선택지나 추천 옵션 제시
-- PLANNER: 수집된 정보로 콘텐츠 구조 기획
-- BRAND_CONTEXT: 브랜드 프로필 정보 로드
-- GENERATOR: 실제 상세페이지 생성 실행
-- FEEDBACK: 생성 결과에 대한 수정 요청 처리
+💄 **제품이 있으시면** 제품명이나 종류를 알려주세요
+   예: "립틴트 상세페이지 만들어줘", "비타민C 세럼이야"
 
-## 라우팅 규칙:
-1. 대화 시작 또는 정보 부족 → INTAKE 또는 SUGGESTER
-2. 애매한 답변 → CLARIFIER
-3. 선택지 필요 → SUGGESTER
-4. 필수 정보 완료 → PLANNER
-5. 기획 확인 완료 + 브랜드 있음 → BRAND_CONTEXT
-6. 생성 요청 → GENERATOR
-7. 수정 요청 → FEEDBACK
+💡 **아이디어가 필요하시면** 편하게 말씀해주세요
+   예: "요즘 뭐가 인기야?", "추천해줘"
 
-## 필수 수집 정보:
-- productName (제품명)
-- category (카테고리)
-- keyFeatures (주요 특징, 최소 1개)
-- copyLength (카피 길이)
-
-## 응답 형식:
-다음 Agent와 간단한 이유를 JSON으로 응답하세요:
-{"nextAgent": "AGENT_TYPE", "reason": "이유"}`;
-
-interface CoordinatorDecision {
-  nextAgent: AgentType;
-  reason: string;
+어떤 제품의 상세페이지를 만들어 드릴까요?`,
+    agentType: 'COORDINATOR',
+    metadata: { uiType: 'text' },
+    createdAt: new Date(),
+  };
 }
 
 export async function coordinatorAgent(
@@ -67,28 +45,16 @@ export async function coordinatorAgent(
 ): Promise<Partial<ChatAgentState>> {
   const { messages, collectedData, conversationId } = state;
 
-  // 메시지가 없으면 환영 메시지로 시작
+  // 1. 메시지가 없으면 환영 메시지
   if (messages.length === 0) {
-    const welcomeMessage: ChatMessage = {
-      id: `msg_${Date.now()}`,
-      role: 'assistant',
-      content: '안녕하세요! 어떤 콘텐츠를 만들고 싶으신가요? 제품 상세페이지, 마케팅 배너 등 원하시는 내용을 말씀해 주세요.',
-      agentType: 'COORDINATOR',
-      metadata: {
-        uiType: 'text',
-      },
-      createdAt: new Date(),
-    };
-
     return {
-      messages: [welcomeMessage],
+      messages: [createWelcomeMessage()],
       currentAgent: 'COORDINATOR',
       nextAction: { type: 'await_input' },
     };
   }
 
-  // 최근 메시지 분석
-  const lastMessage = messages[messages.length - 1];
+  // 2. 마지막 사용자 메시지 찾기
   const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
 
   if (!lastUserMessage) {
@@ -97,158 +63,249 @@ export async function coordinatorAgent(
     };
   }
 
-  // 데이터 완성도 체크
-  const missingFields = getMissingFields(collectedData);
-  const dataComplete = isDataComplete(collectedData);
+  const userContent = lastUserMessage.content;
 
-  // Intent Parser를 사용한 의도 분석
+  // 3. Intent 분석
   const conversationContext = messages.slice(-5).map(m => `[${m.role}]: ${m.content}`);
-  const parsedIntent = await parseIntent(
-    lastUserMessage.content,
-    collectedData,
-    conversationContext
-  );
+  const parsedIntent = await parseIntent(userContent, collectedData, conversationContext);
 
-  console.log('[Coordinator] Parsed intent:', parsedIntent);
+  console.log('[Coordinator] Intent:', parsedIntent.intent, 'Confidence:', parsedIntent.confidence);
 
-  // 의도에 따른 라우팅
+  // 4. Intent별 라우팅
   switch (parsedIntent.intent) {
+    // === Discovery 모드 ===
+    case 'QUESTION':
+    case 'GREETING':
+      if (isDiscoveryRequest(userContent)) {
+        return {
+          currentAgent: 'COORDINATOR',
+          nextAction: { type: 'continue', targetAgent: 'COORDINATOR' as AgentType },
+          // Discovery Agent로 라우팅됨 (graph에서 처리)
+        };
+      }
+      if (parsedIntent.intent === 'GREETING') {
+        const greetingMessage: ChatMessage = {
+          id: `msg_${Date.now()}`,
+          role: 'assistant',
+          content: '안녕하세요! 😊 어떤 제품의 상세페이지를 만들어 드릴까요?',
+          agentType: 'COORDINATOR',
+          metadata: { uiType: 'text' },
+          createdAt: new Date(),
+        };
+        return {
+          messages: [greetingMessage],
+          currentAgent: 'COORDINATOR',
+          nextAction: { type: 'await_input' },
+        };
+      }
+      break;
+
+    // === 확인/승인 ===
     case 'CONFIRM':
-      // 확인/승인: 데이터 완성도에 따라 분기
-      if (dataComplete && collectedData.plannedSections && collectedData.plannedSections.length > 0) {
+      // 기획이 완료되었으면 생성으로
+      if (collectedData.plannedSections && collectedData.plannedSections.length > 0) {
         return {
           currentAgent: 'GENERATOR',
           nextAction: { type: 'generate' },
         };
       }
-      if (dataComplete) {
+      // 데이터가 충분하면 기획으로
+      if (isDataComplete(collectedData)) {
         return {
           currentAgent: 'PLANNER',
-          nextAction: { type: 'continue', targetAgent: 'PLANNER' },
+          nextAction: { type: 'continue', targetAgent: 'PLANNER' as AgentType },
         };
       }
-      // 데이터 부족 시 다음 정보 수집
       break;
 
+    // === 수정 요청 ===
     case 'MODIFY':
       return {
         currentAgent: 'FEEDBACK',
-        nextAction: { type: 'continue', targetAgent: 'FEEDBACK' },
+        nextAction: { type: 'continue', targetAgent: 'FEEDBACK' as AgentType },
       };
 
+    // === 취소 ===
     case 'CANCEL':
-      // 취소 시 초기 상태로 (환영 메시지)
       const cancelMessage: ChatMessage = {
         id: `msg_${Date.now()}`,
         role: 'assistant',
-        content: '알겠습니다. 처음부터 다시 시작할게요. 어떤 제품의 상세페이지를 만들어 드릴까요?',
+        content: '알겠습니다. 처음부터 다시 시작할게요! 🔄\n\n어떤 제품의 상세페이지를 만들어 드릴까요?',
         agentType: 'COORDINATOR',
         metadata: { uiType: 'text' },
         createdAt: new Date(),
       };
       return {
         messages: [cancelMessage],
-        collectedData: {}, // 데이터 초기화
+        collectedData: {},
         currentAgent: 'COORDINATOR',
         nextAction: { type: 'await_input' },
       };
 
-    case 'QUESTION':
-      return {
-        currentAgent: 'CLARIFIER',
-        nextAction: { type: 'continue', targetAgent: 'CLARIFIER' },
-      };
-
-    case 'GREETING':
-      const greetingMessage: ChatMessage = {
-        id: `msg_${Date.now()}`,
-        role: 'assistant',
-        content: '안녕하세요! 무엇을 도와드릴까요? 상세페이지를 만들고 싶으시다면 제품 정보를 알려주세요.',
-        agentType: 'COORDINATOR',
-        metadata: { uiType: 'text' },
-        createdAt: new Date(),
-      };
-      return {
-        messages: [greetingMessage],
-        currentAgent: 'COORDINATOR',
-        nextAction: { type: 'await_input' },
-      };
-
-    case 'CREATE':
-    case 'PROVIDE_INFO':
+    // === 옵션 선택 ===
     case 'SELECT_OPTION':
-      // 정보 제공/생성 요청: 추출된 정보가 있으면 활용
-      if (parsedIntent.extractedInfo) {
-        // 추출된 카테고리 정보를 collectedData에 힌트로 저장
-        console.log('[Coordinator] Extracted info:', parsedIntent.extractedInfo);
+      // 선택된 옵션 처리는 messages/route.ts에서 처리 후
+      // 여기서는 다음 단계로 라우팅
+      if (collectedData.category === 'BEAUTY' && collectedData.subCategory) {
+        return {
+          currentAgent: 'INTAKE',
+          nextAction: { type: 'continue', targetAgent: 'INTAKE' as AgentType },
+        };
       }
       break;
 
-    case 'UNCLEAR':
-    default:
-      // 불분명한 경우 Clarifier로
-      if (parsedIntent.confidence < 0.6) {
+    // === 정보 제공 / 생성 요청 ===
+    case 'PROVIDE_INFO':
+    case 'CREATE':
+      // 제품 자동 감지
+      const detected = await detectProduct(userContent, true); // quick detection only
+
+      if (detected.category === 'BEAUTY' && detected.subCategory) {
+        const specialistData = BEAUTY_SPECIALIST_DATA[detected.subCategory];
+
+        // 자동 분류된 메시지
+        const autoDetectMessage: ChatMessage = {
+          id: `msg_${Date.now()}`,
+          role: 'assistant',
+          content: `${specialistData.emoji} ${specialistData.name} 제품이시군요!\n\n` +
+            `**요즘 인기 트렌드:**\n` +
+            specialistData.trends.slice(0, 3).map(t => `• ${t}`).join('\n') +
+            `\n\n제품에 대해 더 알려주시겠어요?\n` +
+            `(${specialistData.keyPoints.slice(0, 3).join(', ')} 등)`,
+          agentType: 'COORDINATOR',
+          metadata: {
+            uiType: 'text',
+            autoDetected: {
+              category: 'BEAUTY',
+              subCategory: detected.subCategory,
+            },
+          },
+          createdAt: new Date(),
+        };
+
         return {
-          currentAgent: 'CLARIFIER',
-          nextAction: { type: 'continue', targetAgent: 'CLARIFIER' },
+          messages: [autoDetectMessage],
+          collectedData: {
+            category: 'BEAUTY',
+            subCategory: detected.subCategory,
+          },
+          currentAgent: 'INTAKE',
+          nextAction: { type: 'await_input' },
+        };
+      }
+
+      // 뷰티 키워드만 감지된 경우
+      if (detected.category === 'BEAUTY' && !detected.subCategory) {
+        const clarifyMessage: ChatMessage = {
+          id: `msg_${Date.now()}`,
+          role: 'assistant',
+          content: `뷰티 제품이시군요! 💄\n\n어떤 종류의 제품인지 알려주시겠어요?`,
+          agentType: 'COORDINATOR',
+          metadata: {
+            uiType: 'options',
+            options: Object.entries(BEAUTY_SPECIALIST_DATA).slice(0, 6).map(([key, data]) => ({
+              id: key,
+              label: `${data.emoji} ${data.name}`,
+              value: key,
+              description: data.trends.slice(0, 2).join(', '),
+            })),
+            askingField: 'subCategory',
+          },
+          createdAt: new Date(),
+        };
+
+        return {
+          messages: [clarifyMessage],
+          collectedData: { category: 'BEAUTY' },
+          currentAgent: 'COORDINATOR',
+          nextAction: { type: 'await_input' },
         };
       }
       break;
   }
 
-  // 데이터 완성도에 따른 추가 라우팅
-  if (dataComplete) {
-    // 브랜드 프로필이 선택되었고 컨텍스트가 없으면
-    if (collectedData.brandProfileId && !state.brandContext) {
-      return {
-        currentAgent: 'BRAND_CONTEXT',
-        nextAction: { type: 'continue', targetAgent: 'BRAND_CONTEXT' },
-      };
-    }
-    // 기획이 없으면 Planner로
-    if (!collectedData.plannedSections) {
-      return {
-        currentAgent: 'PLANNER',
-        nextAction: { type: 'continue', targetAgent: 'PLANNER' },
-      };
-    }
-  }
+  // 5. 상태 기반 라우팅
 
-  // 정보 부족 시 - Suggester 또는 Intake
-  if (missingFields.length > 0) {
-    // 카테고리가 없으면 Suggester (선택지 제시)
-    if (!collectedData.category) {
-      return {
-        currentAgent: 'SUGGESTER',
-        nextAction: { type: 'continue', targetAgent: 'SUGGESTER' },
-      };
-    }
-    // 뷰티 카테고리인데 서브카테고리가 없으면 Suggester
-    if (collectedData.category === 'BEAUTY' && !collectedData.subCategory) {
-      return {
-        currentAgent: 'SUGGESTER',
-        nextAction: { type: 'continue', targetAgent: 'SUGGESTER' },
-      };
-    }
-    // 카피 길이가 없으면 Suggester
-    if (!collectedData.copyLength) {
-      return {
-        currentAgent: 'SUGGESTER',
-        nextAction: { type: 'continue', targetAgent: 'SUGGESTER' },
-      };
-    }
-    // 나머지는 Intake
+  // Discovery 요청인지 다시 확인
+  if (isDiscoveryRequest(userContent)) {
     return {
-      currentAgent: 'INTAKE',
-      nextAction: { type: 'continue', targetAgent: 'INTAKE' },
+      currentAgent: 'COORDINATOR',
+      nextAction: { type: 'discovery' as any }, // Discovery Agent 호출
     };
   }
 
-  // Intent Parser의 추천 Agent 사용
-  const recommendedAgent = getRecommendedAgent(parsedIntent, collectedData) as AgentType;
+  // 데이터 완성도 확인
+  const missingFields = getMissingFields(collectedData);
+  const dataComplete = isDataComplete(collectedData);
 
+  // 기획 완료 후 생성 대기 상태
+  if (dataComplete && collectedData.plannedSections) {
+    return {
+      currentAgent: 'PLANNER',
+      nextAction: { type: 'await_input' },
+    };
+  }
+
+  // 데이터 완료 → 기획으로
+  if (dataComplete) {
+    return {
+      currentAgent: 'PLANNER',
+      nextAction: { type: 'continue', targetAgent: 'PLANNER' as AgentType },
+    };
+  }
+
+  // 브랜드 로드 필요
+  if (collectedData.brandProfileId && !state.brandContext) {
+    return {
+      currentAgent: 'BRAND_CONTEXT',
+      nextAction: { type: 'continue', targetAgent: 'BRAND_CONTEXT' as AgentType },
+    };
+  }
+
+  // 정보 수집 필요
+  if (missingFields.length > 0) {
+    // 카테고리 없음 → Discovery 또는 Suggester
+    if (!collectedData.category) {
+      // 질문/탐색 모드면 Discovery로
+      if (isDiscoveryRequest(userContent)) {
+        return {
+          currentAgent: 'COORDINATOR',
+          nextAction: { type: 'discovery' as any },
+        };
+      }
+      // 그렇지 않으면 Intake로 정보 추출 시도
+      return {
+        currentAgent: 'INTAKE',
+        nextAction: { type: 'continue', targetAgent: 'INTAKE' as AgentType },
+      };
+    }
+
+    // 뷰티 카테고리인데 서브카테고리 없음
+    if (collectedData.category === 'BEAUTY' && !collectedData.subCategory) {
+      return {
+        currentAgent: 'SUGGESTER',
+        nextAction: { type: 'continue', targetAgent: 'SUGGESTER' as AgentType },
+      };
+    }
+
+    // 카피 길이 없음
+    if (!collectedData.copyLength) {
+      return {
+        currentAgent: 'SUGGESTER',
+        nextAction: { type: 'continue', targetAgent: 'SUGGESTER' as AgentType },
+      };
+    }
+
+    // 기타 정보 수집
+    return {
+      currentAgent: 'INTAKE',
+      nextAction: { type: 'continue', targetAgent: 'INTAKE' as AgentType },
+    };
+  }
+
+  // 기본값: Intake로
   return {
-    currentAgent: recommendedAgent,
-    nextAction: { type: 'continue', targetAgent: recommendedAgent },
+    currentAgent: 'INTAKE',
+    nextAction: { type: 'continue', targetAgent: 'INTAKE' as AgentType },
   };
 }
