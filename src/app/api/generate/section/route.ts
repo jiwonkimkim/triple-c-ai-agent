@@ -241,6 +241,17 @@ export async function POST(request: NextRequest) {
     console.log(`[Section Regenerate] Image uploaded successfully: ${uploadResult.url}`);
     console.log(`[Section Regenerate] Overlay text generated:`, JSON.stringify(result.overlayText).substring(0, 200));
 
+    // ★★★ 오버레이 텍스트에 브랜드 폰트/로고 정보 추가 (초기 생성과 동일!)
+    const enhancedOverlayText = result.overlayText ? {
+      ...result.overlayText,
+      brandFont: brandContext?.styleGuide?.fonts?.primary,
+      brandLogoUrl: brandContext?.styleGuide?.images?.logo,
+    } : undefined;
+
+    if (enhancedOverlayText?.brandFont) {
+      console.log(`[Section Regenerate] ★ Brand font added: ${enhancedOverlayText.brandFont}`);
+    }
+
     // ★★★ DB에 devPrompts 업데이트 (섹션 재생성 후에도 프롬프트 유지)
     let updatedDevPrompts = null;
     try {
@@ -275,7 +286,7 @@ export async function POST(request: NextRequest) {
             result.image.promptComponents?.dynamicPrompt,
           ].filter(Boolean).join('\n\n---\n\n') || `${validatedData.sectionType} section image`,
           generatedImageUrl: uploadResult.url,
-          overlayText: result.overlayText,
+          overlayText: enhancedOverlayText,  // ★ 브랜드 폰트/로고 포함
           overlayPrompt: result.overlayPrompt,
         };
 
@@ -342,8 +353,8 @@ export async function POST(request: NextRequest) {
         sectionIndex: validatedData.sectionIndex,
         imageUrl: uploadResult.url,
         promptComponents: result.image.promptComponents,
-        // ★★★ 오버레이 텍스트도 반환
-        overlayText: result.overlayText,
+        // ★★★ 오버레이 텍스트도 반환 (브랜드 폰트/로고 포함)
+        overlayText: enhancedOverlayText,
         overlayPrompt: result.overlayPrompt,
         // ★★★ 전체 업데이트된 devPrompts 반환 (기존 섹션 + 새 섹션)
         updatedDevPrompts,
