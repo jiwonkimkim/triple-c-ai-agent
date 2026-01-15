@@ -316,6 +316,7 @@ export function MarketplaceGallery({
         template={previewTemplate}
         onClose={() => setPreviewTemplate(null)}
         onPurchase={handlePreviewPurchase}
+        onSwitchTemplate={setPreviewTemplate}
       />
 
       {/* Purchase Confirm Dialog */}

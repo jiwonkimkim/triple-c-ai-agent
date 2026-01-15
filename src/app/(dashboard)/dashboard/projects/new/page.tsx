@@ -17,6 +17,8 @@ import { useToast } from '@/hooks/use-toast';
 import { createProjectSchema, type CreateProjectInput } from '@/lib/validations';
 import { BrandSelect } from '@/components/brands';
 import { BEAUTY_SUBCATEGORY_META, type BeautySubCategory } from '@/services/ai/prompts';
+import { RagRelatedSearch } from '@/components/marketplace/rag-related-search';
+import { MarketplaceTemplateData } from '@/components/marketplace/marketplace-template-card';
 
 const categories = [
   { value: 'Fashion', label: '패션' },
@@ -241,6 +243,29 @@ export default function NewProjectPage() {
       </div>
     );
   }
+
+  const handleTemplateSelect = (template: MarketplaceTemplateData) => {
+    // 템플릿 정보로 제품 정보 자동 채우기
+    const sections = template.sections as any;
+
+    setProductInfo((prev) => ({
+      ...prev,
+      productName: sections?.productName || template.name || prev.productName,
+      category: sections?.category || template.category || prev.category,
+      // 기존 특징에 템플릿 설명이나 태그 추가 (최대 5개 유지)
+      keyFeatures: [
+        ...(sections?.keyFeatures || []),
+        ...(template.tags || []),
+        ...prev.keyFeatures
+      ].slice(0, 5).filter(Boolean),
+      targetAudience: sections?.targetAudience || prev.targetAudience,
+    }));
+
+    toast({
+      title: '템플릿 적용 완료',
+      description: `"${template.name}"의 정보가 적용되었습니다.`,
+    });
+  };
 
   // 인증되지 않은 경우 로그인 페이지로 리다이렉트
   if (status === 'unauthenticated' || !session) {
@@ -656,77 +681,96 @@ export default function NewProjectPage() {
                 selectedBrand.styleGuide.images.logo ||
                 selectedBrand.styleGuide.images.ogImage
               ) && (
-                <div className="border-t pt-4">
-                  <p className="text-sm font-medium mb-2">브랜드에서 추출된 이미지</p>
-                  <p className="text-xs text-muted-foreground mb-3">
-                    클릭하여 제품 이미지로 추가할 수 있습니다
-                  </p>
-                  <div className="flex gap-3 flex-wrap">
-                    {selectedBrand.styleGuide.images.logo && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (productImages.length < 5 && selectedBrand.styleGuide?.images?.logo) {
-                            setProductImages((prev) => [...prev, selectedBrand.styleGuide!.images!.logo!]);
-                            toast({
-                              title: '이미지 추가됨',
-                              description: '브랜드 로고가 제품 이미지에 추가되었습니다.',
-                            });
-                          }
-                        }}
-                        disabled={productImages.length >= 5 || productImages.includes(selectedBrand.styleGuide.images.logo)}
-                        className="relative group p-2 rounded-lg border border-border hover:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <img
-                          src={selectedBrand.styleGuide.images.logo}
-                          alt="브랜드 로고"
-                          className="h-16 w-auto max-w-[100px] object-contain"
-                          onError={(e) => { e.currentTarget.parentElement!.style.display = 'none'; }}
-                        />
-                        <span className="absolute -bottom-5 left-0 right-0 text-[10px] text-muted-foreground text-center">
-                          로고
-                        </span>
-                        {productImages.includes(selectedBrand.styleGuide.images.logo) && (
-                          <div className="absolute inset-0 bg-primary/20 rounded-lg flex items-center justify-center">
-                            <span className="text-xs text-primary font-medium">추가됨</span>
-                          </div>
-                        )}
-                      </button>
-                    )}
-                    {selectedBrand.styleGuide.images.ogImage && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (productImages.length < 5 && selectedBrand.styleGuide?.images?.ogImage) {
-                            setProductImages((prev) => [...prev, selectedBrand.styleGuide!.images!.ogImage!]);
-                            toast({
-                              title: '이미지 추가됨',
-                              description: '브랜드 대표 이미지가 제품 이미지에 추가되었습니다.',
-                            });
-                          }
-                        }}
-                        disabled={productImages.length >= 5 || productImages.includes(selectedBrand.styleGuide.images.ogImage)}
-                        className="relative group p-2 rounded-lg border border-border hover:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <img
-                          src={selectedBrand.styleGuide.images.ogImage}
-                          alt="브랜드 대표 이미지"
-                          className="h-16 w-auto max-w-[100px] object-contain"
-                          onError={(e) => { e.currentTarget.parentElement!.style.display = 'none'; }}
-                        />
-                        <span className="absolute -bottom-5 left-0 right-0 text-[10px] text-muted-foreground text-center">
-                          대표이미지
-                        </span>
-                        {productImages.includes(selectedBrand.styleGuide.images.ogImage) && (
-                          <div className="absolute inset-0 bg-primary/20 rounded-lg flex items-center justify-center">
-                            <span className="text-xs text-primary font-medium">추가됨</span>
-                          </div>
-                        )}
-                      </button>
-                    )}
+                  <div className="border-t pt-4">
+                    <p className="text-sm font-medium mb-2">브랜드에서 추출된 이미지</p>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      클릭하여 제품 이미지로 추가할 수 있습니다
+                    </p>
+                    <div className="flex gap-3 flex-wrap">
+                      {selectedBrand.styleGuide.images.logo && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (productImages.length < 5 && selectedBrand.styleGuide?.images?.logo) {
+                              setProductImages((prev) => [...prev, selectedBrand.styleGuide!.images!.logo!]);
+                              toast({
+                                title: '이미지 추가됨',
+                                description: '브랜드 로고가 제품 이미지에 추가되었습니다.',
+                              });
+                            }
+                          }}
+                          disabled={productImages.length >= 5 || productImages.includes(selectedBrand.styleGuide.images.logo)}
+                          className="relative group p-2 rounded-lg border border-border hover:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <img
+                            src={selectedBrand.styleGuide.images.logo}
+                            alt="브랜드 로고"
+                            className="h-16 w-auto max-w-[100px] object-contain"
+                            onError={(e) => { e.currentTarget.parentElement!.style.display = 'none'; }}
+                          />
+                          <span className="absolute -bottom-5 left-0 right-0 text-[10px] text-muted-foreground text-center">
+                            로고
+                          </span>
+                          {productImages.includes(selectedBrand.styleGuide.images.logo) && (
+                            <div className="absolute inset-0 bg-primary/20 rounded-lg flex items-center justify-center">
+                              <span className="text-xs text-primary font-medium">추가됨</span>
+                            </div>
+                          )}
+                        </button>
+                      )}
+                      {selectedBrand.styleGuide.images.ogImage && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (productImages.length < 5 && selectedBrand.styleGuide?.images?.ogImage) {
+                              setProductImages((prev) => [...prev, selectedBrand.styleGuide!.images!.ogImage!]);
+                              toast({
+                                title: '이미지 추가됨',
+                                description: '브랜드 대표 이미지가 제품 이미지에 추가되었습니다.',
+                              });
+                            }
+                          }}
+                          disabled={productImages.length >= 5 || productImages.includes(selectedBrand.styleGuide.images.ogImage)}
+                          className="relative group p-2 rounded-lg border border-border hover:border-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <img
+                            src={selectedBrand.styleGuide.images.ogImage}
+                            alt="브랜드 대표 이미지"
+                            className="h-16 w-auto max-w-[100px] object-contain"
+                            onError={(e) => { e.currentTarget.parentElement!.style.display = 'none'; }}
+                          />
+                          <span className="absolute -bottom-5 left-0 right-0 text-[10px] text-muted-foreground text-center">
+                            대표이미지
+                          </span>
+                          {productImages.includes(selectedBrand.styleGuide.images.ogImage) && (
+                            <div className="absolute inset-0 bg-primary/20 rounded-lg flex items-center justify-center">
+                              <span className="text-xs text-primary font-medium">추가됨</span>
+                            </div>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+            </CardContent>
+          </Card>
+
+          {/* RAG Search Bar - Inserted between Image Upload and Product Info */}
+          <Card className="border-primary/20 bg-primary/5">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Wand2 className="h-4 w-4 text-primary" />
+                AI 템플릿 검색으로 자동 입력
+              </CardTitle>
+              <CardDescription>
+                유사한 제품 템플릿을 찾아 정보를 자동으로 채워보세요
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <RagRelatedSearch
+                onSelect={handleTemplateSelect}
+                className="w-full"
+              />
             </CardContent>
           </Card>
 
@@ -884,11 +928,10 @@ export default function NewProjectPage() {
                   {copyLengthOptions.map((option) => (
                     <label
                       key={option.value}
-                      className={`cursor-pointer rounded-lg border p-3 transition-colors ${
-                        productInfo.copyLength === option.value
+                      className={`cursor-pointer rounded-lg border p-3 transition-colors ${productInfo.copyLength === option.value
                           ? 'border-primary bg-primary/5'
                           : 'hover:border-muted-foreground/50'
-                      }`}
+                        }`}
                     >
                       <input
                         type="radio"
@@ -918,11 +961,10 @@ export default function NewProjectPage() {
                   {imageModelOptions.map((option) => (
                     <label
                       key={option.value}
-                      className={`cursor-pointer rounded-lg border p-3 transition-colors ${
-                        productInfo.imageModel === option.value
+                      className={`cursor-pointer rounded-lg border p-3 transition-colors ${productInfo.imageModel === option.value
                           ? 'border-primary bg-primary/5'
                           : 'hover:border-muted-foreground/50'
-                      }`}
+                        }`}
                     >
                       <input
                         type="radio"
