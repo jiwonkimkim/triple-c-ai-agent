@@ -144,6 +144,9 @@ const defaultStylesByType: Record<OverlayText['type'], Partial<OverlayTextStyle>
 
 const generateId = () => `overlay-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
+// 기준 캔버스 너비 (데스크톱 기준 896px)
+const BASE_CANVAS_WIDTH = 896;
+
 export function ImageOverlayBlockRenderer({
   block,
   isSelected,
@@ -153,7 +156,15 @@ export function ImageOverlayBlockRenderer({
   onUpdate,
 }: ImageOverlayBlockRendererProps) {
   // 미리보기 모드에 따른 스케일 계산
-  const scale = previewScales[previewMode];
+  const previewScale = previewScales[previewMode];
+
+  // ★ 컨테이너 너비에 따른 동적 스케일 계산 (AI 편집창 열릴 때 등)
+  const [containerWidth, setContainerWidth] = useState<number>(BASE_CANVAS_WIDTH);
+  const dynamicScale = containerWidth / BASE_CANVAS_WIDTH;
+
+  // 최종 스케일 = 미리보기 모드 스케일 × 동적 컨테이너 스케일
+  const scale = previewScale * dynamicScale;
+
   const [selectedTextId, setSelectedTextId] = useState<string | null>(null);
   const [selectedLayerIds, setSelectedLayerIds] = useState<Set<string>>(new Set()); // 멀티 선택
   const [showImageSettings, setShowImageSettings] = useState(false);
@@ -352,6 +363,33 @@ export function ImageOverlayBlockRenderer({
       };
     }
   }, [isDragging, isResizing, handleDrag, handleDragEnd, handleResize, handleResizeEnd]);
+
+  // ★ 컨테이너 크기 변화 감지 (AI 편집창 열릴 때 등)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const newWidth = entry.contentRect.width;
+        if (newWidth > 0) {
+          setContainerWidth(newWidth);
+        }
+      }
+    });
+
+    resizeObserver.observe(container);
+
+    // 초기 너비 설정
+    const initialWidth = container.getBoundingClientRect().width;
+    if (initialWidth > 0) {
+      setContainerWidth(initialWidth);
+    }
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   // 오버레이 텍스트 추가
   const handleAddOverlayText = (type: OverlayText['type']) => {

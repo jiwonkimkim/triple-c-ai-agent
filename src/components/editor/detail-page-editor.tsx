@@ -1408,8 +1408,8 @@ export function DetailPageEditor({
         </div>
       </div>
 
-      {/* Main content area */}
-      <div className="flex flex-1 overflow-hidden">
+      {/* Main content area - overflow-visible로 텍스트가 이미지 밖으로 나갈 수 있게 허용 */}
+      <div className="flex flex-1 overflow-y-hidden overflow-x-visible">
         {/* Editor canvas */}
         <div
           id="editor-scroll-area"
