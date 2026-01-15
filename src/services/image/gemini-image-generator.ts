@@ -1268,10 +1268,45 @@ export async function generateSectionImageWithOverlay(
   // ★★★ 텍스트 배경 섹션 감지 (제품 이미지 없이 순수 배경만 생성)
   const isTextBackgroundSection = /^(TEXT_BANNER|KEY_MESSAGE|BENEFIT_HIGHLIGHT|DIVIDER_VISUAL)/i.test(sectionType);
 
+  // ★★★ 섹션 타입 매핑 (다양한 섹션명을 기본 타입으로 변환)
+  const mapSectionType = (type: string): 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ' => {
+    const upperType = type.toUpperCase();
+    // REVIEW, SOCIAL, TESTIMONIAL 관련 → SOCIAL_PROOF
+    if (/REVIEW|SOCIAL|TESTIMONIAL|PROOF|SHOWCASE/.test(upperType)) {
+      return 'SOCIAL_PROOF';
+    }
+    // HOW_TO, USAGE, STEP 관련 → HOW_TO_USE
+    if (/HOW_TO|USAGE|STEP|GUIDE/.test(upperType)) {
+      return 'HOW_TO_USE';
+    }
+    // FEATURE, BENEFIT, INGREDIENT 관련 → FEATURES
+    if (/FEATURE|BENEFIT|INGREDIENT|SPEC/.test(upperType)) {
+      return 'FEATURES';
+    }
+    // HERO, BANNER 관련 → HERO
+    if (/HERO|BANNER/.test(upperType)) {
+      return 'HERO';
+    }
+    // FAQ 관련
+    if (/FAQ|QUESTION/.test(upperType)) {
+      return 'FAQ';
+    }
+    // MAIN 관련
+    if (/MAIN|THUMBNAIL/.test(upperType)) {
+      return 'MAIN';
+    }
+    // 기본값: 첫 단어로 매핑 시도
+    const firstWord = upperType.split('_')[0];
+    if (['MAIN', 'HERO', 'FEATURES', 'SOCIAL_PROOF', 'HOW_TO_USE', 'FAQ'].includes(firstWord)) {
+      return firstWord as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
+    }
+    return 'FEATURES'; // 기본값
+  };
+
   // ★ 텍스트 배경 섹션은 'FEATURES'를 기본값으로 사용 (자유 비율)
   const normalizedSectionType = isTextBackgroundSection
     ? 'FEATURES' as const
-    : sectionType.toUpperCase().split('_')[0] as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
+    : mapSectionType(sectionType);
 
   // 모드 결정:
   // - 텍스트 배경 섹션: 항상 T2I 모드 (제품 이미지 제외)
@@ -1400,9 +1435,24 @@ async function generateOverlayTextForSection(
   // ★★★ 텍스트 배경 섹션 감지 (임팩트 있는 타이포그래피 적용)
   const isTextBackgroundSection = /^(TEXT_BANNER|KEY_MESSAGE|BENEFIT_HIGHLIGHT|DIVIDER_VISUAL)/i.test(sectionType);
 
+  // ★★★ 섹션 타입 매핑 (다양한 섹션명을 기본 타입으로 변환)
+  const mapSectionType = (type: string): 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ' => {
+    const upperType = type.toUpperCase();
+    if (/REVIEW|SOCIAL|TESTIMONIAL|PROOF|SHOWCASE/.test(upperType)) return 'SOCIAL_PROOF';
+    if (/HOW_TO|USAGE|STEP|GUIDE/.test(upperType)) return 'HOW_TO_USE';
+    if (/FEATURE|BENEFIT|INGREDIENT|SPEC/.test(upperType)) return 'FEATURES';
+    if (/HERO|BANNER/.test(upperType)) return 'HERO';
+    if (/FAQ|QUESTION/.test(upperType)) return 'FAQ';
+    if (/MAIN|THUMBNAIL/.test(upperType)) return 'MAIN';
+    const firstWord = upperType.split('_')[0];
+    if (['MAIN', 'HERO', 'FEATURES', 'SOCIAL_PROOF', 'HOW_TO_USE', 'FAQ'].includes(firstWord)) {
+      return firstWord as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
+    }
+    return 'FEATURES';
+  };
+
   // 섹션 타입 정규화
-  const normalizedSection = sectionType.toUpperCase().split('_')[0] as
-    'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
+  const normalizedSection = mapSectionType(sectionType);
 
   // ★★★ 텍스트 배경 섹션용 특별 레이아웃 (올리브영 스타일)
   const textBannerLayout = {
