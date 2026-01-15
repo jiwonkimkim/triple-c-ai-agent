@@ -41,6 +41,7 @@ const ChatAgentAnnotation = Annotation.Root({
     default: () => ({}),
   }),
   currentAgent: Annotation<AgentType>({
+    reducer: (_, update) => update,
     default: () => 'COORDINATOR' as AgentType,
   }),
   nextAction: Annotation<NextAction | undefined>,
@@ -192,7 +193,8 @@ function routeFromFeedback(state: ChatAgentState): RouteDecision {
 // ============================================
 
 export function createChatAgentGraph() {
-  const workflow = new StateGraph(ChatAgentAnnotation);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const workflow = new StateGraph(ChatAgentAnnotation) as any;
 
   // Add nodes
   workflow.addNode('COORDINATOR', coordinatorAgent);

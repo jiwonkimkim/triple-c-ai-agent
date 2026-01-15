@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import {
   getChatAgentGraph,
   createInitialState,
@@ -182,7 +183,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
           // LangGraph 실행
           const graph = getChatAgentGraph();
-          const result = await graph.invoke(initialState);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const result = await graph.invoke(initialState as any);
 
           // 결과에서 새 메시지 추출
           const newMessages = result.messages.filter(
@@ -199,7 +201,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                   role: msg.role,
                   content: msg.content,
                   agentType: msg.agentType,
-                  metadata: msg.metadata || {},
+                  metadata: (msg.metadata || {}) as Prisma.InputJsonValue,
                   attachments: msg.attachments || [],
                 },
               });
@@ -240,11 +242,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           await prisma.conversation.update({
             where: { id: conversationId },
             data: {
-              collectedData: result.collectedData,
+              collectedData: result.collectedData as Prisma.InputJsonValue,
               currentAgent: result.currentAgent,
               agentState: {
                 nextAction: result.nextAction,
-              },
+              } as Prisma.InputJsonValue,
               // 제목이 없고 productName이 있으면 제목 설정
               ...(!conversation.title && result.collectedData?.productName && {
                 title: `${result.collectedData.productName} 상세페이지`,
