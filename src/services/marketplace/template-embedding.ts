@@ -31,13 +31,17 @@ export function buildTemplateSearchText(template: {
     parts.push(template.description);
   }
 
-  // All image descriptions from sections
+  // All image descriptions and OCR text from sections
   if (template.sections && typeof template.sections === 'object') {
-    const sections = template.sections as { images?: Array<{ description?: string; prompt?: string }> };
+    const sections = template.sections as { images?: Array<{ description?: string; prompt?: string; ocrText?: string }> };
     if (sections.images && Array.isArray(sections.images)) {
       for (const image of sections.images) {
         if (image.description) {
           parts.push(image.description);
+        }
+        // OCR 텍스트도 검색에 포함 (상품 상세 텍스트)
+        if (image.ocrText) {
+          parts.push(image.ocrText);
         }
       }
     }

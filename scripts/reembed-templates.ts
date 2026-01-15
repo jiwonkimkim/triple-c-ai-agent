@@ -51,10 +51,12 @@ function buildTemplateSearchText(template: {
   if (template.category) parts.push(template.category.toLowerCase());
   if (template.description) parts.push(template.description);
   if (template.sections && typeof template.sections === 'object') {
-    const sections = template.sections as { images?: Array<{ description?: string }> };
+    const sections = template.sections as { images?: Array<{ description?: string; ocrText?: string }> };
     if (sections.images && Array.isArray(sections.images)) {
       for (const image of sections.images) {
         if (image.description) parts.push(image.description);
+        // OCR 텍스트도 검색에 포함
+        if (image.ocrText) parts.push(image.ocrText);
       }
     }
   }
