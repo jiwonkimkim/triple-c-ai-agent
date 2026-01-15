@@ -75,30 +75,38 @@ export async function coordinatorAgent(
   switch (parsedIntent.intent) {
     // === Discovery 모드 ===
     case 'QUESTION':
+      if (isDiscoveryRequest(userContent)) {
+        return {
+          currentAgent: 'COORDINATOR',
+          nextAction: { type: 'discovery' as any }, // Discovery Agent로 라우팅
+        };
+      }
+      // 일반 질문은 Clarifier로
+      return {
+        currentAgent: 'CLARIFIER',
+        nextAction: { type: 'continue', targetAgent: 'CLARIFIER' as AgentType },
+      };
+
     case 'GREETING':
       if (isDiscoveryRequest(userContent)) {
         return {
           currentAgent: 'COORDINATOR',
-          nextAction: { type: 'continue', targetAgent: 'COORDINATOR' as AgentType },
-          // Discovery Agent로 라우팅됨 (graph에서 처리)
+          nextAction: { type: 'discovery' as any },
         };
       }
-      if (parsedIntent.intent === 'GREETING') {
-        const greetingMessage: ChatMessage = {
-          id: `msg_${Date.now()}`,
-          role: 'assistant',
-          content: '안녕하세요! 😊 어떤 제품의 상세페이지를 만들어 드릴까요?',
-          agentType: 'COORDINATOR',
-          metadata: { uiType: 'text' },
-          createdAt: new Date(),
-        };
-        return {
-          messages: [greetingMessage],
-          currentAgent: 'COORDINATOR',
-          nextAction: { type: 'await_input' },
-        };
-      }
-      break;
+      const greetingMessage: ChatMessage = {
+        id: `msg_${Date.now()}`,
+        role: 'assistant',
+        content: '안녕하세요! 😊 어떤 제품의 상세페이지를 만들어 드릴까요?',
+        agentType: 'COORDINATOR',
+        metadata: { uiType: 'text' },
+        createdAt: new Date(),
+      };
+      return {
+        messages: [greetingMessage],
+        currentAgent: 'COORDINATOR',
+        nextAction: { type: 'await_input' },
+      };
 
     // === 확인/승인 ===
     case 'CONFIRM':
