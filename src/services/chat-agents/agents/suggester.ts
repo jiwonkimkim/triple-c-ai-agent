@@ -155,6 +155,7 @@ export async function suggesterAgent(
       uiType: 'options',
       options,
       multiSelect: false,
+      askingField,  // 어떤 필드를 물어보는지 저장
     },
     createdAt: new Date(),
   };

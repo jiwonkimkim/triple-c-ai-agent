@@ -106,6 +106,9 @@ export interface MessageMetadata {
   // 다중 선택 허용 여부
   multiSelect?: boolean;
 
+  // 어떤 필드를 묻는지 (선택 결과 처리용)
+  askingField?: string;
+
   // 진행 상태 (Generator Agent용)
   progress?: {
     step: string;

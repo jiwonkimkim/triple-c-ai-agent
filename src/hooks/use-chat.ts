@@ -69,6 +69,12 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
       );
     },
     onMessage: (message) => {
+      // 빈 메시지는 무시
+      if (!message.content || message.content.trim() === '') {
+        setStreamingMessageId(null);
+        return;
+      }
+
       setMessages((prev) => {
         // 스트리밍 중인 메시지를 완성된 메시지로 교체
         const existingIndex = prev.findIndex(
@@ -116,6 +122,11 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
       setIsTyping(false);
       setCollectedData(data.collectedData || {});
 
+      // 빈 스트리밍 메시지 정리
+      setMessages((prev) =>
+        prev.filter((m) => !m.isStreaming || (m.content && m.content.trim() !== ''))
+      );
+
       // 완료 시 리다이렉트
       if (data.status === 'complete' && data.projectId) {
         onComplete?.(data.projectId);
@@ -140,10 +151,13 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
 
         const data = await response.json();
         setMessages(
-          data.messages.map((msg: any) => ({
-            ...msg,
-            createdAt: new Date(msg.createdAt),
-          }))
+          data.messages
+            // 빈 메시지 필터링 (content가 없거나 빈 문자열인 메시지 제외)
+            .filter((msg: any) => msg.content && msg.content.trim() !== '')
+            .map((msg: any) => ({
+              ...msg,
+              createdAt: new Date(msg.createdAt),
+            }))
         );
       } catch (err) {
         setError(err instanceof Error ? err.message : '메시지 로드 실패');

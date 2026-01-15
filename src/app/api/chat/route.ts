@@ -39,6 +39,26 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // AI 인사 메시지 추가 (대화 시작 시 항상)
+    const welcomeMessage = `안녕하세요! 저는 상세페이지 생성 도우미예요. 🎨
+
+저는 이런 것들을 도와드릴 수 있어요:
+• 📦 **제품 상세페이지** - 화장품, 패션, 식품 등 다양한 카테고리
+• ✨ **마케팅 콘텐츠** - 제품 특징을 살린 매력적인 카피
+• 🎯 **맞춤형 디자인** - 브랜드 톤앤매너에 맞는 스타일
+
+어떤 제품의 상세페이지를 만들어 드릴까요?`;
+
+    await prisma.conversationMessage.create({
+      data: {
+        conversationId: conversation.id,
+        role: 'assistant',
+        content: welcomeMessage,
+        agentType: 'COORDINATOR',
+        metadata: { uiType: 'text' },
+      },
+    });
+
     // 초기 메시지가 있으면 저장
     if (initialMessage) {
       await prisma.conversationMessage.create({

@@ -16,7 +16,9 @@ import {
   ChatAgentState,
   ChatMessage,
   ProjectCollectedData,
+  SuggestionOption,
 } from '@/services/chat-agents';
+import { processSuggesterSelection } from '@/services/chat-agents/agents/suggester';
 import { AgentType } from '@prisma/client';
 
 interface RouteParams {
@@ -165,12 +167,49 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             createdAt: userMessage.createdAt,
           });
 
+          // 선택 옵션 처리: selectedOptionId가 있으면 collectedData 업데이트
+          let updatedCollectedData = conversation.collectedData as ProjectCollectedData;
+
+          if (selectedOptionId) {
+            // 마지막 assistant 메시지에서 askingField와 options 찾기
+            const lastAssistantMessage = [...existingMessages]
+              .reverse()
+              .find(m => m.role === 'assistant' && m.metadata?.askingField);
+
+            if (lastAssistantMessage?.metadata) {
+              const { askingField, options } = lastAssistantMessage.metadata as {
+                askingField?: string;
+                options?: SuggestionOption[];
+              };
+
+              if (askingField && options) {
+                const selectionUpdate = processSuggesterSelection(
+                  selectedOptionId,
+                  askingField,
+                  options
+                );
+
+                updatedCollectedData = {
+                  ...updatedCollectedData,
+                  ...selectionUpdate,
+                };
+
+                console.log('[Chat] Selection processed:', {
+                  askingField,
+                  selectedOptionId,
+                  selectionUpdate,
+                  updatedCollectedData,
+                });
+              }
+            }
+          }
+
           // Agent 상태 초기화
           const initialState: ChatAgentState = {
             conversationId,
             userId: session.user.id,
             messages: existingMessages,
-            collectedData: conversation.collectedData as ProjectCollectedData,
+            collectedData: updatedCollectedData,
             currentAgent: conversation.currentAgent,
             nextAction: undefined,
             brandContext: undefined,
