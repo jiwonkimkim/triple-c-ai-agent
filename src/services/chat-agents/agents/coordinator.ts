@@ -12,6 +12,7 @@ import {
   getMissingFields,
   isDataComplete,
 } from '../types';
+import { parseIntent, getRecommendedAgent } from './intent-parser';
 
 // Lazy initialization to avoid build-time API key requirement
 let _model: ChatGoogleGenerativeAI | null = null;
@@ -100,36 +101,102 @@ export async function coordinatorAgent(
   const missingFields = getMissingFields(collectedData);
   const dataComplete = isDataComplete(collectedData);
 
-  // 빠른 라우팅 (LLM 호출 없이)
-  // 1. 생성 요청 감지
-  const generateKeywords = ['생성', '만들어', '시작', '좋아', 'ok', '네', '확인', '진행'];
-  const lastContent = lastUserMessage.content.toLowerCase();
+  // Intent Parser를 사용한 의도 분석
+  const conversationContext = messages.slice(-5).map(m => `[${m.role}]: ${m.content}`);
+  const parsedIntent = await parseIntent(
+    lastUserMessage.content,
+    collectedData,
+    conversationContext
+  );
 
-  if (dataComplete && generateKeywords.some(k => lastContent.includes(k))) {
-    // 기획 확인이 되었다면 생성으로
-    if (collectedData.plannedSections && collectedData.plannedSections.length > 0) {
+  console.log('[Coordinator] Parsed intent:', parsedIntent);
+
+  // 의도에 따른 라우팅
+  switch (parsedIntent.intent) {
+    case 'CONFIRM':
+      // 확인/승인: 데이터 완성도에 따라 분기
+      if (dataComplete && collectedData.plannedSections && collectedData.plannedSections.length > 0) {
+        return {
+          currentAgent: 'GENERATOR',
+          nextAction: { type: 'generate' },
+        };
+      }
+      if (dataComplete) {
+        return {
+          currentAgent: 'PLANNER',
+          nextAction: { type: 'continue', targetAgent: 'PLANNER' },
+        };
+      }
+      // 데이터 부족 시 다음 정보 수집
+      break;
+
+    case 'MODIFY':
       return {
-        currentAgent: 'GENERATOR',
-        nextAction: { type: 'generate' },
+        currentAgent: 'FEEDBACK',
+        nextAction: { type: 'continue', targetAgent: 'FEEDBACK' },
       };
-    }
-    // 기획이 없으면 Planner로
-    return {
-      currentAgent: 'PLANNER',
-      nextAction: { type: 'continue', targetAgent: 'PLANNER' },
-    };
+
+    case 'CANCEL':
+      // 취소 시 초기 상태로 (환영 메시지)
+      const cancelMessage: ChatMessage = {
+        id: `msg_${Date.now()}`,
+        role: 'assistant',
+        content: '알겠습니다. 처음부터 다시 시작할게요. 어떤 제품의 상세페이지를 만들어 드릴까요?',
+        agentType: 'COORDINATOR',
+        metadata: { uiType: 'text' },
+        createdAt: new Date(),
+      };
+      return {
+        messages: [cancelMessage],
+        collectedData: {}, // 데이터 초기화
+        currentAgent: 'COORDINATOR',
+        nextAction: { type: 'await_input' },
+      };
+
+    case 'QUESTION':
+      return {
+        currentAgent: 'CLARIFIER',
+        nextAction: { type: 'continue', targetAgent: 'CLARIFIER' },
+      };
+
+    case 'GREETING':
+      const greetingMessage: ChatMessage = {
+        id: `msg_${Date.now()}`,
+        role: 'assistant',
+        content: '안녕하세요! 무엇을 도와드릴까요? 상세페이지를 만들고 싶으시다면 제품 정보를 알려주세요.',
+        agentType: 'COORDINATOR',
+        metadata: { uiType: 'text' },
+        createdAt: new Date(),
+      };
+      return {
+        messages: [greetingMessage],
+        currentAgent: 'COORDINATOR',
+        nextAction: { type: 'await_input' },
+      };
+
+    case 'CREATE':
+    case 'PROVIDE_INFO':
+    case 'SELECT_OPTION':
+      // 정보 제공/생성 요청: 추출된 정보가 있으면 활용
+      if (parsedIntent.extractedInfo) {
+        // 추출된 카테고리 정보를 collectedData에 힌트로 저장
+        console.log('[Coordinator] Extracted info:', parsedIntent.extractedInfo);
+      }
+      break;
+
+    case 'UNCLEAR':
+    default:
+      // 불분명한 경우 Clarifier로
+      if (parsedIntent.confidence < 0.6) {
+        return {
+          currentAgent: 'CLARIFIER',
+          nextAction: { type: 'continue', targetAgent: 'CLARIFIER' },
+        };
+      }
+      break;
   }
 
-  // 2. 수정 요청 감지
-  const modifyKeywords = ['수정', '바꿔', '변경', '다시', '다른'];
-  if (modifyKeywords.some(k => lastContent.includes(k))) {
-    return {
-      currentAgent: 'FEEDBACK',
-      nextAction: { type: 'continue', targetAgent: 'FEEDBACK' },
-    };
-  }
-
-  // 3. 데이터 완성도에 따른 라우팅
+  // 데이터 완성도에 따른 추가 라우팅
   if (dataComplete) {
     // 브랜드 프로필이 선택되었고 컨텍스트가 없으면
     if (collectedData.brandProfileId && !state.brandContext) {
@@ -147,10 +214,24 @@ export async function coordinatorAgent(
     }
   }
 
-  // 4. 정보 부족 시 - Suggester 또는 Intake
+  // 정보 부족 시 - Suggester 또는 Intake
   if (missingFields.length > 0) {
     // 카테고리가 없으면 Suggester (선택지 제시)
     if (!collectedData.category) {
+      return {
+        currentAgent: 'SUGGESTER',
+        nextAction: { type: 'continue', targetAgent: 'SUGGESTER' },
+      };
+    }
+    // 뷰티 카테고리인데 서브카테고리가 없으면 Suggester
+    if (collectedData.category === 'BEAUTY' && !collectedData.subCategory) {
+      return {
+        currentAgent: 'SUGGESTER',
+        nextAction: { type: 'continue', targetAgent: 'SUGGESTER' },
+      };
+    }
+    // 카피 길이가 없으면 Suggester
+    if (!collectedData.copyLength) {
       return {
         currentAgent: 'SUGGESTER',
         nextAction: { type: 'continue', targetAgent: 'SUGGESTER' },
@@ -163,51 +244,11 @@ export async function coordinatorAgent(
     };
   }
 
-  // 5. LLM을 사용한 복잡한 라우팅 결정
-  try {
-    const contextSummary = `
-현재 수집된 정보:
-- 제품명: ${collectedData.productName || '없음'}
-- 카테고리: ${collectedData.category || '없음'}
-- 서브카테고리: ${collectedData.subCategory || '없음'}
-- 주요 특징: ${collectedData.keyFeatures?.join(', ') || '없음'}
-- 타겟: ${collectedData.targetAudience || '없음'}
-- 카피 길이: ${collectedData.copyLength || '없음'}
-- 브랜드 프로필: ${collectedData.brandProfileId ? '선택됨' : '없음'}
-- 기획 완료: ${collectedData.plannedSections ? '완료' : '미완료'}
+  // Intent Parser의 추천 Agent 사용
+  const recommendedAgent = getRecommendedAgent(parsedIntent, collectedData) as AgentType;
 
-부족한 필드: ${missingFields.join(', ') || '없음'}
-데이터 완성: ${dataComplete ? '예' : '아니오'}
-
-마지막 사용자 메시지: "${lastUserMessage.content}"
-`;
-
-    const response = await getModel().invoke([
-      { role: 'system', content: COORDINATOR_SYSTEM_PROMPT },
-      { role: 'user', content: contextSummary },
-    ]);
-
-    const responseText = typeof response.content === 'string'
-      ? response.content
-      : JSON.stringify(response.content);
-
-    // JSON 파싱
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const decision: CoordinatorDecision = JSON.parse(jsonMatch[0]);
-
-      return {
-        currentAgent: decision.nextAgent,
-        nextAction: { type: 'continue', targetAgent: decision.nextAgent },
-      };
-    }
-  } catch (error) {
-    console.error('[Coordinator] LLM routing error:', error);
-  }
-
-  // 기본값: Intake로 라우팅
   return {
-    currentAgent: 'INTAKE',
-    nextAction: { type: 'continue', targetAgent: 'INTAKE' },
+    currentAgent: recommendedAgent,
+    nextAction: { type: 'continue', targetAgent: recommendedAgent },
   };
 }

@@ -23,3 +23,4 @@ export { plannerAgent } from './agents/planner';
 export { brandContextAgent } from './agents/brand-context';
 export { generatorAgent } from './agents/generator';
 export { feedbackAgent } from './agents/feedback';
+export { parseIntent, getRecommendedAgent } from './agents/intent-parser';

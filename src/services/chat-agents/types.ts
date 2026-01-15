@@ -45,6 +45,36 @@ export const IMAGE_MODELS = [
 export type ImageModel = (typeof IMAGE_MODELS)[number];
 
 // ============================================
+// 사용자 의도 타입
+// ============================================
+
+export const USER_INTENTS = [
+  'CREATE',         // 새로 생성 요청 (상세페이지 만들어줘, 생성해줘)
+  'PROVIDE_INFO',   // 정보 제공 (제품명은 XX야, 특징은 YY)
+  'SELECT_OPTION',  // 옵션 선택 (뷰티, 패션 등 버튼 클릭)
+  'CONFIRM',        // 확인/승인 (네, 좋아, 진행해)
+  'MODIFY',         // 수정 요청 (바꿔줘, 다시 해줘)
+  'CANCEL',         // 취소 (취소, 그만, 처음부터)
+  'QUESTION',       // 질문 (어떻게 해?, 뭐가 좋아?)
+  'GREETING',       // 인사 (안녕, 하이)
+  'UNCLEAR',        // 의도 불분명
+] as const;
+
+export type UserIntent = (typeof USER_INTENTS)[number];
+
+export interface ParsedIntent {
+  intent: UserIntent;
+  confidence: number;        // 0-1 신뢰도
+  extractedInfo?: {          // 추출된 정보 (있는 경우)
+    productName?: string;
+    category?: string;
+    features?: string[];
+    action?: string;
+  };
+  reasoning?: string;        // 판단 이유
+}
+
+// ============================================
 // 수집 데이터 타입
 // ============================================
 
