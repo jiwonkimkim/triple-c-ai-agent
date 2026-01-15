@@ -10,19 +10,10 @@ import {
   DEFAULT_IMAGE_MODEL,
 } from '@/services/image/gemini-image-generator';
 import { uploadGeneratedImage } from '@/services/image/image-upload-service';
-import {
-  generateSectionImagePromptFromText,
-  buildFullBrandStylePrompt,  // ★★★ 브랜드 스타일 프롬프트 생성
-} from '@/services/ai/orchestration-service';
-import type { BeautySubCategory } from '@/services/ai/prompts/beauty-subcategory';
+// ★★★ 공통 프롬프트 빌드 모듈 (초기 생성과 동일한 프로세스 보장)
+import { buildSectionPrompt } from '@/services/ai/section-prompt-builder';
 import type { BrandContext } from '@/services/ai/prompts';
-// ★★★ 초기 생성과 동일한 프롬프트 프로세스를 위한 import
-import {
-  autoSelectTheme,
-  getVisualTheme,
-  getSectionImagePromptByIndex,
-  type ExtendedSectionType,
-} from '@/services/ai/prompts';
+import type { BeautySubCategory } from '@/services/ai/prompts/beauty-subcategory';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // 60초 타임아웃
@@ -94,9 +85,12 @@ export async function POST(request: NextRequest) {
     }
 
     const productImageUrl = project.productImages?.[0] || '';
+    // ★★★ 모델 우선순위: 요청 > 프로젝트 저장값 > 기본값
+    // 프로젝트에서 프로 모델을 사용했으면 재생성에서도 프로 모델 사용!
     const imageModel = (validatedData.imageModel || project.imageModel || DEFAULT_IMAGE_MODEL) as GeminiImageModel;
 
     console.log(`[Section Regenerate] Starting regeneration for ${validatedData.sectionType}`);
+    console.log(`[Section Regenerate] ★★★ Image Model: ${imageModel} (project: ${project.imageModel || 'not set'}, request: ${validatedData.imageModel || 'not set'})`);
     console.log(`[Section Regenerate] Project: ${project.id}, Product: ${project.productName}`);
     console.log(`[Section Regenerate] Is text background section: ${isTextBackgroundSection}`);
     if (productImageUrl) {
@@ -128,76 +122,37 @@ export async function POST(request: NextRequest) {
       styleGuide: project.brandProfile.styleGuide as BrandContext['styleGuide'],
     } : null;
 
-    // 브랜드 이미지 키워드 (간단한 additionalPrompt용)
-    const additionalPrompt = brandContext?.imageKeywords?.join(', ');
-
-    // ★★★ 브랜드 스타일 프롬프트 생성 (초기 생성과 동일!)
-    // 브랜드 색상, 무드, 이름 등을 이미지 프롬프트에 반영
-    const brandStylePrompt = buildFullBrandStylePrompt(brandContext);
-    if (brandStylePrompt) {
-      console.log(`[Section Regenerate] ★ Brand style prompt: ${brandStylePrompt.substring(0, 100)}...`);
-    }
-
-    // ★★★ 초기 생성과 동일한 프로세스 적용 ★★★
-    // 1. 비주얼 테마 선택 (초기 생성에서 사용하는 것과 동일)
-    const brandTone = brandContext?.toneAndManner;
-    const selectedThemeStyle = autoSelectTheme(project.category || 'General', brandTone);
-    const visualTheme = getVisualTheme(selectedThemeStyle);
-    console.log(`[Section Regenerate] ★ Visual theme: ${visualTheme.name} (${selectedThemeStyle})`);
-
-    // 2. 인덱스 기반 프롬프트 가져오기 (카테고리별 특화 프롬프트)
-    const indexBasedPromptResult = getSectionImagePromptByIndex(
-      validatedData.sectionType as ExtendedSectionType,
-      project.category || 'General',
-      validatedData.sectionIndex,
-      project.productName || 'Product'
-    );
-    const indexBasedPrompt = indexBasedPromptResult.hasIndexedPrompt
-      ? indexBasedPromptResult.prompt
-      : undefined;
-    if (indexBasedPromptResult.hasIndexedPrompt) {
-      console.log(`[Section Regenerate] ★ Index-based prompt: ${indexBasedPromptResult.conceptType}`);
-    }
-
-    // 3. 프로젝트의 최신 버전에서 섹션 데이터 가져오기
+    // ★★★ 프로젝트의 최신 버전에서 섹션 텍스트 데이터 가져오기
     const latestVersion = await prisma.projectVersion.findFirst({
       where: { projectId: project.id },
       orderBy: { versionNumber: 'desc' },
       select: { content: true },
     });
-
-    // 섹션 타입에 해당하는 섹션 찾기
     type SectionData = { type: string; title?: string; body?: string };
     const sections = (latestVersion?.content as { sections?: SectionData[] } | null)?.sections || [];
     const existingSection = sections.find((s: SectionData) =>
       s.type?.toUpperCase() === validatedData.sectionType.toUpperCase()
     );
 
-    // 4. 오케스트레이션 프롬프트 생성 (초기 생성과 동일한 함수 + 파라미터!)
-    console.log(`[Section Regenerate] ★ Generating orchestration prompt for ${validatedData.sectionType}...`);
-    console.log(`[Section Regenerate] ★ SubCategory: ${project.subCategory || 'none'}`);
-    const sectionPrompt = await generateSectionImagePromptFromText(
-      {
-        type: validatedData.sectionType,
-        title: existingSection?.title || validatedData.sectionType,
-        body: existingSection?.body || '',
+    // ★★★ 공통 프롬프트 빌드 모듈 사용 (초기 생성과 동일한 프로세스!)
+    // section-prompt-builder.ts를 수정하면 초기 생성/재생성 모두에 자동 적용됨
+    console.log(`[Section Regenerate] ★ Using shared buildSectionPrompt module...`);
+    const promptResult = await buildSectionPrompt({
+      sectionType: validatedData.sectionType,
+      sectionIndex: validatedData.sectionIndex,
+      productName: project.productName || 'Product',
+      category: project.category || 'General',
+      subCategory: project.subCategory as BeautySubCategory | undefined,
+      keyFeatures: project.keyFeatures || [],
+      targetAudience: project.targetAudience || '일반 소비자',
+      brandContext,
+      sectionText: {
+        title: existingSection?.title,
+        body: existingSection?.body,
       },
-      project.productName || 'Product',
-      project.category || 'General',
-      project.keyFeatures || [],
-      project.targetAudience || '일반 소비자',
-      additionalPrompt,  // brandStyle
-      undefined,         // visualReference (I2I 모드에서는 제품 이미지로 대체)
-      visualTheme,       // ★★★ 비주얼 테마 전달! (초기 생성과 동일)
-      indexBasedPrompt,  // ★★★ 인덱스 기반 프롬프트 전달! (초기 생성과 동일)
-      project.subCategory as BeautySubCategory | undefined,  // ★ 뷰티 서브카테고리 전달!
-      validatedData.sectionIndex  // blockIndex
-    );
+    });
 
-    console.log(`[Section Regenerate] ★ Orchestration prompt: ${sectionPrompt.imagePrompt.substring(0, 150)}...`);
-
-    // ★★★ 최종 시나리오 프롬프트 = 오케스트레이션 프롬프트 + 브랜드 스타일 (초기 생성과 동일!)
-    const enhancedScenarioPrompt = sectionPrompt.imagePrompt + (brandStylePrompt ? `\n${brandStylePrompt}` : '');
+    console.log(`[Section Regenerate] ★ Prompt built with palette: ${promptResult.colorPalette.name}, background: ${promptResult.backgroundHex}`);
 
     // ★★★ 섹션 이미지 + 오버레이 텍스트 통합 재생성
     console.log(`[Section Regenerate] Generating ${validatedData.sectionType} image with overlay text...`);
@@ -209,9 +164,9 @@ export async function POST(request: NextRequest) {
       project.keyFeatures || [],
       project.targetAudience || '일반 소비자',
       {
-        additionalPrompt,
+        additionalPrompt: promptResult.additionalPrompt,
         model: imageModel,
-        scenarioPrompt: enhancedScenarioPrompt,  // ★★★ 브랜드 스타일 포함된 프롬프트 전달!
+        scenarioPrompt: promptResult.enhancedScenarioPrompt,  // ★★★ 공통 모듈에서 생성된 프롬프트 사용!
         blockIndex: validatedData.sectionIndex,
         totalBlocks: 1,
       }
@@ -241,11 +196,11 @@ export async function POST(request: NextRequest) {
     console.log(`[Section Regenerate] Image uploaded successfully: ${uploadResult.url}`);
     console.log(`[Section Regenerate] Overlay text generated:`, JSON.stringify(result.overlayText).substring(0, 200));
 
-    // ★★★ 오버레이 텍스트에 브랜드 폰트/로고 정보 추가 (초기 생성과 동일!)
+    // ★★★ 오버레이 텍스트에 브랜드 폰트/로고 정보 추가 (공통 모듈에서 가져온 값 사용)
     const enhancedOverlayText = result.overlayText ? {
       ...result.overlayText,
-      brandFont: brandContext?.styleGuide?.fonts?.primary,
-      brandLogoUrl: brandContext?.styleGuide?.images?.logo,
+      brandFont: promptResult.brandFont,
+      brandLogoUrl: promptResult.brandLogoUrl,
     } : undefined;
 
     if (enhancedOverlayText?.brandFont) {
