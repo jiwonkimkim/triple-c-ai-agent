@@ -1572,9 +1572,9 @@ headline = 상단 서브텍스트, subheadline = 메인 대형 카피, body = �
 ★ 중요: 메인 카피(subheadline)가 가장 크고 눈에 띄어야 합니다! JSON만 출력하세요.`;
 
   // 일반 섹션용 프롬프트
-  const normalPrompt = `당신은 한국 올리브영/화해 상세페이지 전문 카피라이터입니다.
-이미지 위에 배치할 오버레이 텍스트를 JSON 형식으로 생성하세요.
-★ 이미지와 조화롭게 어울리는 텍스트와 폰트를 선택하세요!
+  const normalPrompt = `당신은 한국 상세페이지 디자인 전문가입니다.
+이미지 위에 배치할 오버레이 텍스트를 **자유롭게** 디자인하세요.
+★★★ 디자인 완성도가 높은 상세페이지처럼 보이도록 텍스트를 배치하세요! ★★★
 
 ## 제품 정보
 - 제품명: ${productName}
@@ -1584,101 +1584,73 @@ headline = 상단 서브텍스트, subheadline = 메인 대형 카피, body = �
 ${blockContext}
 ${imageContext}
 
-## 섹션: ${normalizedSection}
-${normalizedSection === 'MAIN' ? '- 목적: 시선을 끄는 메인 썸네일. 브랜드명 + 제품 슬로건' : ''}
-${normalizedSection === 'HERO' ? '- 목적: 고객 고민 공감 → 해결책 제시' : ''}
-${normalizedSection === 'FEATURES' ? '- 목적: 제품 특징/성분 강조. Point 01, 02 형식 또는 성분+효과' : ''}
-${normalizedSection === 'SOCIAL_PROOF' ? '- 목적: 신뢰 구축. 통계 수치, 수상 이력, 후기' : ''}
-${normalizedSection === 'HOW_TO_USE' ? '- 목적: 사용법 안내. STEP 1, 2, 3 형식' : ''}
-${normalizedSection === 'FAQ' ? '- 목적: 자주 묻는 질문 답변' : ''}
+## 섹션 목적: ${normalizedSection}
+${normalizedSection === 'MAIN' ? '메인 썸네일 - 브랜드명과 슬로건으로 시선 끌기' : ''}
+${normalizedSection === 'HERO' ? '히어로 - 고객 고민 공감 → 해결책 제시' : ''}
+${normalizedSection === 'FEATURES' ? '특징 - 제품 특징/성분 강조' : ''}
+${normalizedSection === 'SOCIAL_PROOF' ? '신뢰 - 통계 수치, 수상 이력' : ''}
+${normalizedSection === 'HOW_TO_USE' ? '사용법 - STEP별 안내' : ''}
+${normalizedSection === 'FAQ' ? 'FAQ - 질문과 답변' : ''}
 
-## 참고할 감각 키워드
+## 참고 키워드
 ${sensoryWords}
 
-## ★ 위치/스타일 가이드 (자유롭게 배치!)
-아래는 참고용 기본값입니다. **이미지 구도와 디자인에 맞게 자유롭게 위치(x, y), 크기(fontSize), 색상(color)을 조정하세요!**
-- x: 0-100% (왼쪽~오른쪽), y: 0-100% (위~아래)
-- 기본 참고값:
-  - headline: x=${layout.headline.x}%, y=${layout.headline.y}%, fontSize=${layout.headline.fontSize}px
-  - subheadline: x=${layout.subheadline.x}%, y=${layout.subheadline.y}%, fontSize=${layout.subheadline.fontSize}px
-  - body: x=${layout.body.x}%, y=${layout.body.y}%, fontSize=${layout.body.fontSize}px
+## ★★★ 디자인 원칙 (필수!)
+1. **텍스트 개수**: 1~4개 자유롭게 (꼭 다 채울 필요 없음!)
+2. **계층 구조**: 큰 텍스트(메인) + 작은 텍스트(서브) 조합
+3. **여백 활용**: 이미지가 숨 쉴 공간 확보
+4. **시선 유도**: 중요한 메시지는 크고 눈에 띄게
+5. **색상 대비**: 배경과 확실히 구분되는 색상
 
-## 텍스트 길이 & 줄바꿈 규칙
-- headline: 5-15자 (영문 섹션명 또는 짧은 슬로건)
-- subheadline: 10-30자 (핵심 메시지)
-- body: 20-50자 (부연 설명)
-- statistics: 숫자+단위 (예: "92%", "48H", "3.5배")
-- **줄바꿈**: 디자인상 필요할 때만 \\n 사용 (억지로 넣지 마세요!)
-  - 예: "하루종일\\n촉촉하게" (강조 효과) 또는 "3초 만에 완성" (한 줄)
-  - width 속성 (0-100%): 긴 텍스트의 자동 줄바꿈 영역
+## 위치 가이드
+- x: 0=왼쪽, 50=중앙, 100=오른쪽
+- y: 0=상단, 50=중앙, 100=하단
+- textAlign: left(왼쪽정렬), center(중앙정렬), right(오른쪽정렬)
 
-## ★ 색상 가이드 (이미지에 맞게 자유롭게!)
-배경색과 대비되는 색상을 선택하세요:
-- 밝은 배경: #222222, #333333, #444444, #555555, #666666
-- 어두운 배경: #ffffff, #f5f5f5, #eeeeee, #dddddd
-- 포인트 색상: #e8b4b8 (핑크), #4a90d9 (블루), #5cb85c (그린), #f0ad4e (오렌지)
-- **이미지 톤에 맞는 색상을 자유롭게 선택하세요!**
+## 색상 팔레트
+- 밝은 배경: #1a1a1a, #222222, #333333
+- 어두운 배경: #ffffff, #f5f5f5, #eeeeee
+- 포인트: #e8b4b8(핑크), #4a90d9(블루), #5cb85c(그린)
 
 ${generateFontGuideForAI()}
 
-## 출력 형식 (JSON)
-다음 형식으로 출력하세요. **위치(x,y), 색상(color), 폰트(fontFamily)는 이미지에 맞게 자유롭게 선택!**
+## ★ 출력 형식 (texts 배열)
+텍스트 개수와 내용을 **자유롭게** 결정하세요. 1~4개 권장.
 
 \`\`\`json
 {
-  "headline": {
-    "text": "영문 섹션명 또는 짧은 슬로건",
-    "x": 50,
-    "y": 10,
-    "fontSize": 16,
-    "fontWeight": "bold",
-    "fontFamily": "(이미지 분위기에 맞는 폰트 선택)",
-    "color": "(배경과 대비되는 색상)",
-    "textAlign": "center",
-    "width": null
-  },
-  "subheadline": {
-    "text": "핵심 메시지\\n(줄바꿈 가능)",
-    "x": 50,
-    "y": 45,
-    "fontSize": 32,
-    "fontWeight": "bold",
-    "fontFamily": "(이미지 분위기에 맞는 폰트 선택)",
-    "color": "(배경과 대비되는 색상)",
-    "textAlign": "center",
-    "width": 80
-  },
-  "body": {
-    "text": "부연 설명 텍스트 (필요시에만)",
-    "x": 50,
-    "y": 75,
-    "fontSize": 14,
-    "fontWeight": "normal",
-    "fontFamily": "(이미지 분위기에 맞는 폰트 선택)",
-    "color": "(배경과 대비되는 색상)",
-    "textAlign": "center",
-    "width": 70
-  },
-  "statistics": [
+  "texts": [
     {
-      "text": "92%",
+      "text": "메인 카피 (가장 크고 눈에 띄게)",
+      "x": 50,
+      "y": 40,
+      "fontSize": 36,
+      "fontWeight": "bold",
+      "fontFamily": "검은고딕, sans-serif",
+      "color": "#ffffff",
+      "textAlign": "center",
+      "width": null
+    },
+    {
+      "text": "서브 카피 (보조 설명)",
       "x": 50,
       "y": 60,
-      "fontSize": 48,
-      "fontWeight": "bold",
-      "fontFamily": "Montserrat, sans-serif",
-      "color": "#ffffff"
+      "fontSize": 16,
+      "fontWeight": "normal",
+      "fontFamily": "Pretendard, sans-serif",
+      "color": "#eeeeee",
+      "textAlign": "center",
+      "width": null
     }
-  ],
-  "cta": null
+  ]
 }
 \`\`\`
 
 ★ 중요:
-- JSON만 출력하세요
-- 위치/색상/폰트는 이미지 구도에 맞게 **자유롭게** 조정
-- 줄바꿈: text에 \\n 사용 또는 width 설정 (0-100%)
-- 불필요한 필드는 null로`;
+- JSON만 출력 (설명 없이!)
+- texts 배열에 1~4개 텍스트 자유롭게
+- 디자인 완성도가 높아 보이도록!
+- 줄바꿈 필요시 \\n 사용`;
 
   // ★ 텍스트 배경 섹션이면 특별 프롬프트, 아니면 일반 프롬프트
   const prompt = isTextBackgroundSection ? textBannerPrompt : normalPrompt;
@@ -1698,18 +1670,37 @@ ${generateFontGuideForAI()}
       jsonStr = jsonMatch[1];
     }
 
-    const parsed = JSON.parse(jsonStr) as OverlayTextContent;
+    const parsed = JSON.parse(jsonStr) as OverlayTextContent & { texts?: OverlayTextItem[] };
 
-    // 타입 정규화 (string → OverlayTextItem 변환)
-    const normalizedOverlay: OverlayTextContent = {
-      headline: normalizeOverlayItem(parsed.headline, layout.headline),
-      subheadline: normalizeOverlayItem(parsed.subheadline, layout.subheadline),
-      body: normalizeOverlayItem(parsed.body, layout.body),
-      statistics: normalizeStatistics(parsed.statistics, layout.statistics),
-      cta: normalizeOverlayItem(parsed.cta, { x: 50, y: 90, fontSize: 16, align: 'center' }),
-    };
+    // ★ 새 형식 (texts 배열) 또는 기존 형식 처리
+    let normalizedOverlay: OverlayTextContent;
 
-    console.log(`[Overlay] Generated overlay text for ${sectionType}`);
+    if (parsed.texts && Array.isArray(parsed.texts) && parsed.texts.length > 0) {
+      // ★ 새 형식: texts 배열 사용 (AI 자유 디자인)
+      normalizedOverlay = {
+        texts: parsed.texts.map(item => ({
+          text: item.text || '',
+          x: item.x ?? 50,
+          y: item.y ?? 50,
+          fontSize: item.fontSize ?? 24,
+          fontWeight: item.fontWeight ?? 'medium',
+          fontFamily: item.fontFamily ?? 'Pretendard, sans-serif',
+          color: item.color ?? '#333333',
+          textAlign: item.textAlign ?? 'center',
+        })),
+      };
+      console.log(`[Overlay] Generated ${parsed.texts.length} texts (free form) for ${sectionType}`);
+    } else {
+      // 기존 형식: headline/subheadline/body 구조
+      normalizedOverlay = {
+        headline: normalizeOverlayItem(parsed.headline, layout.headline),
+        subheadline: normalizeOverlayItem(parsed.subheadline, layout.subheadline),
+        body: normalizeOverlayItem(parsed.body, layout.body),
+        statistics: normalizeStatistics(parsed.statistics, layout.statistics),
+        cta: normalizeOverlayItem(parsed.cta, { x: 50, y: 90, fontSize: 16, align: 'center' }),
+      };
+      console.log(`[Overlay] Generated overlay text (legacy format) for ${sectionType}`);
+    }
 
     return {
       overlayText: normalizedOverlay,

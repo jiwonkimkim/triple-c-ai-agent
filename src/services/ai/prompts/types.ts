@@ -97,6 +97,10 @@ export interface OverlayStatisticItem {
 }
 
 export interface OverlayTextContent {
+  /** ★ 자유 형식 텍스트 배열 (AI가 자유롭게 디자인) */
+  texts?: OverlayTextItem[];
+
+  // === 하위 호환성을 위한 기존 필드 ===
   /** 대제목 (5-10자) - 위치와 스타일 포함 */
   headline?: OverlayTextItem | string;  // 하위 호환성을 위해 string도 허용
   /** 부제목 (10-20자) */

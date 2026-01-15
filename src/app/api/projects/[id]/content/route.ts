@@ -227,7 +227,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // Convert sections to editor sections format (each AI section becomes an editor section) - fallback for first load
-    const aiSections = latestVersion.sections as Array<{
+    const aiSections = (latestVersion.sections as unknown) as Array<{
       id: string;
       type: string;
       title?: string;
@@ -236,6 +236,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       imageUrl?: string;
       imageUrls?: string[];  // 다중 이미지 지원
       overlayText?: {        // ★ AI 생성 오버레이 텍스트 (위치 + 스타일 포함)
+        texts?: OverlayTextItem[];  // ★ 새 형식: 자유 형태 텍스트 배열
         headline?: OverlayTextItem | string;
         subheadline?: OverlayTextItem | string;
         body?: OverlayTextItem | string;
@@ -318,6 +319,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
         // ★ AI가 생성한 overlayText가 있으면 우선 사용 (위치 + 스타일 포함)
         const aiOverlayText = section.overlayText as {
+          texts?: OverlayTextItem[];  // ★ 새 형식: 자유 형태 텍스트 배열
           headline?: OverlayTextItem | string;
           subheadline?: OverlayTextItem | string;
           body?: OverlayTextItem | string;
@@ -440,136 +442,163 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         };
 
         if (aiOverlayText) {
-          // headline (AI 생성 또는 section.title)
-          const headlineData = getTextValue(aiOverlayText.headline) || (section.title ? { text: section.title, hasStyle: false } : null);
-          if (headlineData) {
-            const headlineColor = headlineData.color ?? '#ffffff';
-            overlayTexts.push({
-              id: `${section.id}-headline`,
-              type: 'headline',
-              content: headlineData.text || '',
-              style: {
-                x: headlineData.x ?? textPosition.headline.x,
-                y: headlineData.y ?? textPosition.headline.y,
-                fontSize: headlineData.fontSize ?? (isMain ? 32 : 28),
-                fontWeight: (headlineData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'bold',
-                fontFamily: headlineData.fontFamily ?? 'Pretendard, sans-serif',
-                color: headlineColor,
-                textShadow: isWhiteColor(headlineColor),  // ★ 흰색만 그림자 적용
-                textAlign: (headlineData.textAlign as 'left' | 'center' | 'right') ?? textPosition.headline.align,
-                opacity: 100,
-                rotation: 0,
-                width: isMain ? 35 : 80,
-              },
-              zIndex: zIndex++,
-            });
-          }
-
-          // subheadline (AI 생성)
-          const subheadlineData = getTextValue(aiOverlayText.subheadline);
-          if (subheadlineData) {
-            const subheadlineColor = subheadlineData.color ?? '#ffffff';
-            overlayTexts.push({
-              id: `${section.id}-subheadline`,
-              type: 'subheadline',
-              content: subheadlineData.text || '',
-              style: {
-                x: subheadlineData.x ?? textPosition.body.x,
-                y: subheadlineData.y ?? (textPosition.headline.y + 12),
-                fontSize: subheadlineData.fontSize ?? (isMain ? 18 : 16),
-                fontWeight: (subheadlineData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'medium',
-                fontFamily: subheadlineData.fontFamily ?? 'Pretendard, sans-serif',
-                color: subheadlineColor,
-                textShadow: isWhiteColor(subheadlineColor),  // ★ 흰색만 그림자 적용
-                textAlign: (subheadlineData.textAlign as 'left' | 'center' | 'right') ?? textPosition.body.align,
-                opacity: 100,
-                rotation: 0,
-                width: isMain ? 35 : 70,
-              },
-              zIndex: zIndex++,
-            });
-          }
-
-          // body (AI 생성 또는 section.body)
-          const bodyData = getTextValue(aiOverlayText.body);
-          const bodyFallback: TextValueResult | null = !bodyData && section.body
-            ? { text: Array.isArray(section.body) ? section.body.join('\n') : String(section.body), hasStyle: false }
-            : null;
-          const finalBodyData = bodyData || bodyFallback;
-          if (finalBodyData) {
-            const bodyColor = finalBodyData.color ?? '#ffffff';
-            overlayTexts.push({
-              id: `${section.id}-body`,
-              type: 'body',
-              content: finalBodyData.text || '',
-              style: {
-                x: finalBodyData.x ?? textPosition.body.x,
-                y: finalBodyData.y ?? (isMain ? 40 : 85),
-                fontSize: finalBodyData.fontSize ?? 14,
-                fontWeight: (finalBodyData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'normal',
-                fontFamily: finalBodyData.fontFamily ?? 'Pretendard, sans-serif',
-                color: bodyColor,
-                textShadow: isWhiteColor(bodyColor),  // ★ 흰색만 그림자 적용
-                textAlign: (finalBodyData.textAlign as 'left' | 'center' | 'right') ?? textPosition.body.align,
-                opacity: 100,
-                rotation: 0,
-                width: isMain ? 35 : 80,
-              },
-              zIndex: zIndex++,
-            });
-          }
-
-          // statistics (AI 생성) - 위치/스타일/폰트 포함 가능
-          if (aiOverlayText.statistics && aiOverlayText.statistics.length > 0) {
-            aiOverlayText.statistics.forEach((stat, idx) => {
-              // statData를 일관된 타입으로 변환 (fontFamily 포함)
-              const statData: { text: string; x?: number; y?: number; fontSize?: number; fontWeight?: string; fontFamily?: string; color?: string } =
-                typeof stat === 'string' ? { text: stat } : { text: stat.text || '', x: stat.x, y: stat.y, fontSize: stat.fontSize, fontWeight: stat.fontWeight, fontFamily: stat.fontFamily, color: stat.color };
-              const statColor = statData.color ?? '#ffffff';
+          // ★ 새 형식: texts 배열이 있으면 우선 사용 (AI 자유 디자인)
+          if (aiOverlayText.texts && Array.isArray(aiOverlayText.texts) && aiOverlayText.texts.length > 0) {
+            aiOverlayText.texts.forEach((item, idx) => {
+              const textColor = item.color ?? '#333333';
               overlayTexts.push({
-                id: `${section.id}-stat-${idx}`,
-                type: 'statistic',
-                content: statData.text || '',
+                id: `${section.id}-text-${idx}`,
+                type: idx === 0 ? 'headline' : 'body',  // 첫 번째는 headline, 나머지는 body
+                content: item.text || '',
                 style: {
-                  x: statData.x ?? 50,
-                  y: statData.y ?? (50 + (idx * 15)),
-                  fontSize: statData.fontSize ?? 48,
-                  fontWeight: (statData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'bold',
-                  fontFamily: statData.fontFamily ?? 'Montserrat, sans-serif',
-                  color: statColor,
-                  textShadow: isWhiteColor(statColor),  // ★ 흰색만 그림자 적용
+                  x: item.x ?? 50,
+                  y: item.y ?? (30 + idx * 15),
+                  fontSize: item.fontSize ?? 24,
+                  fontWeight: (item.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'medium',
+                  fontFamily: item.fontFamily ?? 'Pretendard, sans-serif',
+                  color: textColor,
+                  textShadow: isWhiteColor(textColor),
+                  textAlign: (item.textAlign as 'left' | 'center' | 'right') ?? 'center',
+                  opacity: 100,
+                  rotation: 0,
+                  width: 80,
+                },
+                zIndex: zIndex++,
+              });
+            });
+          } else {
+            // 기존 형식: headline/subheadline/body 구조
+            // headline (AI 생성 또는 section.title)
+            const headlineData = getTextValue(aiOverlayText.headline) || (section.title ? { text: section.title, hasStyle: false } : null);
+            if (headlineData) {
+              const headlineColor = headlineData.color ?? '#ffffff';
+              overlayTexts.push({
+                id: `${section.id}-headline`,
+                type: 'headline',
+                content: headlineData.text || '',
+                style: {
+                  x: headlineData.x ?? textPosition.headline.x,
+                  y: headlineData.y ?? textPosition.headline.y,
+                  fontSize: headlineData.fontSize ?? (isMain ? 32 : 28),
+                  fontWeight: (headlineData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'bold',
+                  fontFamily: headlineData.fontFamily ?? 'Pretendard, sans-serif',
+                  color: headlineColor,
+                  textShadow: isWhiteColor(headlineColor),  // ★ 흰색만 그림자 적용
+                  textAlign: (headlineData.textAlign as 'left' | 'center' | 'right') ?? textPosition.headline.align,
+                  opacity: 100,
+                  rotation: 0,
+                  width: isMain ? 35 : 80,
+                },
+                zIndex: zIndex++,
+              });
+            }
+
+            // subheadline (AI 생성)
+            const subheadlineData = getTextValue(aiOverlayText.subheadline);
+            if (subheadlineData) {
+              const subheadlineColor = subheadlineData.color ?? '#ffffff';
+              overlayTexts.push({
+                id: `${section.id}-subheadline`,
+                type: 'subheadline',
+                content: subheadlineData.text || '',
+                style: {
+                  x: subheadlineData.x ?? textPosition.body.x,
+                  y: subheadlineData.y ?? (textPosition.headline.y + 12),
+                  fontSize: subheadlineData.fontSize ?? (isMain ? 18 : 16),
+                  fontWeight: (subheadlineData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'medium',
+                  fontFamily: subheadlineData.fontFamily ?? 'Pretendard, sans-serif',
+                  color: subheadlineColor,
+                  textShadow: isWhiteColor(subheadlineColor),  // ★ 흰색만 그림자 적용
+                  textAlign: (subheadlineData.textAlign as 'left' | 'center' | 'right') ?? textPosition.body.align,
+                  opacity: 100,
+                  rotation: 0,
+                  width: isMain ? 35 : 70,
+                },
+                zIndex: zIndex++,
+              });
+            }
+
+            // body (AI 생성 또는 section.body)
+            const bodyData = getTextValue(aiOverlayText.body);
+            const bodyFallback: TextValueResult | null = !bodyData && section.body
+              ? { text: Array.isArray(section.body) ? section.body.join('\n') : String(section.body), hasStyle: false }
+              : null;
+            const finalBodyData = bodyData || bodyFallback;
+            if (finalBodyData) {
+              const bodyColor = finalBodyData.color ?? '#ffffff';
+              overlayTexts.push({
+                id: `${section.id}-body`,
+                type: 'body',
+                content: finalBodyData.text || '',
+                style: {
+                  x: finalBodyData.x ?? textPosition.body.x,
+                  y: finalBodyData.y ?? (isMain ? 40 : 85),
+                  fontSize: finalBodyData.fontSize ?? 14,
+                  fontWeight: (finalBodyData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'normal',
+                  fontFamily: finalBodyData.fontFamily ?? 'Pretendard, sans-serif',
+                  color: bodyColor,
+                  textShadow: isWhiteColor(bodyColor),  // ★ 흰색만 그림자 적용
+                  textAlign: (finalBodyData.textAlign as 'left' | 'center' | 'right') ?? textPosition.body.align,
+                  opacity: 100,
+                  rotation: 0,
+                  width: isMain ? 35 : 80,
+                },
+                zIndex: zIndex++,
+              });
+            }
+
+            // statistics (AI 생성) - 위치/스타일/폰트 포함 가능
+            if (aiOverlayText.statistics && aiOverlayText.statistics.length > 0) {
+              aiOverlayText.statistics.forEach((stat, idx) => {
+                // statData를 일관된 타입으로 변환 (fontFamily 포함)
+                const statData: { text: string; x?: number; y?: number; fontSize?: number; fontWeight?: string; fontFamily?: string; color?: string } =
+                  typeof stat === 'string' ? { text: stat } : { text: stat.text || '', x: stat.x, y: stat.y, fontSize: stat.fontSize, fontWeight: stat.fontWeight, fontFamily: stat.fontFamily, color: stat.color };
+                const statColor = statData.color ?? '#ffffff';
+                overlayTexts.push({
+                  id: `${section.id}-stat-${idx}`,
+                  type: 'statistic',
+                  content: statData.text || '',
+                  style: {
+                    x: statData.x ?? 50,
+                    y: statData.y ?? (50 + (idx * 15)),
+                    fontSize: statData.fontSize ?? 48,
+                    fontWeight: (statData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'bold',
+                    fontFamily: statData.fontFamily ?? 'Montserrat, sans-serif',
+                    color: statColor,
+                    textShadow: isWhiteColor(statColor),  // ★ 흰색만 그림자 적용
+                    textAlign: 'center',
+                    opacity: 100,
+                    rotation: 0,
+                  },
+                  zIndex: zIndex++,
+                });
+              });
+            }
+
+            // cta (AI 생성) - 위치/스타일/폰트 포함 가능
+            const ctaData = getTextValue(aiOverlayText.cta);
+            if (ctaData) {
+              const ctaColor = ctaData.color ?? '#ffffff';
+              overlayTexts.push({
+                id: `${section.id}-cta`,
+                type: 'cta',
+                content: ctaData.text || '',
+                style: {
+                  x: ctaData.x ?? 50,
+                  y: ctaData.y ?? 90,
+                  fontSize: ctaData.fontSize ?? 16,
+                  fontWeight: (ctaData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'semibold',
+                  fontFamily: ctaData.fontFamily ?? 'Pretendard, sans-serif',
+                  color: ctaColor,
+                  textShadow: isWhiteColor(ctaColor),  // ★ 흰색만 그림자 적용
                   textAlign: 'center',
                   opacity: 100,
                   rotation: 0,
                 },
                 zIndex: zIndex++,
               });
-            });
-          }
-
-          // cta (AI 생성) - 위치/스타일/폰트 포함 가능
-          const ctaData = getTextValue(aiOverlayText.cta);
-          if (ctaData) {
-            const ctaColor = ctaData.color ?? '#ffffff';
-            overlayTexts.push({
-              id: `${section.id}-cta`,
-              type: 'cta',
-              content: ctaData.text || '',
-              style: {
-                x: ctaData.x ?? 50,
-                y: ctaData.y ?? 90,
-                fontSize: ctaData.fontSize ?? 16,
-                fontWeight: (ctaData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'semibold',
-                fontFamily: ctaData.fontFamily ?? 'Pretendard, sans-serif',
-                color: ctaColor,
-                textShadow: isWhiteColor(ctaColor),  // ★ 흰색만 그림자 적용
-                textAlign: 'center',
-                opacity: 100,
-                rotation: 0,
-              },
-              zIndex: zIndex++,
-            });
-          }
+            }
+          }  // ★ else 블록 닫기 (기존 형식 처리)
         } else {
           // 폴백: 기존 방식 (section.title, section.body 사용)
           // Add title as headline
