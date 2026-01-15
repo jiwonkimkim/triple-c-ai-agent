@@ -1367,8 +1367,9 @@ export async function generateSectionImageWithOverlay(
       // ★ 동일한 negative prompt
       const negativePrompt = 'product, cosmetic, bottle, tube, packaging, container, objects, shapes, decorations, patterns, textures, elements, water droplets, leaves, botanical, sparkles, glow effects, text, letters, words, typography';
 
-      t2iPrompt = imagePrompt || scenarioPrompt ||
-        `${colorPrompt}, absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only --negative ${negativePrompt}`;
+      // ★★★ 텍스트 배경 섹션은 imagePrompt/scenarioPrompt를 무시하고 컬러 프롬프트만 사용
+      // (scenarioPrompt에 제품 관련 내용이 포함되어 제품이 나오는 문제 방지)
+      t2iPrompt = `${colorPrompt}, absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only --negative ${negativePrompt}`;
       console.log(`[Image+Overlay] ★ Text background section ${sectionType}: Using ${blockVariant} color prompt (no product)`);
     } else {
       t2iPrompt = imagePrompt || scenarioPrompt || `${productName} ${category} product image`;
