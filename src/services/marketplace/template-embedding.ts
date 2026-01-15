@@ -1,8 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import { generateEmbedding, generateEmbeddings } from '@/services/rag/embeddings';
 
-// Embedding dimension (Gemini text-embedding-004)
-export const TEMPLATE_EMBEDDING_DIMENSION = 384;
+// Embedding dimension (bge-large-en-v1.5)
+export const TEMPLATE_EMBEDDING_DIMENSION = 1024;
 
 /**
  * Build search text for template embedding

@@ -1,6 +1,6 @@
 // Hugging Face Inference API for embeddings
-const EMBEDDING_MODEL = 'BAAI/bge-small-en-v1.5';
-const EMBEDDING_DIMENSION = 384;
+const EMBEDDING_MODEL = 'BAAI/bge-large-en-v1.5';
+const EMBEDDING_DIMENSION = 1024;
 const MAX_BATCH_SIZE = 100;
 const MAX_INPUT_CHARS = 8000;
 const HF_API_URL = `https://router.huggingface.co/hf-inference/models/${EMBEDDING_MODEL}`;
