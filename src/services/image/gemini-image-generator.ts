@@ -1109,9 +1109,10 @@ Korean beauty detail page style, 올리브영/쿠팡 스타일.
   // 전체 상세페이지의 일관된 메시지와 컨텍스트를 담은 추가 지시
   // ★ MAIN 섹션은 이미 완성형 프롬프트라 오케스트레이션 컨텍스트 제외 (충돌 방지)
   let orchestrationContext = '';
+  console.log(`[Gemini I2I] ★★★ scenarioPrompt received: ${scenarioPrompt ? 'YES (' + scenarioPrompt.length + ' chars)' : 'NO/EMPTY'}`);
   if (sectionType !== 'MAIN' && scenarioPrompt && scenarioPrompt.trim()) {
     console.log(`[Gemini I2I] ★ Adding orchestration context for ${sectionType}`);
-    console.log(`[Gemini I2I] orchestration preview: ${scenarioPrompt.substring(0, 100)}...`);
+    console.log(`[Gemini I2I] orchestration preview: ${scenarioPrompt.substring(0, 200)}...`);
     orchestrationContext = `
 
 [ORCHESTRATION CONTEXT - 상세페이지 전체 메시지]
@@ -1121,6 +1122,8 @@ ${scenarioPrompt}
 - 위 오케스트레이션 컨텍스트의 시나리오에 맞게 제품을 자연스럽게 배치하세요
 - 시나리오에 따라 제품이 부각되거나, 자연스럽게 녹아들 수 있습니다
 - 항상 가운데에 놓지 말고, 시나리오에 어울리는 위치에 배치하세요`;
+  } else {
+    console.log(`[Gemini I2I] ★★★ orchestrationContext NOT added. Reason: sectionType=${sectionType}, scenarioPrompt=${scenarioPrompt ? 'exists' : 'empty'}`);
   }
 
   // ★★★ 고정/동적 프롬프트 분리 (DEV 모드 표시용)

@@ -153,6 +153,10 @@ export async function POST(request: NextRequest) {
     });
 
     console.log(`[Section Regenerate] ★ Prompt built with palette: ${promptResult.colorPalette.name}, background: ${promptResult.backgroundHex}`);
+    // ★★★ 브랜드 정보 디버깅 로그
+    console.log(`[Section Regenerate] ★★★ Brand Context: ${brandContext ? brandContext.name : 'NULL'}`);
+    console.log(`[Section Regenerate] ★★★ Brand Style Prompt: ${promptResult.brandStylePrompt ? promptResult.brandStylePrompt.substring(0, 150) + '...' : 'EMPTY'}`);
+    console.log(`[Section Regenerate] ★★★ Enhanced Scenario Prompt (first 200): ${promptResult.enhancedScenarioPrompt.substring(0, 200)}...`);
 
     // ★★★ 섹션 이미지 + 오버레이 텍스트 통합 재생성
     console.log(`[Section Regenerate] Generating ${validatedData.sectionType} image with overlay text...`);
