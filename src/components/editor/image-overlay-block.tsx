@@ -1011,7 +1011,6 @@ export function ImageOverlayBlockRenderer({
                     textAlign: overlayText.style.textAlign || 'center',
                     letterSpacing: overlayText.style.letterSpacing ? `${overlayText.style.letterSpacing * scale}px` : undefined,
                     lineHeight: overlayText.style.lineHeight || 1.4,
-                    borderRadius: overlayText.style.padding ? '4px' : undefined,
                     // width 설정 시: 사용자가 조절한 너비 내에서 줄바꿈 허용
                     // width 미설정 시: 자동 줄바꿈 방지 (이동해도 줄어들지 않음)
                     whiteSpace: overlayText.style.width ? 'pre-wrap' : 'nowrap',
@@ -1715,24 +1714,21 @@ export function ImageOverlayBlockRenderer({
                 <input
                   type="color"
                   value={selectedText.style.backgroundColor?.replace(/rgba?\([^)]+\)/, '#000000') || '#000000'}
-                  onChange={(e) => handleUpdateStyle(selectedTextId!, { backgroundColor: e.target.value, padding: selectedText.style.padding || '8px 16px' })}
+                  onChange={(e) => handleUpdateStyle(selectedTextId!, { backgroundColor: e.target.value })}
                   className="w-8 h-8 rounded cursor-pointer border border-zinc-600 flex-shrink-0 bg-zinc-800"
                   title="배경색"
                 />
                 <Input
                   type="text"
                   value={selectedText.style.backgroundColor || ''}
-                  onChange={(e) => handleUpdateStyle(selectedTextId!, {
-                    backgroundColor: e.target.value || undefined,
-                    padding: e.target.value ? (selectedText.style.padding || '8px 16px') : undefined
-                  })}
+                  onChange={(e) => handleUpdateStyle(selectedTextId!, { backgroundColor: e.target.value || undefined })}
                   className="flex-1 h-8 text-xs font-mono bg-zinc-800 border-zinc-600 text-zinc-200"
                   placeholder="없음"
                 />
                 {selectedText.style.backgroundColor && (
                   <button
                     className="w-8 h-8 flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-zinc-700 rounded border border-zinc-600"
-                    onClick={() => handleUpdateStyle(selectedTextId!, { backgroundColor: undefined, padding: undefined })}
+                    onClick={() => handleUpdateStyle(selectedTextId!, { backgroundColor: undefined })}
                     title="배경색 제거"
                   >
                     <X className="h-4 w-4" />
