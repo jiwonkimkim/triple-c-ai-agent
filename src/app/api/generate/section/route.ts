@@ -10,8 +10,12 @@ import {
   DEFAULT_IMAGE_MODEL,
 } from '@/services/image/gemini-image-generator';
 import { uploadGeneratedImage } from '@/services/image/image-upload-service';
-import { generateSectionImagePromptFromText } from '@/services/ai/orchestration-service';
+import {
+  generateSectionImagePromptFromText,
+  buildFullBrandStylePrompt,  // ★★★ 브랜드 스타일 프롬프트 생성
+} from '@/services/ai/orchestration-service';
 import type { BeautySubCategory } from '@/services/ai/prompts/beauty-subcategory';
+import type { BrandContext } from '@/services/ai/prompts';
 // ★★★ 초기 생성과 동일한 프롬프트 프로세스를 위한 import
 import {
   autoSelectTheme,
@@ -59,7 +63,11 @@ export async function POST(request: NextRequest) {
         imageModel: true,
         brandProfile: {
           select: {
-            styleGuide: true,
+            name: true,           // ★ 브랜드명
+            identity: true,       // ★ 브랜드 아이덴티티
+            toneAndManner: true,  // ★ 톤앤매너
+            imageKeywords: true,  // ★ 이미지 키워드
+            styleGuide: true,     // ★ 스타일 가이드 (색상 등)
           },
         },
       },
@@ -111,13 +119,28 @@ export async function POST(request: NextRequest) {
       console.log('[Section Regenerate] ★ Text background section - skipping product image preprocessing');
     }
 
-    // 브랜드 스타일에서 이미지 키워드 추출
-    const brandStyle = project.brandProfile?.styleGuide as { imageKeywords?: string[]; toneAndManner?: string } | null;
-    const additionalPrompt = brandStyle?.imageKeywords?.join(', ');
+    // ★★★ 브랜드 컨텍스트 구성 (초기 생성과 동일한 구조!)
+    const brandContext: BrandContext | null = project.brandProfile ? {
+      name: project.brandProfile.name,
+      identity: project.brandProfile.identity,
+      toneAndManner: project.brandProfile.toneAndManner,
+      imageKeywords: project.brandProfile.imageKeywords || [],
+      styleGuide: project.brandProfile.styleGuide as BrandContext['styleGuide'],
+    } : null;
+
+    // 브랜드 이미지 키워드 (간단한 additionalPrompt용)
+    const additionalPrompt = brandContext?.imageKeywords?.join(', ');
+
+    // ★★★ 브랜드 스타일 프롬프트 생성 (초기 생성과 동일!)
+    // 브랜드 색상, 무드, 이름 등을 이미지 프롬프트에 반영
+    const brandStylePrompt = buildFullBrandStylePrompt(brandContext);
+    if (brandStylePrompt) {
+      console.log(`[Section Regenerate] ★ Brand style prompt: ${brandStylePrompt.substring(0, 100)}...`);
+    }
 
     // ★★★ 초기 생성과 동일한 프로세스 적용 ★★★
     // 1. 비주얼 테마 선택 (초기 생성에서 사용하는 것과 동일)
-    const brandTone = brandStyle?.toneAndManner;
+    const brandTone = brandContext?.toneAndManner;
     const selectedThemeStyle = autoSelectTheme(project.category || 'General', brandTone);
     const visualTheme = getVisualTheme(selectedThemeStyle);
     console.log(`[Section Regenerate] ★ Visual theme: ${visualTheme.name} (${selectedThemeStyle})`);
@@ -173,6 +196,9 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Section Regenerate] ★ Orchestration prompt: ${sectionPrompt.imagePrompt.substring(0, 150)}...`);
 
+    // ★★★ 최종 시나리오 프롬프트 = 오케스트레이션 프롬프트 + 브랜드 스타일 (초기 생성과 동일!)
+    const enhancedScenarioPrompt = sectionPrompt.imagePrompt + (brandStylePrompt ? `\n${brandStylePrompt}` : '');
+
     // ★★★ 섹션 이미지 + 오버레이 텍스트 통합 재생성
     console.log(`[Section Regenerate] Generating ${validatedData.sectionType} image with overlay text...`);
     const result = await generateSectionImageWithOverlay(
@@ -185,7 +211,7 @@ export async function POST(request: NextRequest) {
       {
         additionalPrompt,
         model: imageModel,
-        scenarioPrompt: sectionPrompt.imagePrompt,  // ★ 오케스트레이션 프롬프트 전달!
+        scenarioPrompt: enhancedScenarioPrompt,  // ★★★ 브랜드 스타일 포함된 프롬프트 전달!
         blockIndex: validatedData.sectionIndex,
         totalBlocks: 1,
       }
