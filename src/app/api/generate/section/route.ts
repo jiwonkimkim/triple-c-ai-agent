@@ -12,6 +12,13 @@ import {
 import { uploadGeneratedImage } from '@/services/image/image-upload-service';
 import { generateSectionImagePromptFromText } from '@/services/ai/orchestration-service';
 import type { BeautySubCategory } from '@/services/ai/prompts/beauty-subcategory';
+// ★★★ 초기 생성과 동일한 프롬프트 프로세스를 위한 import
+import {
+  autoSelectTheme,
+  getVisualTheme,
+  getSectionImagePromptByIndex,
+  type ExtendedSectionType,
+} from '@/services/ai/prompts';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // 60초 타임아웃
@@ -105,11 +112,31 @@ export async function POST(request: NextRequest) {
     }
 
     // 브랜드 스타일에서 이미지 키워드 추출
-    const brandStyle = project.brandProfile?.styleGuide as { imageKeywords?: string[] } | null;
+    const brandStyle = project.brandProfile?.styleGuide as { imageKeywords?: string[]; toneAndManner?: string } | null;
     const additionalPrompt = brandStyle?.imageKeywords?.join(', ');
 
-    // ★★★ 섹션 오케스트레이션 프롬프트 생성 (초기 생성과 동일한 프로세스!)
-    // 1. 프로젝트의 최신 버전에서 섹션 데이터 가져오기
+    // ★★★ 초기 생성과 동일한 프로세스 적용 ★★★
+    // 1. 비주얼 테마 선택 (초기 생성에서 사용하는 것과 동일)
+    const brandTone = brandStyle?.toneAndManner;
+    const selectedThemeStyle = autoSelectTheme(project.category || 'General', brandTone);
+    const visualTheme = getVisualTheme(selectedThemeStyle);
+    console.log(`[Section Regenerate] ★ Visual theme: ${visualTheme.name} (${selectedThemeStyle})`);
+
+    // 2. 인덱스 기반 프롬프트 가져오기 (카테고리별 특화 프롬프트)
+    const indexBasedPromptResult = getSectionImagePromptByIndex(
+      validatedData.sectionType as ExtendedSectionType,
+      project.category || 'General',
+      validatedData.sectionIndex,
+      project.productName || 'Product'
+    );
+    const indexBasedPrompt = indexBasedPromptResult.hasIndexedPrompt
+      ? indexBasedPromptResult.prompt
+      : undefined;
+    if (indexBasedPromptResult.hasIndexedPrompt) {
+      console.log(`[Section Regenerate] ★ Index-based prompt: ${indexBasedPromptResult.conceptType}`);
+    }
+
+    // 3. 프로젝트의 최신 버전에서 섹션 데이터 가져오기
     const latestVersion = await prisma.projectVersion.findFirst({
       where: { projectId: project.id },
       orderBy: { versionNumber: 'desc' },
@@ -123,7 +150,7 @@ export async function POST(request: NextRequest) {
       s.type?.toUpperCase() === validatedData.sectionType.toUpperCase()
     );
 
-    // 2. 오케스트레이션 프롬프트 생성 (초기 생성과 동일한 함수 사용!)
+    // 4. 오케스트레이션 프롬프트 생성 (초기 생성과 동일한 함수 + 파라미터!)
     console.log(`[Section Regenerate] ★ Generating orchestration prompt for ${validatedData.sectionType}...`);
     console.log(`[Section Regenerate] ★ SubCategory: ${project.subCategory || 'none'}`);
     const sectionPrompt = await generateSectionImagePromptFromText(
@@ -137,9 +164,9 @@ export async function POST(request: NextRequest) {
       project.keyFeatures || [],
       project.targetAudience || '일반 소비자',
       additionalPrompt,  // brandStyle
-      undefined,         // visualReference
-      undefined,         // visualTheme
-      undefined,         // indexBasedPrompt
+      undefined,         // visualReference (I2I 모드에서는 제품 이미지로 대체)
+      visualTheme,       // ★★★ 비주얼 테마 전달! (초기 생성과 동일)
+      indexBasedPrompt,  // ★★★ 인덱스 기반 프롬프트 전달! (초기 생성과 동일)
       project.subCategory as BeautySubCategory | undefined,  // ★ 뷰티 서브카테고리 전달!
       validatedData.sectionIndex  // blockIndex
     );
