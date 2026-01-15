@@ -16,6 +16,7 @@ import {
   ChevronLeft,
   User,
   Store,
+  MessageSquare,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -33,6 +34,7 @@ import { useStyleTheme } from '@/contexts/style-theme-context';
 
 const navigation = [
   { name: '대시보드', href: '/dashboard', icon: LayoutDashboard },
+  { name: '대화', href: '/dashboard/chat', icon: MessageSquare },
   { name: '프로젝트', href: '/dashboard/projects', icon: FolderKanban },
   { name: '브랜드 프로필', href: '/dashboard/brands', icon: Palette },
   { name: '템플릿 마켓플레이스', href: '/dashboard/marketplace', icon: Store },

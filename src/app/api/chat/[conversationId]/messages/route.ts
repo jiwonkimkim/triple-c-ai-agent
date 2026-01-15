@@ -1,0 +1,291 @@
+/**
+ * Chat Messages API - 메시지 전송 (SSE 스트리밍)
+ * POST /api/chat/[conversationId]/messages - 메시지 전송 및 Agent 응답
+ * GET /api/chat/[conversationId]/messages - 메시지 목록 조회
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import {
+  getChatAgentGraph,
+  createInitialState,
+  addUserMessage,
+  ChatAgentState,
+  ChatMessage,
+  ProjectCollectedData,
+} from '@/services/chat-agents';
+import { AgentType } from '@prisma/client';
+
+interface RouteParams {
+  params: {
+    conversationId: string;
+  };
+}
+
+// GET: 메시지 목록 조회
+export async function GET(request: NextRequest, { params }: RouteParams) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: '로그인이 필요합니다.' },
+        { status: 401 }
+      );
+    }
+
+    const { conversationId } = params;
+
+    // 대화 소유권 확인
+    const conversation = await prisma.conversation.findFirst({
+      where: {
+        id: conversationId,
+        userId: session.user.id,
+      },
+    });
+
+    if (!conversation) {
+      return NextResponse.json(
+        { error: '대화를 찾을 수 없습니다.' },
+        { status: 404 }
+      );
+    }
+
+    const messages = await prisma.conversationMessage.findMany({
+      where: { conversationId },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    return NextResponse.json({
+      messages: messages.map(msg => ({
+        id: msg.id,
+        role: msg.role,
+        content: msg.content,
+        agentType: msg.agentType,
+        metadata: msg.metadata,
+        attachments: msg.attachments,
+        createdAt: msg.createdAt,
+      })),
+    });
+  } catch (error) {
+    console.error('[GET /api/chat/[id]/messages] Error:', error);
+    return NextResponse.json(
+      { error: '메시지 조회에 실패했습니다.' },
+      { status: 500 }
+    );
+  }
+}
+
+// POST: 메시지 전송 (SSE 스트리밍)
+export async function POST(request: NextRequest, { params }: RouteParams) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: '로그인이 필요합니다.' },
+        { status: 401 }
+      );
+    }
+
+    const { conversationId } = params;
+    const body = await request.json();
+    const { content, attachments = [], selectedOptionId } = body;
+
+    if (!content && !selectedOptionId) {
+      return NextResponse.json(
+        { error: '메시지 내용이 필요합니다.' },
+        { status: 400 }
+      );
+    }
+
+    // 대화 조회 및 소유권 확인
+    const conversation = await prisma.conversation.findFirst({
+      where: {
+        id: conversationId,
+        userId: session.user.id,
+      },
+      include: {
+        messages: {
+          orderBy: { createdAt: 'asc' },
+        },
+      },
+    });
+
+    if (!conversation) {
+      return NextResponse.json(
+        { error: '대화를 찾을 수 없습니다.' },
+        { status: 404 }
+      );
+    }
+
+    // 사용자 메시지 저장
+    const userMessage = await prisma.conversationMessage.create({
+      data: {
+        conversationId,
+        role: 'user',
+        content: content || `[선택] ${selectedOptionId}`,
+        attachments,
+        metadata: selectedOptionId ? { selectedOptionId } : {},
+      },
+    });
+
+    // SSE 스트림 생성
+    const stream = new ReadableStream({
+      async start(controller) {
+        const encoder = new TextEncoder();
+
+        const sendEvent = (event: string, data: any) => {
+          controller.enqueue(
+            encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`)
+          );
+        };
+
+        try {
+          // 기존 메시지를 ChatMessage 형식으로 변환
+          const existingMessages: ChatMessage[] = conversation.messages.map(msg => ({
+            id: msg.id,
+            role: msg.role as 'user' | 'assistant' | 'system',
+            content: msg.content,
+            agentType: msg.agentType || undefined,
+            metadata: msg.metadata as any,
+            attachments: msg.attachments,
+            createdAt: msg.createdAt,
+          }));
+
+          // 새 사용자 메시지 추가
+          existingMessages.push({
+            id: userMessage.id,
+            role: 'user',
+            content: content || `[선택] ${selectedOptionId}`,
+            attachments,
+            createdAt: userMessage.createdAt,
+          });
+
+          // Agent 상태 초기화
+          const initialState: ChatAgentState = {
+            conversationId,
+            userId: session.user.id,
+            messages: existingMessages,
+            collectedData: conversation.collectedData as ProjectCollectedData,
+            currentAgent: conversation.currentAgent,
+            nextAction: undefined,
+            brandContext: undefined,
+            generationResult: undefined,
+            errors: [],
+          };
+
+          // 타이핑 시작 이벤트
+          sendEvent('typing', { isTyping: true });
+
+          // LangGraph 실행
+          const graph = getChatAgentGraph();
+          const result = await graph.invoke(initialState);
+
+          // 결과에서 새 메시지 추출
+          const newMessages = result.messages.filter(
+            (msg: ChatMessage) => !existingMessages.some(em => em.id === msg.id)
+          );
+
+          // 새 메시지들 저장 및 스트리밍
+          for (const msg of newMessages) {
+            if (msg.role === 'assistant') {
+              // DB에 저장
+              const savedMessage = await prisma.conversationMessage.create({
+                data: {
+                  conversationId,
+                  role: msg.role,
+                  content: msg.content,
+                  agentType: msg.agentType,
+                  metadata: msg.metadata || {},
+                  attachments: msg.attachments || [],
+                },
+              });
+
+              // 스트리밍 (글자 단위로 분할하여 전송 - 타이핑 효과)
+              const characters = msg.content.split('');
+              let streamedContent = '';
+
+              for (let i = 0; i < characters.length; i++) {
+                streamedContent += characters[i];
+
+                // 10자마다 또는 마지막에 청크 전송
+                if (i % 10 === 0 || i === characters.length - 1) {
+                  sendEvent('chunk', {
+                    messageId: savedMessage.id,
+                    content: streamedContent,
+                    isComplete: i === characters.length - 1,
+                  });
+
+                  // 타이핑 효과를 위한 약간의 딜레이
+                  await new Promise(resolve => setTimeout(resolve, 20));
+                }
+              }
+
+              // 메시지 완료 이벤트
+              sendEvent('message', {
+                id: savedMessage.id,
+                role: msg.role,
+                content: msg.content,
+                agentType: msg.agentType,
+                metadata: msg.metadata,
+                createdAt: savedMessage.createdAt,
+              });
+            }
+          }
+
+          // 대화 상태 업데이트
+          await prisma.conversation.update({
+            where: { id: conversationId },
+            data: {
+              collectedData: result.collectedData,
+              currentAgent: result.currentAgent,
+              agentState: {
+                nextAction: result.nextAction,
+              },
+              // 제목이 없고 productName이 있으면 제목 설정
+              ...(!conversation.title && result.collectedData?.productName && {
+                title: `${result.collectedData.productName} 상세페이지`,
+              }),
+            },
+          });
+
+          // 타이핑 종료 이벤트
+          sendEvent('typing', { isTyping: false });
+
+          // 완료 이벤트
+          sendEvent('done', {
+            status: result.nextAction?.type || 'await_input',
+            currentAgent: result.currentAgent,
+            collectedData: result.collectedData,
+            projectId: result.generationResult?.projectId,
+          });
+        } catch (error) {
+          console.error('[POST /api/chat/[id]/messages] Stream error:', error);
+
+          sendEvent('error', {
+            message: error instanceof Error ? error.message : '처리 중 오류가 발생했습니다.',
+          });
+        } finally {
+          controller.close();
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive',
+      },
+    });
+  } catch (error) {
+    console.error('[POST /api/chat/[id]/messages] Error:', error);
+    return NextResponse.json(
+      { error: '메시지 전송에 실패했습니다.' },
+      { status: 500 }
+    );
+  }
+}

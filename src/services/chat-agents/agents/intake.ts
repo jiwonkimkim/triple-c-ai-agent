@@ -1,0 +1,191 @@
+/**
+ * Intake Agent
+ * 사용자 메시지에서 프로젝트 정보 추출 및 수집
+ */
+
+import { ChatAnthropic } from '@langchain/anthropic';
+import { AgentType } from '@prisma/client';
+import { ChatAgentState } from '../graph';
+import {
+  ChatMessage,
+  ProjectCollectedData,
+  getMissingFields,
+  PRODUCT_CATEGORIES,
+  BEAUTY_SUBCATEGORIES,
+  COPY_LENGTHS,
+} from '../types';
+
+const model = new ChatAnthropic({
+  modelName: 'claude-3-5-sonnet-20241022',
+  temperature: 0.2,
+});
+
+const INTAKE_SYSTEM_PROMPT = `당신은 마케팅 콘텐츠 생성을 위한 정보 수집 전문가입니다.
+사용자의 메시지에서 제품/서비스 정보를 추출하고, 부족한 정보를 자연스럽게 요청합니다.
+
+## 추출할 정보:
+- productName: 제품/서비스명
+- category: 카테고리 (FASHION, FOOD, BEAUTY, ELECTRONICS, HOME_LIVING, SPORTS_FITNESS, OTHER)
+- subCategory: 뷰티 서브카테고리 (skincare, suncare, lip, mascara, maskpack, cushion, eyeshadow, cleanser, other_beauty)
+- keyFeatures: 주요 특징/장점 (배열)
+- targetAudience: 타겟 고객
+- copyLength: 카피 길이 (short, medium, long)
+- productUrl: 상품 URL
+
+## 응답 형식 (JSON):
+{
+  "extracted": {
+    "productName": "추출된 제품명 또는 null",
+    "category": "추출된 카테고리 또는 null",
+    ...
+  },
+  "message": "사용자에게 보낼 친근한 응답 메시지",
+  "askingFor": "다음으로 물어볼 정보 필드명"
+}
+
+## 규칙:
+1. 자연스럽고 친근한 톤으로 대화하세요
+2. 한 번에 너무 많은 정보를 요청하지 마세요
+3. 사용자가 제공한 정보를 먼저 확인하고 칭찬하세요
+4. 다음 질문은 문맥에 맞게 자연스럽게 연결하세요`;
+
+interface IntakeResponse {
+  extracted: Partial<ProjectCollectedData>;
+  message: string;
+  askingFor: string;
+}
+
+export async function intakeAgent(
+  state: ChatAgentState
+): Promise<Partial<ChatAgentState>> {
+  const { messages, collectedData } = state;
+
+  // 마지막 사용자 메시지 찾기
+  const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
+
+  if (!lastUserMessage) {
+    return {
+      nextAction: { type: 'await_input' },
+    };
+  }
+
+  // 현재 수집된 데이터와 부족한 필드 정보
+  const missingFields = getMissingFields(collectedData);
+
+  const contextPrompt = `
+현재 수집된 정보:
+${JSON.stringify(collectedData, null, 2)}
+
+부족한 필수 필드: ${missingFields.join(', ')}
+
+대화 히스토리 (최근 5개):
+${messages.slice(-5).map(m => `[${m.role}]: ${m.content}`).join('\n')}
+
+마지막 사용자 메시지: "${lastUserMessage.content}"
+
+위 사용자 메시지에서 정보를 추출하고, 다음으로 물어볼 질문을 포함한 응답을 생성하세요.
+`;
+
+  try {
+    const response = await model.invoke([
+      { role: 'system', content: INTAKE_SYSTEM_PROMPT },
+      { role: 'user', content: contextPrompt },
+    ]);
+
+    const responseText = typeof response.content === 'string'
+      ? response.content
+      : JSON.stringify(response.content);
+
+    // JSON 파싱
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const intakeResponse: IntakeResponse = JSON.parse(jsonMatch[0]);
+
+      // 추출된 데이터 정리
+      const newCollectedData: Partial<ProjectCollectedData> = {};
+
+      if (intakeResponse.extracted.productName) {
+        newCollectedData.productName = intakeResponse.extracted.productName;
+      }
+      if (intakeResponse.extracted.category &&
+          PRODUCT_CATEGORIES.includes(intakeResponse.extracted.category as any)) {
+        newCollectedData.category = intakeResponse.extracted.category as any;
+      }
+      if (intakeResponse.extracted.subCategory &&
+          BEAUTY_SUBCATEGORIES.includes(intakeResponse.extracted.subCategory as any)) {
+        newCollectedData.subCategory = intakeResponse.extracted.subCategory as any;
+      }
+      if (intakeResponse.extracted.keyFeatures &&
+          Array.isArray(intakeResponse.extracted.keyFeatures)) {
+        newCollectedData.keyFeatures = [
+          ...(collectedData.keyFeatures || []),
+          ...intakeResponse.extracted.keyFeatures,
+        ];
+      }
+      if (intakeResponse.extracted.targetAudience) {
+        newCollectedData.targetAudience = intakeResponse.extracted.targetAudience;
+      }
+      if (intakeResponse.extracted.copyLength &&
+          COPY_LENGTHS.includes(intakeResponse.extracted.copyLength as any)) {
+        newCollectedData.copyLength = intakeResponse.extracted.copyLength as any;
+      }
+      if (intakeResponse.extracted.productUrl) {
+        newCollectedData.productUrl = intakeResponse.extracted.productUrl;
+      }
+
+      // 응답 메시지 생성
+      const assistantMessage: ChatMessage = {
+        id: `msg_${Date.now()}`,
+        role: 'assistant',
+        content: intakeResponse.message,
+        agentType: 'INTAKE',
+        metadata: {
+          uiType: 'text',
+          collectedFields: Object.keys(newCollectedData),
+        },
+        createdAt: new Date(),
+      };
+
+      // 다음 액션 결정
+      const updatedData = { ...collectedData, ...newCollectedData };
+      const updatedMissingFields = getMissingFields(updatedData);
+
+      let nextAction;
+      if (updatedMissingFields.length === 0) {
+        // 모든 필수 정보 수집 완료 → Planner로
+        nextAction = { type: 'continue' as const, targetAgent: 'PLANNER' as AgentType };
+      } else if (intakeResponse.askingFor === 'category' ||
+                 intakeResponse.askingFor === 'copyLength' ||
+                 intakeResponse.askingFor === 'subCategory') {
+        // 선택지가 필요한 필드 → Suggester로
+        nextAction = { type: 'continue' as const, targetAgent: 'SUGGESTER' as AgentType };
+      } else {
+        // 사용자 입력 대기
+        nextAction = { type: 'await_input' as const };
+      }
+
+      return {
+        messages: [assistantMessage],
+        collectedData: newCollectedData,
+        currentAgent: 'INTAKE',
+        nextAction,
+      };
+    }
+  } catch (error) {
+    console.error('[Intake] Error:', error);
+  }
+
+  // 에러 시 기본 응답
+  const fallbackMessage: ChatMessage = {
+    id: `msg_${Date.now()}`,
+    role: 'assistant',
+    content: '죄송해요, 잠시 문제가 있었어요. 다시 한번 말씀해 주시겠어요?',
+    agentType: 'INTAKE',
+    createdAt: new Date(),
+  };
+
+  return {
+    messages: [fallbackMessage],
+    nextAction: { type: 'await_input' },
+  };
+}

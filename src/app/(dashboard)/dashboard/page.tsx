@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Plus, FolderKanban, Palette, Clock, Zap, Loader2, Sparkles, Send, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MouseGlowEffect } from '@/components/ui/mouse-glow-effect';
@@ -29,6 +30,7 @@ interface DashboardStats {
 export default function DashboardPage() {
   const { data: session } = useSession();
   const { styleTheme, isLoaded } = useStyleTheme();
+  const router = useRouter();
   const isSmile = isLoaded && styleTheme === 'smile';
 
   const [stats, setStats] = useState<DashboardStats>({
@@ -40,6 +42,42 @@ export default function DashboardPage() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [promptValue, setPromptValue] = useState('');
+  const [isStartingChat, setIsStartingChat] = useState(false);
+
+  // 대화 시작 핸들러
+  const handleStartChat = async () => {
+    if (isStartingChat) return;
+
+    setIsStartingChat(true);
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          initialMessage: promptValue || undefined,
+          source: 'dashboard',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('대화를 시작할 수 없습니다.');
+      }
+
+      const data = await response.json();
+      router.push(`/dashboard/chat/${data.conversationId}`);
+    } catch (error) {
+      console.error('대화 시작 실패:', error);
+      setIsStartingChat(false);
+    }
+  };
+
+  // Enter 키 핸들러
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleStartChat();
+    }
+  };
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -92,22 +130,30 @@ export default function DashboardPage() {
                 placeholder="어떤 콘텐츠를 만들고 싶으신가요?"
                 value={promptValue}
                 onChange={(e) => setPromptValue(e.target.value)}
-                className="w-full bg-transparent border-none focus:outline-none focus:ring-0 text-sm placeholder:text-foreground/30"
+                onKeyDown={handleKeyDown}
+                disabled={isStartingChat}
+                className="w-full bg-transparent border-none focus:outline-none focus:ring-0 text-sm placeholder:text-foreground/30 disabled:opacity-50"
               />
             </div>
-            <Link href={`/dashboard/projects/new${promptValue ? `?prompt=${encodeURIComponent(promptValue)}` : ''}`}>
-              <button className={cn(
-                "p-3 transition-all duration-200 flex items-center justify-center",
+            <button
+              onClick={handleStartChat}
+              disabled={isStartingChat}
+              className={cn(
+                "p-3 transition-all duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed",
                 isSmile
                   ? "bg-foreground text-background hover:bg-foreground/90"
                   : "rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:from-blue-600 hover:to-indigo-600 hover:shadow-lg hover:shadow-blue-500/30"
-              )}>
+              )}
+            >
+              {isStartingChat ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
                 <Send className="w-5 h-5" />
-              </button>
-            </Link>
+              )}
+            </button>
           </div>
           <p className="text-center text-xs text-foreground/40 mt-3">
-            예: 화장품 상세페이지, 패션 룩북, 음식 메뉴판 등
+            AI와 대화하며 프로젝트를 만들어보세요
           </p>
         </div>
       </div>
