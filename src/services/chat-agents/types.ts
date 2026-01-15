@@ -432,19 +432,28 @@ export interface ConversationListItem {
 // 필수 필드 검증
 // ============================================
 
+// 핵심 필수 필드 (이것만 있으면 기획 진행 가능)
 export const REQUIRED_FIELDS: (keyof ProjectCollectedData)[] = [
   'productName',
   'category',
-  'keyFeatures',
   'copyLength',
 ];
 
-export function getRequiredFields(): (keyof ProjectCollectedData)[] {
+// 뷰티 카테고리 추가 필수 필드
+export const BEAUTY_REQUIRED_FIELDS: (keyof ProjectCollectedData)[] = [
+  'subCategory',
+];
+
+export function getRequiredFields(category?: string): (keyof ProjectCollectedData)[] {
+  if (category === 'BEAUTY') {
+    return [...REQUIRED_FIELDS, ...BEAUTY_REQUIRED_FIELDS];
+  }
   return REQUIRED_FIELDS;
 }
 
 export function getMissingFields(data: ProjectCollectedData): (keyof ProjectCollectedData)[] {
-  return REQUIRED_FIELDS.filter(field => {
+  const requiredFields = getRequiredFields(data.category);
+  return requiredFields.filter(field => {
     const value = data[field];
     if (Array.isArray(value)) {
       return value.length === 0;

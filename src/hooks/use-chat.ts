@@ -150,15 +150,33 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
         }
 
         const data = await response.json();
-        setMessages(
-          data.messages
-            // 빈 메시지 필터링 (content가 없거나 빈 문자열인 메시지 제외)
-            .filter((msg: any) => msg.content && msg.content.trim() !== '')
-            .map((msg: any) => ({
-              ...msg,
-              createdAt: new Date(msg.createdAt),
-            }))
-        );
+        const loadedMessages = data.messages
+          // 빈 메시지 필터링 (content가 없거나 빈 문자열인 메시지 제외)
+          .filter((msg: any) => msg.content && msg.content.trim() !== '')
+          .map((msg: any) => ({
+            ...msg,
+            createdAt: new Date(msg.createdAt),
+          }));
+
+        setMessages(loadedMessages);
+
+        // 마지막 메시지가 user이고 그 후에 assistant 응답이 없으면 자동으로 Agent 실행
+        if (loadedMessages.length >= 2) {
+          const lastMessage = loadedMessages[loadedMessages.length - 1];
+          const secondLastMessage = loadedMessages[loadedMessages.length - 2];
+
+          // 마지막이 user 메시지이고, 그 전이 assistant 메시지인 경우 (초기 메시지가 처리되지 않은 상태)
+          if (lastMessage.role === 'user' && secondLastMessage.role === 'assistant') {
+            console.log('[useChat] 처리되지 않은 초기 메시지 감지, Agent 자동 실행');
+            // 약간의 딜레이 후 Agent 실행 (UI 렌더링 완료 후)
+            setTimeout(() => {
+              startStream(`/api/chat/${conversationId}/messages`, {
+                content: lastMessage.content,
+                autoTrigger: true, // 자동 트리거 표시
+              });
+            }, 100);
+          }
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : '메시지 로드 실패');
       } finally {
@@ -167,7 +185,7 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
     };
 
     loadMessages();
-  }, [conversationId]);
+  }, [conversationId, startStream]);
 
   // 메시지 전송
   const sendMessage = useCallback(

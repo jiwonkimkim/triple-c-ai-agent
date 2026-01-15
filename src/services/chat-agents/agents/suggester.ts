@@ -95,53 +95,16 @@ export async function suggesterAgent(
     message = '상세페이지의 텍스트 분량은 어느 정도가 좋을까요?';
     askingField = 'copyLength';
   }
-  // 4. 기타 missing fields
-  else if (missingFields.includes('keyFeatures')) {
-    // keyFeatures는 선택지가 아닌 자유 입력
-    const assistantMessage: ChatMessage = {
-      id: `msg_${Date.now()}`,
-      role: 'assistant',
-      content: `${collectedData.productName || '제품'}의 주요 특징이나 장점을 알려주세요.\n예: 고농축 비타민C 20%, 피부 톤 개선, 저자극 포뮬러`,
-      agentType: 'SUGGESTER',
-      metadata: {
-        uiType: 'text',
-      },
-      createdAt: new Date(),
-    };
-
-    return {
-      messages: [assistantMessage],
-      currentAgent: 'SUGGESTER',
-      nextAction: { type: 'await_input' },
-    };
-  }
-  // 5. 필수 정보가 모두 있으면 확인 메시지
+  // 4. 필수 정보가 모두 있으면 바로 기획 단계로 이동
   else {
-    const summaryMessage: ChatMessage = {
-      id: `msg_${Date.now()}`,
-      role: 'assistant',
-      content: `정보가 모두 준비되었어요!\n\n` +
-        `📦 제품: ${collectedData.productName}\n` +
-        `📂 카테고리: ${collectedData.category}${collectedData.subCategory ? ` > ${collectedData.subCategory}` : ''}\n` +
-        `✨ 특징: ${collectedData.keyFeatures?.join(', ')}\n` +
-        `👥 타겟: ${collectedData.targetAudience || '일반 소비자'}\n` +
-        `📝 카피 길이: ${collectedData.copyLength}\n\n` +
-        `이대로 기획을 진행할까요?`,
-      agentType: 'SUGGESTER',
-      metadata: {
-        uiType: 'confirmation',
-        options: [
-          { id: 'confirm', label: '네, 진행해주세요', value: 'confirm', description: '기획 단계로 이동' },
-          { id: 'modify', label: '수정할게요', value: 'modify', description: '정보 수정' },
-        ],
-      },
-      createdAt: new Date(),
-    };
+    // 뷰티 카테고리면 Planning Consultant로, 아니면 Planner로
+    const targetAgent = collectedData.category === 'BEAUTY' && collectedData.subCategory
+      ? 'PLANNING_CONSULTANT' as AgentType
+      : 'PLANNER' as AgentType;
 
     return {
-      messages: [summaryMessage],
       currentAgent: 'SUGGESTER',
-      nextAction: { type: 'await_input' },
+      nextAction: { type: 'continue', targetAgent },
     };
   }
 
