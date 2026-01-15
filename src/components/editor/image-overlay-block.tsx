@@ -1689,7 +1689,7 @@ export function ImageOverlayBlockRenderer({
 
             {/* 색상 */}
             <div className="space-y-1.5">
-              <label className="text-xs text-zinc-400">색상</label>
+              <label className="text-xs text-zinc-400">텍스트 색상</label>
               <div className="flex items-center gap-2">
                 <input
                   type="color"
@@ -1705,6 +1705,39 @@ export function ImageOverlayBlockRenderer({
                   className="flex-1 h-8 text-xs font-mono bg-zinc-800 border-zinc-600 text-zinc-200"
                   placeholder="#ffffff"
                 />
+              </div>
+            </div>
+
+            {/* 배경색 */}
+            <div className="space-y-1.5">
+              <label className="text-xs text-zinc-400">배경색</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={selectedText.style.backgroundColor?.replace(/rgba?\([^)]+\)/, '#000000') || '#000000'}
+                  onChange={(e) => handleUpdateStyle(selectedTextId!, { backgroundColor: e.target.value, padding: selectedText.style.padding || '8px 16px' })}
+                  className="w-8 h-8 rounded cursor-pointer border border-zinc-600 flex-shrink-0 bg-zinc-800"
+                  title="배경색"
+                />
+                <Input
+                  type="text"
+                  value={selectedText.style.backgroundColor || ''}
+                  onChange={(e) => handleUpdateStyle(selectedTextId!, {
+                    backgroundColor: e.target.value || undefined,
+                    padding: e.target.value ? (selectedText.style.padding || '8px 16px') : undefined
+                  })}
+                  className="flex-1 h-8 text-xs font-mono bg-zinc-800 border-zinc-600 text-zinc-200"
+                  placeholder="없음"
+                />
+                {selectedText.style.backgroundColor && (
+                  <button
+                    className="w-8 h-8 flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-zinc-700 rounded border border-zinc-600"
+                    onClick={() => handleUpdateStyle(selectedTextId!, { backgroundColor: undefined, padding: undefined })}
+                    title="배경색 제거"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             </div>
 
