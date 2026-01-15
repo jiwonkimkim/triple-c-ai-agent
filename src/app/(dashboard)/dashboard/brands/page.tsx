@@ -17,6 +17,23 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 
+interface StyleGuide {
+  colors?: {
+    primary?: string;
+    secondary?: string;
+    palette?: string[];
+  };
+  images?: {
+    logo?: string;
+    favicon?: string;
+    ogImage?: string;
+  };
+  fonts?: {
+    primary?: string;
+    all?: string[];
+  };
+}
+
 interface Brand {
   id: string;
   name: string;
@@ -25,6 +42,7 @@ interface Brand {
   imageKeywords: string[];
   websiteUrl?: string | null;
   instagramUrl?: string | null;
+  styleGuide?: StyleGuide | null;
   updatedAt: string;
   _count: {
     projects: number;

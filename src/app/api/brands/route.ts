@@ -62,7 +62,17 @@ export async function GET(request: NextRequest) {
 
       brandProfiles = await prisma.brandProfile.findMany({
         where: { workspaceId },
-        include: {
+        select: {
+          id: true,
+          name: true,
+          identity: true,
+          toneAndManner: true,
+          imageKeywords: true,
+          websiteUrl: true,
+          instagramUrl: true,
+          styleGuide: true,
+          createdAt: true,
+          updatedAt: true,
           _count: {
             select: {
               projects: true,
@@ -79,7 +89,17 @@ export async function GET(request: NextRequest) {
           userId: session.user.id,
           workspaceId: null,
         },
-        include: {
+        select: {
+          id: true,
+          name: true,
+          identity: true,
+          toneAndManner: true,
+          imageKeywords: true,
+          websiteUrl: true,
+          instagramUrl: true,
+          styleGuide: true,
+          createdAt: true,
+          updatedAt: true,
           _count: {
             select: {
               projects: true,

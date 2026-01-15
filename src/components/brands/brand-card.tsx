@@ -13,6 +13,23 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+interface StyleGuide {
+  colors?: {
+    primary?: string;
+    secondary?: string;
+    palette?: string[];
+  };
+  images?: {
+    logo?: string;
+    favicon?: string;
+    ogImage?: string;
+  };
+  fonts?: {
+    primary?: string;
+    all?: string[];
+  };
+}
+
 interface BrandCardProps {
   brand: {
     id: string;
@@ -22,6 +39,7 @@ interface BrandCardProps {
     imageKeywords: string[];
     websiteUrl?: string | null;
     instagramUrl?: string | null;
+    styleGuide?: StyleGuide | null;
     updatedAt: string;
     _count: {
       projects: number;
@@ -45,8 +63,16 @@ export function BrandCard({ brand, onDelete }: BrandCardProps) {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <Palette className="h-5 w-5 text-primary" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 overflow-hidden">
+              {brand.styleGuide?.images?.logo || brand.styleGuide?.images?.ogImage ? (
+                <img
+                  src={brand.styleGuide.images.logo || brand.styleGuide.images.ogImage}
+                  alt={`${brand.name} logo`}
+                  className="h-10 w-10 object-contain"
+                />
+              ) : (
+                <Palette className="h-5 w-5 text-primary" />
+              )}
             </div>
             <div>
               <CardTitle className="text-lg">{brand.name}</CardTitle>
