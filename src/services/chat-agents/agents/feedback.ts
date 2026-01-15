@@ -3,15 +3,22 @@
  * 수정 요청 및 피드백 처리
  */
 
-import { ChatAnthropic } from '@langchain/anthropic';
+import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { AgentType } from '@prisma/client';
 import { ChatAgentState } from '../graph';
 import { ChatMessage, ProjectCollectedData } from '../types';
 
-const model = new ChatAnthropic({
-  modelName: 'claude-3-5-sonnet-20241022',
-  temperature: 0.3,
-});
+// Lazy initialization to avoid build-time API key requirement
+let _model: ChatGoogleGenerativeAI | null = null;
+function getModel() {
+  if (!_model) {
+    _model = new ChatGoogleGenerativeAI({
+      model: 'gemini-2.0-flash-exp',
+      temperature: 0.3,
+    });
+  }
+  return _model;
+}
 
 const FEEDBACK_SYSTEM_PROMPT = `당신은 수정 요청을 분석하는 전문가입니다.
 사용자의 피드백을 분석하여 어떤 정보를 수정해야 하는지 파악합니다.
@@ -70,7 +77,7 @@ ${JSON.stringify(collectedData, null, 2)}
 `;
 
   try {
-    const response = await model.invoke([
+    const response = await getModel().invoke([
       { role: 'system', content: FEEDBACK_SYSTEM_PROMPT },
       { role: 'user', content: contextPrompt },
     ]);

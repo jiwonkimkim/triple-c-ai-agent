@@ -3,15 +3,22 @@
  * 수집된 정보를 바탕으로 콘텐츠 구조 기획
  */
 
-import { ChatAnthropic } from '@langchain/anthropic';
+import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { AgentType } from '@prisma/client';
 import { ChatAgentState } from '../graph';
 import { ChatMessage, PlannedSection } from '../types';
 
-const model = new ChatAnthropic({
-  modelName: 'claude-3-5-sonnet-20241022',
-  temperature: 0.4,
-});
+// Lazy initialization to avoid build-time API key requirement
+let _model: ChatGoogleGenerativeAI | null = null;
+function getModel() {
+  if (!_model) {
+    _model = new ChatGoogleGenerativeAI({
+      model: 'gemini-2.0-flash-exp',
+      temperature: 0.4,
+    });
+  }
+  return _model;
+}
 
 const PLANNER_SYSTEM_PROMPT = `당신은 마케팅 콘텐츠 기획 전문가입니다.
 수집된 제품 정보를 바탕으로 효과적인 상세페이지 구조를 기획합니다.
@@ -76,7 +83,7 @@ ${brandContext ? `
 `;
 
   try {
-    const response = await model.invoke([
+    const response = await getModel().invoke([
       { role: 'system', content: PLANNER_SYSTEM_PROMPT },
       { role: 'user', content: planningContext },
     ]);

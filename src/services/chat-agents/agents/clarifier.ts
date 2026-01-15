@@ -3,15 +3,22 @@
  * 애매한 답변에 대한 명확화 질문
  */
 
-import { ChatAnthropic } from '@langchain/anthropic';
+import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { AgentType } from '@prisma/client';
 import { ChatAgentState } from '../graph';
 import { ChatMessage } from '../types';
 
-const model = new ChatAnthropic({
-  modelName: 'claude-3-5-sonnet-20241022',
-  temperature: 0.3,
-});
+// Lazy initialization to avoid build-time API key requirement
+let _model: ChatGoogleGenerativeAI | null = null;
+function getModel() {
+  if (!_model) {
+    _model = new ChatGoogleGenerativeAI({
+      model: 'gemini-2.0-flash-exp',
+      temperature: 0.3,
+    });
+  }
+  return _model;
+}
 
 const CLARIFIER_SYSTEM_PROMPT = `당신은 친근하고 도움이 되는 명확화 전문가입니다.
 사용자의 애매한 답변을 명확하게 이해하기 위해 추가 질문을 합니다.
@@ -64,7 +71,7 @@ ${messages.slice(-3).map(m => `[${m.role}]: ${m.content}`).join('\n')}
 `;
 
   try {
-    const response = await model.invoke([
+    const response = await getModel().invoke([
       { role: 'system', content: CLARIFIER_SYSTEM_PROMPT },
       { role: 'user', content: contextPrompt },
     ]);

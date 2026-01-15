@@ -3,7 +3,7 @@
  * 대화 흐름 관리 및 다음 Agent 라우팅 결정
  */
 
-import { ChatAnthropic } from '@langchain/anthropic';
+import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { AgentType } from '@prisma/client';
 import { ChatAgentState } from '../graph';
 import {
@@ -13,10 +13,17 @@ import {
   isDataComplete,
 } from '../types';
 
-const model = new ChatAnthropic({
-  modelName: 'claude-3-5-sonnet-20241022',
-  temperature: 0.3,
-});
+// Lazy initialization to avoid build-time API key requirement
+let _model: ChatGoogleGenerativeAI | null = null;
+function getModel() {
+  if (!_model) {
+    _model = new ChatGoogleGenerativeAI({
+      model: 'gemini-2.0-flash-exp',
+      temperature: 0.3,
+    });
+  }
+  return _model;
+}
 
 const COORDINATOR_SYSTEM_PROMPT = `당신은 마케팅 콘텐츠 생성 서비스의 대화 조율자입니다.
 사용자와의 대화를 분석하여 다음에 어떤 Agent가 처리해야 하는지 결정합니다.
@@ -175,7 +182,7 @@ export async function coordinatorAgent(
 마지막 사용자 메시지: "${lastUserMessage.content}"
 `;
 
-    const response = await model.invoke([
+    const response = await getModel().invoke([
       { role: 'system', content: COORDINATOR_SYSTEM_PROMPT },
       { role: 'user', content: contextSummary },
     ]);

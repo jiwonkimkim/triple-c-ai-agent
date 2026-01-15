@@ -3,7 +3,7 @@
  * 사용자 메시지에서 프로젝트 정보 추출 및 수집
  */
 
-import { ChatAnthropic } from '@langchain/anthropic';
+import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { AgentType } from '@prisma/client';
 import { ChatAgentState } from '../graph';
 import {
@@ -15,10 +15,17 @@ import {
   COPY_LENGTHS,
 } from '../types';
 
-const model = new ChatAnthropic({
-  modelName: 'claude-3-5-sonnet-20241022',
-  temperature: 0.2,
-});
+// Lazy initialization to avoid build-time API key requirement
+let _model: ChatGoogleGenerativeAI | null = null;
+function getModel() {
+  if (!_model) {
+    _model = new ChatGoogleGenerativeAI({
+      model: 'gemini-2.0-flash-exp',
+      temperature: 0.2,
+    });
+  }
+  return _model;
+}
 
 const INTAKE_SYSTEM_PROMPT = `당신은 마케팅 콘텐츠 생성을 위한 정보 수집 전문가입니다.
 사용자의 메시지에서 제품/서비스 정보를 추출하고, 부족한 정보를 자연스럽게 요청합니다.
@@ -87,7 +94,7 @@ ${messages.slice(-5).map(m => `[${m.role}]: ${m.content}`).join('\n')}
 `;
 
   try {
-    const response = await model.invoke([
+    const response = await getModel().invoke([
       { role: 'system', content: INTAKE_SYSTEM_PROMPT },
       { role: 'user', content: contextPrompt },
     ]);
