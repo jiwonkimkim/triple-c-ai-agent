@@ -11,6 +11,7 @@ import {
 } from '@/services/image/gemini-image-generator';
 import { uploadGeneratedImage } from '@/services/image/image-upload-service';
 import { generateSectionImagePromptFromText } from '@/services/ai/orchestration-service';
+import type { BeautySubCategory } from '@/services/ai/prompts/beauty-subcategory';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // 60초 타임아웃
@@ -44,6 +45,7 @@ export async function POST(request: NextRequest) {
         id: true,
         productName: true,
         category: true,
+        subCategory: true,  // ★ 뷰티 서브카테고리 (skincare, lip 등)
         keyFeatures: true,
         targetAudience: true,
         productImages: true,
@@ -123,6 +125,7 @@ export async function POST(request: NextRequest) {
 
     // 2. 오케스트레이션 프롬프트 생성 (초기 생성과 동일한 함수 사용!)
     console.log(`[Section Regenerate] ★ Generating orchestration prompt for ${validatedData.sectionType}...`);
+    console.log(`[Section Regenerate] ★ SubCategory: ${project.subCategory || 'none'}`);
     const sectionPrompt = await generateSectionImagePromptFromText(
       {
         type: validatedData.sectionType,
@@ -133,7 +136,12 @@ export async function POST(request: NextRequest) {
       project.category || 'General',
       project.keyFeatures || [],
       project.targetAudience || '일반 소비자',
-      additionalPrompt  // brandStyle
+      additionalPrompt,  // brandStyle
+      undefined,         // visualReference
+      undefined,         // visualTheme
+      undefined,         // indexBasedPrompt
+      project.subCategory as BeautySubCategory | undefined,  // ★ 뷰티 서브카테고리 전달!
+      validatedData.sectionIndex  // blockIndex
     );
 
     console.log(`[Section Regenerate] ★ Orchestration prompt: ${sectionPrompt.imagePrompt.substring(0, 150)}...`);
