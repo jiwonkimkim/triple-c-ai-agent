@@ -852,8 +852,31 @@ ${section === 'SOCIAL_PROOF' ? `- 해당 증거 유형에 맞는 텍스트 (예:
   // 섹션별 특화 가이드
   const sectionSpecificGuide = getSectionSpecificGuide(section, categoryKey);
 
-  return `당신은 한국 올리브영/화해 상세페이지 전문 카피라이터입니다.
-실제 브랜드 상세페이지에서 사용되는 오버레이 텍스트를 작성합니다.
+  return `## ★★★ 역할 정의 (Role Specification)
+
+### 1인칭 - 카피라이터 (작성자)
+당신은 한국 올리브영/화해 상세페이지 전문 카피라이터입니다.
+"나는 이 제품의 핵심 가치를 전달하는 텍스트를 작성한다."
+- 제품의 장점을 가장 효과적으로 전달하는 문구를 고민합니다
+- 타겟 고객의 니즈를 파악하고 공감하는 메시지를 만듭니다
+- 브랜드 톤앤매너에 맞는 표현을 선택합니다
+
+### 2인칭 - 상세페이지/텍스트 (매체)
+당신이 작성하는 텍스트는 상세페이지의 일부입니다.
+"너(텍스트)는 고객에게 직접 말을 건네는 역할을 한다."
+- 이미지의 분위기와 여백에 따라 자유롭게 디자인됨
+- 창의적인 레이아웃으로 시선을 사로잡음
+- 한 줄일 수도, 여러 조각이 흩어질 수도 있음
+- 정해진 틀 없이 이미지에 녹아드는 타이포그래피
+
+### 3인칭 - 오버레이 텍스트 (결과물)
+생성되는 오버레이 텍스트는 이미지 위에 배치됩니다.
+"그것(오버레이 텍스트)은 이미지와 조화를 이루며 메시지를 전달한다."
+- 배경 이미지의 여백과 컬러에 맞게 배치됨
+- 제품 이미지를 가리지 않는 위치에 존재함
+- 한눈에 읽히는 간결한 문구로 구성됨
+
+---
 
 ## 핵심 원칙
 1. **실제 상세페이지 스타일**: 올리브영에서 볼 수 있는 전문적인 카피
@@ -887,29 +910,18 @@ ${sectionSpecificGuide}
 ## ★ 실제 상세페이지 텍스트 예시
 ${examplesJson}
 
-## 텍스트 작성 규칙
+## ★★★ 창의적 텍스트 디자인 (핵심!)
 
-### 1. 헤드라인 (headline)
-- ${section === 'MAIN' ? '브랜드명 또는 영문 제품라인' : section === 'SOCIAL_PROOF' ? 'BENEFIT, CLINICAL TEST 등 영문 섹션명' : section === 'FEATURES' ? 'Point 01 또는 1. {영문특징} 형식 가능' : '제품의 핵심 가치를 담은 한 문장'}
-- 5-15자 이내
+당신은 타이포그래피 디자이너입니다. 이미지에 어울리는 텍스트를 **창의적으로** 디자인하세요.
+- 텍스트의 개수, 위치, 크기를 자유롭게 결정
+- 이미지의 여백과 분위기를 읽고 텍스트를 배치
+- 대담한 한 줄도 좋고, 여러 조각이 흩어진 레이아웃도 좋음
+- 상세페이지 디자인의 창의성을 보여주세요
 
-### 2. 서브헤드라인 (subheadline)
-- ${section === 'MAIN' ? '제품 라인명 (영문, 크고 임팩트 있게) 또는 {X}세대 표현' : section === 'FEATURES' ? '해시태그 (#키워드1 #키워드2) 또는 Point 설명' : section === 'PRODUCT_LINEUP' ? '컬러 라인업 제목' : '헤드라인 보조 설명'}
-- 10-25자 이내
-
-### 3. 통계 (statistics)
-- 구체적 숫자: 79%, 24H, 2.8배, +32% 형식
-- 숫자 뒤에 짧은 설명: "79% 만족도", "24시간 지속"
-- 2-3개가 적당
-
-### 4. 본문 (body)
-- 필요시에만 작성
-- 통계 설명 또는 추가 정보
-
-## 색상 가이드 (★ 이미지 분석 기반 자동 결정)
-- 헤드라인 색상: "${textColors.headline}"
-- 서브헤드라인 색상: "${textColors.subheadline}"
-- 본문 색상: "${textColors.body}"
+## 색상 참고
+- 주요 텍스트: "${textColors.headline}"
+- 보조 텍스트: "${textColors.subheadline}"
+- 설명 텍스트: "${textColors.body}"
 - 강조색: "${textColors.accent}"
 
 ## 절대 금지
@@ -918,56 +930,44 @@ ${examplesJson}
 - 느낌표(!) 과다 사용 금지
 
 ## 응답 형식
-${section} 섹션에 맞는 오버레이 텍스트를 JSON으로 반환하세요:
+자유롭게 배치할 텍스트들을 texts 배열로 반환하세요:
 
 {
-  "headline": {
-    "text": "${section === 'MAIN' ? '{브랜드명}' : section === 'SOCIAL_PROOF' ? 'BENEFIT' : section === 'FEATURES' ? 'Point 01 또는 핵심문장' : '{핵심 가치 한 문장}'}",
-    "x": ${textPosition.headlinePosition.x},
-    "y": ${layoutGuide.headline.y},
-    "fontSize": ${layoutGuide.headline.fontSize},
-    "fontWeight": "bold",
-    "color": "${textColors.headline}",
-    "textAlign": "${textPosition.headlinePosition.align}"
-  },
-  "subheadline": {
-    "text": "${section === 'FEATURES' ? '#{키워드1} #{키워드2} #{키워드3}' : '{서브 설명}'}",
-    "x": ${textPosition.bodyPosition.x},
-    "y": ${layoutGuide.subheadline.y},
-    "fontSize": ${layoutGuide.subheadline.fontSize},
-    "fontWeight": "medium",
-    "color": "${textColors.subheadline}",
-    "textAlign": "${textPosition.bodyPosition.align}"
-  },
-  "statistics": [
+  "texts": [
     {
-      "text": "{XX}%",
-      "x": ${layoutGuide.statistics.x - 25},
-      "y": ${layoutGuide.statistics.y},
-      "fontSize": ${layoutGuide.statistics.fontSize},
+      "text": "첫 번째 텍스트 (가장 중요한 메시지)",
+      "x": 50,
+      "y": 20,
+      "fontSize": 32,
       "fontWeight": "bold",
-      "color": "${textColors.headline}"
+      "color": "${textColors.headline}",
+      "textAlign": "center"
     },
     {
-      "text": "{효과 설명}",
-      "x": ${layoutGuide.statistics.x - 25},
-      "y": ${layoutGuide.statistics.y + 8},
-      "fontSize": 14,
+      "text": "두 번째 텍스트 (필요하면 추가)",
+      "x": 50,
+      "y": 35,
+      "fontSize": 18,
       "fontWeight": "normal",
-      "color": "${textColors.body}"
+      "color": "${textColors.subheadline}",
+      "textAlign": "center"
     }
-  ],
-  "body": null,
-  "cta": null
+  ]
 }
 
-## 숫자 생성 규칙
-- 제품 특징에 맞는 현실적인 숫자 생성 (예: 보습 → XX%, 지속력 → XXH)
-- 과장하지 않고 신뢰감 있는 범위의 숫자 사용
-- {XX}는 실제 숫자로 대체하여 반환
+## 텍스트 배치 가이드
+- x: 0-100 (가로 위치, 50이 중앙)
+- y: 0-100 (세로 위치, 0이 상단, 100이 하단)
+- fontSize: 12-48 (중요도에 따라 조절)
+- fontWeight: "normal", "medium", "bold"
+- textAlign: "left", "center", "right"
 
-- 해당 섹션에 불필요한 항목은 null로 설정
-- statistics는 숫자와 설명을 분리하여 배열로 구성
+## 창의적으로 결정할 것
+- 텍스트 개수: 1개도 좋고 5개도 좋음 - 이미지가 답을 알려줌
+- 위치: 이미지의 빈 공간을 찾아 자연스럽게
+- 크기: 강조할 부분은 크게, 보조는 작게
+- 배치: 정중앙, 코너, 대각선 등 다양한 시도
+
 - JSON만 반환 (설명 없이)`;
 }
 
