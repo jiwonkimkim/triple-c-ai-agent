@@ -13,16 +13,19 @@ import {
   detectBeautySubCategory,
   isBeautyKeyword,
   BEAUTY_SPECIALIST_DATA,
+  generateMessageId,
+  validateGoogleAIApiKey,
 } from '../types';
 
 // Lazy initialization
 let _model: ChatGoogleGenerativeAI | null = null;
 function getModel() {
   if (!_model) {
+    const apiKey = validateGoogleAIApiKey();
     _model = new ChatGoogleGenerativeAI({
       model: 'gemini-2.0-flash-exp',
       temperature: 0.1,
-      apiKey: process.env.GOOGLE_AI_API_KEY,
+      apiKey,
     });
   }
   return _model;
@@ -223,7 +226,7 @@ export async function productDetectorAgent(
     const specialistData = BEAUTY_SPECIALIST_DATA[detected.subCategory];
 
     const confirmMessage: ChatMessage = {
-      id: `msg_${Date.now()}`,
+      id: generateMessageId(),
       role: 'assistant',
       content: `${specialistData.emoji} ${specialistData.name} 제품이시군요!\n\n` +
         `요즘 인기 있는 ${specialistData.name} 트렌드:\n` +
@@ -249,7 +252,7 @@ export async function productDetectorAgent(
   // 뷰티 키워드만 감지된 경우 (서브카테고리 불명확)
   if (detected.category === 'BEAUTY' && !detected.subCategory) {
     const clarifyMessage: ChatMessage = {
-      id: `msg_${Date.now()}`,
+      id: generateMessageId(),
       role: 'assistant',
       content: `뷰티 제품이시군요! 💄\n\n어떤 종류의 뷰티 제품인지 알려주시겠어요?`,
       agentType: 'COORDINATOR',

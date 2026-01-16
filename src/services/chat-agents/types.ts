@@ -4,6 +4,43 @@
  */
 
 import { AgentType, ConversationStatus } from '@prisma/client';
+import { randomUUID } from 'crypto';
+
+// ============================================
+// 메시지 ID 생성 유틸리티
+// ============================================
+
+/**
+ * 고유한 메시지 ID를 생성합니다.
+ * Date.now() 대신 UUID를 사용하여 레이스 컨디션을 방지합니다.
+ */
+export function generateMessageId(): string {
+  return `msg_${randomUUID()}`;
+}
+
+/**
+ * Google AI API Key가 설정되어 있는지 확인합니다.
+ * 설정되지 않은 경우 명확한 에러를 던집니다.
+ */
+export function validateGoogleAIApiKey(): string {
+  const apiKey = process.env.GOOGLE_AI_API_KEY;
+
+  if (!apiKey) {
+    console.error('[API Key] GOOGLE_AI_API_KEY is not configured');
+    throw new Error(
+      'AI 서비스가 설정되지 않았습니다. 관리자에게 문의해주세요. (GOOGLE_AI_API_KEY 누락)'
+    );
+  }
+
+  if (apiKey.length < 10) {
+    console.error('[API Key] GOOGLE_AI_API_KEY appears to be invalid');
+    throw new Error(
+      'AI 서비스 설정이 올바르지 않습니다. 관리자에게 문의해주세요. (유효하지 않은 API Key)'
+    );
+  }
+
+  return apiKey;
+}
 
 // ============================================
 // 카테고리 및 옵션 타입

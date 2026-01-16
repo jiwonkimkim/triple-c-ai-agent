@@ -13,6 +13,7 @@ import {
   ProjectCollectedData,
   BeautySubCategory,
   BEAUTY_SPECIALIST_DATA,
+  generateMessageId,
 } from '../types';
 
 // Lazy initialization
@@ -122,7 +123,7 @@ export async function planningConsultantAgent(
     `이대로 진행할까요, 아니면 수정하고 싶은 부분이 있으세요?`;
 
   const planMessage: ChatMessage = {
-    id: `msg_${Date.now()}`,
+    id: generateMessageId(),
     role: 'assistant',
     content: previewContent,
     agentType: 'PLANNER',
@@ -192,7 +193,7 @@ function createDefaultPlan(state: ChatAgentState): Partial<ChatAgentState> {
   ];
 
   const planMessage: ChatMessage = {
-    id: `msg_${Date.now()}`,
+    id: generateMessageId(),
     role: 'assistant',
     content: `**${collectedData.productName || '제품'}** 상세페이지 기획이에요!\n\n` +
       `## 📋 섹션 구성\n` +

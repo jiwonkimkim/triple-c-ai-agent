@@ -9,16 +9,18 @@ import {
   UserIntent,
   USER_INTENTS,
   ProjectCollectedData,
+  validateGoogleAIApiKey,
 } from '../types';
 
 // Lazy initialization to avoid build-time API key requirement
 let _model: ChatGoogleGenerativeAI | null = null;
 function getModel() {
   if (!_model) {
+    const apiKey = validateGoogleAIApiKey();
     _model = new ChatGoogleGenerativeAI({
       model: 'gemini-2.0-flash-exp',
       temperature: 0.1, // 낮은 temperature로 일관된 분류
-      apiKey: process.env.GOOGLE_AI_API_KEY,
+      apiKey,
     });
   }
   return _model;
@@ -239,11 +241,13 @@ ${conversationContext ? `최근 대화:\n${conversationContext.slice(-3).join('\
     return quickResult;
   }
 
-  // 4. 기본값: PROVIDE_INFO로 추정 (정보를 제공하려는 것으로 가정)
+  // 4. 기본값: UNCLEAR로 처리 (명확화 필요)
+  // 의도가 불분명할 때 잘못된 라우팅을 방지
+  console.log('[IntentParser] Fallback to UNCLEAR for message:', message);
   return {
-    intent: 'PROVIDE_INFO',
-    confidence: 0.5,
-    reasoning: '기본 추정 - 정보 제공으로 처리',
+    intent: 'UNCLEAR',
+    confidence: 0.3,
+    reasoning: '의도 파악 실패 - 명확화 필요',
   };
 }
 

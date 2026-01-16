@@ -12,6 +12,7 @@ import {
   PRODUCT_CATEGORIES,
   BEAUTY_SUBCATEGORIES,
   COPY_LENGTHS,
+  generateMessageId,
 } from '../types';
 
 // 카테고리 옵션
@@ -110,7 +111,7 @@ export async function suggesterAgent(
 
   // 선택지 메시지 생성
   const assistantMessage: ChatMessage = {
-    id: `msg_${Date.now()}`,
+    id: generateMessageId(),
     role: 'assistant',
     content: message,
     agentType: 'SUGGESTER',

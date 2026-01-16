@@ -5,6 +5,7 @@
 
 import { StateGraph, END, START, Annotation } from '@langchain/langgraph';
 import { AgentType } from '@prisma/client';
+import { randomUUID } from 'crypto';
 import {
   AgentState,
   ChatMessage,
@@ -195,6 +196,11 @@ function routeFromPlanningConsultant(state: ChatAgentState): RouteDecision {
 function routeFromBrandContext(state: ChatAgentState): RouteDecision {
   const { nextAction, collectedData } = state;
 
+  // await_input이면 대화 종료
+  if (nextAction?.type === 'await_input') {
+    return '__end__';
+  }
+
   if (nextAction?.type === 'generate') {
     return 'GENERATOR' as AgentType;
   }
@@ -205,6 +211,11 @@ function routeFromBrandContext(state: ChatAgentState): RouteDecision {
       return 'PLANNING_CONSULTANT' as any;
     }
     return nextAction.targetAgent;
+  }
+
+  // error나 complete도 종료
+  if (nextAction?.type === 'error' || nextAction?.type === 'complete') {
+    return '__end__';
   }
 
   return 'PLANNER' as AgentType;
@@ -364,6 +375,7 @@ export function createChatAgentGraph() {
     PLANNING_CONSULTANT: 'PLANNING_CONSULTANT',
     GENERATOR: 'GENERATOR',
     COORDINATOR: 'COORDINATOR',
+    __end__: END,
   });
 
   // Generator 라우팅
@@ -410,7 +422,7 @@ export function createInitialState(
   const messages: ChatMessage[] = initialMessage
     ? [
         {
-          id: `msg_${Date.now()}`,
+          id: `msg_${randomUUID()}`,
           role: 'user',
           content: initialMessage,
           createdAt: new Date(),
@@ -433,7 +445,7 @@ export function createInitialState(
 
 export function addUserMessage(state: ChatAgentState, content: string, attachments?: string[]): ChatAgentState {
   const newMessage: ChatMessage = {
-    id: `msg_${Date.now()}`,
+    id: `msg_${randomUUID()}`,
     role: 'user',
     content,
     attachments,

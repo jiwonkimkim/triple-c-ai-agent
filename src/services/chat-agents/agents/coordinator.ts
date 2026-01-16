@@ -13,6 +13,7 @@ import {
   detectBeautySubCategory,
   isBeautyKeyword,
   BEAUTY_SPECIALIST_DATA,
+  generateMessageId,
 } from '../types';
 import { parseIntent } from './intent-parser';
 import { detectProduct } from './product-detector';
@@ -21,7 +22,7 @@ import { isDiscoveryRequest } from './discovery';
 // 환영 메시지 생성
 function createWelcomeMessage(): ChatMessage {
   return {
-    id: `msg_${Date.now()}`,
+    id: generateMessageId(),
     role: 'assistant',
     content: `안녕하세요! 상세페이지 제작 도우미예요 ✨
 
@@ -95,7 +96,7 @@ export async function coordinatorAgent(
         };
       }
       const greetingMessage: ChatMessage = {
-        id: `msg_${Date.now()}`,
+        id: generateMessageId(),
         role: 'assistant',
         content: '안녕하세요! 😊 어떤 제품의 상세페이지를 만들어 드릴까요?',
         agentType: 'COORDINATOR',
@@ -136,7 +137,7 @@ export async function coordinatorAgent(
     // === 취소 ===
     case 'CANCEL':
       const cancelMessage: ChatMessage = {
-        id: `msg_${Date.now()}`,
+        id: generateMessageId(),
         role: 'assistant',
         content: '알겠습니다. 처음부터 다시 시작할게요! 🔄\n\n어떤 제품의 상세페이지를 만들어 드릴까요?',
         agentType: 'COORDINATOR',
@@ -173,7 +174,7 @@ export async function coordinatorAgent(
 
         // 자동 분류된 메시지
         const autoDetectMessage: ChatMessage = {
-          id: `msg_${Date.now()}`,
+          id: generateMessageId(),
           role: 'assistant',
           content: `${specialistData.emoji} ${specialistData.name} 제품이시군요!\n\n` +
             `**요즘 인기 트렌드:**\n` +
@@ -205,7 +206,7 @@ export async function coordinatorAgent(
       // 뷰티 키워드만 감지된 경우
       if (detected.category === 'BEAUTY' && !detected.subCategory) {
         const clarifyMessage: ChatMessage = {
-          id: `msg_${Date.now()}`,
+          id: generateMessageId(),
           role: 'assistant',
           content: `뷰티 제품이시군요! 💄\n\n어떤 종류의 제품인지 알려주시겠어요?`,
           agentType: 'COORDINATOR',

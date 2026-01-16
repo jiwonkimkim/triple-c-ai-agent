@@ -6,16 +6,17 @@
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { AgentType } from '@prisma/client';
 import { ChatAgentState } from '../graph';
-import { ChatMessage, PlannedSection } from '../types';
+import { ChatMessage, PlannedSection, generateMessageId, validateGoogleAIApiKey } from '../types';
 
 // Lazy initialization to avoid build-time API key requirement
 let _model: ChatGoogleGenerativeAI | null = null;
 function getModel() {
   if (!_model) {
+    const apiKey = validateGoogleAIApiKey();
     _model = new ChatGoogleGenerativeAI({
       model: 'gemini-2.0-flash-exp',
       temperature: 0.4,
-      apiKey: process.env.GOOGLE_AI_API_KEY,
+      apiKey,
     });
   }
   return _model;
@@ -103,7 +104,7 @@ ${brandContext ? `
         .join('\n');
 
       const assistantMessage: ChatMessage = {
-        id: `msg_${Date.now()}`,
+        id: generateMessageId(),
         role: 'assistant',
         content: `상세페이지 기획이 완료되었어요! 아래 구성으로 진행할까요?\n\n` +
           `## 📋 섹션 구성\n${sectionsPreview}\n\n` +
@@ -154,7 +155,7 @@ ${brandContext ? `
   ];
 
   const fallbackMessage: ChatMessage = {
-    id: `msg_${Date.now()}`,
+    id: generateMessageId(),
     role: 'assistant',
     content: `기본 구성으로 상세페이지를 준비했어요.\n\n` +
       defaultSections.map((s, idx) => `${idx + 1}. ${s.name}`).join('\n') +

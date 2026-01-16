@@ -10,6 +10,7 @@ import {
   ChatMessage,
   BEAUTY_SPECIALIST_DATA,
   BeautySubCategory,
+  generateMessageId,
 } from '../types';
 
 // 트렌드 데이터 (기본 버전 - 하드코딩)
@@ -140,7 +141,7 @@ export async function discoveryAgent(
   }
 
   const assistantMessage: ChatMessage = {
-    id: `msg_${Date.now()}`,
+    id: generateMessageId(),
     role: 'assistant',
     content: responseContent,
     agentType: 'COORDINATOR',

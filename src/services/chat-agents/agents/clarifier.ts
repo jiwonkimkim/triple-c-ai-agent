@@ -6,16 +6,17 @@
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { AgentType } from '@prisma/client';
 import { ChatAgentState } from '../graph';
-import { ChatMessage } from '../types';
+import { ChatMessage, generateMessageId, validateGoogleAIApiKey } from '../types';
 
 // Lazy initialization to avoid build-time API key requirement
 let _model: ChatGoogleGenerativeAI | null = null;
 function getModel() {
   if (!_model) {
+    const apiKey = validateGoogleAIApiKey();
     _model = new ChatGoogleGenerativeAI({
       model: 'gemini-2.0-flash-exp',
       temperature: 0.3,
-      apiKey: process.env.GOOGLE_AI_API_KEY,
+      apiKey,
     });
   }
   return _model;
@@ -101,7 +102,7 @@ ${messages.slice(-3).map(m => `[${m.role}]: ${m.content}`).join('\n')}
       }
 
       const assistantMessage: ChatMessage = {
-        id: `msg_${Date.now()}`,
+        id: generateMessageId(),
         role: 'assistant',
         content: messageContent,
         agentType: 'CLARIFIER',

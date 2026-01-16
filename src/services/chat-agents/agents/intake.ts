@@ -13,16 +13,19 @@ import {
   PRODUCT_CATEGORIES,
   BEAUTY_SUBCATEGORIES,
   COPY_LENGTHS,
+  generateMessageId,
+  validateGoogleAIApiKey,
 } from '../types';
 
 // Lazy initialization to avoid build-time API key requirement
 let _model: ChatGoogleGenerativeAI | null = null;
 function getModel() {
   if (!_model) {
+    const apiKey = validateGoogleAIApiKey();
     _model = new ChatGoogleGenerativeAI({
       model: 'gemini-2.0-flash-exp',
       temperature: 0.2,
-      apiKey: process.env.GOOGLE_AI_API_KEY,
+      apiKey,
     });
   }
   return _model;
@@ -122,10 +125,29 @@ ${messages.slice(-5).map(m => `[${m.role}]: ${m.content}`).join('\n')}
       ? response.content
       : JSON.stringify(response.content);
 
-    // JSON 파싱
+    // JSON 파싱 (안전한 처리)
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      const intakeResponse: IntakeResponse = JSON.parse(jsonMatch[0]);
+      let intakeResponse: IntakeResponse;
+
+      try {
+        intakeResponse = JSON.parse(jsonMatch[0]);
+      } catch (parseError) {
+        console.error('[Intake] JSON parse error:', parseError);
+        console.error('[Intake] Raw response:', responseText);
+        throw new Error('LLM 응답 파싱 실패');
+      }
+
+      // 응답 구조 유효성 검증
+      if (!intakeResponse.message || typeof intakeResponse.message !== 'string') {
+        console.error('[Intake] Invalid response structure - missing message');
+        throw new Error('유효하지 않은 응답 구조');
+      }
+
+      // extracted가 없으면 빈 객체로 초기화
+      if (!intakeResponse.extracted) {
+        intakeResponse.extracted = {};
+      }
 
       // 추출된 데이터 정리
       const newCollectedData: Partial<ProjectCollectedData> = {};
@@ -161,7 +183,7 @@ ${messages.slice(-5).map(m => `[${m.role}]: ${m.content}`).join('\n')}
 
       // 응답 메시지 생성
       const assistantMessage: ChatMessage = {
-        id: `msg_${Date.now()}`,
+        id: generateMessageId(),
         role: 'assistant',
         content: intakeResponse.message,
         agentType: 'INTAKE',
@@ -203,7 +225,7 @@ ${messages.slice(-5).map(m => `[${m.role}]: ${m.content}`).join('\n')}
 
   // 에러 시 기본 응답
   const fallbackMessage: ChatMessage = {
-    id: `msg_${Date.now()}`,
+    id: generateMessageId(),
     role: 'assistant',
     content: '죄송해요, 잠시 문제가 있었어요. 다시 한번 말씀해 주시겠어요?',
     agentType: 'INTAKE',

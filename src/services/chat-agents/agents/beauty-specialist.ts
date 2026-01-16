@@ -12,16 +12,19 @@ import {
   BeautySubCategory,
   BEAUTY_SPECIALIST_DATA,
   getMissingFields,
+  generateMessageId,
+  validateGoogleAIApiKey,
 } from '../types';
 
 // Lazy initialization
 let _model: ChatGoogleGenerativeAI | null = null;
 function getModel() {
   if (!_model) {
+    const apiKey = validateGoogleAIApiKey();
     _model = new ChatGoogleGenerativeAI({
       model: 'gemini-2.0-flash-exp',
       temperature: 0.3,
-      apiKey: process.env.GOOGLE_AI_API_KEY,
+      apiKey,
     });
   }
   return _model;
@@ -103,7 +106,7 @@ export async function beautySpecialistAgent(
   if (!lastUserMessage) {
     // 첫 진입 시 환영 메시지
     const welcomeMessage: ChatMessage = {
-      id: `msg_${Date.now()}`,
+      id: generateMessageId(),
       role: 'assistant',
       content: `${specialistData.emoji} ${specialistData.name} 전문가로서 도와드릴게요!\n\n` +
         `좋은 상세페이지를 만들려면 이런 정보가 필요해요:\n` +
@@ -171,7 +174,7 @@ ${conversationHistory}
 
       // 응답 메시지 생성
       const assistantMessage: ChatMessage = {
-        id: `msg_${Date.now()}`,
+        id: generateMessageId(),
         role: 'assistant',
         content: specialistResponse.message,
         agentType: 'INTAKE',
@@ -218,7 +221,7 @@ ${conversationHistory}
 
   // 에러 시 기본 응답
   const fallbackMessage: ChatMessage = {
-    id: `msg_${Date.now()}`,
+    id: generateMessageId(),
     role: 'assistant',
     content: `${specialistData.emoji} 제품에 대해 더 알려주시겠어요?\n\n` +
       `특히 ${specialistData.keyPoints[0]}에 대해 알고 싶어요.`,

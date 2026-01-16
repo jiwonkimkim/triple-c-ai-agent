@@ -6,16 +6,17 @@
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { AgentType } from '@prisma/client';
 import { ChatAgentState } from '../graph';
-import { ChatMessage, ProjectCollectedData } from '../types';
+import { ChatMessage, ProjectCollectedData, generateMessageId, validateGoogleAIApiKey } from '../types';
 
 // Lazy initialization to avoid build-time API key requirement
 let _model: ChatGoogleGenerativeAI | null = null;
 function getModel() {
   if (!_model) {
+    const apiKey = validateGoogleAIApiKey();
     _model = new ChatGoogleGenerativeAI({
       model: 'gemini-2.0-flash-exp',
       temperature: 0.3,
-      apiKey: process.env.GOOGLE_AI_API_KEY,
+      apiKey,
     });
   }
   return _model;
@@ -94,7 +95,7 @@ ${JSON.stringify(collectedData, null, 2)}
       // 명확화가 필요한 경우
       if (feedbackResponse.clarificationNeeded || feedbackResponse.modificationType === 'unclear') {
         const clarifyMessage: ChatMessage = {
-          id: `msg_${Date.now()}`,
+          id: generateMessageId(),
           role: 'assistant',
           content: feedbackResponse.responseMessage,
           agentType: 'FEEDBACK',
@@ -112,7 +113,7 @@ ${JSON.stringify(collectedData, null, 2)}
       // 필드 업데이트
       if (feedbackResponse.modificationType === 'field_update') {
         const updateMessage: ChatMessage = {
-          id: `msg_${Date.now()}`,
+          id: generateMessageId(),
           role: 'assistant',
           content: feedbackResponse.responseMessage,
           agentType: 'FEEDBACK',
@@ -135,7 +136,7 @@ ${JSON.stringify(collectedData, null, 2)}
       // 섹션 변경
       if (feedbackResponse.modificationType === 'section_change') {
         const sectionMessage: ChatMessage = {
-          id: `msg_${Date.now()}`,
+          id: generateMessageId(),
           role: 'assistant',
           content: feedbackResponse.responseMessage,
           agentType: 'FEEDBACK',
@@ -158,7 +159,7 @@ ${JSON.stringify(collectedData, null, 2)}
       // 재생성 요청
       if (feedbackResponse.modificationType === 'regenerate') {
         const regenerateMessage: ChatMessage = {
-          id: `msg_${Date.now()}`,
+          id: generateMessageId(),
           role: 'assistant',
           content: feedbackResponse.responseMessage,
           agentType: 'FEEDBACK',
@@ -180,7 +181,7 @@ ${JSON.stringify(collectedData, null, 2)}
 
   // 기본 응답
   const fallbackMessage: ChatMessage = {
-    id: `msg_${Date.now()}`,
+    id: generateMessageId(),
     role: 'assistant',
     content: '어떤 부분을 수정하고 싶으신가요? 구체적으로 말씀해 주시면 도움이 될 것 같아요.',
     agentType: 'FEEDBACK',

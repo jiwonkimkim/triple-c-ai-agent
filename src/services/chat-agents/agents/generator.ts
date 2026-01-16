@@ -5,7 +5,7 @@
 
 import { AgentType } from '@prisma/client';
 import { ChatAgentState } from '../graph';
-import { ChatMessage, GenerationResult } from '../types';
+import { ChatMessage, GenerationResult, generateMessageId, getMissingFields } from '../types';
 import { prisma } from '@/lib/prisma';
 
 export async function generatorAgent(
@@ -13,9 +13,43 @@ export async function generatorAgent(
 ): Promise<Partial<ChatAgentState>> {
   const { collectedData, userId, brandContext, conversationId } = state;
 
+  // 필수 필드 검증
+  const missingFields = getMissingFields(collectedData);
+  if (missingFields.length > 0) {
+    console.error('[Generator] Missing required fields:', missingFields);
+
+    const fieldNames: Record<string, string> = {
+      productName: '제품명',
+      category: '카테고리',
+      copyLength: '카피 길이',
+      subCategory: '서브 카테고리',
+    };
+
+    const missingFieldNames = missingFields.map(f => fieldNames[f] || f).join(', ');
+
+    const validationErrorMessage: ChatMessage = {
+      id: generateMessageId(),
+      role: 'assistant',
+      content: `아직 필요한 정보가 부족해요.\n\n` +
+        `**부족한 정보:** ${missingFieldNames}\n\n` +
+        `필요한 정보를 먼저 알려주시겠어요?`,
+      agentType: 'GENERATOR',
+      metadata: {
+        uiType: 'text',
+      },
+      createdAt: new Date(),
+    };
+
+    return {
+      messages: [validationErrorMessage],
+      currentAgent: 'GENERATOR',
+      nextAction: { type: 'continue', targetAgent: 'INTAKE' as AgentType },
+    };
+  }
+
   // 진행 상태 메시지
   const progressMessage: ChatMessage = {
-    id: `msg_${Date.now()}`,
+    id: generateMessageId(),
     role: 'assistant',
     content: '상세페이지를 생성하고 있어요... 잠시만 기다려주세요!',
     agentType: 'GENERATOR',
@@ -114,7 +148,7 @@ export async function generatorAgent(
 
     // 5. 성공 메시지
     const successMessage: ChatMessage = {
-      id: `msg_${Date.now()}`,
+      id: generateMessageId(),
       role: 'assistant',
       content: `🎉 상세페이지가 성공적으로 생성되었어요!\n\n` +
         `'${projectTitle}' 프로젝트가 준비되었습니다.\n` +
@@ -157,7 +191,7 @@ export async function generatorAgent(
     }).catch(() => {});
 
     const errorMessage: ChatMessage = {
-      id: `msg_${Date.now()}`,
+      id: generateMessageId(),
       role: 'assistant',
       content: `죄송해요, 생성 중 문제가 발생했어요.\n\n` +
         `오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}\n\n` +

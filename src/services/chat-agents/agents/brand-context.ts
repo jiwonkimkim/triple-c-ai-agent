@@ -5,7 +5,7 @@
 
 import { AgentType } from '@prisma/client';
 import { ChatAgentState } from '../graph';
-import { ChatMessage, BrandContext } from '../types';
+import { ChatMessage, BrandContext, generateMessageId } from '../types';
 import { prisma } from '@/lib/prisma';
 
 export async function brandContextAgent(
@@ -41,7 +41,7 @@ export async function brandContextAgent(
 
     if (!brandProfile) {
       const errorMessage: ChatMessage = {
-        id: `msg_${Date.now()}`,
+        id: generateMessageId(),
         role: 'assistant',
         content: '선택하신 브랜드 프로필을 찾을 수 없어요. 브랜드 없이 계속 진행할까요?',
         agentType: 'BRAND_CONTEXT',
@@ -77,7 +77,7 @@ export async function brandContextAgent(
 
     // 브랜드 로드 완료 메시지
     const successMessage: ChatMessage = {
-      id: `msg_${Date.now()}`,
+      id: generateMessageId(),
       role: 'assistant',
       content: `'${brandProfile.name}' 브랜드 스타일을 적용할게요!\n\n` +
         `🎨 브랜드 아이덴티티: ${brandProfile.identity.substring(0, 100)}...\n` +
