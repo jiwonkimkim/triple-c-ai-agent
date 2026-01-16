@@ -100,6 +100,8 @@ jobs:
           GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY || 'dummy-key-for-build' }}
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'dummy-secret-for-build-only' }}
           NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL || 'https://triple-c.vercel.app' }}
+          # 메모리 부족 방지
+          NODE_OPTIONS: '--max-old-space-size=4096'
         run: |
           set -o pipefail
           npm run build 2>&1 | tee build.log
