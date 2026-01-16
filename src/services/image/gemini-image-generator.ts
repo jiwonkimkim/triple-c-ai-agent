@@ -45,6 +45,8 @@ export interface GeminiGeneratedImage {
   base64Data: string;
   mimeType: string;
   revisedPrompt?: string;
+  // ★ 이미지 모델이 함께 리턴한 오버레이 텍스트
+  overlayText?: OverlayTextContent;
   // ★ 개발자 모드용 개별 프롬프트 구성요소
   promptComponents?: {
     orchestrationPrompt?: string;      // 오케스트레이션 AI가 생성한 시나리오
@@ -104,9 +106,12 @@ export async function generateImageWithGemini(
       },
     });
 
-    // Process response parts to extract images
+    // Process response parts to extract images AND text (overlay)
+    let extractedOverlayText: OverlayTextContent | undefined;
+
     if (response.candidates && response.candidates[0]?.content?.parts) {
       for (const part of response.candidates[0].content.parts) {
+        // ★ 이미지 추출
         if (part.inlineData && part.inlineData.data) {
           console.log(`[Gemini] Image generated, mimeType: ${part.inlineData.mimeType}`);
           results.push({
@@ -114,10 +119,40 @@ export async function generateImageWithGemini(
             mimeType: part.inlineData.mimeType || 'image/png',
           });
         }
+        // ★ 텍스트 추출 (오버레이 텍스트 JSON)
+        if (part.text) {
+          try {
+            let jsonStr = part.text.trim();
+            // JSON 코드블록 제거
+            const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+            if (jsonMatch) {
+              jsonStr = jsonMatch[1];
+            }
+            const parsed = JSON.parse(jsonStr) as OverlayTextContent & { texts?: OverlayTextItem[] };
+
+            // texts 배열이 있으면 그대로 사용
+            if (parsed.texts && Array.isArray(parsed.texts)) {
+              extractedOverlayText = { texts: parsed.texts };
+              console.log(`[Gemini] ★ Overlay text extracted from image model: ${parsed.texts.length} texts`);
+            } else if (parsed.headline || parsed.subheadline) {
+              // 기존 형식도 지원
+              extractedOverlayText = parsed;
+              console.log(`[Gemini] ★ Overlay text extracted from image model (legacy format)`);
+            }
+          } catch {
+            // JSON 파싱 실패 시 무시 (일반 텍스트일 수 있음)
+            console.log(`[Gemini] Text response (not overlay JSON): ${part.text.substring(0, 100)}...`);
+          }
+        }
       }
     }
 
-    console.log(`[Gemini] Total images generated: ${results.length}`);
+    // ★ 이미지에 오버레이 텍스트 첨부
+    if (extractedOverlayText && results.length > 0) {
+      results[0].overlayText = extractedOverlayText;
+    }
+
+    console.log(`[Gemini] Total images generated: ${results.length}, overlayText: ${extractedOverlayText ? 'YES' : 'NO'}`);
     return results;
   } catch (error) {
     console.error('[Gemini] Image generation error:', error);
@@ -428,10 +463,57 @@ ${featureHighlight || 'Highlight product quality and premium feel'}
 - Premium commercial photography that triggers desire to purchase`;
   }
 
-  console.log(`[Gemini T2I] Generating ${sectionType} with aspectRatio: ${aspectRatio || 'free'}`);
+  // ★★★ 오버레이 텍스트 JSON 요청 추가
+  const overlayTextRequest = `
+
+[OVERLAY TEXT - MUST INCLUDE IN YOUR TEXT RESPONSE]
+Also return overlay text for this image as JSON. Design creative typography that complements the image.
+The overlay text should be placed on empty areas of the image, not covering the product.
+
+Product: ${productName}
+Category: ${category}
+Target: ${targetAudience || 'General'}
+Key Features: ${keyFeatures?.join(', ') || 'Premium quality'}
+Section: ${sectionType}
+
+Return JSON format:
+{
+  "texts": [
+    {
+      "text": "Main headline text",
+      "x": 50,
+      "y": 15,
+      "fontSize": 32,
+      "fontWeight": "bold",
+      "color": "#333333",
+      "textAlign": "center"
+    },
+    {
+      "text": "Subheadline or description",
+      "x": 50,
+      "y": 25,
+      "fontSize": 16,
+      "fontWeight": "normal",
+      "color": "#666666",
+      "textAlign": "center"
+    }
+  ]
+}
+
+Guidelines:
+- x: 0-100 (horizontal position, 50=center)
+- y: 0-100 (vertical position, 0=top, 100=bottom)
+- fontSize: 12-48 based on importance
+- Keep text concise and impactful (Korean marketing style)
+- Use 1-4 text elements maximum
+- Avoid emojis, use professional language`;
+
+  const finalPrompt = enhancedPrompt + overlayTextRequest;
+
+  console.log(`[Gemini T2I] Generating ${sectionType} with aspectRatio: ${aspectRatio || 'free'}, with overlay text request`);
 
   const images = await generateImageWithGemini({
-    prompt: enhancedPrompt,
+    prompt: finalPrompt,  // ★ 오버레이 텍스트 요청 포함된 프롬프트
     model,
     aspectRatio,
   });
@@ -443,7 +525,7 @@ ${featureHighlight || 'Highlight product quality and premium feel'}
   // 최종 사용된 프롬프트를 revisedPrompt로 반환
   return {
     ...images[0],
-    revisedPrompt: enhancedPrompt,
+    revisedPrompt: finalPrompt,
   };
 }
 
@@ -890,10 +972,13 @@ ${prompt}
       partsCount: response?.candidates?.[0]?.content?.parts?.length,
     }));
 
-    // 응답에서 이미지 추출
+    // 응답에서 이미지 AND 텍스트(오버레이) 추출
+    let extractedOverlayText: OverlayTextContent | undefined;
+
     if (response.candidates && response.candidates[0]?.content?.parts) {
       for (const part of response.candidates[0].content.parts) {
         console.log(`[Gemini I2I] Part type:`, part.text ? 'text' : part.inlineData ? 'inlineData' : 'unknown');
+        // ★ 이미지 추출
         if (part.inlineData && part.inlineData.data) {
           console.log(`[Gemini I2I] Image generated, mimeType: ${part.inlineData.mimeType}, data length: ${part.inlineData.data.length}`);
           results.push({
@@ -904,15 +989,43 @@ ${prompt}
               i2iSystemPrompt: i2iSystemPrompt,
             },
           });
-        } else if (part.text) {
-          console.log(`[Gemini I2I] Text response instead of image: ${part.text.substring(0, 200)}...`);
+        }
+        // ★ 텍스트 추출 (오버레이 텍스트 JSON)
+        if (part.text) {
+          try {
+            let jsonStr = part.text.trim();
+            // JSON 코드블록 제거
+            const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+            if (jsonMatch) {
+              jsonStr = jsonMatch[1];
+            }
+            const parsed = JSON.parse(jsonStr) as OverlayTextContent & { texts?: OverlayTextItem[] };
+
+            // texts 배열이 있으면 그대로 사용
+            if (parsed.texts && Array.isArray(parsed.texts)) {
+              extractedOverlayText = { texts: parsed.texts };
+              console.log(`[Gemini I2I] ★ Overlay text extracted from image model: ${parsed.texts.length} texts`);
+            } else if (parsed.headline || parsed.subheadline) {
+              // 기존 형식도 지원
+              extractedOverlayText = parsed;
+              console.log(`[Gemini I2I] ★ Overlay text extracted from image model (legacy format)`);
+            }
+          } catch {
+            // JSON 파싱 실패 시 무시 (일반 텍스트일 수 있음)
+            console.log(`[Gemini I2I] Text response (not overlay JSON): ${part.text.substring(0, 100)}...`);
+          }
         }
       }
     } else {
       console.warn(`[Gemini I2I] No candidates or parts in response`);
     }
 
-    console.log(`[Gemini I2I] Total images generated: ${results.length}`);
+    // ★ 이미지에 오버레이 텍스트 첨부
+    if (extractedOverlayText && results.length > 0) {
+      results[0].overlayText = extractedOverlayText;
+    }
+
+    console.log(`[Gemini I2I] Total images generated: ${results.length}, overlayText: ${extractedOverlayText ? 'YES' : 'NO'}`);
     return results;
   } catch (error) {
     console.error('[Gemini I2I] Image-to-image generation error:', error);
@@ -1140,13 +1253,50 @@ ${scenarioPrompt}
     additionalPrompt ? `Additional style: ${additionalPrompt}` : '',
   ].filter(Boolean);
 
+  // ★★★ 오버레이 텍스트 JSON 요청 추가
+  const overlayTextRequest = `
+
+[OVERLAY TEXT - MUST INCLUDE IN YOUR TEXT RESPONSE]
+Also return overlay text for this image as JSON. Design creative typography that complements the image.
+The overlay text should be placed on empty areas of the image, not covering the product.
+
+Product: ${productName}
+Category: ${category}
+Target: ${targetAudience || 'General'}
+Key Features: ${keyFeatures?.join(', ') || 'Premium quality'}
+Section: ${sectionType}
+
+Return JSON format:
+{
+  "texts": [
+    {
+      "text": "Main headline text",
+      "x": 50,
+      "y": 15,
+      "fontSize": 32,
+      "fontWeight": "bold",
+      "color": "#333333",
+      "textAlign": "center"
+    }
+  ]
+}
+
+Guidelines:
+- x: 0-100 (horizontal position, 50=center)
+- y: 0-100 (vertical position, 0=top, 100=bottom)
+- fontSize: 12-48 based on importance
+- Keep text concise and impactful (Korean marketing style)
+- Use 1-4 text elements maximum
+- Avoid emojis, use professional language`;
+
   const fullPrompt = `${basePrompt}${orchestrationContext}
 
 Product: ${productName}
 Category: ${category}
 ${additionalPrompt ? `Additional style: ${additionalPrompt}` : ''}
 
-OUTPUT: High-quality commercial photography, 8K resolution, no text on image.`;
+OUTPUT: High-quality commercial photography, 8K resolution, no text on image.
+${overlayTextRequest}`;
 
   console.log(`[Gemini I2I] Generating ${sectionType} section image`);
   if (sectionType === 'MAIN') {
@@ -1353,27 +1503,39 @@ export async function generateSectionImageWithOverlay(
     usedImagePrompt = generatedImage.revisedPrompt || t2iPrompt;
   }
 
-  // 2. 오버레이 텍스트 생성 (★ 이미지 컨텍스트 전달하여 어울리는 텍스트 생성)
-  const overlayResult = await generateOverlayTextForSection(
-    sectionType,
-    productName,
-    category,
-    keyFeatures,
-    targetAudience,
-    {
-      blockIndex,
-      totalBlocks,
-      variationHint,
-    },
-    usedImagePrompt  // ★ 이미지 생성에 사용된 프롬프트 전달
-  );
+  // 2. 오버레이 텍스트 처리
+  // ★★★ 이미지 모델에서 받은 overlayText가 있으면 우선 사용!
+  let finalOverlayText: OverlayTextContent | undefined = generatedImage.overlayText;
+  let overlayPrompt: string = usedImagePrompt;
+
+  if (finalOverlayText) {
+    console.log(`[Image+Overlay] ★ Using overlay text from IMAGE MODEL (no separate text model call)`);
+  } else {
+    // ★ 이미지 모델에서 오버레이 텍스트가 없으면 별도 텍스트 모델 호출 (폴백)
+    console.log(`[Image+Overlay] Image model did not return overlay text, calling text model as fallback...`);
+    const overlayResult = await generateOverlayTextForSection(
+      sectionType,
+      productName,
+      category,
+      keyFeatures,
+      targetAudience,
+      {
+        blockIndex,
+        totalBlocks,
+        variationHint,
+      },
+      usedImagePrompt
+    );
+    finalOverlayText = overlayResult.overlayText;
+    overlayPrompt = overlayResult.prompt;
+  }
 
   console.log(`[Image+Overlay] ${sectionType} image and overlay text generated successfully`);
 
   return {
     image: generatedImage,
-    overlayText: overlayResult.overlayText,
-    overlayPrompt: overlayResult.prompt,
+    overlayText: finalOverlayText,
+    overlayPrompt: overlayPrompt,
   };
 }
 
