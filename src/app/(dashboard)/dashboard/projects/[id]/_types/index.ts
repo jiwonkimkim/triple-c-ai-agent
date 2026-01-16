@@ -18,6 +18,7 @@ export interface ProjectData {
   productUrl?: string;
   productImages?: string[];
   imageModel?: 'gemini-2.5-flash-image' | 'gemini-3-pro-image-preview';
+  conversationId?: string;  // 채팅에서 생성된 경우 대화 ID
   detailPageVersions: Array<{
     id: string;
     versionNumber: number;

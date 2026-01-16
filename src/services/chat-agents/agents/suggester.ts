@@ -14,6 +14,7 @@ import {
   COPY_LENGTHS,
   generateMessageId,
 } from '../types';
+import { prisma } from '@/lib/prisma';
 
 // 카테고리 옵션
 const CATEGORY_OPTIONS: SuggestionOption[] = [
@@ -46,6 +47,18 @@ const COPY_LENGTH_OPTIONS: SuggestionOption[] = [
   { id: 'long', label: '자세히', value: 'long', description: '상세하고 포괄적으로' },
 ];
 
+// 이미지 모델 옵션
+const IMAGE_MODEL_OPTIONS: SuggestionOption[] = [
+  { id: 'gemini-2.5-flash-image', label: '기본 (Flash)', value: 'gemini-2.5-flash-image', description: '빠른 이미지 생성' },
+  { id: 'gemini-3-pro-image-preview', label: '프로 (Pro)', value: 'gemini-3-pro-image-preview', description: '고품질 이미지 생성' },
+];
+
+// 이미지 업로드 여부 옵션
+const IMAGE_UPLOAD_OPTIONS: SuggestionOption[] = [
+  { id: 'upload_images', label: '제품 이미지 업로드', value: 'upload', description: '제품 사진을 직접 업로드합니다' },
+  { id: 'skip_images', label: '이미지 없이 진행', value: 'skip', description: 'AI가 이미지를 생성합니다' },
+];
+
 // 브랜드 선택 옵션 (동적으로 생성)
 function createBrandOptions(brands: Array<{ id: string; name: string }>): SuggestionOption[] {
   const options: SuggestionOption[] = brands.map(brand => ({
@@ -68,13 +81,14 @@ function createBrandOptions(brands: Array<{ id: string; name: string }>): Sugges
 export async function suggesterAgent(
   state: ChatAgentState
 ): Promise<Partial<ChatAgentState>> {
-  const { collectedData, messages } = state;
+  const { collectedData, messages, userId } = state;
   const missingFields = getMissingFields(collectedData);
 
   // 어떤 선택지를 제시할지 결정
   let options: SuggestionOption[] = [];
   let message = '';
   let askingField = '';
+  let uiType: 'options' | 'image_upload' = 'options';
 
   // 1. 카테고리가 없으면 카테고리 선택지
   if (!collectedData.category) {
@@ -96,7 +110,52 @@ export async function suggesterAgent(
     message = '상세페이지의 텍스트 분량은 어느 정도가 좋을까요?';
     askingField = 'copyLength';
   }
-  // 4. 필수 정보가 모두 있으면 바로 기획 단계로 이동
+  // 4. 브랜드 선택 (brandProfileId가 명시적으로 설정되지 않은 경우)
+  else if (collectedData.brandProfileId === undefined) {
+    // 사용자의 브랜드 목록 조회
+    try {
+      const userBrands = await prisma.brandProfile.findMany({
+        where: { userId: userId },
+        select: { id: true, name: true },
+        orderBy: { updatedAt: 'desc' },
+        take: 5,
+      });
+
+      if (userBrands.length > 0) {
+        options = createBrandOptions(userBrands);
+        message = '등록된 브랜드가 있네요! 브랜드 스타일을 적용할까요?';
+        askingField = 'brandProfileId';
+      } else {
+        // 브랜드가 없으면 스킵하고 다음 단계로
+        return {
+          collectedData: { brandProfileId: null } as any,  // 명시적으로 null 설정
+          currentAgent: 'SUGGESTER',
+          nextAction: { type: 'continue', targetAgent: 'SUGGESTER' as AgentType },
+        };
+      }
+    } catch (error) {
+      console.error('[Suggester] Failed to fetch brands:', error);
+      // 에러 시 스킵
+      return {
+        collectedData: { brandProfileId: null } as any,
+        currentAgent: 'SUGGESTER',
+        nextAction: { type: 'continue', targetAgent: 'SUGGESTER' as AgentType },
+      };
+    }
+  }
+  // 5. 제품 이미지 업로드 여부 (productImages가 명시적으로 설정되지 않은 경우)
+  else if (collectedData.productImages === undefined) {
+    options = IMAGE_UPLOAD_OPTIONS;
+    message = '제품 이미지가 있으신가요? 이미지가 있으면 더 좋은 상세페이지를 만들 수 있어요.';
+    askingField = 'productImageChoice';
+  }
+  // 6. 이미지 모델 선택 (이미지 없이 진행하는 경우)
+  else if (!collectedData.imageModel && (!collectedData.productImages || collectedData.productImages.length === 0)) {
+    options = IMAGE_MODEL_OPTIONS;
+    message = 'AI가 이미지를 생성합니다. 어떤 품질로 만들까요?';
+    askingField = 'imageModel';
+  }
+  // 7. 필수 정보가 모두 있으면 바로 기획 단계로 이동
   else {
     // 뷰티 카테고리면 Planning Consultant로, 아니면 Planner로
     const targetAgent = collectedData.category === 'BEAUTY' && collectedData.subCategory
@@ -116,7 +175,7 @@ export async function suggesterAgent(
     content: message,
     agentType: 'SUGGESTER',
     metadata: {
-      uiType: 'options',
+      uiType,
       options,
       multiSelect: false,
       askingField,  // 어떤 필드를 물어보는지 저장
@@ -152,6 +211,15 @@ export function processSuggesterSelection(
       return { copyLength: selectedOption.value as any };
     case 'brandProfileId':
       return { brandProfileId: selectedOption.value || undefined };
+    case 'productImageChoice':
+      // 이미지 업로드 선택: upload → 이미지 대기, skip → 빈 배열로 설정
+      if (selectedOption.value === 'skip') {
+        return { productImages: [] };
+      }
+      // upload 선택 시 undefined 유지하여 이미지 업로드 대기
+      return {};
+    case 'imageModel':
+      return { imageModel: selectedOption.value as any };
     default:
       return {};
   }

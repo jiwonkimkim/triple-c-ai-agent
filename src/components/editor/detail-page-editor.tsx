@@ -87,6 +87,7 @@ interface SectionPromptUpdate {
 interface DetailPageEditorProps {
   projectId: string;
   versionId?: string;
+  conversationId?: string; // 채팅에서 넘어온 경우 대화 연동
   initialSections?: Section[];
   onSaveSuccess?: () => void;
   onSectionPromptUpdated?: (update: SectionPromptUpdate) => void;
@@ -101,6 +102,7 @@ const previewWidths = {
 export function DetailPageEditor({
   projectId,
   versionId,
+  conversationId,
   initialSections,
   onSaveSuccess,
   onSectionPromptUpdated,
@@ -111,11 +113,12 @@ export function DetailPageEditor({
   const [isLoading, setIsLoading] = useState(true);
 
   // AI Chat state
-  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(!!conversationId); // 대화 있으면 기본 열림
   const [chatMessage, setChatMessage] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [editType, setEditType] = useState<'text' | 'image' | 'both'>('text');
+  const [activeTab, setActiveTab] = useState<'chat' | 'edit'>('chat'); // 채팅/편집 탭
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Template modal state
@@ -123,6 +126,35 @@ export function DetailPageEditor({
 
   // Section regeneration state
   const [regeneratingSectionId, setRegeneratingSectionId] = useState<string | null>(null);
+
+  // 대화 히스토리 로드 (conversationId가 있는 경우)
+  useEffect(() => {
+    if (!conversationId) return;
+
+    const fetchConversation = async () => {
+      try {
+        const response = await fetch(`/api/chat/${conversationId}/messages`);
+        if (!response.ok) return;
+
+        const data = await response.json();
+        if (data.messages && Array.isArray(data.messages)) {
+          const convertedMessages: ChatMessage[] = data.messages
+            .filter((msg: { role: string }) => msg.role === 'user' || msg.role === 'assistant')
+            .map((msg: { id: string; role: string; content: string; createdAt: string }) => ({
+              id: msg.id,
+              role: msg.role as 'user' | 'assistant',
+              content: msg.content,
+              timestamp: new Date(msg.createdAt),
+            }));
+          setChatHistory(convertedMessages);
+        }
+      } catch (error) {
+        console.error('[Editor] Failed to load conversation:', error);
+      }
+    };
+
+    fetchConversation();
+  }, [conversationId]);
 
   const {
     sections,
@@ -1410,6 +1442,321 @@ export function DetailPageEditor({
 
       {/* Main content area - overflow-visible로 텍스트가 이미지 밖으로 나갈 수 있게 허용 */}
       <div className="flex flex-1 overflow-y-hidden overflow-x-visible">
+        {/* AI Chat Panel - 왼쪽 배치 (Genspark 스타일) */}
+        {isChatOpen && (
+          <div className="w-[420px] border-r bg-background flex flex-col shrink-0">
+            {/* 헤더 */}
+            <div className="flex items-center justify-between px-4 py-3 border-b bg-gradient-to-r from-primary/5 to-transparent">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                </div>
+                <span className="font-semibold">AI 어시스턴트</span>
+              </div>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsChatOpen(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* 탭 메뉴 */}
+            <div className="flex border-b">
+              <button
+                onClick={() => setActiveTab('chat')}
+                className={cn(
+                  'flex-1 px-4 py-2.5 text-sm font-medium transition-colors relative',
+                  activeTab === 'chat'
+                    ? 'text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                대화
+                {activeTab === 'chat' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab('edit')}
+                className={cn(
+                  'flex-1 px-4 py-2.5 text-sm font-medium transition-colors relative',
+                  activeTab === 'edit'
+                    ? 'text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                편집 도구
+                {activeTab === 'edit' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                )}
+              </button>
+            </div>
+
+            {/* 탭 콘텐츠 - 채팅 */}
+            {activeTab === 'chat' && (
+              <>
+                {/* 선택된 블록 표시 */}
+                {selectedBlock && (
+                  <div className="px-4 py-2 bg-muted/50 border-b text-sm flex items-center justify-between">
+                    <div>
+                      <span className="text-muted-foreground">선택됨:</span>
+                      <span className="ml-2 font-medium">
+                        {selectedBlock.type === 'image-overlay' ? '이미지+텍스트' : selectedBlock.type}
+                      </span>
+                    </div>
+                    <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => { selectBlock(null); selectSection(null); }}>
+                      선택 해제
+                    </Button>
+                  </div>
+                )}
+
+                {/* 편집 타입 선택 - image-overlay일 때만 */}
+                {selectedBlock?.type === 'image-overlay' && (
+                  <div className="px-4 py-3 border-b bg-muted/30">
+                    <div className="text-xs text-muted-foreground mb-2 font-medium">편집 대상 선택</div>
+                    <div className="flex gap-1.5">
+                      <Button
+                        variant={editType === 'text' ? 'default' : 'outline'}
+                        size="sm"
+                        className="flex-1 h-9 text-xs gap-1.5"
+                        onClick={() => setEditType('text')}
+                      >
+                        <Type className="h-3.5 w-3.5" />
+                        텍스트만
+                      </Button>
+                      <Button
+                        variant={editType === 'image' ? 'default' : 'outline'}
+                        size="sm"
+                        className="flex-1 h-9 text-xs gap-1.5"
+                        onClick={() => setEditType('image')}
+                      >
+                        <ImageIcon className="h-3.5 w-3.5" />
+                        이미지만
+                      </Button>
+                      <Button
+                        variant={editType === 'both' ? 'default' : 'outline'}
+                        size="sm"
+                        className="flex-1 h-9 text-xs gap-1.5"
+                        onClick={() => setEditType('both')}
+                      >
+                        <Layers className="h-3.5 w-3.5" />
+                        모두
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 채팅 메시지 목록 */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                  {chatHistory.length === 0 ? (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                        <Sparkles className="h-8 w-8 text-primary/60" />
+                      </div>
+                      <h3 className="font-medium mb-2">AI 어시스턴트</h3>
+                      <p className="text-sm text-muted-foreground whitespace-pre-line">
+                        {!selectedBlock
+                          ? '페이지 전체를 수정하려면\n아래에 요청을 입력하세요.\n\n예: "전체적으로 톤을 친근하게 바꿔줘"'
+                          : '선택한 블록을 어떻게 수정할까요?\n\n예: "더 짧게 줄여줘", "밝은 분위기로"'}
+                      </p>
+                    </div>
+                  ) : (
+                    chatHistory.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={cn('flex', msg.role === 'user' ? 'justify-end' : 'justify-start')}
+                      >
+                        <div
+                          className={cn(
+                            'max-w-[85%] rounded-2xl px-4 py-2.5 text-sm',
+                            msg.role === 'user'
+                              ? 'bg-primary text-primary-foreground rounded-br-md'
+                              : 'bg-muted text-foreground rounded-bl-md'
+                          )}
+                        >
+                          {msg.content}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                  {isAiLoading && (
+                    <div className="flex justify-start">
+                      <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-2.5 text-sm flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                        <span>AI가 수정 중...</span>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={chatEndRef} />
+                </div>
+
+                {/* 채팅 입력 */}
+                <div className="p-4 border-t bg-muted/20">
+                  <div className="relative">
+                    <Textarea
+                      value={chatMessage}
+                      onChange={(e) => setChatMessage(e.target.value)}
+                      placeholder={
+                        !selectedBlock
+                          ? '페이지 수정 요청을 입력하세요...'
+                          : editType === 'image'
+                          ? '이미지 수정 요청을 입력하세요...'
+                          : '텍스트 수정 요청을 입력하세요...'
+                      }
+                      className="min-h-[80px] resize-none pr-12 rounded-xl"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleAiEdit();
+                        }
+                      }}
+                    />
+                    <Button
+                      size="icon"
+                      className="absolute right-2 bottom-2 h-8 w-8 rounded-lg"
+                      onClick={handleAiEdit}
+                      disabled={!chatMessage.trim() || isAiLoading}
+                    >
+                      {isAiLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* 탭 콘텐츠 - 편집 도구 */}
+            {activeTab === 'edit' && (
+              <div className="flex-1 overflow-y-auto p-4">
+                <div className="space-y-4">
+                  {/* 빠른 편집 버튼들 */}
+                  <div>
+                    <h4 className="text-sm font-medium mb-3">빠른 편집</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-auto py-3 flex flex-col gap-1"
+                        onClick={() => { setChatMessage('전체 텍스트를 더 짧고 간결하게 수정해줘'); setActiveTab('chat'); }}
+                      >
+                        <Type className="h-4 w-4" />
+                        <span className="text-xs">간결하게</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-auto py-3 flex flex-col gap-1"
+                        onClick={() => { setChatMessage('전체 텍스트를 더 친근하고 부드러운 톤으로 바꿔줘'); setActiveTab('chat'); }}
+                      >
+                        <Type className="h-4 w-4" />
+                        <span className="text-xs">친근하게</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-auto py-3 flex flex-col gap-1"
+                        onClick={() => { setChatMessage('전체 텍스트를 더 전문적이고 격식있는 톤으로 바꿔줘'); setActiveTab('chat'); }}
+                      >
+                        <Type className="h-4 w-4" />
+                        <span className="text-xs">전문적으로</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-auto py-3 flex flex-col gap-1"
+                        onClick={() => { setChatMessage('강조 문구와 CTA를 더 임팩트있게 수정해줘'); setActiveTab('chat'); }}
+                      >
+                        <Type className="h-4 w-4" />
+                        <span className="text-xs">임팩트있게</span>
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* 섹션 추가 */}
+                  <div>
+                    <h4 className="text-sm font-medium mb-3">섹션 관리</h4>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start gap-2"
+                      onClick={() => handleInsertSectionAt(sections.length)}
+                    >
+                      <Plus className="h-4 w-4" />
+                      새 섹션 추가
+                    </Button>
+                  </div>
+
+                  {/* 뷰포트 전환 */}
+                  <div>
+                    <h4 className="text-sm font-medium mb-3">미리보기 모드</h4>
+                    <div className="flex gap-1 p-1 bg-muted rounded-lg">
+                      <button
+                        className={cn(
+                          'flex-1 h-9 rounded-md flex items-center justify-center gap-1.5 text-sm transition-colors',
+                          previewMode === 'desktop'
+                            ? 'bg-background shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground'
+                        )}
+                        onClick={() => setPreviewMode('desktop')}
+                      >
+                        <Monitor className="h-4 w-4" />
+                        데스크톱
+                      </button>
+                      <button
+                        className={cn(
+                          'flex-1 h-9 rounded-md flex items-center justify-center gap-1.5 text-sm transition-colors',
+                          previewMode === 'tablet'
+                            ? 'bg-background shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground'
+                        )}
+                        onClick={() => setPreviewMode('tablet')}
+                      >
+                        <Tablet className="h-4 w-4" />
+                        태블릿
+                      </button>
+                      <button
+                        className={cn(
+                          'flex-1 h-9 rounded-md flex items-center justify-center gap-1.5 text-sm transition-colors',
+                          previewMode === 'mobile'
+                            ? 'bg-background shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground'
+                        )}
+                        onClick={() => setPreviewMode('mobile')}
+                      >
+                        <Smartphone className="h-4 w-4" />
+                        모바일
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 키보드 단축키 안내 */}
+                  <div className="pt-4 border-t">
+                    <h4 className="text-sm font-medium mb-3">단축키</h4>
+                    <div className="space-y-2 text-xs text-muted-foreground">
+                      <div className="flex justify-between">
+                        <span>실행 취소</span>
+                        <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px]">⌘Z</kbd>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>다시 실행</span>
+                        <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px]">⌘⇧Z</kbd>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>선택 해제</span>
+                        <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px]">Esc</kbd>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>삭제</span>
+                        <kbd className="px-1.5 py-0.5 bg-muted rounded text-[10px]">Del</kbd>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Editor canvas */}
         <div
           id="editor-scroll-area"
@@ -1530,144 +1877,6 @@ export function DetailPageEditor({
           </div>
         </div>
 
-        {/* AI Chat Panel */}
-        {isChatOpen && (
-          <div className="w-80 border-l bg-background flex flex-col">
-            <div className="flex items-center justify-between px-4 py-3 border-b">
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <span className="font-medium">AI 편집</span>
-              </div>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsChatOpen(false)}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {/* Selected block indicator */}
-            {selectedBlock && (
-              <div className="px-4 py-2 bg-muted/50 border-b text-sm">
-                <span className="text-muted-foreground">선택된 블록:</span>
-                <span className="ml-2 font-medium">
-                  {selectedBlock.type === 'image-overlay' ? '이미지+텍스트' : selectedBlock.type}
-                </span>
-              </div>
-            )}
-
-            {/* Edit type selector - only show for image-overlay blocks */}
-            {selectedBlock?.type === 'image-overlay' && (
-              <div className="px-4 py-2 border-b">
-                <div className="text-xs text-muted-foreground mb-2">편집 대상:</div>
-                <div className="flex gap-1">
-                  <Button
-                    variant={editType === 'text' ? 'secondary' : 'ghost'}
-                    size="sm"
-                    className="flex-1 h-8 text-xs gap-1"
-                    onClick={() => setEditType('text')}
-                  >
-                    <Type className="h-3 w-3" />
-                    텍스트
-                  </Button>
-                  <Button
-                    variant={editType === 'image' ? 'secondary' : 'ghost'}
-                    size="sm"
-                    className="flex-1 h-8 text-xs gap-1"
-                    onClick={() => setEditType('image')}
-                  >
-                    <ImageIcon className="h-3 w-3" />
-                    이미지
-                  </Button>
-                  <Button
-                    variant={editType === 'both' ? 'secondary' : 'ghost'}
-                    size="sm"
-                    className="flex-1 h-8 text-xs gap-1"
-                    onClick={() => setEditType('both')}
-                  >
-                    <Layers className="h-3 w-3" />
-                    둘 다
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Chat messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {chatHistory.length === 0 ? (
-                <div className="text-sm text-muted-foreground text-center py-8 whitespace-pre-line">
-                  {!selectedBlock
-                    ? '페이지 전체에 대해 수정 요청을 입력하세요.\n예: "전체적으로 톤을 친근하게 바꿔줘"'
-                    : editType === 'image'
-                    ? '이미지를 어떻게 바꿀까요?\n예: "밝은 분위기로", "화려한 배경으로"'
-                    : editType === 'both'
-                    ? '이미지와 텍스트를 함께 수정합니다.\n예: "더 세련된 느낌으로"'
-                    : '텍스트를 어떻게 수정할까요?\n예: "더 짧게", "톤을 밝게"'}
-                </div>
-              ) : (
-                chatHistory.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={cn('flex', msg.role === 'user' ? 'justify-end' : 'justify-start')}
-                  >
-                    <div
-                      className={cn(
-                        'max-w-[85%] rounded-lg px-3 py-2 text-sm',
-                        msg.role === 'user'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted text-foreground'
-                      )}
-                    >
-                      {msg.content}
-                    </div>
-                  </div>
-                ))
-              )}
-              {isAiLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-muted rounded-lg px-3 py-2 text-sm flex items-center gap-2">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    <span>수정 중...</span>
-                  </div>
-                </div>
-              )}
-              <div ref={chatEndRef} />
-            </div>
-
-            {/* Chat input */}
-            <div className="p-4 border-t">
-              <Textarea
-                value={chatMessage}
-                onChange={(e) => setChatMessage(e.target.value)}
-                placeholder={
-                  !selectedBlock
-                    ? '예: "전체적으로 톤을 친근하게 바꿔줘"'
-                    : editType === 'image'
-                    ? '예: "밝은 분위기로 변경해줘"'
-                    : editType === 'both'
-                    ? '예: "더 세련되게 바꿔줘"'
-                    : '예: "더 짧게 줄여줘"'
-                }
-                className="min-h-[60px] resize-none"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleAiEdit();
-                  }
-                }}
-              />
-              <Button
-                className="w-full mt-2 gap-2"
-                onClick={handleAiEdit}
-                disabled={!chatMessage.trim() || isAiLoading}
-              >
-                {isAiLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
-                )}
-                {isAiLoading ? '수정 중...' : '수정 요청'}
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Template Import Modal */}

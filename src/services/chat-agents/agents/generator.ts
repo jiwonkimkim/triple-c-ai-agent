@@ -3,10 +3,11 @@
  * 실제 프로젝트 및 상세페이지 생성 실행
  */
 
-import { AgentType } from '@prisma/client';
+import { AgentType, Prisma } from '@prisma/client';
 import { ChatAgentState } from '../graph';
 import { ChatMessage, GenerationResult, generateMessageId, getMissingFields } from '../types';
 import { prisma } from '@/lib/prisma';
+import { generateDetailPage } from '@/services/ai/detail-page-generator';
 
 export async function generatorAgent(
   state: ChatAgentState
@@ -97,45 +98,172 @@ export async function generatorAgent(
       },
     });
 
-    // 3. 상세페이지 생성 API 호출 (내부 함수 또는 API)
-    // 실제 구현에서는 기존 generateDetailPage 함수를 호출
-    // 여기서는 API 엔드포인트를 통해 호출하도록 설계
+    // 3. 상세페이지 생성 (직접 함수 호출 - HTTP fetch 대신)
+    const hasProductImages = collectedData.productImages && collectedData.productImages.length > 0;
+    const shouldGenerateImages = !hasProductImages; // 제품 이미지가 없으면 T2I, 있으면 I2I
 
-    const generateResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/generate/detail-page`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // 인증은 서버 사이드이므로 내부 호출로 처리
-        'X-Internal-Call': 'true',
-      },
-      body: JSON.stringify({
-        projectId: project.id,
-        productImages: collectedData.productImages || [],
-        productName: collectedData.productName,
-        category: collectedData.category,
-        subCategory: collectedData.subCategory,
-        keyFeatures: collectedData.keyFeatures,
-        targetAudience: collectedData.targetAudience || '일반 소비자',
-        copyLength: collectedData.copyLength,
-        productUrl: collectedData.productUrl,
-        generateImages: true,
-        imageModel: collectedData.imageModel || 'gemini-2.5-flash-image',
-        // 브랜드 컨텍스트
-        brandContext: brandContext ? {
-          identity: brandContext.identity,
-          toneAndManner: brandContext.toneAndManner,
-          voiceTone: brandContext.voiceTone,
-          imageKeywords: brandContext.imageKeywords,
-        } : undefined,
-      }),
-    });
+    // 브랜드 컨텍스트 구성
+    let fullBrandContext: {
+      name: string;
+      identity: string;
+      toneAndManner: string;
+      imageKeywords: string[];
+      ragContext?: string;
+      styleGuide?: {
+        colors?: { primary?: string; secondary?: string; palette?: string[] };
+        images?: { logo?: string; favicon?: string; ogImage?: string };
+        fonts?: { primary?: string; all?: string[] };
+      };
+    } | null = null;
 
-    if (!generateResponse.ok) {
-      const errorData = await generateResponse.json();
-      throw new Error(errorData.error || '상세페이지 생성 실패');
+    if (collectedData.brandProfileId) {
+      const brandProfile = await prisma.brandProfile.findUnique({
+        where: { id: collectedData.brandProfileId },
+        include: {
+          documentChunks: {
+            take: 10,
+            orderBy: { createdAt: 'desc' },
+          },
+        },
+      });
+
+      if (brandProfile) {
+        let styleGuide = undefined;
+        if (brandProfile.styleGuide) {
+          try {
+            const rawStyleGuide = brandProfile.styleGuide as Record<string, unknown>;
+            styleGuide = {
+              colors: rawStyleGuide.colors as { primary?: string; secondary?: string; palette?: string[] } | undefined,
+              images: rawStyleGuide.images as { logo?: string; favicon?: string; ogImage?: string } | undefined,
+              fonts: rawStyleGuide.fonts as { primary?: string; all?: string[] } | undefined,
+            };
+          } catch (e) {
+            console.warn('[Generator] Failed to parse styleGuide:', e);
+          }
+        }
+
+        fullBrandContext = {
+          name: brandProfile.name,
+          identity: brandProfile.identity,
+          toneAndManner: brandProfile.toneAndManner,
+          imageKeywords: brandProfile.imageKeywords,
+          ragContext: brandProfile.documentChunks.map((c) => c.content).join('\n\n'),
+          styleGuide,
+        };
+      }
+    } else if (brandContext) {
+      // 채팅에서 수집한 브랜드 정보 사용
+      fullBrandContext = {
+        name: brandContext.name,
+        identity: brandContext.identity,
+        toneAndManner: brandContext.toneAndManner,
+        imageKeywords: brandContext.imageKeywords,
+      };
     }
 
-    const generateResult = await generateResponse.json();
+    console.log('[Generator] Calling generateDetailPage directly...');
+    console.log('[Generator] productImages:', collectedData.productImages?.length || 0);
+    console.log('[Generator] shouldGenerateImages:', shouldGenerateImages);
+
+    const detailPageResult = await generateDetailPage({
+      productImages: collectedData.productImages || [],
+      productName: collectedData.productName!,
+      category: collectedData.category!,
+      subCategory: collectedData.subCategory,
+      keyFeatures: collectedData.keyFeatures || [],
+      targetAudience: collectedData.targetAudience || '일반 소비자',
+      copyLength: collectedData.copyLength!,
+      brandContext: fullBrandContext,
+      generateImages: shouldGenerateImages,
+      imageModel: collectedData.imageModel || 'gemini-2.5-flash-image',
+    }, { includeDevPrompts: process.env.NODE_ENV === 'development' });
+
+    const { versions, devPrompts } = detailPageResult;
+
+    if (!versions || versions.length === 0) {
+      throw new Error('상세페이지 버전 생성 실패');
+    }
+
+    // 버전 번호 계산
+    const maxVersion = await prisma.detailPageVersion.findFirst({
+      where: { projectId: project.id },
+      orderBy: { versionNumber: 'desc' },
+      select: { versionNumber: true },
+    });
+    const startVersionNumber = (maxVersion?.versionNumber || 0) + 1;
+
+    // DB에 버전 저장
+    const savedVersions = await Promise.all(
+      versions.map((version, index) =>
+        prisma.detailPageVersion.create({
+          data: {
+            projectId: project.id,
+            versionNumber: startVersionNumber + index,
+            hookMessage: version.hookMessage,
+            sections: version.sections as unknown as Prisma.InputJsonValue,
+          },
+        })
+      )
+    );
+
+    // ProjectVersion 히스토리 생성
+    const latestProjectVersion = await prisma.projectVersion.findFirst({
+      where: { projectId: project.id },
+      orderBy: { versionNumber: 'desc' },
+    });
+    const newProjectVersionNumber = (latestProjectVersion?.versionNumber || 0) + 1;
+
+    // 썸네일 추출
+    const firstVersion = versions[0];
+    const sections = firstVersion?.sections || [];
+    let thumbnailUrl: string | null = null;
+    for (const section of sections) {
+      const sec = section as { imageUrl?: string; imageUrls?: string[] };
+      if (sec.imageUrls && sec.imageUrls.length > 0) {
+        thumbnailUrl = sec.imageUrls[0];
+        break;
+      } else if (sec.imageUrl) {
+        thumbnailUrl = sec.imageUrl;
+        break;
+      }
+    }
+
+    await prisma.projectVersion.create({
+      data: {
+        projectId: project.id,
+        versionNumber: newProjectVersionNumber,
+        action: 'GENERATE',
+        description: `AI 생성 (채팅)`,
+        content: {
+          sections: versions[0]?.sections || [],
+          hookMessage: versions[0]?.hookMessage,
+          ...(devPrompts && { devPrompts }),
+        } as unknown as Prisma.InputJsonValue,
+        thumbnail: thumbnailUrl,
+        createdById: userId,
+      },
+    });
+
+    // 프로젝트 버전 업데이트
+    await prisma.project.update({
+      where: { id: project.id },
+      data: {
+        currentVersion: newProjectVersionNumber,
+        updatedAt: new Date(),
+      },
+    });
+
+    // 크레딧 차감
+    await prisma.user.update({
+      where: { id: userId },
+      data: { trialCredits: { decrement: 1 } },
+    });
+
+    const generateResult = {
+      data: {
+        versionId: savedVersions[0]?.id || '',
+      },
+    };
 
     // 4. Conversation 상태 업데이트
     await prisma.conversation.update({

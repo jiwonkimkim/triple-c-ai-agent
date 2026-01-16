@@ -231,6 +231,7 @@ export default function ProjectDetailPage() {
             key={editorKey}
             projectId={projectId}
             versionId={latestVersion?.id}
+            conversationId={project.conversationId}
             onSaveSuccess={() => {
               toast({
                 title: '저장됨',

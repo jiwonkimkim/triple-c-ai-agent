@@ -50,6 +50,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           take: 5,
         },
         editorDraft: true,
+        conversation: {
+          select: { id: true },
+        },
         _count: {
           select: {
             histories: true,
@@ -112,9 +115,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       devPrompts = content.devPrompts || null;
     }
 
+    // 프로젝트 데이터에 conversationId 추가
+    const projectData = {
+      ...project,
+      conversationId: project.conversation?.id || null,
+    };
+    // conversation 객체는 제거 (중복 방지)
+    delete (projectData as Record<string, unknown>).conversation;
+
     return NextResponse.json({
       success: true,
-      data: project,
+      data: projectData,
       // devPrompts가 DB에 있으면 항상 반환
       ...(devPrompts && { devPrompts }),
     });

@@ -246,6 +246,17 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             };
           }
 
+          // 첨부 파일(이미지) 처리 - productImages에 저장
+          if (attachments && attachments.length > 0) {
+            const existingImages = updatedCollectedData.productImages || [];
+            const newImages = [...existingImages, ...attachments].slice(0, 5); // 최대 5장
+            updatedCollectedData = {
+              ...updatedCollectedData,
+              productImages: newImages,
+            };
+            console.log('[Chat] Product images updated:', newImages.length);
+          }
+
           // Agent 상태 초기화
           const initialState: ChatAgentState = {
             conversationId,
