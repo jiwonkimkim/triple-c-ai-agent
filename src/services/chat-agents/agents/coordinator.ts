@@ -166,7 +166,31 @@ export async function coordinatorAgent(
     // === 정보 제공 / 생성 요청 ===
     case 'PROVIDE_INFO':
     case 'CREATE':
-      // 제품 자동 감지
+      // 이미 카테고리/서브카테고리가 설정되어 있으면 Intake로 바로 라우팅
+      if (collectedData.category && collectedData.subCategory) {
+        return {
+          currentAgent: 'INTAKE',
+          nextAction: { type: 'continue', targetAgent: 'INTAKE' as AgentType },
+        };
+      }
+
+      // 뷰티 카테고리만 설정되어 있고 서브카테고리가 없으면 Suggester로
+      if (collectedData.category === 'BEAUTY' && !collectedData.subCategory) {
+        return {
+          currentAgent: 'SUGGESTER',
+          nextAction: { type: 'continue', targetAgent: 'SUGGESTER' as AgentType },
+        };
+      }
+
+      // 카테고리가 이미 있으면(뷰티가 아닌 경우) Intake로
+      if (collectedData.category) {
+        return {
+          currentAgent: 'INTAKE',
+          nextAction: { type: 'continue', targetAgent: 'INTAKE' as AgentType },
+        };
+      }
+
+      // 제품 자동 감지 (카테고리가 아직 설정되지 않은 경우에만)
       const detected = await detectProduct(userContent, true); // quick detection only
 
       if (detected.category === 'BEAUTY' && detected.subCategory) {
