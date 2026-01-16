@@ -3,6 +3,45 @@ import type { OverlayTextContent, OverlayTextItem, OverlayStatisticItem, Section
 import { generateFontGuideForAI } from '@/constants/fonts';
 import { buildOverlayTextPrompt, BlockOverlayOptions } from '@/services/ai/prompts/overlay-prompts';
 
+// ============================================
+// ★ 섹션 타입 매핑 (모듈 레벨 - 모든 함수에서 사용)
+// ============================================
+
+/**
+ * 다양한 섹션 타입명을 기본 SectionType으로 변환
+ * REVIEW_SHOWCASE → SOCIAL_PROOF, HERO_LIP → HERO 등
+ */
+function mapToBaseSectionType(type: string): SectionType {
+  const upperType = type.toUpperCase();
+
+  // REVIEW, SOCIAL, TESTIMONIAL 관련 → SOCIAL_PROOF
+  if (/REVIEW|SOCIAL|TESTIMONIAL|PROOF|SHOWCASE/.test(upperType)) {
+    return 'SOCIAL_PROOF';
+  }
+  // HOW_TO, USAGE, STEP 관련 → HOW_TO_USE
+  if (/HOW_TO|USAGE|STEP|GUIDE/.test(upperType)) {
+    return 'HOW_TO_USE';
+  }
+  // FEATURE, BENEFIT, INGREDIENT 관련 → FEATURES
+  if (/FEATURE|BENEFIT|INGREDIENT|SPEC/.test(upperType)) {
+    return 'FEATURES';
+  }
+  // HERO, BANNER 관련 → HERO
+  if (/HERO|BANNER/.test(upperType)) {
+    return 'HERO';
+  }
+  // FAQ 관련
+  if (/FAQ|QUESTION/.test(upperType)) {
+    return 'FAQ';
+  }
+  // MAIN 관련
+  if (/MAIN|THUMBNAIL/.test(upperType)) {
+    return 'MAIN';
+  }
+  // 기본값
+  return 'FEATURES';
+}
+
 // Singleton Gemini client
 let geminiClient: GoogleGenAI | null = null;
 
@@ -463,50 +502,26 @@ ${featureHighlight || 'Highlight product quality and premium feel'}
 - Premium commercial photography that triggers desire to purchase`;
   }
 
-  // ★★★ 오버레이 텍스트 JSON 요청 추가
+  // ★★★ 오버레이 텍스트 JSON 요청 - overlay-prompts.ts의 buildOverlayTextPrompt 사용
+  const overlayTextPrompt = buildOverlayTextPrompt(
+    sectionType as SectionType,
+    productName,
+    category,
+    keyFeatures || [],
+    targetAudience || 'General'
+  );
+
+  // 이미지 생성 프롬프트에 오버레이 텍스트 요청 추가
   const overlayTextRequest = `
 
-[OVERLAY TEXT - MUST INCLUDE IN YOUR TEXT RESPONSE]
-Also return overlay text for this image as JSON. Design creative typography that complements the image.
-The overlay text should be placed on empty areas of the image, not covering the product.
+[★★★ OVERLAY TEXT - MUST RETURN AS JSON IN YOUR TEXT RESPONSE ★★★]
+You MUST return overlay text JSON alongside the generated image.
+The overlay text should be creative typography that complements the image.
 
-Product: ${productName}
-Category: ${category}
-Target: ${targetAudience || 'General'}
-Key Features: ${keyFeatures?.join(', ') || 'Premium quality'}
-Section: ${sectionType}
+${overlayTextPrompt}
 
-Return JSON format:
-{
-  "texts": [
-    {
-      "text": "Main headline text",
-      "x": 50,
-      "y": 15,
-      "fontSize": 32,
-      "fontWeight": "bold",
-      "color": "#333333",
-      "textAlign": "center"
-    },
-    {
-      "text": "Subheadline or description",
-      "x": 50,
-      "y": 25,
-      "fontSize": 16,
-      "fontWeight": "normal",
-      "color": "#666666",
-      "textAlign": "center"
-    }
-  ]
-}
-
-Guidelines:
-- x: 0-100 (horizontal position, 50=center)
-- y: 0-100 (vertical position, 0=top, 100=bottom)
-- fontSize: 12-48 based on importance
-- Keep text concise and impactful (Korean marketing style)
-- Use 1-4 text elements maximum
-- Avoid emojis, use professional language`;
+IMPORTANT: Return the overlay text as valid JSON in your text response.
+The JSON should be parseable and follow the format in the prompt above.`;
 
   const finalPrompt = enhancedPrompt + overlayTextRequest;
 
@@ -1253,41 +1268,24 @@ ${scenarioPrompt}
     additionalPrompt ? `Additional style: ${additionalPrompt}` : '',
   ].filter(Boolean);
 
-  // ★★★ 오버레이 텍스트 JSON 요청 추가
+  // ★★★ 오버레이 텍스트 JSON 요청 - overlay-prompts.ts의 buildOverlayTextPrompt 사용
+  const overlayTextPrompt = buildOverlayTextPrompt(
+    mapToBaseSectionType(sectionType),
+    productName,
+    category,
+    keyFeatures || [],
+    targetAudience || 'General'
+  );
+
   const overlayTextRequest = `
 
-[OVERLAY TEXT - MUST INCLUDE IN YOUR TEXT RESPONSE]
-Also return overlay text for this image as JSON. Design creative typography that complements the image.
-The overlay text should be placed on empty areas of the image, not covering the product.
+[★★★ OVERLAY TEXT - MUST RETURN AS JSON IN YOUR TEXT RESPONSE ★★★]
+You MUST return overlay text JSON alongside the generated image.
+The overlay text should be creative typography that complements the image.
 
-Product: ${productName}
-Category: ${category}
-Target: ${targetAudience || 'General'}
-Key Features: ${keyFeatures?.join(', ') || 'Premium quality'}
-Section: ${sectionType}
+${overlayTextPrompt}
 
-Return JSON format:
-{
-  "texts": [
-    {
-      "text": "Main headline text",
-      "x": 50,
-      "y": 15,
-      "fontSize": 32,
-      "fontWeight": "bold",
-      "color": "#333333",
-      "textAlign": "center"
-    }
-  ]
-}
-
-Guidelines:
-- x: 0-100 (horizontal position, 50=center)
-- y: 0-100 (vertical position, 0=top, 100=bottom)
-- fontSize: 12-48 based on importance
-- Keep text concise and impactful (Korean marketing style)
-- Use 1-4 text elements maximum
-- Avoid emojis, use professional language`;
+IMPORTANT: Return the overlay text as valid JSON in your text response.`;
 
   const fullPrompt = `${basePrompt}${orchestrationContext}
 
@@ -1504,30 +1502,18 @@ export async function generateSectionImageWithOverlay(
   }
 
   // 2. 오버레이 텍스트 처리
-  // ★★★ 이미지 모델에서 받은 overlayText가 있으면 우선 사용!
-  let finalOverlayText: OverlayTextContent | undefined = generatedImage.overlayText;
-  let overlayPrompt: string = usedImagePrompt;
+  // ★★★ 이미지 모델에서 받은 overlayText만 사용 (텍스트 모델 폴백 없음!)
+  let finalOverlayText: OverlayTextContent = generatedImage.overlayText || createDefaultOverlayForSection(
+    sectionType,
+    productName,
+    keyFeatures
+  );
+  const overlayPrompt: string = usedImagePrompt;
 
-  if (finalOverlayText) {
-    console.log(`[Image+Overlay] ★ Using overlay text from IMAGE MODEL (no separate text model call)`);
+  if (generatedImage.overlayText) {
+    console.log(`[Image+Overlay] ★ Using overlay text from IMAGE MODEL`);
   } else {
-    // ★ 이미지 모델에서 오버레이 텍스트가 없으면 별도 텍스트 모델 호출 (폴백)
-    console.log(`[Image+Overlay] Image model did not return overlay text, calling text model as fallback...`);
-    const overlayResult = await generateOverlayTextForSection(
-      sectionType,
-      productName,
-      category,
-      keyFeatures,
-      targetAudience,
-      {
-        blockIndex,
-        totalBlocks,
-        variationHint,
-      },
-      usedImagePrompt
-    );
-    finalOverlayText = overlayResult.overlayText;
-    overlayPrompt = overlayResult.prompt;
+    console.log(`[Image+Overlay] ⚠️ Image model did not return overlay text, using default`);
   }
 
   console.log(`[Image+Overlay] ${sectionType} image and overlay text generated successfully`);
@@ -1795,7 +1781,56 @@ function normalizeStatistics(
 }
 
 /**
- * 기본 오버레이 텍스트 생성 (폴백용)
+ * 섹션별 기본 오버레이 텍스트 생성 (이미지 모델이 리턴 안했을 때 폴백)
+ * - 심플한 texts 배열 형식으로 반환
+ */
+function createDefaultOverlayForSection(
+  sectionType: string,
+  productName: string,
+  keyFeatures: string[]
+): OverlayTextContent {
+  const normalizedSection = mapToBaseSectionType(sectionType);
+
+  const sectionHeadlines: Record<string, string> = {
+    MAIN: productName.slice(0, 20),
+    HERO: productName,
+    FEATURES: keyFeatures[0] || 'FEATURES',
+    SOCIAL_PROOF: 'REAL REVIEWS',
+    HOW_TO_USE: 'HOW TO USE',
+    FAQ: 'FAQ',
+  };
+
+  // texts 배열 형식으로 반환 (새 형식)
+  const texts: OverlayTextItem[] = [
+    {
+      text: sectionHeadlines[normalizedSection] || productName,
+      x: 50,
+      y: 15,
+      fontSize: 28,
+      fontWeight: 'bold' as const,
+      color: '#333333',
+      textAlign: 'center' as const,
+    },
+  ];
+
+  // 키 피처가 있으면 추가
+  if (keyFeatures[0]) {
+    texts.push({
+      text: keyFeatures[0].slice(0, 40),
+      x: 50,
+      y: 28,
+      fontSize: 16,
+      fontWeight: 'normal' as const,
+      color: '#666666',
+      textAlign: 'center' as const,
+    });
+  }
+
+  return { texts };
+}
+
+/**
+ * 기본 오버레이 텍스트 생성 (폴백용 - 레거시)
  */
 function createDefaultOverlay(
   sectionType: string,
