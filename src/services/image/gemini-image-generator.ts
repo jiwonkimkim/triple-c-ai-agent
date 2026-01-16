@@ -1182,45 +1182,6 @@ OUTPUT: High-quality commercial photography, 8K resolution, no text on image.`;
   };
 }
 
-/**
- * 제품 이미지 기반 전체 상세페이지 이미지 세트 생성
- * - 모든 섹션 타입 지원 (기본 섹션 + 뷰티 서브카테고리 섹션 + 미정의 섹션)
- */
-export async function generateDetailPageImagesFromProduct(
-  sourceImage: string,
-  productName: string,
-  category: string,
-  sections: string[],  // 모든 섹션 타입 허용
-  brandStyle?: string,
-  model: GeminiImageModel = DEFAULT_IMAGE_MODEL  // gemini-2.5-flash-image
-): Promise<Map<string, GeminiGeneratedImage>> {
-  const results = new Map<string, GeminiGeneratedImage>();
-
-  console.log(`[Gemini I2I] Generating ${sections.length} section images from product image`);
-
-  for (const sectionType of sections) {
-    try {
-      console.log(`[Gemini I2I] Generating ${sectionType} section image...`);
-      const image = await generateSectionImageFromProduct(
-        sourceImage,
-        sectionType,
-        productName,
-        category,
-        brandStyle,
-        model
-      );
-      results.set(sectionType, image);
-      console.log(`[Gemini I2I] ${sectionType} section image generated successfully`);
-    } catch (error) {
-      console.error(`[Gemini I2I] Failed to generate ${sectionType} section image:`, error);
-      // 실패해도 계속 진행
-    }
-  }
-
-  console.log(`[Gemini I2I] Generated ${results.size}/${sections.length} section images`);
-  return results;
-}
-
 // ============================================
 // ★★★ 이미지 + 오버레이 텍스트 통합 생성 함수 (NEW!)
 // ============================================
