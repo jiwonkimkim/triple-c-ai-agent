@@ -2,13 +2,14 @@
 
 /**
  * Message Item Component
- * 개별 채팅 메시지 표시
+ * 개별 채팅 메시지 표시 (마크다운 지원)
  */
 
 import { cn } from '@/lib/utils';
 import { Bot, User, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ChatMessage } from '@/hooks/use-chat';
+import ReactMarkdown from 'react-markdown';
 
 interface MessageItemProps {
   message: ChatMessage;
@@ -54,9 +55,22 @@ export function MessageItem({ message, onSelectOption }: MessageItemProps) {
               : 'bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm rounded-bl-md'
           )}
         >
-          {/* 텍스트 내용 */}
-          <div className="whitespace-pre-wrap text-sm leading-relaxed">
-            {displayContent}
+          {/* 텍스트 내용 (마크다운 렌더링) */}
+          <div className={cn(
+            "text-sm leading-relaxed prose prose-sm max-w-none",
+            isUser ? "prose-invert" : "prose-gray",
+            // 마크다운 스타일 커스텀
+            "[&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0.5",
+            "[&_h1]:text-base [&_h1]:font-bold [&_h1]:mt-2 [&_h1]:mb-1",
+            "[&_h2]:text-sm [&_h2]:font-semibold [&_h2]:mt-2 [&_h2]:mb-1",
+            "[&_h3]:text-sm [&_h3]:font-medium [&_h3]:mt-1 [&_h3]:mb-0.5",
+            "[&_strong]:font-semibold",
+            "[&_ul]:list-disc [&_ul]:pl-4",
+            "[&_ol]:list-decimal [&_ol]:pl-4",
+            "[&_code]:bg-gray-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs",
+            isUser && "[&_code]:bg-blue-400/30"
+          )}>
+            <ReactMarkdown>{displayContent}</ReactMarkdown>
             {isStreaming && (
               <span className="inline-block w-1.5 h-4 ml-0.5 bg-current animate-pulse" />
             )}

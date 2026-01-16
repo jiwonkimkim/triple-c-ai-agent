@@ -26,6 +26,7 @@ import {
   History,
   Layout,
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { HistoryPanel } from '@/components/history/history-panel';
 import { TemplateImportModal } from './template-import-modal';
 
@@ -581,10 +582,15 @@ export function UnifiedEditor({
                         'max-w-[85%] rounded-lg px-3 py-2 text-sm',
                         msg.role === 'user'
                           ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted text-foreground'
+                          : 'bg-muted text-foreground',
+                        // 마크다운 스타일
+                        'prose prose-sm max-w-none',
+                        msg.role === 'user' ? 'prose-invert' : 'prose-gray',
+                        '[&_p]:my-0.5 [&_ul]:my-0.5 [&_ol]:my-0.5 [&_li]:my-0',
+                        '[&_strong]:font-semibold'
                       )}
                     >
-                      {msg.content}
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
                     </div>
                   </div>
                 ))
