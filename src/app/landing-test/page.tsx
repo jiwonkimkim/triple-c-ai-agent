@@ -1223,7 +1223,7 @@ function TokyoStyle() {
             className="mt-20 max-w-2xl mx-auto"
           >
             <div className="text-center mb-8">
-              <span className="text-sm text-cyan-400 font-mono tracking-wider">// AI GENERATED VERSIONS</span>
+              <span className="text-sm text-cyan-400 font-mono tracking-wider">{`// AI GENERATED VERSIONS`}</span>
             </div>
             <GenerationMockup theme="dark" />
           </motion.div>

@@ -91,7 +91,6 @@ export async function upsertBrandVectors(
   const batchSize = 100;
   for (let i = 0; i < vectors.length; i += batchSize) {
     const batch = vectors.slice(i, i + batchSize);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await namespace.upsert(batch as any);
   }
 }

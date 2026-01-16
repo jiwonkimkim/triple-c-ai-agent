@@ -106,8 +106,8 @@ async function cancelSubscription(
   return response.json();
 }
 
-// Use credits
-async function useCredits(
+// Consume credits (deduct from balance)
+async function consumeCredits(
   operation: string,
   description?: string,
   metadata?: Record<string, any>
@@ -201,7 +201,7 @@ export function useBilling() {
       operation: string;
       description?: string;
       metadata?: Record<string, any>;
-    }) => useCredits(operation, description, metadata),
+    }) => consumeCredits(operation, description, metadata),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['credits'] });
       queryClient.invalidateQueries({ queryKey: ['subscription'] });

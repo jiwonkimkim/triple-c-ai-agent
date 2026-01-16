@@ -264,7 +264,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
           // LangGraph 실행 (recursionLimit 설정으로 무한루프 방지)
           const graph = getChatAgentGraph();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const result = await graph.invoke(initialState as any, {
             recursionLimit: 50, // 기본값 25에서 증가
           });

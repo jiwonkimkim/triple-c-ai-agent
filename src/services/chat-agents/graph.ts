@@ -271,7 +271,6 @@ function routeFromBeautySpecialist(state: ChatAgentState): RouteDecision {
 // ============================================
 
 export function createChatAgentGraph() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const workflow = new StateGraph(ChatAgentAnnotation) as any;
 
   // Add nodes (기존 + 새로운 Agent들)
