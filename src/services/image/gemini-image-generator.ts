@@ -1,6 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
-import type { OverlayTextContent, OverlayTextItem, OverlayStatisticItem } from '@/services/ai/prompts/types';
+import type { OverlayTextContent, OverlayTextItem, OverlayStatisticItem, SectionType } from '@/services/ai/prompts/types';
 import { generateFontGuideForAI } from '@/constants/fonts';
+import { buildOverlayTextPrompt, BlockOverlayOptions } from '@/services/ai/prompts/overlay-prompts';
 
 // Singleton Gemini client
 let geminiClient: GoogleGenAI | null = null;
@@ -1393,7 +1394,7 @@ async function generateOverlayTextForSection(
     totalBlocks?: number;
     variationHint?: string;
   },
-  imageScenarioPrompt?: string  // ★ 이미지 생성에 사용된 시나리오 프롬프트
+  _imageScenarioPrompt?: string  // ★ 향후 이미지 컨텍스트 활용 예정 (현재 공통 프롬프트 사용)
 ): Promise<{ overlayText: OverlayTextContent; prompt: string }> {
   const gemini = getGeminiClient();
 
@@ -1477,181 +1478,28 @@ async function generateOverlayTextForSection(
   };
 
   // ★ 텍스트 배경 섹션이면 특별 레이아웃, 아니면 일반 레이아웃
+  // (기존 형식 폴백용으로 유지)
   const layout = isTextBackgroundSection
     ? textBannerLayout
     : (sectionLayouts[normalizedSection] || sectionLayouts.FEATURES);
 
-  // 블록별 컨텍스트
-  const blockContext = blockOptions?.variationHint
-    ? `\n블록 특성: ${blockOptions.variationHint} (${(blockOptions.blockIndex || 0) + 1}/${blockOptions.totalBlocks || 1}번째)`
-    : '';
-
-  // 카테고리별 감각 키워드
-  const categoryKeywords: Record<string, string[]> = {
-    skincare: ['촉촉한', '탱글탱글', '윤기', '맑은', '투명한'],
-    makeup: ['탱글', '영롱', '글로시', '선명한', '오래가는'],
-    suncare: ['가벼운', '산뜻한', '투명한', 'SPF', 'PA'],
-    cleansing: ['부드러운', '깨끗한', '촉촉한', '순한'],
+  // ★★★ 공통 프롬프트 빌더 사용 (overlay-prompts.ts)
+  // 이렇게 하면 초기 생성과 재생성이 항상 동일한 프롬프트를 사용합니다
+  const overlayBlockOptions: BlockOverlayOptions = {
+    blockIndex: blockOptions?.blockIndex,
+    totalBlocks: blockOptions?.totalBlocks,
+    variationHint: blockOptions?.variationHint,
   };
 
-  const categoryKey = category.toLowerCase().includes('스킨') || category.toLowerCase().includes('skin') ? 'skincare'
-    : category.toLowerCase().includes('메이크') || category.toLowerCase().includes('makeup') ? 'makeup'
-    : category.toLowerCase().includes('선') || category.toLowerCase().includes('sun') ? 'suncare'
-    : category.toLowerCase().includes('클렌') || category.toLowerCase().includes('cleans') ? 'cleansing'
-    : 'skincare';
-
-  const sensoryWords = categoryKeywords[categoryKey]?.join(', ') || '';
-
-  // ★ 이미지 시나리오 컨텍스트 (이미지와 어울리는 텍스트 생성용)
-  const imageContext = imageScenarioPrompt
-    ? `\n## 이미지 시나리오 (★ 이 이미지에 어울리는 텍스트를 작성하세요!)
-${imageScenarioPrompt}`
-    : '';
-
-  // ★★★ 텍스트 배경 섹션용 특별 프롬프트 (자유 형식 타이포그래피)
-  const textBannerPrompt = `당신은 한국 올리브영 상세페이지 전문 타이포그래피 디자이너입니다.
-순수 색상 배경 위에 **창의적인 텍스트 레이아웃**을 디자인하세요.
-
-## 제품 정보
-- 제품명: ${productName}
-- 카테고리: ${category}
-- 타겟: ${targetAudience}
-- 핵심 특징: ${keyFeatures.join(', ')}
-
-## ★★★ 창의적 타이포그래피 디자인
-
-### 자유롭게 결정할 것
-- 텍스트 개수: 1~5개 (이미지가 답을 알려줌)
-- 위치: 중앙, 코너, 대각선 등 자유롭게
-- 크기: 강조할 부분은 크게, 보조는 작게
-- 배치: 정형화된 틀 없이 창의적으로
-
-### 카피 작성 힌트
-- 임팩트 있는 한 줄: "3초 얼굴형 교정카라"
-- 숫자 강조: "3초", "48시간", "92%"
-- 해시태그: #키워드 #특징
-- 감각적 표현: "촉촉", "탱글탱글", "쫀쫀"
-
-${generateFontGuideForAI()}
-
-## ★ 출력 형식 (texts 배열)
-텍스트 개수와 배치를 **자유롭게** 결정하세요.
-
-\`\`\`json
-{
-  "texts": [
-    {
-      "text": "대형 메인 카피 (가장 임팩트 있게)",
-      "x": 50,
-      "y": 45,
-      "fontSize": 42,
-      "fontWeight": "800",
-      "fontFamily": "Pretendard, sans-serif",
-      "color": "#222222",
-      "textAlign": "center"
-    },
-    {
-      "text": "보조 메시지 (필요하면 추가)",
-      "x": 50,
-      "y": 70,
-      "fontSize": 18,
-      "fontWeight": "500",
-      "fontFamily": "Noto Sans KR, sans-serif",
-      "color": "#555555",
-      "textAlign": "center"
-    }
-  ]
-}
-\`\`\`
-
-★ 중요:
-- JSON만 출력 (설명 없이!)
-- texts 배열에 1~5개 자유롭게
-- 창의적인 레이아웃으로 디자인하세요!`;
-
-  // 일반 섹션용 프롬프트
-  const normalPrompt = `당신은 한국 상세페이지 디자인 전문가입니다.
-이미지 위에 배치할 오버레이 텍스트를 **자유롭게** 디자인하세요.
-★★★ 디자인 완성도가 높은 상세페이지처럼 보이도록 텍스트를 배치하세요! ★★★
-
-## 제품 정보
-- 제품명: ${productName}
-- 카테고리: ${category}
-- 타겟: ${targetAudience}
-- 핵심 특징: ${keyFeatures.join(', ')}
-${blockContext}
-${imageContext}
-
-## 섹션 목적: ${normalizedSection}
-${normalizedSection === 'MAIN' ? '메인 썸네일 - 브랜드명과 슬로건으로 시선 끌기' : ''}
-${normalizedSection === 'HERO' ? '히어로 - 고객 고민 공감 → 해결책 제시' : ''}
-${normalizedSection === 'FEATURES' ? '특징 - 제품 특징/성분 강조' : ''}
-${normalizedSection === 'SOCIAL_PROOF' ? '신뢰 - 통계 수치, 수상 이력' : ''}
-${normalizedSection === 'HOW_TO_USE' ? '사용법 - STEP별 안내' : ''}
-${normalizedSection === 'FAQ' ? 'FAQ - 질문과 답변' : ''}
-
-## 참고 키워드
-${sensoryWords}
-
-## ★★★ 디자인 원칙 (필수!)
-1. **텍스트 개수**: 1~4개 자유롭게 (꼭 다 채울 필요 없음!)
-2. **계층 구조**: 큰 텍스트(메인) + 작은 텍스트(서브) 조합
-3. **여백 활용**: 이미지가 숨 쉴 공간 확보
-4. **시선 유도**: 중요한 메시지는 크고 눈에 띄게
-5. **색상 대비**: 배경과 확실히 구분되는 색상
-
-## 위치 가이드
-- x: 0=왼쪽, 50=중앙, 100=오른쪽
-- y: 0=상단, 50=중앙, 100=하단
-- textAlign: left(왼쪽정렬), center(중앙정렬), right(오른쪽정렬)
-
-## 색상 팔레트
-- 밝은 배경: #1a1a1a, #222222, #333333
-- 어두운 배경: #ffffff, #f5f5f5, #eeeeee
-- 포인트: #e8b4b8(핑크), #4a90d9(블루), #5cb85c(그린)
-
-${generateFontGuideForAI()}
-
-## ★ 출력 형식 (texts 배열)
-텍스트 개수와 내용을 **자유롭게** 결정하세요. 1~4개 권장.
-
-\`\`\`json
-{
-  "texts": [
-    {
-      "text": "메인 카피 (가장 크고 눈에 띄게)",
-      "x": 50,
-      "y": 40,
-      "fontSize": 36,
-      "fontWeight": "bold",
-      "fontFamily": "검은고딕, sans-serif",
-      "color": "#ffffff",
-      "textAlign": "center",
-      "width": null
-    },
-    {
-      "text": "서브 카피 (보조 설명)",
-      "x": 50,
-      "y": 60,
-      "fontSize": 16,
-      "fontWeight": "normal",
-      "fontFamily": "Pretendard, sans-serif",
-      "color": "#eeeeee",
-      "textAlign": "center",
-      "width": null
-    }
-  ]
-}
-\`\`\`
-
-★ 중요:
-- JSON만 출력 (설명 없이!)
-- texts 배열에 1~4개 텍스트 자유롭게
-- 디자인 완성도가 높아 보이도록!
-- 줄바꿈 필요시 \\n 사용`;
-
-  // ★ 텍스트 배경 섹션이면 특별 프롬프트, 아니면 일반 프롬프트
-  const prompt = isTextBackgroundSection ? textBannerPrompt : normalPrompt;
+  // ★ 공통 프롬프트 사용 (overlay-prompts.ts의 buildOverlayTextPrompt)
+  const prompt = buildOverlayTextPrompt(
+    normalizedSection as SectionType,
+    productName,
+    category,
+    keyFeatures,
+    targetAudience,
+    overlayBlockOptions
+  );
 
   try {
     const response = await gemini.models.generateContent({
