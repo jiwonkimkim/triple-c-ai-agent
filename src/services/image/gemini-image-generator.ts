@@ -1508,9 +1508,9 @@ async function generateOverlayTextForSection(
 ${imageScenarioPrompt}`
     : '';
 
-  // ★★★ 텍스트 배경 섹션용 특별 프롬프트 (올리브영 상세페이지 스타일)
-  const textBannerPrompt = `당신은 한국 올리브영 상세페이지 전문 디자이너입니다.
-순수 색상 배경 위에 올라갈 **임팩트 있는 대형 타이포그래피**를 만들어주세요.
+  // ★★★ 텍스트 배경 섹션용 특별 프롬프트 (자유 형식 타이포그래피)
+  const textBannerPrompt = `당신은 한국 올리브영 상세페이지 전문 타이포그래피 디자이너입니다.
+순수 색상 배경 위에 **창의적인 텍스트 레이아웃**을 디자인하세요.
 
 ## 제품 정보
 - 제품명: ${productName}
@@ -1518,73 +1518,56 @@ ${imageScenarioPrompt}`
 - 타겟: ${targetAudience}
 - 핵심 특징: ${keyFeatures.join(', ')}
 
-## ★★★ 올리브영 텍스트 배너 스타일 가이드
+## ★★★ 창의적 타이포그래피 디자인
 
-### 레이아웃 구성 (3단 구조)
-1. **상단 (y: 20%)**: 작은 서브텍스트 (브랜드명, 영문 카테고리, 해시태그 등)
-   - fontSize: 14-16px, fontWeight: medium, color: #666666
+### 자유롭게 결정할 것
+- 텍스트 개수: 1~5개 (이미지가 답을 알려줌)
+- 위치: 중앙, 코너, 대각선 등 자유롭게
+- 크기: 강조할 부분은 크게, 보조는 작게
+- 배치: 정형화된 틀 없이 창의적으로
 
-2. **중앙 (y: 45-50%)**: ★ 대형 메인 카피 (핵심 메시지!) ★
-   - fontSize: 36-48px (화면의 주인공!)
-   - fontWeight: bold 또는 900
-   - color: #222222 또는 #333333
-   - 예시: "3초 얼굴형 교정카라", "단 3초만에 완성되는", "촉촉함이 다르다"
-
-3. **하단 (y: 70-75%)**: 보조 메시지 또는 해시태그
-   - fontSize: 16-20px
-   - color: #555555
-   - 예시: "넓어 보이는 #이마 라인 축소", "하루종일 유지되는 완벽한 Holding"
-
-### 카피 작성 규칙
-- 메인 카피는 **짧고 임팩트 있게** (10-20자)
+### 카피 작성 힌트
+- 임팩트 있는 한 줄: "3초 얼굴형 교정카라"
 - 숫자 강조: "3초", "48시간", "92%"
-- 해시태그 스타일: #키워드
-- 의성어/의태어 활용: "촉촉", "탱글탱글", "쫀쫀"
-- 문제→해결 구조: "건조한 피부? → 촉촉함을 되찾다"
+- 해시태그: #키워드 #특징
+- 감각적 표현: "촉촉", "탱글탱글", "쫀쫀"
 
 ${generateFontGuideForAI()}
 
-## 출력 형식 (JSON)
-headline = 상단 서브텍스트, subheadline = 메인 대형 카피, body = 하단 보조 메시지
+## ★ 출력 형식 (texts 배열)
+텍스트 개수와 배치를 **자유롭게** 결정하세요.
 
 \`\`\`json
 {
-  "headline": {
-    "text": "브랜드명 또는 영문 카테고리 (예: Fix&Fit, Skincare #01)",
-    "x": 50,
-    "y": 20,
-    "fontSize": 14,
-    "fontWeight": "500",
-    "fontFamily": "Noto Sans KR, sans-serif",
-    "color": "#666666",
-    "textAlign": "center"
-  },
-  "subheadline": {
-    "text": "★ 대형 메인 카피 (10-20자, 임팩트 있게!)",
-    "x": 50,
-    "y": 48,
-    "fontSize": 42,
-    "fontWeight": "800",
-    "fontFamily": "Pretendard, sans-serif",
-    "color": "#222222",
-    "textAlign": "center"
-  },
-  "body": {
-    "text": "보조 메시지 또는 #해시태그 스타일",
-    "x": 50,
-    "y": 72,
-    "fontSize": 18,
-    "fontWeight": "500",
-    "fontFamily": "Noto Sans KR, sans-serif",
-    "color": "#555555",
-    "textAlign": "center"
-  },
-  "statistics": null,
-  "cta": null
+  "texts": [
+    {
+      "text": "대형 메인 카피 (가장 임팩트 있게)",
+      "x": 50,
+      "y": 45,
+      "fontSize": 42,
+      "fontWeight": "800",
+      "fontFamily": "Pretendard, sans-serif",
+      "color": "#222222",
+      "textAlign": "center"
+    },
+    {
+      "text": "보조 메시지 (필요하면 추가)",
+      "x": 50,
+      "y": 70,
+      "fontSize": 18,
+      "fontWeight": "500",
+      "fontFamily": "Noto Sans KR, sans-serif",
+      "color": "#555555",
+      "textAlign": "center"
+    }
+  ]
 }
 \`\`\`
 
-★ 중요: 메인 카피(subheadline)가 가장 크고 눈에 띄어야 합니다! JSON만 출력하세요.`;
+★ 중요:
+- JSON만 출력 (설명 없이!)
+- texts 배열에 1~5개 자유롭게
+- 창의적인 레이아웃으로 디자인하세요!`;
 
   // 일반 섹션용 프롬프트
   const normalPrompt = `당신은 한국 상세페이지 디자인 전문가입니다.
