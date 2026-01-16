@@ -60,7 +60,7 @@ module.exports = withSentryConfig(nextConfig, {
   org: "triple-c",
   project: "triple-c",
 
-  // 소스맵 업로드 (에러 위치 정확히 표시)
+  // 소스맵 업로드 (SENTRY_AUTH_TOKEN이 있을 때만)
   silent: !process.env.CI,
   widenClientFileUpload: true,
 
@@ -70,4 +70,8 @@ module.exports = withSentryConfig(nextConfig, {
 
   // 자동 계측
   automaticVercelMonitors: true,
+
+  // Auth token이 없으면 소스맵 업로드 건너뛰기 (빌드 실패 방지)
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  skipEnvironmentCheck: true,
 });
