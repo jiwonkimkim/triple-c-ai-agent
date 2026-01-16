@@ -85,7 +85,7 @@ jobs:
 
       - name: Install dependencies
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://dummy:dummy@localhost:5432/dummy' }}
         run: npm install
 
       - name: Record start time
@@ -95,10 +95,11 @@ jobs:
       - name: Build
         id: build
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+          # 빌드 시에만 필요한 더미값 (실제 런타임은 Vercel 환경변수 사용)
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://dummy:dummy@localhost:5432/dummy' }}
+          GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY || 'dummy-key-for-build' }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'dummy-secret-for-build-only' }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL || 'https://triple-c.vercel.app' }}
         run: |
           set -o pipefail
           npm run build 2>&1 | tee build.log
