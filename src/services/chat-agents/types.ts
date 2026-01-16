@@ -259,6 +259,10 @@ export interface ProjectCollectedData {
   visualTheme?: string;
   toneAndManner?: string;
   colorPalette?: string[];
+
+  // 생성/수정 플래그
+  readyToGenerate?: boolean;
+  modifyRequest?: 'sections' | 'style';
 }
 
 export interface PlannedSection {

@@ -170,6 +170,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           // 선택 옵션 처리: selectedOptionId가 있으면 collectedData 업데이트
           let updatedCollectedData = conversation.collectedData as ProjectCollectedData;
 
+          // planAction 처리를 위한 변수
+          let shouldGenerate = false;
+          let shouldModifySections = false;
+          let shouldModifyStyle = false;
+
           if (selectedOptionId) {
             // 마지막 assistant 메시지에서 askingField와 options 찾기
             const lastAssistantMessage = [...existingMessages]
@@ -183,25 +188,62 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
               };
 
               if (askingField && options) {
-                const selectionUpdate = processSuggesterSelection(
-                  selectedOptionId,
-                  askingField,
-                  options
-                );
+                // planAction 특별 처리
+                if (askingField === 'planAction') {
+                  if (selectedOptionId === 'generate') {
+                    shouldGenerate = true;
+                    console.log('[Chat] Plan action: generate selected');
+                  } else if (selectedOptionId === 'modify_sections') {
+                    shouldModifySections = true;
+                    console.log('[Chat] Plan action: modify sections selected');
+                  } else if (selectedOptionId === 'modify_style') {
+                    shouldModifyStyle = true;
+                    console.log('[Chat] Plan action: modify style selected');
+                  }
+                } else {
+                  // 일반 선택지 처리
+                  const selectionUpdate = processSuggesterSelection(
+                    selectedOptionId,
+                    askingField,
+                    options
+                  );
 
-                updatedCollectedData = {
-                  ...updatedCollectedData,
-                  ...selectionUpdate,
-                };
+                  updatedCollectedData = {
+                    ...updatedCollectedData,
+                    ...selectionUpdate,
+                  };
 
-                console.log('[Chat] Selection processed:', {
-                  askingField,
-                  selectedOptionId,
-                  selectionUpdate,
-                  updatedCollectedData,
-                });
+                  console.log('[Chat] Selection processed:', {
+                    askingField,
+                    selectedOptionId,
+                    selectionUpdate,
+                    updatedCollectedData,
+                  });
+                }
               }
             }
+          }
+
+          // planAction에 따른 collectedData 업데이트
+          if (shouldGenerate) {
+            updatedCollectedData = {
+              ...updatedCollectedData,
+              readyToGenerate: true,
+            };
+          } else if (shouldModifySections) {
+            updatedCollectedData = {
+              ...updatedCollectedData,
+              plannedSections: undefined, // 섹션 초기화
+              modifyRequest: 'sections',
+            };
+          } else if (shouldModifyStyle) {
+            updatedCollectedData = {
+              ...updatedCollectedData,
+              visualTheme: undefined,
+              toneAndManner: undefined,
+              colorPalette: undefined,
+              modifyRequest: 'style',
+            };
           }
 
           // Agent 상태 초기화
@@ -220,10 +262,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           // 타이핑 시작 이벤트
           sendEvent('typing', { isTyping: true });
 
-          // LangGraph 실행
+          // LangGraph 실행 (recursionLimit 설정으로 무한루프 방지)
           const graph = getChatAgentGraph();
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const result = await graph.invoke(initialState as any);
+          const result = await graph.invoke(initialState as any, {
+            recursionLimit: 50, // 기본값 25에서 증가
+          });
 
           // 결과에서 새 메시지 추출
           const newMessages = result.messages.filter(

@@ -115,16 +115,18 @@ ${brandContext ? `
           `이대로 생성을 시작할까요?`,
         agentType: 'PLANNER',
         metadata: {
-          uiType: 'confirmation',
+          uiType: 'options',
+          askingField: 'planAction', // 플랜 액션 선택
+          options: [
+            { id: 'generate', label: '이대로 생성하기', value: 'generate', description: '상세페이지 생성 시작' },
+            { id: 'modify_sections', label: '섹션 수정', value: 'modify_sections', description: '섹션 구성 변경' },
+            { id: 'modify_style', label: '스타일 변경', value: 'modify_style', description: '테마/톤 변경' },
+          ],
           planPreview: {
             sections: plannerResponse.sections,
             theme: plannerResponse.visualTheme,
             tone: plannerResponse.toneAndManner,
           },
-          options: [
-            { id: 'generate', label: '생성 시작', value: 'generate', description: '상세페이지 생성' },
-            { id: 'modify', label: '구성 수정', value: 'modify', description: '섹션 구성 변경' },
-          ],
         },
         createdAt: new Date(),
       };
@@ -162,16 +164,18 @@ ${brandContext ? `
       `\n\n이대로 생성할까요?`,
     agentType: 'PLANNER',
     metadata: {
-      uiType: 'confirmation',
+      uiType: 'options',
+      askingField: 'planAction',
+      options: [
+        { id: 'generate', label: '이대로 생성하기', value: 'generate', description: '상세페이지 생성 시작' },
+        { id: 'modify_sections', label: '섹션 수정', value: 'modify_sections', description: '섹션 구성 변경' },
+        { id: 'modify_style', label: '스타일 변경', value: 'modify_style', description: '테마/톤 변경' },
+      ],
       planPreview: {
         sections: defaultSections,
         theme: '기본',
         tone: '친근하고 전문적인',
       },
-      options: [
-        { id: 'generate', label: '생성 시작', value: 'generate' },
-        { id: 'modify', label: '구성 수정', value: 'modify' },
-      ],
     },
     createdAt: new Date(),
   };

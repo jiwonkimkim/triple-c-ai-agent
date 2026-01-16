@@ -55,7 +55,41 @@ export async function coordinatorAgent(
     };
   }
 
-  // 2. 마지막 사용자 메시지 찾기
+  // 2. 생성 플래그 확인 - 바로 Generator로 라우팅
+  if (collectedData.readyToGenerate) {
+    console.log('[Coordinator] readyToGenerate flag detected, routing to GENERATOR');
+    return {
+      currentAgent: 'COORDINATOR',
+      nextAction: { type: 'generate' },
+      // readyToGenerate 플래그 제거 (일회성)
+      collectedData: { ...collectedData, readyToGenerate: undefined },
+    };
+  }
+
+  // 3. 수정 요청 확인
+  if (collectedData.modifyRequest) {
+    const modifyType = collectedData.modifyRequest;
+    console.log('[Coordinator] modifyRequest detected:', modifyType);
+
+    // 플래그 제거
+    const cleanedData = { ...collectedData, modifyRequest: undefined };
+
+    if (modifyType === 'sections') {
+      return {
+        currentAgent: 'COORDINATOR',
+        nextAction: { type: 'continue', targetAgent: 'FEEDBACK' as AgentType },
+        collectedData: cleanedData,
+      };
+    } else if (modifyType === 'style') {
+      return {
+        currentAgent: 'COORDINATOR',
+        nextAction: { type: 'continue', targetAgent: 'FEEDBACK' as AgentType },
+        collectedData: cleanedData,
+      };
+    }
+  }
+
+  // 4. 마지막 사용자 메시지 찾기
   const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
 
   if (!lastUserMessage) {
@@ -66,13 +100,13 @@ export async function coordinatorAgent(
 
   const userContent = lastUserMessage.content;
 
-  // 3. Intent 분석
+  // 5. Intent 분석
   const conversationContext = messages.slice(-5).map(m => `[${m.role}]: ${m.content}`);
   const parsedIntent = await parseIntent(userContent, collectedData, conversationContext);
 
   console.log('[Coordinator] Intent:', parsedIntent.intent, 'Confidence:', parsedIntent.confidence);
 
-  // 4. Intent별 라우팅
+  // 6. Intent별 라우팅
   switch (parsedIntent.intent) {
     // === Discovery 모드 ===
     case 'QUESTION':
@@ -257,7 +291,7 @@ export async function coordinatorAgent(
       break;
   }
 
-  // 5. 상태 기반 라우팅
+  // 7. 상태 기반 라우팅
 
   // Discovery 요청인지 다시 확인
   if (isDiscoveryRequest(userContent)) {
