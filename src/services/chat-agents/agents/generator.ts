@@ -100,7 +100,8 @@ export async function generatorAgent(
 
     // 3. 상세페이지 생성 (직접 함수 호출 - HTTP fetch 대신)
     const hasProductImages = collectedData.productImages && collectedData.productImages.length > 0;
-    const shouldGenerateImages = !hasProductImages; // 제품 이미지가 없으면 T2I, 있으면 I2I
+    // ★ 항상 이미지 생성 (제품 이미지 있으면 I2I, 없으면 T2I)
+    const shouldGenerateImages = true;
 
     // 브랜드 컨텍스트 구성
     let fullBrandContext: {
@@ -163,7 +164,9 @@ export async function generatorAgent(
 
     console.log('[Generator] Calling generateDetailPage directly...');
     console.log('[Generator] productImages:', collectedData.productImages?.length || 0);
+    console.log('[Generator] hasProductImages:', hasProductImages);
     console.log('[Generator] shouldGenerateImages:', shouldGenerateImages);
+    console.log('[Generator] imageModel:', collectedData.imageModel || 'gemini-2.5-flash-image');
 
     const detailPageResult = await generateDetailPage({
       productImages: collectedData.productImages || [],

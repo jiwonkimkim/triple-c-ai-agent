@@ -916,12 +916,10 @@ async function generateDetailPageLegacy(
   };
 
   try {
-    const [version1, version2] = await Promise.all([
-      generateVersion(0),
-      generateVersion(1),
-    ]);
+    // ★ 버전 1개만 생성 (기존 2개 → 1개로 변경)
+    const version1 = await generateVersion(0);
 
-    let versions = [version1, version2];
+    let versions = [version1];
 
     if (input.generateImages && isGeminiConfigured()) {
       try {

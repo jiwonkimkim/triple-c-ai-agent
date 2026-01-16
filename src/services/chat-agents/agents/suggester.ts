@@ -149,10 +149,13 @@ export async function suggesterAgent(
     message = '제품 이미지가 있으신가요? 이미지가 있으면 더 좋은 상세페이지를 만들 수 있어요.';
     askingField = 'productImageChoice';
   }
-  // 6. 이미지 모델 선택 (이미지 없이 진행하는 경우)
-  else if (!collectedData.imageModel && (!collectedData.productImages || collectedData.productImages.length === 0)) {
+  // 6. 이미지 모델 선택 (항상 물어봄 - 이미지 유무와 관계없이)
+  else if (!collectedData.imageModel) {
     options = IMAGE_MODEL_OPTIONS;
-    message = 'AI가 이미지를 생성합니다. 어떤 품질로 만들까요?';
+    const hasImages = collectedData.productImages && collectedData.productImages.length > 0;
+    message = hasImages
+      ? '제품 이미지를 기반으로 배경 이미지를 생성합니다. 어떤 품질로 만들까요?'
+      : 'AI가 이미지를 생성합니다. 어떤 품질로 만들까요?';
     askingField = 'imageModel';
   }
   // 7. 필수 정보가 모두 있으면 바로 기획 단계로 이동
