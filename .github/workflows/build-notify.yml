@@ -84,6 +84,8 @@ jobs:
           echo "ts=$TS" >> $GITHUB_OUTPUT
 
       - name: Install dependencies
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npm install
 
       - name: Record start time
@@ -92,6 +94,11 @@ jobs:
 
       - name: Build
         id: build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          GOOGLE_AI_API_KEY: ${{ secrets.GOOGLE_AI_API_KEY }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
         run: |
           set -o pipefail
           npm run build 2>&1 | tee build.log
