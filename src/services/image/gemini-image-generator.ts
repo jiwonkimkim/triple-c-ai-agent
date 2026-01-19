@@ -437,70 +437,137 @@ export async function generateSectionImageWithGemini(
   // MAIN 섹션은 1:1, 나머지는 자유 비율
   const aspectRatio: ImageAspectRatio | undefined = sectionType === 'MAIN' ? '1:1' : undefined;
 
-  // MAIN 섹션에 제품 정보 기반 맞춤 오브제 추가
-  let enhancedPrompt = imagePrompt;
-  if (sectionType === 'MAIN' && !imagePrompt.toLowerCase().includes('decorative')) {
-    // 1. 제품명에서 실제 재료 오브제 추출 (매번 다른 조합)
-    const ingredientObjects = extractIngredientObjects(productName, category);
+  // ★★★ I2I와 동일한 섹션별 템플릿 사용 (T2I도 동일한 프롬프트 품질 보장) ★★★
 
-    // 2. 랜덤 분위기 오브제 선택 (매번 다른 무드)
-    const moodSelection = selectRandomMoodObjects();
+  // 1. 제품명에서 실제 재료 오브제 추출 (매번 다른 조합)
+  const ingredientObjects = extractIngredientObjects(productName, category);
 
-    // 3. 타겟 고객 기반 스타일링
-    let audienceStyle = '';
-    if (targetAudience) {
-      const audienceLower = targetAudience.toLowerCase();
-      if (audienceLower.includes('20대') || audienceLower.includes('young') || audienceLower.includes('젊')) {
-        audienceStyle = 'trendy, vibrant, youthful energy';
-      } else if (audienceLower.includes('30대') || audienceLower.includes('40대') || audienceLower.includes('mature')) {
-        audienceStyle = 'sophisticated, elegant, refined luxury';
-      } else if (audienceLower.includes('남성') || audienceLower.includes('men') || audienceLower.includes('male')) {
-        audienceStyle = 'masculine, bold, minimalist strength';
-      } else if (audienceLower.includes('민감') || audienceLower.includes('sensitive')) {
-        audienceStyle = 'gentle, calming, pure and clean';
-      } else {
-        audienceStyle = 'universal appeal, balanced aesthetic';
-      }
+  // 2. 랜덤 분위기 오브제 선택 (매번 다른 무드)
+  const moodSelection = selectRandomMoodObjects();
+
+  // 3. 타겟 고객 기반 스타일링
+  let audienceStyle = 'Premium universal appeal';
+  if (targetAudience) {
+    const audienceLower = targetAudience.toLowerCase();
+    if (audienceLower.includes('20대') || audienceLower.includes('young') || audienceLower.includes('젊')) {
+      audienceStyle = 'trendy, vibrant, youthful energy';
+    } else if (audienceLower.includes('30대') || audienceLower.includes('40대') || audienceLower.includes('mature')) {
+      audienceStyle = 'sophisticated, elegant, refined luxury';
+    } else if (audienceLower.includes('남성') || audienceLower.includes('men') || audienceLower.includes('male')) {
+      audienceStyle = 'masculine, bold, minimalist strength';
+    } else if (audienceLower.includes('민감') || audienceLower.includes('sensitive')) {
+      audienceStyle = 'gentle, calming, pure and clean';
     }
+  }
 
-    // 4. 핵심 특징 반영
-    let featureHighlight = '';
-    if (keyFeatures && keyFeatures.length > 0) {
-      featureHighlight = `Key product benefit to emphasize: ${keyFeatures[0]}`;
-    }
+  // 4. 핵심 특징 반영
+  const featureHighlight = keyFeatures && keyFeatures.length > 0
+    ? `Emphasize: ${keyFeatures[0]}`
+    : 'Highlight product quality';
 
-    enhancedPrompt = `${imagePrompt}
+  // ★★★ 섹션별 T2I 템플릿 (I2I와 동일한 구조) ★★★
+  const sectionPrompts: Record<string, string> = {
+    MAIN: `Create a KOREAN E-COMMERCE DETAIL PAGE THUMBNAIL for "${productName}".
 
-[PREMIUM E-COMMERCE THUMBNAIL]
+[KOREAN DETAIL PAGE STYLE - 올리브영/쿠팡 스타일]
+- Premium beauty product thumbnail style (한국 뷰티 상세페이지)
+- Clean, bright, aspirational aesthetic that Korean consumers love
+- Magazine editorial meets e-commerce quality
+- Soft gradient background complementing product colors
 
-[VISUAL STYLE]
-High-end beauty campaign aesthetic, editorial magazine quality, aspirational luxury feel.
-Clean minimalist background with soft gradient that complements the product colors.
-
-[PRODUCT HERO - DOMINANT FOCUS]
-The product must be the absolute star - sharp, detailed, eye-catching.
-Product takes 50-60% of the frame, perfectly lit with soft studio lighting.
-
-[INGREDIENT VISUALIZATION]
-Artfully arranged real ingredients nearby: ${ingredientObjects.join(', ')}
-Place elegantly at the base or floating around the product (15-20% of frame).
-Fresh, vibrant, photorealistic quality with natural textures.
-
-[ATMOSPHERIC ELEMENTS - ${moodSelection.style}]
-Subtle mood-setting accents: ${moodSelection.selected.join(', ')}
-Delicately placed in background or sides (10-15% of frame).
-Creates depth and visual interest without overwhelming the product.
+[CREATIVE COMPOSITION]
+Design a visually striking thumbnail featuring ${productName}.
+- Product as HERO (50-60% of frame), sharp focus, eye-catching
+- Product placement: CENTER or slightly UPPER-CENTER
+- Decorative objects (15-20%): ${ingredientObjects.join(', ')}
+- Atmospheric elements (10-15%): ${moodSelection.selected.join(', ')}
+- Create depth with layered composition (foreground → product → background)
+- Leave CLEAN SPACE at top (20%) for text overlay (slogan area)
 
 [STYLING DIRECTION]
-Target aesthetic: ${audienceStyle || 'Premium universal appeal'}
-${featureHighlight || 'Highlight product quality and premium feel'}
+Target aesthetic: ${audienceStyle}
+${featureHighlight}
+Korean beauty trend: 글로우, 투명감, 프리미엄
 
 [TECHNICAL REQUIREMENTS]
-- Soft, diffused lighting with gentle highlights and shadows
-- Shallow depth of field focusing on the product
+- Soft, diffused studio lighting with gentle rim light
+- Shallow depth of field, soft bokeh background
 - Rich, vibrant colors with professional color grading
-- Premium commercial photography that triggers desire to purchase`;
+- Premium commercial photography that triggers purchase desire
+- 8K resolution, photorealistic, no text in image`,
+
+    HERO: `Create KOREAN E-COMMERCE HERO BANNER IMAGE for ${productName}.
+[SCENARIO: 상세페이지 최상단 히어로 배너]
+- 고객이 처음 보는 강렬한 첫인상 이미지
+- 제품이 돋보이면서 브랜드 슬로건이 들어갈 공간 필요
+- 프리미엄하고 드라마틱한 분위기
+- 올리브영/쿠팡 스타일 hero banner
+${featureHighlight}
+Target aesthetic: ${audienceStyle}
+8K, photorealistic, no text.`,
+
+    FEATURES: `Create KOREAN E-COMMERCE FEATURES SECTION IMAGE for ${productName}.
+[SCENARIO: 제품 특징 소개 섹션]
+- 제품의 장점과 특징을 설명하는 섹션용 이미지
+- 제품 디테일이 잘 보이도록 각도 조절
+- 특징 아이콘이나 설명이 들어갈 여백 고려
+- 클린하고 정보전달에 효과적인 구성
+${keyFeatures ? `Features: ${keyFeatures.slice(0, 2).join(', ')}` : ''}
+Target aesthetic: ${audienceStyle}
+8K, photorealistic, no text.`,
+
+    SOCIAL_PROOF: `Create KOREAN E-COMMERCE REVIEW/TESTIMONIAL IMAGE for ${productName}.
+[SCENARIO: 고객 후기/리뷰 섹션]
+- 리뷰와 별점이 함께 표시되는 섹션용 이미지
+- 제품이 작고 자연스럽게 배치된 라이프스타일 느낌
+- 신뢰감을 주는 따뜻한 분위기
+- 후기 텍스트가 들어갈 충분한 공간
+${targetAudience ? `Target: ${targetAudience}` : ''}
+8K, photorealistic, no text.`,
+
+    HOW_TO_USE: `Create KOREAN E-COMMERCE HOW-TO-USE IMAGE for ${productName}.
+[SCENARIO: 사용법 안내 섹션]
+- 제품 사용 방법을 단계별로 설명하는 섹션용 이미지
+- 제품을 손에 들거나 사용하는 맥락 표현
+- 단계별 설명(STEP 1, 2, 3)이 들어갈 공간 고려
+- 밝고 명확한 튜토리얼 분위기
+Target aesthetic: ${audienceStyle}
+8K, photorealistic, no text.`,
+
+    FAQ: `Create KOREAN E-COMMERCE FAQ/INFO IMAGE for ${productName}.
+[SCENARIO: FAQ/추가정보 섹션]
+- 자주 묻는 질문과 답변이 표시되는 섹션용 이미지
+- 제품이 깔끔하게 보이는 미니멀한 구성
+- Q&A 텍스트가 들어갈 충분한 여백
+- 정보 전달에 집중하는 심플한 분위기
+8K, photorealistic, no text.`,
+  };
+
+  // 섹션 템플릿 선택 (없으면 동적 생성)
+  let enhancedPrompt = sectionPrompts[sectionType];
+  if (!enhancedPrompt) {
+    console.log(`[Gemini T2I] ⚠️ No template for section type: ${sectionType}, using dynamic fallback`);
+    const sectionLabel = sectionType.replace(/_/g, ' ').toLowerCase();
+    enhancedPrompt = `Create KOREAN E-COMMERCE ${sectionType} IMAGE for ${productName}.
+[KOREAN DETAIL PAGE - ${sectionType} SECTION ${sectionLabel} 섹션]
+- Professional Korean e-commerce aesthetic
+- Product-focused composition appropriate for ${sectionLabel}
+- Clean, premium background with Korean beauty style
+- High-quality commercial photography
+Section type: ${sectionType}
+Korean beauty detail page style, 올리브영/쿠팡 스타일.
+8K, photorealistic, no text in image.`;
   }
+
+  // ★ imagePrompt가 있으면 오케스트레이션 컨텍스트로 추가 (MAIN 제외)
+  if (sectionType !== 'MAIN' && imagePrompt && imagePrompt.trim()) {
+    enhancedPrompt = `${enhancedPrompt}
+
+[ORCHESTRATION CONTEXT - 상세페이지 전체 메시지]
+${imagePrompt}`;
+  }
+
+  console.log(`[Gemini T2I] Using section template for ${sectionType}`)
 
   // ★★★ 오버레이 텍스트 JSON 요청 - overlay-prompts.ts의 buildOverlayTextPrompt 사용
   const overlayTextPrompt = buildOverlayTextPrompt(
