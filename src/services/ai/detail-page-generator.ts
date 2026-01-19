@@ -577,13 +577,15 @@ export async function generateDetailPage(
 
                   if (prompts.length === 0) {
                     // 프롬프트가 없으면 배경 제거된 제품 이미지 사용
+                    console.warn(`[AI I2I] ⚠️ No imagePrompts for ${section.type} - using clean product image fallback`);
                     return {
                       ...section,
                       imageUrl: cleanProductImage,
                     };
                   }
 
-                  const sectionType = section.type as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
+                  // ★ sectionType는 string으로 처리 (동적 섹션 지원)
+                  const sectionType = section.type;
                   console.log(`[AI I2I] Generating ${sectionType} section (${prompts.length} images)...`);
                   console.log(`[AI I2I] keyFeatures: ${input.keyFeatures?.slice(0, 2).join(', ')}, target: ${input.targetAudience}`);
 
@@ -722,10 +724,12 @@ export async function generateDetailPage(
                   const prompts = section.imagePrompts || (section.imagePrompt ? [section.imagePrompt] : []);
 
                   if (prompts.length === 0) {
+                    console.warn(`[AI T2I] ⚠️ SKIPPING ${section.type} - no imagePrompts available`);
                     return section;
                   }
 
-                  const sectionType = section.type as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
+                  // ★ sectionType는 string으로 처리 (동적 섹션 지원)
+                  const sectionType = section.type;
                   console.log(`[AI T2I] Generating ${sectionType} section (${prompts.length} images)...`);
                   console.log(`[AI T2I] keyFeatures: ${input.keyFeatures?.slice(0, 2).join(', ')}, target: ${input.targetAudience}`);
 
@@ -789,8 +793,10 @@ export async function generateDetailPage(
 
                         console.log(`[AI T2I] ${sectionType} image ${i + 1} generated successfully`);
                       }
-                    } catch (imageError) {
-                      console.error(`[AI T2I] ${sectionType} image ${i + 1} failed after retries:`, imageError);
+                    } catch (imageError: unknown) {
+                      const errMsg = imageError instanceof Error ? imageError.message : String(imageError);
+                      console.error(`[AI T2I] ${sectionType} image ${i + 1} failed after retries:`, errMsg);
+                      console.error(`[AI T2I] ★ DEBUG: sectionType=${sectionType}, model=${imageModel}, promptLength=${prompt?.imagePrompt?.length || 0}`);
                     }
 
                     // ★ 각 이미지 생성 후 짧은 대기 (rate limit 방지)
