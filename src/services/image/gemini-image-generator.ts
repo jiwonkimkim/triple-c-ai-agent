@@ -11,15 +11,15 @@ import { buildOverlayTextPrompt, BlockOverlayOptions } from '@/services/ai/promp
  * 다양한 섹션 타입명을 기본 SectionType으로 변환
  * ★ 새로운 섹션 타입도 자동 매핑 (패턴 기반)
  *
- * 매핑 규칙:
- * - REVIEW|SOCIAL|TESTIMONIAL|PROOF|SHOWCASE → SOCIAL_PROOF
- * - HOW_TO|USAGE|STEP|GUIDE → HOW_TO_USE
- * - FEATURE|BENEFIT|INGREDIENT|SPEC → FEATURES
- * - BRAND|TRUST|AWARD|RANKING → FEATURES (브랜드/수상/랭킹)
- * - HERO|BANNER|TEXT_BANNER|KEY_MESSAGE → HERO
- * - FAQ|QUESTION → FAQ
- * - MAIN|THUMBNAIL → MAIN
- * - 그 외 → FEATURES (기본값)
+ * 매핑 규칙 (우선순위 순):
+ * 1. REVIEW|SOCIAL|TESTIMONIAL|PROOF|SHOWCASE → SOCIAL_PROOF
+ * 2. HOW_TO|USAGE|STEP|GUIDE → HOW_TO_USE
+ * 3. FEATURE|BENEFIT|INGREDIENT|SPEC → FEATURES
+ * 4. HERO|BANNER|HEADER|KEY_MESSAGE|DIVIDER → HERO (★ BRAND_HEADER 포함!)
+ * 5. BRAND_TRUST|AWARD|RANKING → FEATURES (브랜드 신뢰/수상/랭킹)
+ * 6. FAQ|QUESTION → FAQ
+ * 7. MAIN|THUMBNAIL → MAIN
+ * 8. 그 외 → FEATURES (기본값)
  */
 function mapToBaseSectionType(type: string): SectionType {
   const upperType = type.toUpperCase();
@@ -36,13 +36,14 @@ function mapToBaseSectionType(type: string): SectionType {
   if (/FEATURE|BENEFIT|INGREDIENT|SPEC/.test(upperType)) {
     return 'FEATURES';
   }
-  // ★ BRAND_TRUST, AWARD, RANKING 등 확장 타입 → FEATURES
-  if (/BRAND|TRUST|AWARD|RANKING/.test(upperType)) {
-    return 'FEATURES';
-  }
-  // HERO, BANNER, TEXT_BANNER, KEY_MESSAGE, DIVIDER 관련 → HERO
-  if (/HERO|BANNER|KEY_MESSAGE|DIVIDER/.test(upperType)) {
+  // ★★★ HERO, BANNER, HEADER, TEXT_BANNER, KEY_MESSAGE, DIVIDER 관련 → HERO
+  // ★ BRAND_HEADER 등 HEADER 포함 섹션은 HERO로 매핑 (BRAND보다 먼저 체크!)
+  if (/HERO|BANNER|HEADER|KEY_MESSAGE|DIVIDER/.test(upperType)) {
     return 'HERO';
+  }
+  // ★ BRAND_TRUST, AWARD, RANKING 등 확장 타입 → FEATURES (HEADER 제외)
+  if (/BRAND_TRUST|AWARD|RANKING/.test(upperType)) {
+    return 'FEATURES';
   }
   // FAQ 관련
   if (/FAQ|QUESTION/.test(upperType)) {
