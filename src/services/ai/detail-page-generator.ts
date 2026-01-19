@@ -724,14 +724,14 @@ export async function generateDetailPage(
               const updatedSections: typeof version.sections = [];
               const totalSections = version.sections.length;
 
-              // ★★★ 배치 처리 (한 번에 3개씩 병렬 처리) - Rate Limit 방지 + 속도 최적화 ★★★
-              const BATCH_SIZE = 3;
+              // ★★★ 배치 처리 (한 번에 2개씩 병렬 처리) - Rate Limit 방지 + 안정성 우선 ★★★
+              const BATCH_SIZE = 2;
               const batches: typeof version.sections[] = [];
               for (let i = 0; i < version.sections.length; i += BATCH_SIZE) {
                 batches.push(version.sections.slice(i, i + BATCH_SIZE));
               }
 
-              console.log(`[AI T2I] ★★★ Processing ${totalSections} sections in ${batches.length} batches (${BATCH_SIZE} per batch) ★★★`);
+              console.log(`[AI T2I] ★★★ Processing ${totalSections} sections in ${batches.length} batches (BATCH_SIZE=${BATCH_SIZE}) ★★★`);
 
               for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
                 const batch = batches[batchIdx];
@@ -842,10 +842,10 @@ export async function generateDetailPage(
                 // 배치 결과를 updatedSections에 추가
                 updatedSections.push(...batchResults);
 
-                // ★★★ 배치 간 대기 (Rate Limit 방지) - 1.5초 대기 ★★★
+                // ★★★ 배치 간 대기 (Rate Limit 방지) - 2초 대기 ★★★
                 if (batchIdx < batches.length - 1) {
-                  console.log(`[AI T2I] Waiting 1.5s before next batch (Rate Limit Prevention)...`);
-                  await new Promise(resolve => setTimeout(resolve, 1500));
+                  console.log(`[AI T2I] Waiting 2s before next batch (Rate Limit Prevention)...`);
+                  await new Promise(resolve => setTimeout(resolve, 2000));
                 }
               }
 

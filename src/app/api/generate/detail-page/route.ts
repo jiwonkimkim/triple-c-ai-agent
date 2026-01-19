@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 300; // 5분 타임아웃 (Vercel Pro 플랜)
 
 // POST /api/generate/detail-page - Generate detail page versions
 export async function POST(request: NextRequest) {
