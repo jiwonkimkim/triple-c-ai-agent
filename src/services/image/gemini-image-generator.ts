@@ -169,8 +169,25 @@ export async function generateImageWithGemini(
     // Process response parts to extract images AND text (overlay)
     let extractedOverlayText: OverlayTextContent | undefined;
 
+    // ★★★ API 응답 디버깅 ★★★
+    console.log(`[Gemini] ★ Response debug:`, JSON.stringify({
+      hasCandidates: !!response.candidates,
+      candidatesLength: response.candidates?.length,
+      hasContent: !!response.candidates?.[0]?.content,
+      hasParts: !!response.candidates?.[0]?.content?.parts,
+      partsLength: response.candidates?.[0]?.content?.parts?.length,
+      finishReason: response.candidates?.[0]?.finishReason,
+      safetyRatings: response.candidates?.[0]?.safetyRatings?.map(r => `${r.category}:${r.probability}`),
+    }));
+
     if (response.candidates && response.candidates[0]?.content?.parts) {
-      for (const part of response.candidates[0].content.parts) {
+      const parts = response.candidates[0].content.parts;
+      console.log(`[Gemini] Processing ${parts.length} parts...`);
+
+      for (let partIdx = 0; partIdx < parts.length; partIdx++) {
+        const part = parts[partIdx];
+        console.log(`[Gemini] Part ${partIdx}: hasInlineData=${!!part.inlineData}, hasText=${!!part.text}`);
+
         // ★ 이미지 추출
         if (part.inlineData && part.inlineData.data) {
           console.log(`[Gemini] Image generated, mimeType: ${part.inlineData.mimeType}`);
@@ -210,6 +227,13 @@ export async function generateImageWithGemini(
     // ★ 이미지에 오버레이 텍스트 첨부
     if (extractedOverlayText && results.length > 0) {
       results[0].overlayText = extractedOverlayText;
+    }
+
+    // ★★★ 이미지 생성 실패 시 상세 로그 ★★★
+    if (results.length === 0) {
+      console.error(`[Gemini] ⚠️ NO IMAGE GENERATED! API returned no image data.`);
+      console.error(`[Gemini] ⚠️ Prompt used (first 500 chars): ${enhancedPrompt.substring(0, 500)}...`);
+      console.error(`[Gemini] ⚠️ Model: ${model}, aspectRatio: ${aspectRatio}`);
     }
 
     console.log(`[Gemini] Total images generated: ${results.length}, overlayText: ${extractedOverlayText ? 'YES' : 'NO'}`);
