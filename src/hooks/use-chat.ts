@@ -53,7 +53,6 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
-  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const [collectedData, setCollectedData] = useState<any>({});
   const [error, setError] = useState<string | null>(null);
 
@@ -85,15 +84,18 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
     onMessage: (message) => {
       // 빈 메시지는 무시
       if (!message.content || message.content.trim() === '') {
-        setStreamingMessageId(null);
         streamingMessageIdRef.current = null;
         return;
       }
 
       setMessages((prev) => {
         // 스트리밍 중인 메시지를 완성된 메시지로 교체
+        // ref를 사용하여 클로저 문제 해결 + isStreaming 플래그로도 찾기
         const existingIndex = prev.findIndex(
-          (m) => m.id === streamingMessageId || m.id === message.id
+          (m) =>
+            m.id === streamingMessageIdRef.current ||
+            m.id === message.id ||
+            m.isStreaming
         );
 
         if (existingIndex >= 0) {
@@ -111,8 +113,7 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
           { ...message, createdAt: new Date(message.createdAt), isStreaming: false },
         ];
       });
-      setStreamingMessageId(null);
-      streamingMessageIdRef.current = null; // ref도 초기화
+      streamingMessageIdRef.current = null;
     },
     onTyping: (typing) => {
       setIsTyping(typing);
@@ -120,8 +121,7 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
       if (typing) {
         // 타이핑 시작 시 임시 메시지 추가
         const tempId = `streaming_${Date.now()}`;
-        setStreamingMessageId(tempId);
-        streamingMessageIdRef.current = tempId; // ref도 업데이트
+        streamingMessageIdRef.current = tempId;
         setMessages((prev) => [
           ...prev,
           {
@@ -140,8 +140,15 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
       setCollectedData(data.collectedData || {});
 
       // 빈 스트리밍 메시지 정리
+      // isStreaming이 true이거나, content가 비어있고 streamedContent만 있는 메시지 제거
       setMessages((prev) =>
-        prev.filter((m) => !m.isStreaming || (m.content && m.content.trim() !== ''))
+        prev.filter((m) => {
+          // 스트리밍 중인 메시지는 제거
+          if (m.isStreaming) return false;
+          // content가 비어있는 메시지는 제거 (streamedContent만 있는 경우 포함)
+          if (!m.content || m.content.trim() === '') return false;
+          return true;
+        })
       );
 
       // 완료 시 리다이렉트
@@ -285,7 +292,6 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
     const currentStreamingId = streamingMessageIdRef.current;
     if (currentStreamingId) {
       setMessages((prev) => prev.filter((m) => m.id !== currentStreamingId));
-      setStreamingMessageId(null);
       streamingMessageIdRef.current = null;
     }
   }, [stopStream]);
