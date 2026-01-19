@@ -98,10 +98,17 @@ export async function generatorAgent(
       },
     });
 
-    // 3. 상세페이지 생성 (직접 함수 호출 - HTTP fetch 대신)
+    // 3. 상세페이지 생성 (API route와 동일한 로직 적용)
+    // - generateImages: false (기본) = 사용자 업로드 제품 이미지 직접 사용
+    // - generateImages: true = AI가 새로운 이미지 생성
+    // - 제품 이미지 없으면 자동으로 T2I 활성화
     const hasProductImages = collectedData.productImages && collectedData.productImages.length > 0;
-    // ★ 항상 이미지 생성 (제품 이미지 있으면 I2I, 없으면 T2I)
-    const shouldGenerateImages = true;
+    const shouldGenerateImages = collectedData.generateImages ?? !hasProductImages; // API와 동일: 제품 이미지 없으면 자동 T2I
+
+    // ★ 디버그: 이미지 생성 모드 결정 로깅
+    console.log('[Generator] ★★★ IMAGE GENERATION MODE ★★★');
+    console.log('[Generator] collectedData.generateImages:', collectedData.generateImages);
+    console.log('[Generator] Mode:', hasProductImages && shouldGenerateImages ? 'I2I' : (shouldGenerateImages ? 'T2I' : 'Direct'));
 
     // 브랜드 컨텍스트 구성
     let fullBrandContext: {
@@ -162,11 +169,19 @@ export async function generatorAgent(
       };
     }
 
-    console.log('[Generator] Calling generateDetailPage directly...');
-    console.log('[Generator] productImages:', collectedData.productImages?.length || 0);
-    console.log('[Generator] hasProductImages:', hasProductImages);
-    console.log('[Generator] shouldGenerateImages:', shouldGenerateImages);
-    console.log('[Generator] imageModel:', collectedData.imageModel || 'gemini-2.5-flash-image');
+    // ★★★ API route와 동일한 상세 로깅 ★★★
+    console.log('[Generator] ★★★ Calling generateDetailPage (ORCHESTRATION MODE) ★★★');
+    console.log('[Generator] productName:', collectedData.productName);
+    console.log('[Generator] category:', collectedData.category);
+    console.log('[Generator] subCategory:', collectedData.subCategory);
+    console.log('[Generator] copyLength:', collectedData.copyLength);
+    console.log('[Generator] keyFeatures:', collectedData.keyFeatures?.slice(0, 3).join(', '));
+    console.log('[Generator] targetAudience:', collectedData.targetAudience);
+    console.log('[Generator] ★ productImages:', JSON.stringify(collectedData.productImages?.slice(0, 2)));
+    console.log('[Generator] ★ hasProductImages:', hasProductImages);
+    console.log('[Generator] ★ shouldGenerateImages (final):', shouldGenerateImages);
+    console.log('[Generator] ★ imageModel:', collectedData.imageModel || 'gemini-2.5-flash-image');
+    console.log('[Generator] ★ brandContext:', fullBrandContext ? `${fullBrandContext.name || 'unnamed'}` : 'null');
 
     const detailPageResult = await generateDetailPage({
       productImages: collectedData.productImages || [],
@@ -180,6 +195,8 @@ export async function generatorAgent(
       generateImages: shouldGenerateImages,
       imageModel: collectedData.imageModel || 'gemini-2.5-flash-image',
     }, { includeDevPrompts: process.env.NODE_ENV === 'development' });
+
+    console.log('[Generator] ★★★ generateDetailPage completed successfully ★★★');
 
     const { versions, devPrompts } = detailPageResult;
 
@@ -313,7 +330,19 @@ export async function generatorAgent(
       nextAction: { type: 'complete', projectId: project.id },
     };
   } catch (error) {
-    console.error('[Generator] Error:', error);
+    // ★★★ 상세 에러 로깅 ★★★
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : '';
+    console.error('[Generator] ★★★ GENERATION FAILED ★★★');
+    console.error('[Generator] Error message:', errorMsg);
+    console.error('[Generator] Error stack:', errorStack);
+    console.error('[Generator] collectedData at failure:', JSON.stringify({
+      productName: collectedData.productName,
+      category: collectedData.category,
+      subCategory: collectedData.subCategory,
+      copyLength: collectedData.copyLength,
+      hasProductImages: collectedData.productImages?.length || 0,
+    }));
 
     // Conversation 상태 복구
     await prisma.conversation.update({
@@ -321,11 +350,11 @@ export async function generatorAgent(
       data: { status: 'ACTIVE' },
     }).catch(() => {});
 
-    const errorMessage: ChatMessage = {
+    const errorChatMessage: ChatMessage = {
       id: generateMessageId(),
       role: 'assistant',
       content: `죄송해요, 생성 중 문제가 발생했어요.\n\n` +
-        `오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}\n\n` +
+        `오류: ${errorMsg}\n\n` +
         `다시 시도하시겠어요?`,
       agentType: 'GENERATOR',
       metadata: {
@@ -339,12 +368,12 @@ export async function generatorAgent(
     };
 
     return {
-      messages: [progressMessage, errorMessage],
+      messages: [progressMessage, errorChatMessage],
       generationResult: {
         projectId: '',
         versionId: '',
         status: 'failed',
-        error: error instanceof Error ? error.message : '알 수 없는 오류',
+        error: errorMsg,
       },
       currentAgent: 'GENERATOR',
       nextAction: { type: 'error', message: '생성 실패' },

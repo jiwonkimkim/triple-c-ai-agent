@@ -250,6 +250,7 @@ export interface ProjectCollectedData {
   // 이미지
   productImages?: string[];
   imageModel?: ImageModel;
+  generateImages?: boolean;  // true: AI 이미지 생성, false: 업로드 이미지 직접 사용
 
   // URL
   productUrl?: string;
