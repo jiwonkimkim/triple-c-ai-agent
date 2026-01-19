@@ -71,9 +71,14 @@ export function MessageItem({ message, onSelectOption, isDisabled }: MessageItem
             "[&_code]:bg-gray-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs",
             isUser && "[&_code]:bg-blue-400/30"
           )}>
-            <ReactMarkdown>{displayContent}</ReactMarkdown>
-            {isStreaming && (
-              <span className="inline-block w-1.5 h-4 ml-0.5 bg-current animate-pulse" />
+            {isStreaming ? (
+              // 스트리밍 중에는 마크다운 없이 텍스트만 표시 (깜빡임 방지)
+              <span className="whitespace-pre-wrap">
+                {displayContent}
+                <span className="inline-block w-0.5 h-4 ml-0.5 bg-purple-500 animate-[blink_1s_infinite]" />
+              </span>
+            ) : (
+              <ReactMarkdown>{displayContent}</ReactMarkdown>
             )}
           </div>
 

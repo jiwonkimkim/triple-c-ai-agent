@@ -57,21 +57,36 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
   const [collectedData, setCollectedData] = useState<any>({});
   const [error, setError] = useState<string | null>(null);
 
+  // streamingMessageId를 ref로 관리 (클로저 문제 해결)
+  const streamingMessageIdRef = useRef<string | null>(null);
+
   // SSE 스트림 훅
   const { startStream, stopStream, isStreaming } = useSSEStream({
     onChunk: (data) => {
       setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === data.messageId || msg.id === streamingMessageId
-            ? { ...msg, streamedContent: data.content, isStreaming: !data.isComplete }
-            : msg
-        )
+        prev.map((msg) => {
+          // 스트리밍 중인 메시지 찾기 (ref 사용 또는 isStreaming 플래그로)
+          const isTargetMessage =
+            msg.id === data.messageId ||
+            msg.id === streamingMessageIdRef.current ||
+            msg.isStreaming;
+
+          if (isTargetMessage) {
+            return {
+              ...msg,
+              streamedContent: data.content,
+              isStreaming: !data.isComplete
+            };
+          }
+          return msg;
+        })
       );
     },
     onMessage: (message) => {
       // 빈 메시지는 무시
       if (!message.content || message.content.trim() === '') {
         setStreamingMessageId(null);
+        streamingMessageIdRef.current = null;
         return;
       }
 
@@ -97,6 +112,7 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
         ];
       });
       setStreamingMessageId(null);
+      streamingMessageIdRef.current = null; // ref도 초기화
     },
     onTyping: (typing) => {
       setIsTyping(typing);
@@ -105,6 +121,7 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
         // 타이핑 시작 시 임시 메시지 추가
         const tempId = `streaming_${Date.now()}`;
         setStreamingMessageId(tempId);
+        streamingMessageIdRef.current = tempId; // ref도 업데이트
         setMessages((prev) => [
           ...prev,
           {
@@ -265,11 +282,13 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
     setIsTyping(false);
 
     // 스트리밍 중인 메시지 제거
-    if (streamingMessageId) {
-      setMessages((prev) => prev.filter((m) => m.id !== streamingMessageId));
+    const currentStreamingId = streamingMessageIdRef.current;
+    if (currentStreamingId) {
+      setMessages((prev) => prev.filter((m) => m.id !== currentStreamingId));
       setStreamingMessageId(null);
+      streamingMessageIdRef.current = null;
     }
-  }, [stopStream, streamingMessageId]);
+  }, [stopStream]);
 
   return {
     messages,

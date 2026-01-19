@@ -301,24 +301,29 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                 },
               });
 
-              // 스트리밍 (글자 단위로 분할하여 전송 - 타이핑 효과)
-              const characters = msg.content.split('');
+              // 스트리밍 (단어 단위로 분할하여 전송 - 자연스러운 타이핑 효과)
+              // 단어와 공백/특수문자를 분리하여 청크로 전송
+              const tokens = msg.content.match(/\S+|\s+/g) || [];
               let streamedContent = '';
 
-              for (let i = 0; i < characters.length; i++) {
-                streamedContent += characters[i];
+              for (let i = 0; i < tokens.length; i++) {
+                streamedContent += tokens[i];
 
-                // 10자마다 또는 마지막에 청크 전송
-                if (i % 10 === 0 || i === characters.length - 1) {
-                  sendEvent('chunk', {
-                    messageId: savedMessage.id,
-                    content: streamedContent,
-                    isComplete: i === characters.length - 1,
-                  });
+                // 각 토큰(단어/공백)마다 청크 전송
+                sendEvent('chunk', {
+                  messageId: savedMessage.id,
+                  content: streamedContent,
+                  isComplete: i === tokens.length - 1,
+                });
 
-                  // 타이핑 효과를 위한 약간의 딜레이
-                  await new Promise(resolve => setTimeout(resolve, 20));
-                }
+                // 자연스러운 타이핑 효과를 위한 딜레이
+                // 단어는 빠르게, 문장 끝(마침표, 쉼표 등)은 약간 느리게
+                const token = tokens[i];
+                const isEndOfSentence = /[.!?。！？]$/.test(token);
+                const isPunctuation = /[,;:，；：]$/.test(token);
+                const delay = isEndOfSentence ? 100 : isPunctuation ? 50 : 30;
+
+                await new Promise(resolve => setTimeout(resolve, delay));
               }
 
               // 메시지 완료 이벤트
