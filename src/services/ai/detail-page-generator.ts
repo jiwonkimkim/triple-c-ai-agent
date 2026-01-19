@@ -31,6 +31,64 @@ import {
 } from './orchestration-service';
 import type { BeautySubCategory } from './prompts';
 
+// ============================================
+// 재시도 헬퍼 함수 (Rate Limit 및 일시적 오류 대응)
+// ============================================
+
+/**
+ * 지수 백오프를 사용한 재시도 래퍼 함수
+ * @param fn 실행할 비동기 함수
+ * @param maxRetries 최대 재시도 횟수 (기본: 3)
+ * @param baseDelayMs 기본 대기 시간 (기본: 1000ms)
+ * @returns 함수 실행 결과
+ */
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelayMs: number = 1000
+): Promise<T> {
+  let lastError: Error | unknown;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      const errorMsg = error instanceof Error ? error.message : String(error);
+
+      // 마지막 시도였으면 에러 throw
+      if (attempt === maxRetries) {
+        console.error(`[Retry] All ${maxRetries + 1} attempts failed. Last error: ${errorMsg}`);
+        throw error;
+      }
+
+      // Rate limit 또는 일시적 오류인 경우 재시도
+      const isRetryable =
+        errorMsg.includes('429') ||
+        errorMsg.includes('rate') ||
+        errorMsg.includes('RESOURCE_EXHAUSTED') ||
+        errorMsg.includes('quota') ||
+        errorMsg.includes('timeout') ||
+        errorMsg.includes('ECONNRESET') ||
+        errorMsg.includes('network');
+
+      if (!isRetryable) {
+        // 재시도 불가능한 에러는 바로 throw
+        console.error(`[Retry] Non-retryable error: ${errorMsg}`);
+        throw error;
+      }
+
+      // 지수 백오프 대기
+      const delayMs = baseDelayMs * Math.pow(2, attempt);
+      console.log(`[Retry] Attempt ${attempt + 1} failed. Retrying in ${delayMs}ms... Error: ${errorMsg}`);
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+  }
+
+  // 이 코드에 도달하면 안 되지만 타입 안전성을 위해
+  throw lastError;
+}
+
 // Groq client (OpenAI-compatible API)
 const groq = new OpenAI({
   apiKey: process.env.GROQ_API_KEY || '',
@@ -542,21 +600,25 @@ export async function generateDetailPage(
                       console.log(`[AI I2I] Generating ${sectionType} image ${i + 1}/${prompts.length} with overlay...`);
                       console.log(`[AI I2I] Orchestration prompt ${isMainSection ? '(SKIPPED for MAIN)' : ''}: ${orchestrationPrompt.substring(0, 100)}...`);
 
-                      // ★ 통합 함수 사용: 이미지 + 오버레이 텍스트 동시 생성
-                      const result = await generateSectionImageWithOverlay(
-                        cleanProductImage,  // 배경 제거된 이미지 사용 (I2I 모드)
-                        sectionType,
-                        input.productName,
-                        input.category,
-                        input.keyFeatures,
-                        input.targetAudience,
-                        {
-                          additionalPrompt: input.brandContext?.imageKeywords?.join(', '),
-                          model: imageModel,
-                          scenarioPrompt: orchestrationPrompt,  // ★ MAIN은 빈 문자열, 나머지는 오케스트레이션 프롬프트
-                          blockIndex: i,
-                          totalBlocks: prompts.length,
-                        }
+                      // ★ 통합 함수 사용: 이미지 + 오버레이 텍스트 동시 생성 (재시도 로직 적용)
+                      const result = await withRetry(
+                        () => generateSectionImageWithOverlay(
+                          cleanProductImage,  // 배경 제거된 이미지 사용 (I2I 모드)
+                          sectionType,
+                          input.productName,
+                          input.category,
+                          input.keyFeatures,
+                          input.targetAudience,
+                          {
+                            additionalPrompt: input.brandContext?.imageKeywords?.join(', '),
+                            model: imageModel,
+                            scenarioPrompt: orchestrationPrompt,  // ★ MAIN은 빈 문자열, 나머지는 오케스트레이션 프롬프트
+                            blockIndex: i,
+                            totalBlocks: prompts.length,
+                          }
+                        ),
+                        3,  // 최대 3회 재시도
+                        1500  // 1.5초 기본 대기 (지수 백오프)
                       );
 
                       if (result && result.image) {
@@ -591,7 +653,12 @@ export async function generateDetailPage(
                         console.log(`[AI I2I] ${sectionType} image ${i + 1} generated successfully`);
                       }
                     } catch (imageError) {
-                      console.error(`[AI I2I] ${sectionType} image ${i + 1} failed:`, imageError);
+                      console.error(`[AI I2I] ${sectionType} image ${i + 1} failed after retries:`, imageError);
+                    }
+
+                    // ★ 각 이미지 생성 후 짧은 대기 (rate limit 방지)
+                    if (i < prompts.length - 1) {
+                      await new Promise(resolve => setTimeout(resolve, 500));
                     }
                   }
 
@@ -674,21 +741,25 @@ export async function generateDetailPage(
                     try {
                       console.log(`[AI T2I] Generating ${sectionType} image ${i + 1}/${prompts.length} with overlay...`);
 
-                      // ★ 통합 함수 사용: 이미지 + 오버레이 텍스트 동시 생성 (T2I 모드)
-                      const result = await generateSectionImageWithOverlay(
-                        null,  // sourceImage가 null이면 T2I 모드
-                        sectionType,
-                        input.productName,
-                        input.category,
-                        input.keyFeatures,
-                        input.targetAudience,
-                        {
-                          additionalPrompt: input.brandContext?.imageKeywords?.join(', '),
-                          model: imageModel,
-                          imagePrompt,  // T2I용 이미지 프롬프트
-                          blockIndex: i,
-                          totalBlocks: prompts.length,
-                        }
+                      // ★ 통합 함수 사용: 이미지 + 오버레이 텍스트 동시 생성 (T2I 모드, 재시도 로직 적용)
+                      const result = await withRetry(
+                        () => generateSectionImageWithOverlay(
+                          null,  // sourceImage가 null이면 T2I 모드
+                          sectionType,
+                          input.productName,
+                          input.category,
+                          input.keyFeatures,
+                          input.targetAudience,
+                          {
+                            additionalPrompt: input.brandContext?.imageKeywords?.join(', '),
+                            model: imageModel,
+                            imagePrompt,  // T2I용 이미지 프롬프트
+                            blockIndex: i,
+                            totalBlocks: prompts.length,
+                          }
+                        ),
+                        3,  // 최대 3회 재시도
+                        1500  // 1.5초 기본 대기 (지수 백오프)
                       );
 
                       if (result && result.image) {
@@ -719,7 +790,12 @@ export async function generateDetailPage(
                         console.log(`[AI T2I] ${sectionType} image ${i + 1} generated successfully`);
                       }
                     } catch (imageError) {
-                      console.error(`[AI T2I] ${sectionType} image ${i + 1} failed:`, imageError);
+                      console.error(`[AI T2I] ${sectionType} image ${i + 1} failed after retries:`, imageError);
+                    }
+
+                    // ★ 각 이미지 생성 후 짧은 대기 (rate limit 방지)
+                    if (i < prompts.length - 1) {
+                      await new Promise(resolve => setTimeout(resolve, 500));
                     }
                   }
 

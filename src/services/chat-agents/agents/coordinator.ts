@@ -305,6 +305,16 @@ export async function coordinatorAgent(
   const missingFields = getMissingFields(collectedData);
   const dataComplete = isDataComplete(collectedData);
 
+  // ★★★ imageModel이 없으면 Suggester로 라우팅 (기획 전에 이미지 품질 선택) ★★★
+  // brandProfileId와 productImages도 체크하여 완전한 정보 수집
+  if (dataComplete && !collectedData.imageModel) {
+    console.log('[Coordinator] ★ imageModel not set, routing to SUGGESTER for image quality selection');
+    return {
+      currentAgent: 'SUGGESTER',
+      nextAction: { type: 'continue', targetAgent: 'SUGGESTER' as AgentType },
+    };
+  }
+
   // 기획 완료 후 생성 대기 상태
   if (dataComplete && collectedData.plannedSections) {
     return {
@@ -313,8 +323,8 @@ export async function coordinatorAgent(
     };
   }
 
-  // 데이터 완료 → 기획으로
-  if (dataComplete) {
+  // 데이터 완료 + imageModel 있음 → 기획으로
+  if (dataComplete && collectedData.imageModel) {
     return {
       currentAgent: 'PLANNER',
       nextAction: { type: 'continue', targetAgent: 'PLANNER' as AgentType },
