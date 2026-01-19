@@ -9,7 +9,17 @@ import { buildOverlayTextPrompt, BlockOverlayOptions } from '@/services/ai/promp
 
 /**
  * 다양한 섹션 타입명을 기본 SectionType으로 변환
- * REVIEW_SHOWCASE → SOCIAL_PROOF, HERO_LIP → HERO 등
+ * ★ 새로운 섹션 타입도 자동 매핑 (패턴 기반)
+ *
+ * 매핑 규칙:
+ * - REVIEW|SOCIAL|TESTIMONIAL|PROOF|SHOWCASE → SOCIAL_PROOF
+ * - HOW_TO|USAGE|STEP|GUIDE → HOW_TO_USE
+ * - FEATURE|BENEFIT|INGREDIENT|SPEC → FEATURES
+ * - BRAND|TRUST|AWARD|RANKING → FEATURES (브랜드/수상/랭킹)
+ * - HERO|BANNER|TEXT_BANNER|KEY_MESSAGE → HERO
+ * - FAQ|QUESTION → FAQ
+ * - MAIN|THUMBNAIL → MAIN
+ * - 그 외 → FEATURES (기본값)
  */
 function mapToBaseSectionType(type: string): SectionType {
   const upperType = type.toUpperCase();
@@ -22,12 +32,16 @@ function mapToBaseSectionType(type: string): SectionType {
   if (/HOW_TO|USAGE|STEP|GUIDE/.test(upperType)) {
     return 'HOW_TO_USE';
   }
-  // FEATURE, BENEFIT, INGREDIENT 관련 → FEATURES
+  // FEATURE, BENEFIT, INGREDIENT, SPEC 관련 → FEATURES
   if (/FEATURE|BENEFIT|INGREDIENT|SPEC/.test(upperType)) {
     return 'FEATURES';
   }
-  // HERO, BANNER 관련 → HERO
-  if (/HERO|BANNER/.test(upperType)) {
+  // ★ BRAND_TRUST, AWARD, RANKING 등 확장 타입 → FEATURES
+  if (/BRAND|TRUST|AWARD|RANKING/.test(upperType)) {
+    return 'FEATURES';
+  }
+  // HERO, BANNER, TEXT_BANNER, KEY_MESSAGE, DIVIDER 관련 → HERO
+  if (/HERO|BANNER|KEY_MESSAGE|DIVIDER/.test(upperType)) {
     return 'HERO';
   }
   // FAQ 관련
@@ -38,7 +52,13 @@ function mapToBaseSectionType(type: string): SectionType {
   if (/MAIN|THUMBNAIL/.test(upperType)) {
     return 'MAIN';
   }
-  // 기본값
+  // ★ 첫 번째 단어가 기본 타입인 경우 (FEATURES_1, HERO_2 등)
+  const firstWord = upperType.split('_')[0];
+  if (['MAIN', 'HERO', 'FEATURES', 'SOCIAL_PROOF', 'HOW_TO_USE', 'FAQ'].includes(firstWord)) {
+    return firstWord as SectionType;
+  }
+  // 기본값 - 미정의 섹션도 FEATURES로 처리
+  console.log(`[mapToBaseSectionType] Unknown section type: ${type} → FEATURES`);
   return 'FEATURES';
 }
 
@@ -426,7 +446,7 @@ function extractIngredientObjects(productName: string, category: string): string
  * - 나머지: 자유 비율
  */
 export async function generateSectionImageWithGemini(
-  sectionType: 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ',
+  sectionType: string,  // ★ I2I와 동일하게 모든 섹션 타입 허용
   imagePrompt: string,
   productName: string,
   category: string,
@@ -434,8 +454,12 @@ export async function generateSectionImageWithGemini(
   keyFeatures?: string[],
   targetAudience?: string
 ): Promise<GeminiGeneratedImage> {
+  // ★★★ 모듈 레벨 mapToBaseSectionType 사용 (I2I와 동일) ★★★
+  const mappedSectionType = mapToBaseSectionType(sectionType);
+  console.log(`[Gemini T2I] Section type mapping: ${sectionType} → ${mappedSectionType}`);
+
   // MAIN 섹션은 1:1, 나머지는 자유 비율
-  const aspectRatio: ImageAspectRatio | undefined = sectionType === 'MAIN' ? '1:1' : undefined;
+  const aspectRatio: ImageAspectRatio | undefined = mappedSectionType === 'MAIN' ? '1:1' : undefined;
 
   // ★★★ I2I와 동일한 섹션별 템플릿 사용 (T2I도 동일한 프롬프트 품질 보장) ★★★
 
@@ -543,10 +567,10 @@ Target aesthetic: ${audienceStyle}
 8K, photorealistic, no text.`,
   };
 
-  // 섹션 템플릿 선택 (없으면 동적 생성)
-  let enhancedPrompt = sectionPrompts[sectionType];
+  // 섹션 템플릿 선택 (mappedSectionType 사용, 없으면 동적 생성)
+  let enhancedPrompt = sectionPrompts[mappedSectionType];
   if (!enhancedPrompt) {
-    console.log(`[Gemini T2I] ⚠️ No template for section type: ${sectionType}, using dynamic fallback`);
+    console.log(`[Gemini T2I] ⚠️ No template for section type: ${sectionType} (mapped: ${mappedSectionType}), using dynamic fallback`);
     const sectionLabel = sectionType.replace(/_/g, ' ').toLowerCase();
     enhancedPrompt = `Create KOREAN E-COMMERCE ${sectionType} IMAGE for ${productName}.
 [KOREAN DETAIL PAGE - ${sectionType} SECTION ${sectionLabel} 섹션]
@@ -560,18 +584,18 @@ Korean beauty detail page style, 올리브영/쿠팡 스타일.
   }
 
   // ★ imagePrompt가 있으면 오케스트레이션 컨텍스트로 추가 (MAIN 제외)
-  if (sectionType !== 'MAIN' && imagePrompt && imagePrompt.trim()) {
+  if (mappedSectionType !== 'MAIN' && imagePrompt && imagePrompt.trim()) {
     enhancedPrompt = `${enhancedPrompt}
 
 [ORCHESTRATION CONTEXT - 상세페이지 전체 메시지]
 ${imagePrompt}`;
   }
 
-  console.log(`[Gemini T2I] Using section template for ${sectionType}`)
+  console.log(`[Gemini T2I] Using section template for ${sectionType} → ${mappedSectionType}`)
 
   // ★★★ 오버레이 텍스트 JSON 요청 - overlay-prompts.ts의 buildOverlayTextPrompt 사용
   const overlayTextPrompt = buildOverlayTextPrompt(
-    sectionType as SectionType,
+    mappedSectionType as SectionType,  // ★ mappedSectionType 사용
     productName,
     category,
     keyFeatures || [],
@@ -592,7 +616,7 @@ The JSON should be parseable and follow the format in the prompt above.`;
 
   const finalPrompt = enhancedPrompt + overlayTextRequest;
 
-  console.log(`[Gemini T2I] Generating ${sectionType} with aspectRatio: ${aspectRatio || 'free'}, with overlay text request`);
+  console.log(`[Gemini T2I] Generating ${sectionType} (→${mappedSectionType}) with aspectRatio: ${aspectRatio || 'free'}, with overlay text request`);
 
   const images = await generateImageWithGemini({
     prompt: finalPrompt,  // ★ 오버레이 텍스트 요청 포함된 프롬프트
@@ -1167,9 +1191,14 @@ export async function generateSectionImageFromProduct(
       targetAudience
     );
   }
+
+  // ★★★ 모듈 레벨 mapToBaseSectionType 사용 (함수 초반에 정의)
+  const mappedSectionType = mapToBaseSectionType(sectionType);
+  console.log(`[Gemini I2I] Section type mapping: ${sectionType} → ${mappedSectionType}`);
+
   // MAIN 섹션: 제품명 기반 오브제 + 타겟/특징 반영
   let mainPrompt = '';
-  if (sectionType === 'MAIN') {
+  if (mappedSectionType === 'MAIN') {
     // 1. 제품명에서 실제 재료 오브제 추출 (매번 다른 조합)
     const ingredientObjects = extractIngredientObjects(productName, category);
 
@@ -1280,12 +1309,13 @@ ${targetAudience ? `Target: ${targetAudience}` : ''}
   // 1. 기본 템플릿: 카테고리별/섹션별 시각적 지시 (sectionPrompts)
   // 2. 오케스트레이션 프롬프트: 전체 상세페이지 메시지/컨텍스트 (scenarioPrompt)
   // 둘 다 결합하여 일관된 메시지 + 섹션별 스타일 모두 반영
+  // ★ mappedSectionType은 함수 초반에서 이미 정의됨
 
-  // 1. 기본 섹션 템플릿 가져오기
-  let basePrompt = sectionPrompts[sectionType];
+  // 1. 기본 섹션 템플릿 가져오기 (mappedSectionType 사용)
+  let basePrompt = sectionPrompts[mappedSectionType];
 
   if (!basePrompt) {
-    console.log(`[Gemini I2I] ⚠️ No template for section type: ${sectionType}, using dynamic fallback`);
+    console.log(`[Gemini I2I] ⚠️ No template for section type: ${sectionType} (mapped: ${mappedSectionType}), using dynamic fallback`);
     // 미정의 섹션 타입에 대해 동적으로 프롬프트 생성 (섹션 타입명 포함)
     const sectionLabel = sectionType.replace(/_/g, ' ').toLowerCase();
     basePrompt = `Create KOREAN E-COMMERCE ${sectionType} IMAGE using the provided product as reference.
@@ -1306,8 +1336,8 @@ Korean beauty detail page style, 올리브영/쿠팡 스타일.
   // ★ MAIN 섹션은 이미 완성형 프롬프트라 오케스트레이션 컨텍스트 제외 (충돌 방지)
   let orchestrationContext = '';
   console.log(`[Gemini I2I] ★★★ scenarioPrompt received: ${scenarioPrompt ? 'YES (' + scenarioPrompt.length + ' chars)' : 'NO/EMPTY'}`);
-  if (sectionType !== 'MAIN' && scenarioPrompt && scenarioPrompt.trim()) {
-    console.log(`[Gemini I2I] ★ Adding orchestration context for ${sectionType}`);
+  if (mappedSectionType !== 'MAIN' && scenarioPrompt && scenarioPrompt.trim()) {
+    console.log(`[Gemini I2I] ★ Adding orchestration context for ${sectionType} (→${mappedSectionType})`);
     console.log(`[Gemini I2I] orchestration preview: ${scenarioPrompt.substring(0, 200)}...`);
     orchestrationContext = `
 
@@ -1319,7 +1349,7 @@ ${scenarioPrompt}
 - 시나리오에 따라 제품이 부각되거나, 자연스럽게 녹아들 수 있습니다
 - 항상 가운데에 놓지 말고, 시나리오에 어울리는 위치에 배치하세요`;
   } else {
-    console.log(`[Gemini I2I] ★★★ orchestrationContext NOT added. Reason: sectionType=${sectionType}, scenarioPrompt=${scenarioPrompt ? 'exists' : 'empty'}`);
+    console.log(`[Gemini I2I] ★★★ orchestrationContext NOT added. Reason: sectionType=${sectionType} (→${mappedSectionType}), scenarioPrompt=${scenarioPrompt ? 'exists' : 'empty'}`);
   }
 
   // ★★★ 고정/동적 프롬프트 분리 (DEV 모드 표시용)
@@ -1337,7 +1367,7 @@ ${scenarioPrompt}
 
   // ★★★ 오버레이 텍스트 JSON 요청 - overlay-prompts.ts의 buildOverlayTextPrompt 사용
   const overlayTextPrompt = buildOverlayTextPrompt(
-    mapToBaseSectionType(sectionType),
+    mappedSectionType,  // ★ 이미 매핑된 타입 사용
     productName,
     category,
     keyFeatures || [],
@@ -1363,8 +1393,8 @@ ${additionalPrompt ? `Additional style: ${additionalPrompt}` : ''}
 OUTPUT: High-quality commercial photography, 8K resolution, no text on image.
 ${overlayTextRequest}`;
 
-  console.log(`[Gemini I2I] Generating ${sectionType} section image`);
-  if (sectionType === 'MAIN') {
+  console.log(`[Gemini I2I] Generating ${sectionType} (→${mappedSectionType}) section image`);
+  if (mappedSectionType === 'MAIN') {
     console.log(`[Gemini I2I] MAIN with custom objects - keyFeatures: ${keyFeatures?.join(', ')}, target: ${targetAudience}`);
   }
 
@@ -1375,7 +1405,7 @@ ${overlayTextRequest}`;
     prompt: fullPrompt,
     model,
     preserveStrength: 0.75, // ★ 0.4 → 0.75: 제품 일관성 강화
-    ...(sectionType === 'MAIN' && { aspectRatio: '1:1' as const }),
+    ...(mappedSectionType === 'MAIN' && { aspectRatio: '1:1' as const }),
   });
 
   if (images.length === 0) {
@@ -1448,45 +1478,11 @@ export async function generateSectionImageWithOverlay(
   // ★★★ 텍스트 배경 섹션 감지 (제품 이미지 없이 순수 배경만 생성)
   const isTextBackgroundSection = /^(TEXT_BANNER|KEY_MESSAGE|BENEFIT_HIGHLIGHT|DIVIDER_VISUAL)/i.test(sectionType);
 
-  // ★★★ 섹션 타입 매핑 (다양한 섹션명을 기본 타입으로 변환)
-  const mapSectionType = (type: string): 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ' => {
-    const upperType = type.toUpperCase();
-    // REVIEW, SOCIAL, TESTIMONIAL 관련 → SOCIAL_PROOF
-    if (/REVIEW|SOCIAL|TESTIMONIAL|PROOF|SHOWCASE/.test(upperType)) {
-      return 'SOCIAL_PROOF';
-    }
-    // HOW_TO, USAGE, STEP 관련 → HOW_TO_USE
-    if (/HOW_TO|USAGE|STEP|GUIDE/.test(upperType)) {
-      return 'HOW_TO_USE';
-    }
-    // FEATURE, BENEFIT, INGREDIENT 관련 → FEATURES
-    if (/FEATURE|BENEFIT|INGREDIENT|SPEC/.test(upperType)) {
-      return 'FEATURES';
-    }
-    // HERO, BANNER 관련 → HERO
-    if (/HERO|BANNER/.test(upperType)) {
-      return 'HERO';
-    }
-    // FAQ 관련
-    if (/FAQ|QUESTION/.test(upperType)) {
-      return 'FAQ';
-    }
-    // MAIN 관련
-    if (/MAIN|THUMBNAIL/.test(upperType)) {
-      return 'MAIN';
-    }
-    // 기본값: 첫 단어로 매핑 시도
-    const firstWord = upperType.split('_')[0];
-    if (['MAIN', 'HERO', 'FEATURES', 'SOCIAL_PROOF', 'HOW_TO_USE', 'FAQ'].includes(firstWord)) {
-      return firstWord as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
-    }
-    return 'FEATURES'; // 기본값
-  };
-
+  // ★★★ 모듈 레벨 mapToBaseSectionType 사용 (중복 제거)
   // ★ 텍스트 배경 섹션은 'FEATURES'를 기본값으로 사용 (자유 비율)
   const normalizedSectionType = isTextBackgroundSection
     ? 'FEATURES' as const
-    : mapSectionType(sectionType);
+    : mapToBaseSectionType(sectionType);
 
   // 모드 결정:
   // - 텍스트 배경 섹션: 항상 T2I 모드 (제품 이미지 제외)
@@ -1616,24 +1612,8 @@ async function generateOverlayTextForSection(
   // ★★★ 텍스트 배경 섹션 감지 (임팩트 있는 타이포그래피 적용)
   const isTextBackgroundSection = /^(TEXT_BANNER|KEY_MESSAGE|BENEFIT_HIGHLIGHT|DIVIDER_VISUAL)/i.test(sectionType);
 
-  // ★★★ 섹션 타입 매핑 (다양한 섹션명을 기본 타입으로 변환)
-  const mapSectionType = (type: string): 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ' => {
-    const upperType = type.toUpperCase();
-    if (/REVIEW|SOCIAL|TESTIMONIAL|PROOF|SHOWCASE/.test(upperType)) return 'SOCIAL_PROOF';
-    if (/HOW_TO|USAGE|STEP|GUIDE/.test(upperType)) return 'HOW_TO_USE';
-    if (/FEATURE|BENEFIT|INGREDIENT|SPEC/.test(upperType)) return 'FEATURES';
-    if (/HERO|BANNER/.test(upperType)) return 'HERO';
-    if (/FAQ|QUESTION/.test(upperType)) return 'FAQ';
-    if (/MAIN|THUMBNAIL/.test(upperType)) return 'MAIN';
-    const firstWord = upperType.split('_')[0];
-    if (['MAIN', 'HERO', 'FEATURES', 'SOCIAL_PROOF', 'HOW_TO_USE', 'FAQ'].includes(firstWord)) {
-      return firstWord as 'MAIN' | 'HERO' | 'FEATURES' | 'SOCIAL_PROOF' | 'HOW_TO_USE' | 'FAQ';
-    }
-    return 'FEATURES';
-  };
-
-  // 섹션 타입 정규화
-  const normalizedSection = mapSectionType(sectionType);
+  // ★★★ 모듈 레벨 mapToBaseSectionType 사용 (중복 제거)
+  const normalizedSection = mapToBaseSectionType(sectionType);
 
   // ★★★ 텍스트 배경 섹션용 특별 레이아웃 (올리브영 스타일)
   const textBannerLayout = {
