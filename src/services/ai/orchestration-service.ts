@@ -1673,6 +1673,20 @@ export async function orchestrateDetailPageGeneration(
 
   let sectionTypes: string[];
 
+  // ★★★ 진단 로깅: 섹션 선택 조건 디버그 ★★★
+  console.log('[Orchestration] ★★★ SECTION SELECTION DEBUG ★★★');
+  console.log('[Orchestration] input.subCategory:', input.subCategory);
+  console.log('[Orchestration] input.category:', input.category);
+  console.log('[Orchestration] typeof input.subCategory:', typeof input.subCategory);
+  console.log('[Orchestration] typeof input.category:', typeof input.category);
+  const hasSubCategory = !!input.subCategory;
+  const hasAdvanced = input.subCategory ? hasAdvancedPromptSystem(input.subCategory) : false;
+  const isBeauty = isBeautyCategory(input.category);
+  console.log('[Orchestration] Condition 1 (hasSubCategory):', hasSubCategory);
+  console.log('[Orchestration] Condition 2 (hasAdvancedPromptSystem):', hasAdvanced);
+  console.log('[Orchestration] Condition 3 (isBeautyCategory):', isBeauty);
+  console.log('[Orchestration] All conditions:', hasSubCategory && hasAdvanced && isBeauty);
+
   if (input.subCategory && hasAdvancedPromptSystem(input.subCategory) && isBeautyCategory(input.category)) {
     // 뷰티 서브카테고리의 모든 섹션 사용 (예: 립은 14개, 마스크팩은 17개)
     sectionTypes = getSubCategorySections(input.subCategory);
@@ -1682,6 +1696,7 @@ export async function orchestrateDetailPageGeneration(
     // 기본 6개 섹션 사용
     sectionTypes = DEFAULT_SECTIONS;
     console.log(`[Orchestration] Using DEFAULT 6 sections`);
+    console.log(`[Orchestration] ★ WHY DEFAULT: subCategory=${input.subCategory}, hasAdvanced=${hasAdvanced}, isBeauty=${isBeauty}`);
   }
 
   const brandStyle = input.brandContext?.imageKeywords?.join(', ');

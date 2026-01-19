@@ -213,11 +213,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                     ...selectionUpdate,
                   };
 
-                  console.log('[Chat] Selection processed:', {
+                  console.log('[Chat] ★★★ Selection processed ★★★:', {
                     askingField,
                     selectedOptionId,
                     selectionUpdate,
-                    updatedCollectedData,
+                    subCategoryValue: selectionUpdate.subCategory,
+                    categoryValue: updatedCollectedData.category,
+                    fullCollectedData: JSON.stringify(updatedCollectedData).slice(0, 500),
                   });
                 }
               }

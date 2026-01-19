@@ -229,7 +229,8 @@ export async function generatorAgent(
     console.log('[Generator] ★★★ Calling generateDetailPage (ORCHESTRATION MODE) ★★★');
     console.log('[Generator] productName:', collectedData.productName);
     console.log('[Generator] category:', collectedData.category);
-    console.log('[Generator] subCategory:', collectedData.subCategory);
+    console.log('[Generator] ★★★ subCategory (CRITICAL):', collectedData.subCategory);
+    console.log('[Generator] ★★★ typeof subCategory:', typeof collectedData.subCategory);
     console.log('[Generator] copyLength:', collectedData.copyLength);
     console.log('[Generator] keyFeatures:', collectedData.keyFeatures?.slice(0, 3).join(', '));
     console.log('[Generator] targetAudience:', collectedData.targetAudience);
