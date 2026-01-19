@@ -164,11 +164,12 @@ export async function generateImageWithGemini(
 
     let response;
     try {
+      // ★★★ T2I 모드: IMAGE만 요청 (TEXT 포함 시 이미지 미생성 문제 해결) ★★★
       response = await client.models.generateContent({
         model: model,
         contents: enhancedPrompt,
         config: {
-          responseModalities: ['TEXT', 'IMAGE'],
+          responseModalities: ['IMAGE'],  // ★ IMAGE만 요청!
           ...(imageConfig && { imageConfig }),
         },
       });
