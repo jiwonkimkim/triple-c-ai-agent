@@ -203,6 +203,12 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
     async (content: string, attachments?: string[]) => {
       if (!content.trim() && !attachments?.length) return;
 
+      // ★ 중복 요청 방지: 이미 스트리밍/타이핑 중이면 무시
+      if (isStreaming || isTyping) {
+        console.log('[useChat] 중복 요청 방지: 이미 처리 중입니다.');
+        return;
+      }
+
       // 사용자 메시지 즉시 추가
       const userMessage: ChatMessage = {
         id: `user_${Date.now()}`,
@@ -221,12 +227,18 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
         attachments,
       });
     },
-    [conversationId, startStream]
+    [conversationId, startStream, isStreaming, isTyping]
   );
 
   // 선택지 선택
   const selectOption = useCallback(
     async (optionId: string, optionLabel: string) => {
+      // ★ 중복 클릭 방지: 이미 스트리밍/타이핑 중이면 무시
+      if (isStreaming || isTyping) {
+        console.log('[useChat] 중복 요청 방지: 이미 처리 중입니다.');
+        return;
+      }
+
       // 사용자 선택 메시지 추가
       const userMessage: ChatMessage = {
         id: `user_${Date.now()}`,
@@ -244,7 +256,7 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
         selectedOptionId: optionId,
       });
     },
-    [conversationId, startStream]
+    [conversationId, startStream, isStreaming, isTyping]
   );
 
   // 스트림 중단

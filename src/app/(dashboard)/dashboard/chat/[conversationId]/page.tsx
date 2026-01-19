@@ -173,6 +173,7 @@ export default function ChatPage() {
                 key={message.id}
                 message={message}
                 onSelectOption={selectOption}
+                isDisabled={isStreaming || isTyping}
               />
             ))}
             {isTyping && !messages.some((m) => m.isStreaming) && (

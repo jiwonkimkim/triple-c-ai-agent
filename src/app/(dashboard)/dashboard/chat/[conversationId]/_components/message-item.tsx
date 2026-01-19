@@ -14,9 +14,10 @@ import ReactMarkdown from 'react-markdown';
 interface MessageItemProps {
   message: ChatMessage;
   onSelectOption?: (optionId: string, optionLabel: string) => void;
+  isDisabled?: boolean;  // ★ 스트리밍/타이핑 중일 때 버튼 비활성화
 }
 
-export function MessageItem({ message, onSelectOption }: MessageItemProps) {
+export function MessageItem({ message, onSelectOption, isDisabled }: MessageItemProps) {
   const isUser = message.role === 'user';
   const isStreaming = message.isStreaming;
   const displayContent = isStreaming ? message.streamedContent || '' : message.content;
@@ -121,7 +122,13 @@ export function MessageItem({ message, onSelectOption }: MessageItemProps) {
                 key={option.id}
                 variant="outline"
                 size="sm"
-                className="rounded-full text-xs h-8 px-4 bg-white/80 backdrop-blur-sm hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-all"
+                disabled={isDisabled}
+                className={cn(
+                  "rounded-full text-xs h-8 px-4 bg-white/80 backdrop-blur-sm transition-all",
+                  isDisabled
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600"
+                )}
                 onClick={() => onSelectOption?.(option.id, option.label)}
               >
                 {option.icon && <span className="mr-1">{option.icon}</span>}

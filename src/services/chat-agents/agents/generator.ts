@@ -14,6 +14,76 @@ export async function generatorAgent(
 ): Promise<Partial<ChatAgentState>> {
   const { collectedData, userId, brandContext, conversationId } = state;
 
+  // ★★★ 중복 생성 방지: 이미 프로젝트가 생성된 대화인지 확인 ★★★
+  const existingConversation = await prisma.conversation.findUnique({
+    where: { id: conversationId },
+    select: { projectId: true, status: true },
+  });
+
+  if (existingConversation?.projectId) {
+    console.log(`[Generator] ★ Project already exists for conversation ${conversationId}: ${existingConversation.projectId}`);
+
+    // 이미 프로젝트가 있으면 해당 프로젝트로 리다이렉트
+    const existingProject = await prisma.project.findUnique({
+      where: { id: existingConversation.projectId },
+      select: { id: true, title: true },
+    });
+
+    if (existingProject) {
+      const alreadyExistsMessage: ChatMessage = {
+        id: generateMessageId(),
+        role: 'assistant',
+        content: `이미 '${existingProject.title}' 프로젝트가 생성되어 있어요!\n\n에디터에서 확인하고 수정할 수 있습니다.`,
+        agentType: 'GENERATOR',
+        metadata: {
+          uiType: 'redirect',
+          redirect: {
+            url: `/dashboard/projects/${existingProject.id}`,
+            projectId: existingProject.id,
+          },
+        },
+        createdAt: new Date(),
+      };
+
+      return {
+        messages: [alreadyExistsMessage],
+        generationResult: {
+          projectId: existingProject.id,
+          versionId: '',
+          status: 'success',
+        },
+        currentAgent: 'GENERATOR',
+        nextAction: { type: 'complete', projectId: existingProject.id },
+      };
+    }
+  }
+
+  // ★ 생성 중 상태로 변경 (중복 요청 방지)
+  if (existingConversation?.status !== 'GENERATING') {
+    await prisma.conversation.update({
+      where: { id: conversationId },
+      data: { status: 'GENERATING' },
+    });
+  } else {
+    // 이미 생성 중이면 중복 요청으로 간주
+    console.log(`[Generator] ★ Conversation ${conversationId} is already GENERATING, skipping duplicate request`);
+
+    const inProgressMessage: ChatMessage = {
+      id: generateMessageId(),
+      role: 'assistant',
+      content: '이미 상세페이지를 생성하고 있어요. 잠시만 기다려주세요!',
+      agentType: 'GENERATOR',
+      metadata: { uiType: 'text' },
+      createdAt: new Date(),
+    };
+
+    return {
+      messages: [inProgressMessage],
+      currentAgent: 'GENERATOR',
+      nextAction: { type: 'await_input' },
+    };
+  }
+
   // 필수 필드 검증
   const missingFields = getMissingFields(collectedData);
   if (missingFields.length > 0) {
