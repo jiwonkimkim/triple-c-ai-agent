@@ -717,108 +717,123 @@ export async function generateDetailPage(
           const imageModel = input.imageModel || DEFAULT_IMAGE_MODEL;
           console.log(`[AI] ★★★ Using Image Model: ${imageModel} ★★★`);
 
+          // ★★★ T2I 모드: 섹션을 순차적으로 처리 (Rate Limiting 방지) ★★★
+          // 19개 섹션을 동시에 호출하면 API Rate Limit 초과됨
           versions = await Promise.all(
             versions.map(async (version) => {
-              const updatedSections = await Promise.all(
-                version.sections.map(async (section) => {
-                  const prompts = section.imagePrompts || (section.imagePrompt ? [section.imagePrompt] : []);
+              const updatedSections: typeof version.sections = [];
+              const totalSections = version.sections.length;
 
-                  if (prompts.length === 0) {
-                    console.warn(`[AI T2I] ⚠️ SKIPPING ${section.type} - no imagePrompts available`);
-                    return section;
-                  }
+              console.log(`[AI T2I] ★★★ Processing ${totalSections} sections SEQUENTIALLY (Rate Limit Prevention) ★★★`);
 
-                  // ★ sectionType는 string으로 처리 (동적 섹션 지원)
-                  const sectionType = section.type;
-                  console.log(`[AI T2I] Generating ${sectionType} section (${prompts.length} images)...`);
-                  console.log(`[AI T2I] keyFeatures: ${input.keyFeatures?.slice(0, 2).join(', ')}, target: ${input.targetAudience}`);
+              for (let sectionIdx = 0; sectionIdx < version.sections.length; sectionIdx++) {
+                const section = version.sections[sectionIdx];
+                const prompts = section.imagePrompts || (section.imagePrompt ? [section.imagePrompt] : []);
 
-                  // 다중 이미지 생성: 모든 프롬프트에 대해 이미지+오버레이 통합 생성
-                  const generatedImageUrls: string[] = [];
-                  const updatedPrompts = [...prompts]; // 최종 프롬프트 저장용
-                  let sectionOverlayText: OverlayTextContent | undefined; // ★ 첫 번째 이미지의 오버레이 텍스트
+                if (prompts.length === 0) {
+                  console.warn(`[AI T2I] ⚠️ SKIPPING ${section.type} - no imagePrompts available`);
+                  updatedSections.push(section);
+                  continue;
+                }
 
-                  for (let i = 0; i < prompts.length; i++) {
-                    const prompt = prompts[i];
-                    const imagePrompt = prompt?.imagePrompt || '';
+                // ★ sectionType는 string으로 처리 (동적 섹션 지원)
+                const sectionType = section.type;
+                console.log(`[AI T2I] [${sectionIdx + 1}/${totalSections}] Generating ${sectionType} section (${prompts.length} images)...`);
+                console.log(`[AI T2I] keyFeatures: ${input.keyFeatures?.slice(0, 2).join(', ')}, target: ${input.targetAudience}`);
 
-                    try {
-                      console.log(`[AI T2I] Generating ${sectionType} image ${i + 1}/${prompts.length} with overlay...`);
+                // 다중 이미지 생성: 모든 프롬프트에 대해 이미지+오버레이 통합 생성
+                const generatedImageUrls: string[] = [];
+                const updatedPrompts = [...prompts]; // 최종 프롬프트 저장용
+                let sectionOverlayText: OverlayTextContent | undefined; // ★ 첫 번째 이미지의 오버레이 텍스트
 
-                      // ★ 통합 함수 사용: 이미지 + 오버레이 텍스트 동시 생성 (T2I 모드, 재시도 로직 적용)
-                      const result = await withRetry(
-                        () => generateSectionImageWithOverlay(
-                          null,  // sourceImage가 null이면 T2I 모드
-                          sectionType,
-                          input.productName,
-                          input.category,
-                          input.keyFeatures,
-                          input.targetAudience,
-                          {
-                            additionalPrompt: input.brandContext?.imageKeywords?.join(', '),
-                            model: imageModel,
-                            imagePrompt,  // T2I용 이미지 프롬프트
-                            blockIndex: i,
-                            totalBlocks: prompts.length,
-                          }
-                        ),
-                        3,  // 최대 3회 재시도
-                        1500  // 1.5초 기본 대기 (지수 백오프)
-                      );
+                for (let i = 0; i < prompts.length; i++) {
+                  const prompt = prompts[i];
+                  const imagePrompt = prompt?.imagePrompt || '';
 
-                      if (result && result.image) {
-                        // Cloudinary에 업로드 (설정되어 있으면) 또는 base64 fallback
-                        const uploadResult = await uploadGeneratedImage(result.image, {
-                          folder: 'triple-c/sections',
-                          sectionType,
-                        });
-                        generatedImageUrls.push(uploadResult.url);
+                  try {
+                    console.log(`[AI T2I] Generating ${sectionType} image ${i + 1}/${prompts.length} with overlay...`);
 
-                        // ★ 첫 번째 이미지의 오버레이 텍스트 저장
-                        if (i === 0 && result.overlayText) {
-                          sectionOverlayText = result.overlayText;
-                          console.log(`[AI T2I] ${sectionType} overlay text generated:`, JSON.stringify(result.overlayText).substring(0, 150));
+                    // ★ 통합 함수 사용: 이미지 + 오버레이 텍스트 동시 생성 (T2I 모드, 재시도 로직 적용)
+                    const result = await withRetry(
+                      () => generateSectionImageWithOverlay(
+                        null,  // sourceImage가 null이면 T2I 모드
+                        sectionType,
+                        input.productName,
+                        input.category,
+                        input.keyFeatures,
+                        input.targetAudience,
+                        {
+                          additionalPrompt: input.brandContext?.imageKeywords?.join(', '),
+                          model: imageModel,
+                          imagePrompt,  // T2I용 이미지 프롬프트
+                          blockIndex: i,
+                          totalBlocks: prompts.length,
                         }
+                      ),
+                      3,  // 최대 3회 재시도
+                      1500  // 1.5초 기본 대기 (지수 백오프)
+                    );
 
-                        // ★ 최종 사용된 프롬프트로 업데이트 (revisedPrompt + promptComponents + overlayText)
-                        if (result.image.revisedPrompt && updatedPrompts[i]) {
-                          updatedPrompts[i] = {
-                            ...updatedPrompts[i],
-                            imagePrompt: result.image.revisedPrompt,
-                            promptComponents: result.image.promptComponents,
-                            overlayText: result.overlayText,  // ★ 오버레이 텍스트도 저장
-                            overlayPrompt: result.overlayPrompt,
-                          };
-                        }
+                    if (result && result.image) {
+                      // Cloudinary에 업로드 (설정되어 있으면) 또는 base64 fallback
+                      const uploadResult = await uploadGeneratedImage(result.image, {
+                        folder: 'triple-c/sections',
+                        sectionType,
+                      });
+                      generatedImageUrls.push(uploadResult.url);
 
-                        console.log(`[AI T2I] ${sectionType} image ${i + 1} generated successfully`);
+                      // ★ 첫 번째 이미지의 오버레이 텍스트 저장
+                      if (i === 0 && result.overlayText) {
+                        sectionOverlayText = result.overlayText;
+                        console.log(`[AI T2I] ${sectionType} overlay text generated:`, JSON.stringify(result.overlayText).substring(0, 150));
                       }
-                    } catch (imageError: unknown) {
-                      const errMsg = imageError instanceof Error ? imageError.message : String(imageError);
-                      console.error(`[AI T2I] ${sectionType} image ${i + 1} failed after retries:`, errMsg);
-                      console.error(`[AI T2I] ★ DEBUG: sectionType=${sectionType}, model=${imageModel}, promptLength=${prompt?.imagePrompt?.length || 0}`);
-                    }
 
-                    // ★ 각 이미지 생성 후 짧은 대기 (rate limit 방지)
-                    if (i < prompts.length - 1) {
-                      await new Promise(resolve => setTimeout(resolve, 500));
+                      // ★ 최종 사용된 프롬프트로 업데이트 (revisedPrompt + promptComponents + overlayText)
+                      if (result.image.revisedPrompt && updatedPrompts[i]) {
+                        updatedPrompts[i] = {
+                          ...updatedPrompts[i],
+                          imagePrompt: result.image.revisedPrompt,
+                          promptComponents: result.image.promptComponents,
+                          overlayText: result.overlayText,  // ★ 오버레이 텍스트도 저장
+                          overlayPrompt: result.overlayPrompt,
+                        };
+                      }
+
+                      console.log(`[AI T2I] ${sectionType} image ${i + 1} generated successfully`);
                     }
+                  } catch (imageError: unknown) {
+                    const errMsg = imageError instanceof Error ? imageError.message : String(imageError);
+                    console.error(`[AI T2I] ${sectionType} image ${i + 1} failed after retries:`, errMsg);
+                    console.error(`[AI T2I] ★ DEBUG: sectionType=${sectionType}, model=${imageModel}, promptLength=${prompt?.imagePrompt?.length || 0}`);
                   }
 
-                  // 생성된 이미지가 있으면 결과 반환 (최종 프롬프트 + 오버레이 텍스트 포함)
-                  if (generatedImageUrls.length > 0) {
-                    return {
-                      ...section,
-                      imageUrl: generatedImageUrls[0],           // 기존 호환성 (첫 번째 이미지)
-                      imageUrls: generatedImageUrls,             // 다중 이미지 배열
-                      imagePrompts: updatedPrompts,              // ★ 최종 프롬프트로 업데이트
-                      overlayText: sectionOverlayText,           // ★ 오버레이 텍스트 포함
-                    };
+                  // ★ 각 이미지 생성 후 짧은 대기 (rate limit 방지)
+                  if (i < prompts.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
                   }
+                }
 
-                  return section;
-                })
-              );
+                // 생성된 이미지가 있으면 결과 저장 (최종 프롬프트 + 오버레이 텍스트 포함)
+                if (generatedImageUrls.length > 0) {
+                  updatedSections.push({
+                    ...section,
+                    imageUrl: generatedImageUrls[0],           // 기존 호환성 (첫 번째 이미지)
+                    imageUrls: generatedImageUrls,             // 다중 이미지 배열
+                    imagePrompts: updatedPrompts,              // ★ 최종 프롬프트로 업데이트
+                    overlayText: sectionOverlayText,           // ★ 오버레이 텍스트 포함
+                  });
+                } else {
+                  updatedSections.push(section);
+                }
+
+                // ★★★ 섹션 간 대기 (Rate Limit 방지) - 1초 대기 ★★★
+                if (sectionIdx < version.sections.length - 1) {
+                  console.log(`[AI T2I] Waiting 1s before next section (Rate Limit Prevention)...`);
+                  await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+              }
+
+              console.log(`[AI T2I] ★★★ All ${totalSections} sections processed ★★★`);
 
               return {
                 ...version,
