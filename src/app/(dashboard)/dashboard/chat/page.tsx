@@ -16,8 +16,12 @@ import {
   CheckCircle2,
   Loader2,
   AlertCircle,
+  Pencil,
+  Check,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
 interface ConversationItem {
@@ -46,6 +50,8 @@ export default function ChatListPage() {
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState<string>('');
 
   // 대화 목록 로드
   useEffect(() => {
@@ -105,6 +111,63 @@ export default function ChatListPage() {
       }
     } catch (error) {
       console.error('삭제 실패:', error);
+    }
+  };
+
+  // 제목 편집 시작
+  const handleEditStart = (conversation: ConversationItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingId(conversation.id);
+    setEditingTitle(conversation.title || '');
+  };
+
+  // 제목 편집 취소
+  const handleEditCancel = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingId(null);
+    setEditingTitle('');
+  };
+
+  // 제목 저장
+  const handleEditSave = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (!editingTitle.trim()) {
+      setEditingId(null);
+      setEditingTitle('');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/chat/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: editingTitle.trim() }),
+      });
+
+      if (response.ok) {
+        setConversations((prev) =>
+          prev.map((c) =>
+            c.id === id ? { ...c, title: editingTitle.trim() } : c
+          )
+        );
+      }
+    } catch (error) {
+      console.error('제목 수정 실패:', error);
+    } finally {
+      setEditingId(null);
+      setEditingTitle('');
+    }
+  };
+
+  // 엔터 키로 저장
+  const handleEditKeyDown = (id: string, e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleEditSave(id, e as unknown as React.MouseEvent);
+    } else if (e.key === 'Escape') {
+      setEditingId(null);
+      setEditingTitle('');
     }
   };
 
@@ -187,9 +250,38 @@ export default function ChatListPage() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-medium text-gray-900 truncate">
-                        {conversation.title || '새 대화'}
-                      </h3>
+                      {editingId === conversation.id ? (
+                        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                          <Input
+                            value={editingTitle}
+                            onChange={(e) => setEditingTitle(e.target.value)}
+                            onKeyDown={(e) => handleEditKeyDown(conversation.id, e)}
+                            className="h-7 text-sm font-medium"
+                            autoFocus
+                            placeholder="대화 제목"
+                          />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-green-500 hover:text-green-600 hover:bg-green-50"
+                            onClick={(e) => handleEditSave(conversation.id, e)}
+                          >
+                            <Check className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-gray-500 hover:text-gray-600 hover:bg-gray-100"
+                            onClick={handleEditCancel}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <h3 className="font-medium text-gray-900 truncate">
+                          {conversation.title || '새 대화'}
+                        </h3>
+                      )}
                       <span
                         className={cn(
                           'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs',
@@ -224,6 +316,17 @@ export default function ChatListPage() {
                   </div>
 
                   <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {editingId !== conversation.id && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-full text-gray-500 hover:text-blue-600 hover:bg-blue-50"
+                        onClick={(e) => handleEditStart(conversation, e)}
+                        title="제목 편집"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                    )}
                     {conversation.projectId && (
                       <Button
                         variant="ghost"
