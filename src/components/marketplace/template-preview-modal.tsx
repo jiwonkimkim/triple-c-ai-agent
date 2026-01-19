@@ -9,7 +9,6 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { MarketplaceTemplateData } from './marketplace-template-card';
-import { RagRelatedSearch } from './rag-related-search';
 
 interface TemplatePreviewModalProps {
   template: MarketplaceTemplateData | null;
@@ -163,13 +162,6 @@ export function TemplatePreviewModal({
 
             {/* Info section */}
             <div className="md:w-1/2 p-6 overflow-y-auto">
-              {/* RAG Related Search - Inserted between Image and Product Info */}
-              <div className="mb-6 pb-6 border-b">
-                <RagRelatedSearch
-                  onSelect={(t) => onSwitchTemplate ? onSwitchTemplate(t) : null}
-                />
-              </div>
-
               {/* Category & Price */}
               <div className="flex items-center gap-2 mb-3">
                 <Badge variant="secondary">
