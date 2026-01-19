@@ -69,6 +69,26 @@ export async function GET(request: NextRequest) {
           ? (normalizedCategory as TemplateCategory)
           : 'all';
 
+    // Handle Style Search (Text-to-Image)
+    if (mode === 'style') {
+      const { searchTemplatesByStyle } = await import('@/services/marketplace/template-search');
+      const templates = await searchTemplatesByStyle(query, {
+        limit,
+        category: finalCategory,
+      });
+
+      return NextResponse.json({
+        templates: templates.map(t => ({ ...t, isPurchased: false, isOwner: false })), // Simplify for style search for now or fetch purchase info if needed
+        pagination: {
+          page,
+          limit,
+          total: templates.length, // Style search doesn't return total count efficiently yet
+          totalPages: 1,
+        },
+        meta: { query, mode, category: finalCategory },
+      });
+    }
+
     const options: TemplateSearchOptions = {
       query: query.trim(),
       category: finalCategory,
@@ -114,5 +134,51 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error in semantic search:', error);
     return NextResponse.json({ error: 'Failed to search templates' }, { status: 500 });
+  }
+}
+
+/**
+ * POST /api/marketplace/templates/search
+ * Image-to-Image Search
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const formData = await request.formData();
+    const file = formData.get('file') as File | null;
+    const category = (formData.get('category') as string) || 'all';
+    const limit = parseInt((formData.get('limit') as string) || '12');
+
+    if (!file) {
+      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
+    }
+
+    // Convert File to Buffer
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const { searchTemplatesByImage } = await import('@/services/marketplace/template-search');
+
+    // Validate category like in GET
+    const validCategories = ['all', 'GENERIC', 'FASHION', 'FOOD', 'BEAUTY', 'DIGITAL'];
+    const normalizedCategory = category.toUpperCase();
+    const finalCategory =
+      normalizedCategory === 'ALL'
+        ? 'all'
+        : validCategories.includes(normalizedCategory)
+          ? (normalizedCategory as TemplateCategory)
+          : 'all';
+
+    const templates = await searchTemplatesByImage(buffer, {
+      limit,
+      category: finalCategory,
+    });
+
+    return NextResponse.json({
+      templates: templates.map(t => ({ ...t, isPurchased: false, isOwner: false })),
+      meta: { mode: 'image', category: finalCategory }
+    });
+  } catch (error) {
+    console.error('Error in image search:', error);
+    return NextResponse.json({ error: 'Failed to search by image' }, { status: 500 });
   }
 }

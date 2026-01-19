@@ -424,6 +424,9 @@ model Template {
   embeddingText String?                      @map("embedding_text") @db.Text
   embeddedAt    DateTime?                    @map("embedded_at")
 
+  // [NEW] CLIP Image Embedding (512 dimensions)
+  imageEmbedding Unsupported("vector(512)")? @map("image_embedding")
+
   // Relations
   user      User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
   purchases TemplatePurchase[]

@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { generateEmbedding, generateEmbeddings } from '@/services/rag/embeddings';
+import { generateClipImageEmbedding } from '@/services/rag/image-embeddings';
 
 // Embedding dimension (bge-large-en-v1.5)
 export const TEMPLATE_EMBEDDING_DIMENSION = 1024;
@@ -68,6 +69,7 @@ export async function embedTemplate(templateId: string): Promise<void> {
       tags: true,
       category: true,
       sections: true,
+      thumbnailUrl: true,
     },
   });
 
@@ -78,11 +80,23 @@ export async function embedTemplate(templateId: string): Promise<void> {
   const searchText = buildTemplateSearchText(template);
   const embedding = await generateEmbedding(searchText);
 
+  // Generate CLIP image embedding if thumbnail exists
+  let imageEmbedding: number[] | null = null;
+  if (template.thumbnailUrl) {
+    try {
+      imageEmbedding = await generateClipImageEmbedding(template.thumbnailUrl);
+    } catch (e) {
+      console.warn(`Failed to generate image embedding for template ${templateId}:`, e);
+      // We continue without image embedding
+    }
+  }
+
   // Update with raw SQL for vector column
   await prisma.$executeRaw`
     UPDATE templates
     SET
       embedding = ${embedding}::vector,
+      image_embedding = ${imageEmbedding}::vector,
       embedding_text = ${searchText},
       embedded_at = NOW()
     WHERE id = ${templateId}
@@ -115,12 +129,14 @@ export async function embedTemplates(
         tags: true,
         category: true,
         sections: true,
+        thumbnailUrl: true,
       },
     });
 
     const textsWithIds = templates.map((t) => ({
       id: t.id,
       text: buildTemplateSearchText(t),
+      thumbnailUrl: t.thumbnailUrl,
     }));
 
     try {
@@ -131,10 +147,21 @@ export async function embedTemplates(
         const { id, text } = textsWithIds[idx];
         const embeddingArray = embeddings[idx].embedding;
 
+        // Generate CLIP image embedding
+        let imageEmbedding: number[] | null = null;
+        if (textsWithIds[idx].thumbnailUrl) {
+          try {
+            imageEmbedding = await generateClipImageEmbedding(textsWithIds[idx].thumbnailUrl!);
+          } catch (e) {
+            console.warn(`Failed to generate image embedding for template ${id}:`, e);
+          }
+        }
+
         await prisma.$executeRaw`
           UPDATE templates
           SET
             embedding = ${embeddingArray}::vector,
+            image_embedding = ${imageEmbedding}::vector,
             embedding_text = ${text},
             embedded_at = NOW()
           WHERE id = ${id}

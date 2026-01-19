@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { generateQueryEmbedding } from '@/services/rag/embeddings';
+import { generateClipImageEmbedding, generateClipTextEmbedding } from '@/services/rag/image-embeddings';
 import { TemplateCategory, Prisma } from '@prisma/client';
 
 export interface TemplateSearchOptions {
@@ -206,10 +207,10 @@ export async function semanticSearchTemplates(
     similarity: r.similarity,
     seller: r.user_id
       ? {
-          id: r.user_id,
-          name: r.user_name || r.user_nickname || 'Unknown',
-          image: r.user_image,
-        }
+        id: r.user_id,
+        name: r.user_name || r.user_nickname || 'Unknown',
+        image: r.user_image,
+      }
       : null,
   }));
 
@@ -272,10 +273,10 @@ export async function findSimilarTemplates(
     similarity: r.similarity,
     seller: r.user_id
       ? {
-          id: r.user_id,
-          name: r.user_name || r.user_nickname || 'Unknown',
-          image: r.user_image,
-        }
+        id: r.user_id,
+        name: r.user_name || r.user_nickname || 'Unknown',
+        image: r.user_image,
+      }
       : null,
   }));
 }
@@ -345,10 +346,147 @@ export async function pureSemanticSearch(
     similarity: r.similarity,
     seller: r.user_id
       ? {
-          id: r.user_id,
-          name: r.user_name || r.user_nickname || 'Unknown',
-          image: r.user_image,
-        }
+        id: r.user_id,
+        name: r.user_name || r.user_nickname || 'Unknown',
+        image: r.user_image,
+      }
       : null,
   }));
+}
+
+/**
+ * Search templates by image (Image-to-Image)
+ * Finds templates with similar visual style to the uploaded image
+ */
+export async function searchTemplatesByImage(
+  imageInput: string | Buffer,
+  options: {
+    limit?: number;
+    minSimilarity?: number;
+    category?: TemplateCategory | 'all';
+  } = {}
+): Promise<TemplateSearchResult[]> {
+  const { limit = 12, minSimilarity = 0.6, category } = options;
+
+  // Generate CLIP embedding for the input image
+  const clipEmbedding = await generateClipImageEmbedding(imageInput);
+  const embeddingStr = `[${clipEmbedding.join(',')}]`;
+
+  const categoryFilter =
+    category && category !== 'all'
+      ? Prisma.sql`AND category = ${category}::"TemplateCategory"`
+      : Prisma.empty;
+
+  const results = await prisma.$queryRaw<RawSearchResult[]>`
+    SELECT
+      t.id,
+      t.name,
+      t.category,
+      t.thumbnail_url as "thumbnailUrl",
+      t.description,
+      t.price,
+      t.tags,
+      t.download_count as "downloadCount",
+      t.rating,
+      t.rating_count as "ratingCount",
+      t.published_at as "publishedAt",
+      1 - (t.image_embedding <=> ${embeddingStr}::vector) as similarity,
+      t.user_id,
+      u.name as user_name,
+      u.nickname as user_nickname,
+      u.image as user_image
+    FROM templates t
+    LEFT JOIN users u ON t.user_id = u.id
+    WHERE
+      t.is_published = true
+      AND t.image_embedding IS NOT NULL
+      AND 1 - (t.image_embedding <=> ${embeddingStr}::vector) >= ${minSimilarity}
+      ${categoryFilter}
+    ORDER BY t.image_embedding <=> ${embeddingStr}::vector
+    LIMIT ${limit}
+  `;
+
+  return results.map(mapRawResultToTemplateResult);
+}
+
+/**
+ * Search templates by style description (Text-to-Image)
+ * Uses CLIP text embedding to find visually matching templates
+ */
+export async function searchTemplatesByStyle(
+  styleDescription: string,
+  options: {
+    limit?: number;
+    minSimilarity?: number;
+    category?: TemplateCategory | 'all';
+  } = {}
+): Promise<TemplateSearchResult[]> {
+  const { limit = 12, minSimilarity = 0.2, category } = options;
+
+  // Generate CLIP text embedding
+  const clipEmbedding = await generateClipTextEmbedding(styleDescription);
+  const embeddingStr = `[${clipEmbedding.join(',')}]`;
+
+  const categoryFilter =
+    category && category !== 'all'
+      ? Prisma.sql`AND category = ${category}::"TemplateCategory"`
+      : Prisma.empty;
+
+  const results = await prisma.$queryRaw<RawSearchResult[]>`
+    SELECT
+      t.id,
+      t.name,
+      t.category,
+      t.thumbnail_url as "thumbnailUrl",
+      t.description,
+      t.price,
+      t.tags,
+      t.download_count as "downloadCount",
+      t.rating,
+      t.rating_count as "ratingCount",
+      t.published_at as "publishedAt",
+      1 - (t.image_embedding <=> ${embeddingStr}::vector) as similarity,
+      t.user_id,
+      u.name as user_name,
+      u.nickname as user_nickname,
+      u.image as user_image
+    FROM templates t
+    LEFT JOIN users u ON t.user_id = u.id
+    WHERE
+      t.is_published = true
+      AND t.image_embedding IS NOT NULL
+      AND 1 - (t.image_embedding <=> ${embeddingStr}::vector) >= ${minSimilarity}
+      ${categoryFilter}
+    ORDER BY t.image_embedding <=> ${embeddingStr}::vector
+    LIMIT ${limit}
+  `;
+
+  return results.map(mapRawResultToTemplateResult);
+}
+
+/**
+ * Helper to map raw SQL result to TemplateSearchResult
+ */
+function mapRawResultToTemplateResult(r: RawSearchResult): TemplateSearchResult {
+  return {
+    id: r.id,
+    name: r.name,
+    category: r.category,
+    thumbnailUrl: r.thumbnailUrl,
+    description: r.description,
+    price: r.price,
+    tags: r.tags,
+    downloadCount: r.downloadCount,
+    rating: r.rating,
+    ratingCount: r.ratingCount,
+    publishedAt: r.publishedAt,
+    similarity: r.similarity,
+    seller: r.user_id
+      ? {
+        id: r.user_id,
+        name: r.user_name || r.user_nickname || 'Unknown',
+        image: r.user_image,
+      }
+      : null,
+  };
 }

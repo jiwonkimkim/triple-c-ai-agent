@@ -53,6 +53,7 @@ export interface MarketplaceTemplateData {
   } | null;
   isPurchased: boolean;
   isOwner: boolean;
+  similarity?: number;
 }
 
 interface MarketplaceTemplateCardProps {
