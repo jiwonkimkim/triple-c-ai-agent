@@ -157,20 +157,34 @@ export async function generateImageWithGemini(
     } : undefined;
 
     // Generate images using Gemini with correct responseModalities format
-    const response = await client.models.generateContent({
-      model: model,
-      contents: enhancedPrompt,
-      config: {
-        responseModalities: ['TEXT', 'IMAGE'],
-        ...(imageConfig && { imageConfig }),
-      },
-    });
+    console.log(`[Gemini T2I] ★★★ Sending TEXT-TO-IMAGE request ★★★`);
+    console.log(`[Gemini T2I] Model: ${model}`);
+    console.log(`[Gemini T2I] AspectRatio: ${aspectRatio || 'free'}`);
+    console.log(`[Gemini T2I] Prompt length: ${enhancedPrompt.length} chars`);
+
+    let response;
+    try {
+      response = await client.models.generateContent({
+        model: model,
+        contents: enhancedPrompt,
+        config: {
+          responseModalities: ['TEXT', 'IMAGE'],
+          ...(imageConfig && { imageConfig }),
+        },
+      });
+    } catch (apiError: unknown) {
+      const errMsg = apiError instanceof Error ? apiError.message : String(apiError);
+      console.error(`[Gemini T2I] ★★★ API CALL FAILED ★★★`);
+      console.error(`[Gemini T2I] Error: ${errMsg}`);
+      console.error(`[Gemini T2I] Full error:`, apiError);
+      throw apiError;
+    }
 
     // Process response parts to extract images AND text (overlay)
     let extractedOverlayText: OverlayTextContent | undefined;
 
     // ★★★ API 응답 디버깅 ★★★
-    console.log(`[Gemini] ★ Response debug:`, JSON.stringify({
+    console.log(`[Gemini T2I] ★ Response debug:`, JSON.stringify({
       hasCandidates: !!response.candidates,
       candidatesLength: response.candidates?.length,
       hasContent: !!response.candidates?.[0]?.content,
