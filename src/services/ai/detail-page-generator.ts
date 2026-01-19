@@ -900,11 +900,24 @@ export async function generateDetailPage(
     return { versions, devPrompts };
 
   } catch (error) {
-    console.error('[AI] Failed to generate content from AI API:', error);
+    // ★★★ 레거시 폴백 제거 - 오케스트레이션 에러 시 명확히 실패 처리 ★★★
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : '';
 
-    // 폴백: 기존 방식으로 생성 시도
-    console.log('[AI] Falling back to legacy generation method...');
-    return generateDetailPageLegacy(input, includeDevPrompts);
+    console.error('[AI] ★★★ ORCHESTRATION FAILED ★★★');
+    console.error('[AI] Error message:', errorMsg);
+    console.error('[AI] Error stack:', errorStack);
+    console.error('[AI] Input data:', JSON.stringify({
+      productName: input.productName,
+      category: input.category,
+      copyLength: input.copyLength,
+      hasProductImages: input.productImages?.length || 0,
+      generateImages: input.generateImages,
+      imageModel: input.imageModel,
+    }));
+
+    // 레거시 폴백 대신 에러를 그대로 전파하여 호출자가 처리하도록 함
+    throw new Error(`상세페이지 생성 실패: ${errorMsg}`);
   }
 }
 

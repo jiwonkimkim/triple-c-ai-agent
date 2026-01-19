@@ -118,22 +118,8 @@ export async function generatorAgent(
     };
   }
 
-  // 진행 상태 메시지
-  const progressMessage: ChatMessage = {
-    id: generateMessageId(),
-    role: 'assistant',
-    content: '상세페이지를 생성하고 있어요... 잠시만 기다려주세요!',
-    agentType: 'GENERATOR',
-    metadata: {
-      uiType: 'progress',
-      progress: {
-        step: 'creating_project',
-        percentage: 10,
-        message: '프로젝트 생성 중...',
-      },
-    },
-    createdAt: new Date(),
-  };
+  // ★ 진행 메시지 제거 - 중복 메시지 방지
+  // 성공/실패 시 단일 메시지만 반환
 
   try {
     // 1. 프로젝트 생성
@@ -394,7 +380,7 @@ export async function generatorAgent(
     };
 
     return {
-      messages: [progressMessage, successMessage],
+      messages: [successMessage],  // ★ 단일 메시지만 반환
       generationResult,
       currentAgent: 'GENERATOR',
       nextAction: { type: 'complete', projectId: project.id },
@@ -438,7 +424,7 @@ export async function generatorAgent(
     };
 
     return {
-      messages: [progressMessage, errorChatMessage],
+      messages: [errorChatMessage],  // ★ 단일 메시지만 반환
       generationResult: {
         projectId: '',
         versionId: '',
