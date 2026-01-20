@@ -135,13 +135,6 @@ ${JSON.stringify(collectedData, null, 2)}
 
       // 섹션 변경
       if (feedbackResponse.modificationType === 'section_change') {
-        // 대화 히스토리에서 섹션 수정 관련 사용자 요청 수집
-        const recentUserMessages = messages
-          .filter(m => m.role === 'user')
-          .slice(-3)
-          .map(m => m.content)
-          .join('\n');
-
         const sectionMessage: ChatMessage = {
           id: generateMessageId(),
           role: 'assistant',
@@ -150,6 +143,23 @@ ${JSON.stringify(collectedData, null, 2)}
           metadata: { uiType: 'text' },
           createdAt: new Date(),
         };
+
+        // clarification이 필요하면 사용자 응답 대기
+        if (feedbackResponse.clarificationNeeded) {
+          return {
+            messages: [sectionMessage],
+            currentAgent: 'FEEDBACK',
+            nextAction: { type: 'await_input' },
+          };
+        }
+
+        // clarification 불필요 - 바로 섹션 수정 진행
+        // 대화 히스토리에서 섹션 수정 관련 사용자 요청 수집
+        const recentUserMessages = messages
+          .filter(m => m.role === 'user')
+          .slice(-3)
+          .map(m => m.content)
+          .join('\n');
 
         // 뷰티 카테고리면 PLANNING_CONSULTANT로, 아니면 PLANNER로
         const targetAgent = collectedData.category === 'BEAUTY' && collectedData.subCategory
