@@ -273,7 +273,9 @@ async function handleSectionModification(
   state: ChatAgentState
 ): Promise<Partial<ChatAgentState>> {
   const { collectedData } = state;
-  const existingSections = collectedData.plannedSections || [];
+  const existingSections = Array.isArray(collectedData.plannedSections)
+    ? collectedData.plannedSections
+    : [];
   const modificationRequest = collectedData.sectionModificationRequest || '';
 
   console.log('[PlanningConsultant] Handling section modification request:', modificationRequest);
