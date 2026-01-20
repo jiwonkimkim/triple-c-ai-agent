@@ -1115,8 +1115,10 @@ export function ImageOverlayBlockRenderer({
                 }, -50%) rotate(${overlayText.style.rotation || 0}deg)`,
                 zIndex: overlayText.zIndex || 0,
                 opacity: (overlayText.style.opacity || 100) / 100,
-                // ★ width: auto 대신 max-content 사용 - 컨테이너 밖으로 나가도 텍스트 줄바꿈 안됨
+                // ★ 컨테이너 밖으로 나가도 텍스트 줄바꿈 안됨
                 width: overlayText.style.width ? `${overlayText.style.width}%` : 'max-content',
+                // width 있으면 자동 줄바꿈 허용 (pre-wrap), 없으면 줄바꿈 없음 (pre)
+                whiteSpace: overlayText.style.width ? 'pre-wrap' : 'pre',
               }}
               onMouseDown={(e) => handleDragStart(e, overlayText.id)}
               onDragStart={(e) => e.preventDefault()}
@@ -2031,13 +2033,13 @@ export function ImageOverlayBlockPreview({
   isMain?: boolean;  // MAIN 섹션 여부
 }) {
   return (
-    <div className="relative rounded-lg overflow-hidden">
+    <div className="relative overflow-visible">
       {block.src ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={block.src}
           alt={block.alt || '상세페이지 이미지'}
-          className="w-full h-auto block"
+          className="w-full h-auto block rounded-lg"
         />
       ) : (
         <div className="w-full bg-muted" style={{ aspectRatio: '3/4' }} />
@@ -2066,8 +2068,10 @@ export function ImageOverlayBlockPreview({
               }, -50%) rotate(${overlayText.style.rotation || 0}deg)`,
               zIndex: overlayText.zIndex || 0,
               opacity: (overlayText.style.opacity || 100) / 100,
-              // ★ width: auto 대신 max-content 사용 - 컨테이너 밖으로 나가도 텍스트 줄바꿈 안됨
+              // ★ 컨테이너 밖으로 나가도 텍스트 줄바꿈 안됨
               width: overlayText.style.width ? `${overlayText.style.width}%` : 'max-content',
+              // width 있으면 자동 줄바꿈 허용 (pre-wrap), 없으면 줄바꿈 없음 (pre)
+              whiteSpace: overlayText.style.width ? 'pre-wrap' : 'pre',
               color: overlayText.style.color || '#ffffff',
               backgroundColor: overlayText.style.backgroundColor,
               padding: overlayText.style.padding,
@@ -2080,7 +2084,6 @@ export function ImageOverlayBlockPreview({
               textAlign: overlayText.style.textAlign || 'center',
               letterSpacing: overlayText.style.letterSpacing ? `${overlayText.style.letterSpacing}px` : undefined,
               lineHeight: overlayText.style.lineHeight || 1.4,
-              whiteSpace: 'pre-line', // \n 줄바꿈 항상 적용
             }}
           >
             {overlayText.content}
