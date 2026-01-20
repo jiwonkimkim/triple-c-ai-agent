@@ -461,7 +461,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                   textAlign: (item.textAlign as 'left' | 'center' | 'right') ?? 'center',
                   opacity: 100,
                   rotation: 0,
-                  width: 80,
+                  // width 없음 - 텍스트 길이에 맞게 자동 조절
                 },
                 zIndex: zIndex++,
               });
@@ -487,7 +487,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                   textAlign: (headlineData.textAlign as 'left' | 'center' | 'right') ?? textPosition.headline.align,
                   opacity: 100,
                   rotation: 0,
-                  width: isMain ? 35 : 80,
+                  // width 없음 - 텍스트 길이에 맞게 자동 조절
                 },
                 zIndex: zIndex++,
               });
@@ -512,7 +512,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                   textAlign: (subheadlineData.textAlign as 'left' | 'center' | 'right') ?? textPosition.body.align,
                   opacity: 100,
                   rotation: 0,
-                  width: isMain ? 35 : 70,
+                  // width 없음 - 텍스트 길이에 맞게 자동 조절
                 },
                 zIndex: zIndex++,
               });
@@ -541,7 +541,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                   textAlign: (finalBodyData.textAlign as 'left' | 'center' | 'right') ?? textPosition.body.align,
                   opacity: 100,
                   rotation: 0,
-                  width: isMain ? 35 : 80,
+                  // width 없음 - 텍스트 길이에 맞게 자동 조절
                 },
                 zIndex: zIndex++,
               });
@@ -618,7 +618,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 textAlign: textPosition.headline.align,
                 opacity: 100,
                 rotation: 0,
-                width: isMain ? 35 : 80,
+                // width 없음 - 텍스트 길이에 맞게 자동 조절
               },
               zIndex: zIndex++,
             });
@@ -647,7 +647,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                   textAlign: textPosition.body.align,
                   opacity: 100,
                   rotation: 0,
-                  width: isMain ? 35 : 70,
+                  // width 없음 - 텍스트 길이에 맞게 자동 조절
                 },
                 zIndex: zIndex++,
               });
@@ -667,7 +667,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                   textAlign: textPosition.body.align,
                   opacity: 100,
                   rotation: 0,
-                  width: isMain ? 35 : 80,
+                  // width 없음 - 텍스트 길이에 맞게 자동 조절
                 },
                 zIndex: zIndex++,
               });

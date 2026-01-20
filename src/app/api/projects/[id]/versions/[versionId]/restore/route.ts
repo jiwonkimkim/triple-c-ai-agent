@@ -146,7 +146,7 @@ function convertAIToEditorFormat(aiSections: AISection[]): EditorSection[] {
             textAlign: (headlineData?.textAlign as 'left' | 'center' | 'right') ?? textPosition.headline.align,
             opacity: 100,
             rotation: 0,
-            width: isMain ? 35 : 80,
+            // width 없음 - 텍스트 길이에 맞게 자동 조절
           },
           zIndex: zIndex++,
         });
@@ -173,7 +173,7 @@ function convertAIToEditorFormat(aiSections: AISection[]): EditorSection[] {
             textAlign: (subheadlineData.textAlign as 'left' | 'center' | 'right') ?? textPosition.body.align,
             opacity: 100,
             rotation: 0,
-            width: isMain ? 35 : 70,
+            // width 없음 - 텍스트 길이에 맞게 자동 조절
           },
           zIndex: zIndex++,
         });
@@ -201,7 +201,7 @@ function convertAIToEditorFormat(aiSections: AISection[]): EditorSection[] {
             textAlign: (bodyData?.textAlign as 'left' | 'center' | 'right') ?? textPosition.body.align,
             opacity: 100,
             rotation: 0,
-            width: isMain ? 35 : 80,
+            // width 없음 - 텍스트 길이에 맞게 자동 조절
           },
           zIndex: zIndex++,
         });
@@ -276,7 +276,7 @@ function convertAIToEditorFormat(aiSections: AISection[]): EditorSection[] {
             textAlign: textPosition.headline.align,
             opacity: 100,
             rotation: 0,
-            width: isMain ? 35 : 80,
+            // width 없음 - 텍스트 길이에 맞게 자동 조절
           },
           zIndex: zIndex++,
         });
@@ -299,7 +299,7 @@ function convertAIToEditorFormat(aiSections: AISection[]): EditorSection[] {
             textAlign: textPosition.body.align,
             opacity: 100,
             rotation: 0,
-            width: isMain ? 35 : 80,
+            // width 없음 - 텍스트 길이에 맞게 자동 조절
           },
           zIndex: zIndex++,
         });
