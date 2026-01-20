@@ -325,17 +325,18 @@ export async function generateImageWithGemini(
 
     let response;
     try {
-      // ★★★ 공식 문서 예시 형식:
-      // contents: [prompt]
-      // config: { imageConfig: { aspectRatio: "16:9" } }
+      // ★★★ T2I: responseModalities로 이미지 생성 강제 + imageConfig로 비율 설정 ★★★
       response = await client.models.generateContent({
         model: model,
-        contents: [prompt],  // ★ 문자열 배열 (공식 문서 형식)
-        config: aspectRatio ? {
-          imageConfig: {
-            aspectRatio: aspectRatio,  // ★ imageConfig 안에 aspectRatio
-          },
-        } : undefined,
+        contents: [prompt],
+        config: {
+          responseModalities: ['Image', 'Text'],  // ★ 이미지 생성 강제
+          ...(aspectRatio && {
+            imageConfig: {
+              aspectRatio: aspectRatio,
+            },
+          }),
+        },
       });
     } catch (apiError: unknown) {
       const errMsg = apiError instanceof Error ? apiError.message : String(apiError);
