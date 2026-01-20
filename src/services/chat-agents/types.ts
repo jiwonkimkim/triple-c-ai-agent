@@ -264,6 +264,10 @@ export interface ProjectCollectedData {
   // 생성/수정 플래그
   readyToGenerate?: boolean;
   modifyRequest?: 'sections' | 'style';
+
+  // 섹션 수정 요청 컨텍스트 (Feedback → Planner 전달용)
+  sectionModificationRequest?: string;
+  styleModificationRequest?: string;
 }
 
 export interface PlannedSection {

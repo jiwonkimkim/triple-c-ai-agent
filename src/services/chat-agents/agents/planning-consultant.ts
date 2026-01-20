@@ -73,10 +73,50 @@ const CATEGORY_STYLE_MAP: Record<BeautySubCategory, string[]> = {
   other_beauty: ['clean', 'modern', 'natural'],
 };
 
+// 섹션 수정 시스템 프롬프트
+const SECTION_MODIFICATION_PROMPT = `당신은 상세페이지 섹션 기획 전문가입니다.
+사용자의 수정 요청에 따라 기존 섹션 구성을 수정합니다.
+
+## 사용 가능한 섹션 타입:
+- HERO: 메인 비주얼, 제품 대표 이미지
+- KEY_MESSAGE: 핵심 메시지, 슬로건
+- TEXT_ONLY: 텍스트만 있는 섹션 (후킹 메시지, 강조 문구 등)
+- HOOK_MESSAGE: 후킹 메시지 (짧고 임팩트 있는 문구)
+- COLOR_SHOWCASE: 컬러 쇼케이스
+- TEXTURE: 텍스처/질감
+- INGREDIENTS: 성분 정보
+- BEFORE_AFTER: 비포애프터
+- HOW_TO_USE: 사용법
+- ROUTINE: 루틴 가이드
+- BENEFIT_HIGHLIGHT: 혜택 강조
+- SOCIAL_PROOF: 리뷰/후기
+- FAQ: 자주 묻는 질문
+- DIVIDER_VISUAL: 구분 비주얼
+
+## 응답 형식 (JSON):
+{
+  "modifiedSections": [
+    { "type": "HERO", "name": "히어로", "description": "메인 비주얼과 핵심 카피" },
+    { "type": "TEXT_ONLY", "name": "후킹 메시지", "description": "주목도를 높이는 임팩트 문구" }
+  ],
+  "explanation": "섹션을 어떻게 수정했는지 설명"
+}
+
+## 규칙:
+1. 사용자 요청을 정확히 반영하세요
+2. "텍스트만", "문구만", "후킹 메시지" 등의 요청은 TEXT_ONLY 또는 HOOK_MESSAGE 타입으로 추가
+3. 기존 섹션의 순서와 구성을 존중하되, 요청에 따라 추가/삭제/수정
+4. 섹션은 5-8개가 적당합니다`;
+
 export async function planningConsultantAgent(
   state: ChatAgentState
 ): Promise<Partial<ChatAgentState>> {
   const { collectedData } = state;
+
+  // 섹션 수정 요청이 있는 경우 - LLM으로 기존 섹션 수정
+  if (collectedData.sectionModificationRequest && collectedData.plannedSections) {
+    return handleSectionModification(state);
+  }
 
   // 서브카테고리 확인
   const subCategory = collectedData.subCategory;
@@ -222,6 +262,159 @@ function createDefaultPlan(state: ChatAgentState): Partial<ChatAgentState> {
       visualTheme: '클린',
       toneAndManner: '친근하고 전문적인',
       colorPalette: ['#FFFFFF', '#F5F5F5', '#333333'],
+    },
+    currentAgent: 'PLANNER',
+    nextAction: { type: 'await_input' },
+  };
+}
+
+// 섹션 수정 요청 처리
+async function handleSectionModification(
+  state: ChatAgentState
+): Promise<Partial<ChatAgentState>> {
+  const { collectedData } = state;
+  const existingSections = collectedData.plannedSections || [];
+  const modificationRequest = collectedData.sectionModificationRequest || '';
+
+  console.log('[PlanningConsultant] Handling section modification request:', modificationRequest);
+  console.log('[PlanningConsultant] Existing sections:', existingSections.map(s => s.type).join(', '));
+
+  const contextPrompt = `
+## 기존 섹션 구성:
+${existingSections.map((s, idx) => `${idx + 1}. ${s.type} (${s.name}): ${s.description}`).join('\n')}
+
+## 사용자의 수정 요청:
+${modificationRequest}
+
+## 제품 정보:
+- 제품명: ${collectedData.productName || '미정'}
+- 카테고리: ${collectedData.category || '미정'}
+- 서브카테고리: ${collectedData.subCategory || '미정'}
+
+위 수정 요청을 반영하여 섹션 구성을 수정해주세요.
+특히 "텍스트만", "후킹 메시지", "문구만" 등의 요청이 있으면 TEXT_ONLY 또는 HOOK_MESSAGE 타입 섹션을 적절한 위치에 추가하세요.
+`;
+
+  try {
+    const response = await getModel().invoke([
+      { role: 'system', content: SECTION_MODIFICATION_PROMPT },
+      { role: 'user', content: contextPrompt },
+    ]);
+
+    const responseText = typeof response.content === 'string'
+      ? response.content
+      : JSON.stringify(response.content);
+
+    console.log('[PlanningConsultant] LLM response:', responseText.slice(0, 500));
+
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      const modifiedSections: PlannedSection[] = parsed.modifiedSections || [];
+      const explanation = parsed.explanation || '섹션이 수정되었습니다.';
+
+      if (modifiedSections.length === 0) {
+        throw new Error('수정된 섹션이 비어있습니다');
+      }
+
+      // 섹션 타입별 설명 보완
+      const finalSections = modifiedSections.map(section => ({
+        type: section.type,
+        name: section.name || SECTION_DESCRIPTIONS[section.type]?.name || section.type,
+        description: section.description || SECTION_DESCRIPTIONS[section.type]?.description || '',
+      }));
+
+      const sectionsPreview = finalSections
+        .map((s, idx) => `${idx + 1}. **${s.name}** - ${s.description}`)
+        .join('\n');
+
+      const planMessage: ChatMessage = {
+        id: generateMessageId(),
+        role: 'assistant',
+        content: `섹션 구성을 수정했어요! ✏️\n\n` +
+          `**수정 내용:** ${explanation}\n\n` +
+          `## 📋 수정된 섹션 구성\n${sectionsPreview}\n\n` +
+          `이대로 진행할까요?`,
+        agentType: 'PLANNER',
+        metadata: {
+          uiType: 'confirmation',
+          planPreview: {
+            sections: finalSections,
+            theme: collectedData.visualTheme || '클린',
+            tone: collectedData.toneAndManner || '친근하고 전문적인',
+          },
+          options: [
+            { id: 'generate', label: '✨ 이대로 생성하기', value: 'generate', description: '상세페이지 생성 시작' },
+            { id: 'modify_sections', label: '📝 추가 수정', value: 'modify_sections', description: '섹션 더 수정하기' },
+            { id: 'modify_style', label: '🎨 스타일 변경', value: 'modify_style', description: '스타일/톤 변경' },
+          ],
+          askingField: 'planAction',
+        },
+        createdAt: new Date(),
+      };
+
+      return {
+        messages: [planMessage],
+        collectedData: {
+          plannedSections: finalSections,
+          sectionModificationRequest: undefined, // 수정 요청 처리 완료, 플래그 제거
+        },
+        currentAgent: 'PLANNER',
+        nextAction: { type: 'await_input' },
+      };
+    }
+  } catch (error) {
+    console.error('[PlanningConsultant] Section modification error:', error);
+  }
+
+  // 에러 시 폴백 - 수동으로 TEXT_ONLY 섹션 추가
+  const fallbackSections = [...existingSections];
+
+  // 후킹 메시지 요청인지 확인
+  const isHookRequest = /후킹|텍스트만|문구만|메시지만/.test(modificationRequest);
+  if (isHookRequest) {
+    // HERO 다음 또는 중간에 TEXT_ONLY 섹션 추가
+    const heroIndex = fallbackSections.findIndex(s => s.type === 'HERO');
+    const insertIndex = heroIndex >= 0 ? heroIndex + 1 : 1;
+    fallbackSections.splice(insertIndex, 0, {
+      type: 'HOOK_MESSAGE',
+      name: '후킹 메시지',
+      description: '주목도를 높이는 임팩트 문구',
+    });
+  }
+
+  const sectionsPreview = fallbackSections
+    .map((s, idx) => `${idx + 1}. **${s.name}** - ${s.description}`)
+    .join('\n');
+
+  const fallbackMessage: ChatMessage = {
+    id: generateMessageId(),
+    role: 'assistant',
+    content: `요청하신 대로 섹션을 수정했어요!\n\n` +
+      `## 📋 수정된 섹션 구성\n${sectionsPreview}\n\n` +
+      `이대로 진행할까요?`,
+    agentType: 'PLANNER',
+    metadata: {
+      uiType: 'confirmation',
+      planPreview: {
+        sections: fallbackSections,
+        theme: collectedData.visualTheme || '클린',
+        tone: collectedData.toneAndManner || '친근하고 전문적인',
+      },
+      options: [
+        { id: 'generate', label: '✨ 이대로 생성하기', value: 'generate' },
+        { id: 'modify_sections', label: '📝 추가 수정', value: 'modify_sections' },
+      ],
+      askingField: 'planAction',
+    },
+    createdAt: new Date(),
+  };
+
+  return {
+    messages: [fallbackMessage],
+    collectedData: {
+      plannedSections: fallbackSections,
+      sectionModificationRequest: undefined,
     },
     currentAgent: 'PLANNER',
     nextAction: { type: 'await_input' },

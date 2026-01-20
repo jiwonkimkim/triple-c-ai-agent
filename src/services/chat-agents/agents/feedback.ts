@@ -135,6 +135,13 @@ ${JSON.stringify(collectedData, null, 2)}
 
       // 섹션 변경
       if (feedbackResponse.modificationType === 'section_change') {
+        // 대화 히스토리에서 섹션 수정 관련 사용자 요청 수집
+        const recentUserMessages = messages
+          .filter(m => m.role === 'user')
+          .slice(-3)
+          .map(m => m.content)
+          .join('\n');
+
         const sectionMessage: ChatMessage = {
           id: generateMessageId(),
           role: 'assistant',
@@ -144,15 +151,22 @@ ${JSON.stringify(collectedData, null, 2)}
           createdAt: new Date(),
         };
 
-        // 기획 초기화하고 다시 진행
+        // 뷰티 카테고리면 PLANNING_CONSULTANT로, 아니면 PLANNER로
+        const targetAgent = collectedData.category === 'BEAUTY' && collectedData.subCategory
+          ? 'PLANNING_CONSULTANT' as AgentType
+          : 'PLANNER' as AgentType;
+
+        // 기존 섹션 유지하면서 수정 요청 컨텍스트 전달
         return {
           messages: [sectionMessage],
           collectedData: {
             ...feedbackResponse.newValues,
-            plannedSections: undefined,
+            // 기존 섹션은 유지 (Planner가 수정할 수 있도록)
+            // plannedSections는 그대로 두고, 수정 요청만 전달
+            sectionModificationRequest: recentUserMessages || lastUserMessage.content,
           },
           currentAgent: 'FEEDBACK',
-          nextAction: { type: 'continue', targetAgent: 'PLANNER' as AgentType },
+          nextAction: { type: 'continue', targetAgent },
         };
       }
 
