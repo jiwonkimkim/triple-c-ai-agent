@@ -810,16 +810,21 @@ ${imagePrompt}`;
   );
 
   // 이미지 생성 프롬프트에 오버레이 텍스트 요청 추가
+  // ★★★ 이미지 생성이 최우선임을 명확히 함 (기본 모델 호환성) ★★★
   const overlayTextRequest = `
 
-[★★★ OVERLAY TEXT - MUST RETURN AS JSON IN YOUR TEXT RESPONSE ★★★]
-You MUST return overlay text JSON alongside the generated image.
-The overlay text should be creative typography that complements the image.
+[★★★ OUTPUT REQUIREMENTS ★★★]
+1. GENERATE IMAGE FIRST (REQUIRED) - This is the primary output
+2. THEN return overlay text JSON (for placing text ON TOP of the generated image)
+
+[OVERLAY TEXT = Text to be placed ON TOP of the generated image]
+- NOT text inside the image
+- This is typography metadata (content, position, style) for frontend rendering
+- The overlay will be rendered as HTML/CSS on top of your generated image
 
 ${overlayTextPrompt}
 
-IMPORTANT: Return the overlay text as valid JSON in your text response.
-The JSON should be parseable and follow the format in the prompt above.`;
+CRITICAL: You MUST generate an image. The overlay JSON is additional metadata for text positioning.`;
 
   const finalPrompt = enhancedPrompt + overlayTextRequest;
 
@@ -1581,15 +1586,21 @@ ${scenarioPrompt}
     targetAudience || 'General'
   );
 
+  // ★★★ 이미지 생성이 최우선임을 명확히 함 (기본 모델 호환성) ★★★
   const overlayTextRequest = `
 
-[★★★ OVERLAY TEXT - MUST RETURN AS JSON IN YOUR TEXT RESPONSE ★★★]
-You MUST return overlay text JSON alongside the generated image.
-The overlay text should be creative typography that complements the image.
+[★★★ OUTPUT REQUIREMENTS ★★★]
+1. GENERATE IMAGE FIRST (REQUIRED) - This is the primary output
+2. THEN return overlay text JSON (for placing text ON TOP of the generated image)
+
+[OVERLAY TEXT = Text to be placed ON TOP of the generated image]
+- NOT text inside the image
+- This is typography metadata (content, position, style) for frontend rendering
+- The overlay will be rendered as HTML/CSS on top of your generated image
 
 ${overlayTextPrompt}
 
-IMPORTANT: Return the overlay text as valid JSON in your text response.`;
+CRITICAL: You MUST generate an image. The overlay JSON is additional metadata for text positioning.`;
 
   const fullPrompt = `${basePrompt}${orchestrationContext}
 
