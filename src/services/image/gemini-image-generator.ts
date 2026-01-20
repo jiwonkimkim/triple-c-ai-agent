@@ -836,45 +836,38 @@ ${imagePrompt}`;
 - Generate ONLY: product visuals, backgrounds, lighting effects, decorative elements (NO TEXT)
 ` : '';
 
-  // ★★★ 크리에이티브 오버레이 디자인 가이드 (1000x1000 픽셀 캔버스 기준) ★★★
+  // ★★★ 자유로운 크리에이티브 오버레이 디자인 ★★★
   const creativeOverlayGuide = `
 
-[★ CREATIVE OVERLAY TEXT DESIGN - 상세페이지 디자이너처럼 ★]
-Design overlay text like a professional Korean e-commerce detail page designer.
-Be CREATIVE and BOLD with typography - NOT just plain blue text!
+[★ CREATIVE OVERLAY TEXT DESIGN - 키치하고 트렌디한 상세페이지 스타일 ★]
+You are a trendy Korean e-commerce detail page designer.
+Design CREATIVE, PLAYFUL, and BOLD typography that matches the generated image!
+
+★★★ DESIGN FREEDOM ★★★
+- Look at the image you generated and design text that COMPLEMENTS it
+- Be creative with placement - not everything needs to be centered!
+- Use unexpected positions, dynamic layouts, asymmetric designs
+- Mix different sizes dramatically for visual impact
+- 키치하고 감각적인 한국 상세페이지 스타일!
 
 ★★★ COORDINATE SYSTEM: 1000x1000 PIXEL CANVAS ★★★
-All x, y coordinates are in PIXELS based on a 1000x1000 reference canvas.
+- x: 0-1000 (0=left, 500=center, 1000=right)
+- y: 0-1000 (0=top, 500=middle, 1000=bottom)
+- fontSize: 12-72px (be bold with sizes!)
+- Place texts where they look BEST with the image
 
-★★★ FONT SIZE (정확한 픽셀값 사용!) ★★★
-- 브랜드명/섹션명: 12-16px (작고 절제된)
-- 헤드라인: 24-36px (핵심 메시지, bold)
-- 서브헤드라인: 16-22px (보조 설명, medium)
-- 본문: 12-16px (상세 설명, normal)
-- 통계 숫자: 32-48px (강조, bold)
-- CTA: 14-18px (행동 유도)
-
-★★★ POSITION (1000x1000 픽셀 캔버스 기준) ★★★
-- y: 50-150 = 상단 (브랜드명, 섹션명)
-- y: 150-350 = 상단-중앙 (헤드라인)
-- y: 400-600 = 중앙 (핵심 메시지, 통계)
-- y: 650-850 = 하단-중앙 (본문, 설명)
-- y: 880-950 = 하단 (CTA, 태그라인)
-- x: 500 = 중앙 정렬 (가장 일반적)
-- 텍스트 간 y값 최소 80픽셀 이상 간격 유지!
-
-COLOR VARIETY (use diverse, eye-catching colors):
-- Vibrant: #FF6B6B (coral), #4ECDC4 (teal), #FFE66D (golden)
-- Elegant: #2C3E50 (navy), #E74C3C (crimson), #1ABC9C (emerald)
-- Luxurious: #C9B037 (gold), #BF9270 (rose gold), #2E4057 (charcoal)
-- Match colors to product mood and category
+★★★ COLOR & STYLE INSPIRATION ★★★
+- Vibrant: #FF6B6B, #4ECDC4, #FFE66D, #FF8C42
+- Elegant: #2C3E50, #E74C3C, #1ABC9C, #9B59B6
+- Luxurious: #C9B037, #BF9270, #2E4057, #8B4513
+- Pastel: #FFB3BA, #BAFFC9, #BAE1FF, #FFFFBA
+- Match colors to the image mood!
 
 CRITICAL RULES:
-- fontSize must be INTEGER between 12-48
-- x must be INTEGER between 0-1000 (500 = center)
-- y must be INTEGER between 0-1000 (0 = top, 1000 = bottom)
-- Use textAlign: "center" for most cases
-- Do NOT overlap texts (maintain y gap of 80+ pixels)
+- fontSize: INTEGER 12-72
+- x, y: INTEGER 0-1000
+- Do NOT overlap texts (maintain 60+ pixel gap)
+- Make it look like professional Korean detail page design!
 `;
 
   const overlayTextRequest = `
@@ -1679,45 +1672,38 @@ ${scenarioPrompt}
 - Generate ONLY: product visuals, backgrounds, lighting effects, decorative elements (NO TEXT)
 ` : '';
 
-  // ★★★ 크리에이티브 오버레이 디자인 가이드 (1000x1000 픽셀 캔버스 기준) ★★★
+  // ★★★ 자유로운 크리에이티브 오버레이 디자인 ★★★
   const creativeOverlayGuide = `
 
-[★ CREATIVE OVERLAY TEXT DESIGN - 상세페이지 디자이너처럼 ★]
-Design overlay text like a professional Korean e-commerce detail page designer.
-Be CREATIVE and BOLD with typography - NOT just plain blue text!
+[★ CREATIVE OVERLAY TEXT DESIGN - 키치하고 트렌디한 상세페이지 스타일 ★]
+You are a trendy Korean e-commerce detail page designer.
+Design CREATIVE, PLAYFUL, and BOLD typography that matches the generated image!
+
+★★★ DESIGN FREEDOM ★★★
+- Look at the image you generated and design text that COMPLEMENTS it
+- Be creative with placement - not everything needs to be centered!
+- Use unexpected positions, dynamic layouts, asymmetric designs
+- Mix different sizes dramatically for visual impact
+- 키치하고 감각적인 한국 상세페이지 스타일!
 
 ★★★ COORDINATE SYSTEM: 1000x1000 PIXEL CANVAS ★★★
-All x, y coordinates are in PIXELS based on a 1000x1000 reference canvas.
+- x: 0-1000 (0=left, 500=center, 1000=right)
+- y: 0-1000 (0=top, 500=middle, 1000=bottom)
+- fontSize: 12-72px (be bold with sizes!)
+- Place texts where they look BEST with the image
 
-★★★ FONT SIZE (정확한 픽셀값 사용!) ★★★
-- 브랜드명/섹션명: 12-16px (작고 절제된)
-- 헤드라인: 24-36px (핵심 메시지, bold)
-- 서브헤드라인: 16-22px (보조 설명, medium)
-- 본문: 12-16px (상세 설명, normal)
-- 통계 숫자: 32-48px (강조, bold)
-- CTA: 14-18px (행동 유도)
-
-★★★ POSITION (1000x1000 픽셀 캔버스 기준) ★★★
-- y: 50-150 = 상단 (브랜드명, 섹션명)
-- y: 150-350 = 상단-중앙 (헤드라인)
-- y: 400-600 = 중앙 (핵심 메시지, 통계)
-- y: 650-850 = 하단-중앙 (본문, 설명)
-- y: 880-950 = 하단 (CTA, 태그라인)
-- x: 500 = 중앙 정렬 (가장 일반적)
-- 텍스트 간 y값 최소 80픽셀 이상 간격 유지!
-
-COLOR VARIETY (use diverse, eye-catching colors):
-- Vibrant: #FF6B6B (coral), #4ECDC4 (teal), #FFE66D (golden)
-- Elegant: #2C3E50 (navy), #E74C3C (crimson), #1ABC9C (emerald)
-- Luxurious: #C9B037 (gold), #BF9270 (rose gold), #2E4057 (charcoal)
-- Match colors to product mood and category
+★★★ COLOR & STYLE INSPIRATION ★★★
+- Vibrant: #FF6B6B, #4ECDC4, #FFE66D, #FF8C42
+- Elegant: #2C3E50, #E74C3C, #1ABC9C, #9B59B6
+- Luxurious: #C9B037, #BF9270, #2E4057, #8B4513
+- Pastel: #FFB3BA, #BAFFC9, #BAE1FF, #FFFFBA
+- Match colors to the image mood!
 
 CRITICAL RULES:
-- fontSize must be INTEGER between 12-48
-- x must be INTEGER between 0-1000 (500 = center)
-- y must be INTEGER between 0-1000 (0 = top, 1000 = bottom)
-- Use textAlign: "center" for most cases
-- Do NOT overlap texts (maintain y gap of 80+ pixels)
+- fontSize: INTEGER 12-72
+- x, y: INTEGER 0-1000
+- Do NOT overlap texts (maintain 60+ pixel gap)
+- Make it look like professional Korean detail page design!
 `;
 
   const overlayTextRequest = `
