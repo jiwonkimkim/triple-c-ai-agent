@@ -313,47 +313,29 @@ export async function generateImageWithGemini(
   const client = getGeminiClient();
   const results: GeminiGeneratedImage[] = [];
 
-  // 비율 지시 추가 (aspectRatio가 있을 때만)
-  let enhancedPrompt = prompt;
-  if (aspectRatio) {
-    const aspectInstruction = aspectRatio === '1:1'
-      ? '[IMAGE FORMAT: Output MUST be SQUARE (1:1 aspect ratio, 1024x1024)]'
-      : aspectRatio === '16:9'
-      ? '[IMAGE FORMAT: Output MUST be landscape (16:9 aspect ratio)]'
-      : aspectRatio === '3:4'
-      ? '[IMAGE FORMAT: Output MUST be portrait (3:4 aspect ratio)]'
-      : `[IMAGE FORMAT: ${aspectRatio} aspect ratio]`;
-    enhancedPrompt = `${aspectInstruction}\n\n${prompt}`;
-  }
-
   try {
     console.log(`[Gemini] Generating image with model: ${model}, aspectRatio: ${aspectRatio || 'free'}`);
     console.log(`[Gemini] Prompt: ${prompt.substring(0, 100)}...`);
 
-    // Generate images using Gemini with correct responseModalities format
+    // ★★★ T2I 모드: Google AI 공식 문서 형식 그대로 사용 ★★★
     console.log(`[Gemini T2I] ★★★ Sending TEXT-TO-IMAGE request ★★★`);
     console.log(`[Gemini T2I] Model: ${model}`);
-    console.log(`[Gemini T2I] AspectRatio: ${aspectRatio || 'free'} (via prompt instruction)`);
-    console.log(`[Gemini T2I] Prompt length: ${enhancedPrompt.length} chars`);
+    console.log(`[Gemini T2I] AspectRatio: ${aspectRatio || 'free'} (via imageConfig)`);
+    console.log(`[Gemini T2I] Prompt length: ${prompt.length} chars`);
 
     let response;
     try {
-      // ★★★ T2I 모드: imageConfig 없이 순수 텍스트만 전송 ★★★
-      // aspectRatio는 프롬프트 텍스트에 이미 포함됨 (enhancedPrompt에 [IMAGE FORMAT] 지시 포함)
-      // imageConfig가 T2I에서 문제를 일으킬 수 있어 제거
+      // ★★★ 공식 문서 예시 형식:
+      // contents: [prompt]
+      // config: { imageConfig: { aspectRatio: "16:9" } }
       response = await client.models.generateContent({
         model: model,
-        contents: [
-          {
-            role: 'user',
-            parts: [
-              { text: enhancedPrompt },
-            ],
+        contents: [prompt],  // ★ 문자열 배열 (공식 문서 형식)
+        config: aspectRatio ? {
+          imageConfig: {
+            aspectRatio: aspectRatio,  // ★ imageConfig 안에 aspectRatio
           },
-        ],
-        config: {
-          responseModalities: ['TEXT', 'IMAGE'],
-        },
+        } : undefined,
       });
     } catch (apiError: unknown) {
       const errMsg = apiError instanceof Error ? apiError.message : String(apiError);
@@ -429,7 +411,7 @@ export async function generateImageWithGemini(
     // ★★★ 이미지 생성 실패 시 상세 로그 ★★★
     if (results.length === 0) {
       console.error(`[Gemini] ⚠️ NO IMAGE GENERATED! API returned no image data.`);
-      console.error(`[Gemini] ⚠️ Prompt used (first 500 chars): ${enhancedPrompt.substring(0, 500)}...`);
+      console.error(`[Gemini] ⚠️ Prompt used (first 500 chars): ${prompt.substring(0, 500)}...`);
       console.error(`[Gemini] ⚠️ Model: ${model}, aspectRatio: ${aspectRatio}`);
     }
 
