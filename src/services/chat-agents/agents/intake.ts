@@ -161,8 +161,8 @@ export async function intakeAgent(
 
   const userContent = lastUserMessage.content;
 
-  // ★ "모르겠어" 응답 처리 - 이미 서브카테고리가 있으면 제품 추천
-  if (isUncertainResponse(userContent) && collectedData.subCategory && !collectedData.productName) {
+  // ★ "모르겠어" 응답 처리 - 서브카테고리가 있으면 제품 추천 (productName 유무와 관계없이)
+  if (isUncertainResponse(userContent) && collectedData.subCategory) {
     console.log('[Intake] Uncertain response detected, providing product recommendations for:', collectedData.subCategory);
 
     const { message, nextAction } = createProductRecommendationMessage(
@@ -278,7 +278,12 @@ ${messages.slice(-5).map(m => `[${m.role}]: ${m.content}`).join('\n')}
       const updatedMissingFields = getMissingFields(updatedData);
 
       let nextAction;
-      if (updatedMissingFields.length === 0) {
+
+      // ★ 불확실 응답이면 무조건 사용자 입력 대기 (질문과 기획이 동시에 나오는 것 방지)
+      if (isUncertainResponse(userContent)) {
+        console.log('[Intake] Uncertain response - waiting for user input instead of auto-routing');
+        nextAction = { type: 'await_input' as const };
+      } else if (updatedMissingFields.length === 0) {
         // 모든 필수 정보 수집 완료 → Planner로
         nextAction = { type: 'continue' as const, targetAgent: 'PLANNER' as AgentType };
       } else if (intakeResponse.askingFor === 'category' ||
