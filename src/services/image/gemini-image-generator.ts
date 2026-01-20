@@ -2182,10 +2182,10 @@ function createDefaultOverlayForSection(
   const sectionHeadlines: Record<string, string> = {
     MAIN: productName.slice(0, 20),
     HERO: productName,
-    FEATURES: keyFeatures[0] || 'FEATURES',
-    SOCIAL_PROOF: 'REAL REVIEWS',
-    HOW_TO_USE: 'HOW TO USE',
-    FAQ: 'FAQ',
+    FEATURES: keyFeatures[0] || productName,
+    SOCIAL_PROOF: productName,
+    HOW_TO_USE: productName,
+    FAQ: productName,
   };
 
   // texts 배열 형식으로 반환 (새 형식)
@@ -2233,11 +2233,11 @@ function createDefaultOverlay(
 ): OverlayTextContent {
   const sectionHeadlines: Record<string, string> = {
     MAIN: productName.slice(0, 15),
-    HERO: 'HERO',
-    FEATURES: 'FEATURES',
-    SOCIAL_PROOF: 'REVIEWS',
-    HOW_TO_USE: 'HOW TO USE',
-    FAQ: 'FAQ',
+    HERO: productName,
+    FEATURES: keyFeatures[0] || productName,
+    SOCIAL_PROOF: productName,
+    HOW_TO_USE: productName,
+    FAQ: productName,
   };
 
   return {

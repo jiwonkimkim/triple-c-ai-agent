@@ -353,20 +353,20 @@ function parseResponse(response: string, versionIndex: number): DetailPageVersio
 
     // Return fallback structure
     return {
-      hookMessage: 'Discover Our Amazing Product',
+      hookMessage: '당신을 위한 특별한 제품',
       sections: [
         {
           id: uuidv4(),
           type: 'HERO',
-          title: 'Welcome',
-          body: 'Explore our product and discover its benefits.',
+          title: '프리미엄 제품',
+          body: '이 제품의 특별함을 경험하세요.',
           order: 0,
         },
         {
           id: uuidv4(),
           type: 'FEATURES',
-          title: 'Features',
-          body: 'Our product offers outstanding features designed for you.',
+          title: '주요 특징',
+          body: '이 제품의 뛰어난 품질을 경험하세요.',
           order: 1,
         },
       ],
