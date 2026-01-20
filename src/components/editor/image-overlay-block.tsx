@@ -316,6 +316,20 @@ export function ImageOverlayBlockRenderer({
     setMultiDragStart(null);
   }, []);
 
+  // ★ 레이어가 숨겨져 있는지 확인 (부모 폴더 포함)
+  const isLayerHidden = useCallback((layerId: string): boolean => {
+    // 직접 숨겨진 경우
+    if (hiddenLayerIds.has(layerId)) return true;
+
+    // 부모 폴더가 숨겨진 경우 재귀적으로 확인
+    const layer = block.overlayTexts.find((t) => t.id === layerId);
+    if (layer?.parentId) {
+      return isLayerHidden(layer.parentId);
+    }
+
+    return false;
+  }, [hiddenLayerIds, block.overlayTexts]);
+
   // ★★★ 캔버스에서 드래그 선택 박스 시작 ★★★
   const handleSelectionStart = useCallback((e: React.MouseEvent) => {
     // 텍스트 요소 클릭이면 무시
@@ -637,20 +651,6 @@ export function ImageOverlayBlockRenderer({
       return newSet;
     });
   };
-
-  // ★ 레이어가 숨겨져 있는지 확인 (부모 폴더 포함)
-  const isLayerHidden = useCallback((layerId: string): boolean => {
-    // 직접 숨겨진 경우
-    if (hiddenLayerIds.has(layerId)) return true;
-
-    // 부모 폴더가 숨겨진 경우 재귀적으로 확인
-    const layer = block.overlayTexts.find((t) => t.id === layerId);
-    if (layer?.parentId) {
-      return isLayerHidden(layer.parentId);
-    }
-
-    return false;
-  }, [hiddenLayerIds, block.overlayTexts]);
 
   // ★ 다음 폴더 번호 계산
   const getNextFolderNumber = useCallback(() => {
