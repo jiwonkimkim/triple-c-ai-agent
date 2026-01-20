@@ -15,6 +15,8 @@ import {
   COPY_LENGTHS,
   generateMessageId,
   validateGoogleAIApiKey,
+  BEAUTY_SPECIALIST_DATA,
+  BeautySubCategory,
 } from '../types';
 
 // Lazy initialization to avoid build-time API key requirement
@@ -84,6 +86,65 @@ interface IntakeResponse {
   askingFor: string;
 }
 
+// "모르겠어" 등 불확실 응답 감지
+function isUncertainResponse(text: string): boolean {
+  const uncertainPatterns = [
+    '모르겠', '모르', '잘 모르', '뭐가 좋', '추천', '알려줘', '뭐 있', '어떤 게', '뭐가 있',
+    '고민', '선택 못', '결정 못', '아무거나', '상관없', '몰라'
+  ];
+  const lowerText = text.toLowerCase();
+  return uncertainPatterns.some(pattern => lowerText.includes(pattern));
+}
+
+// 카테고리별 인기 제품 추천 생성
+function createProductRecommendationMessage(
+  subCategory: BeautySubCategory,
+  collectedData: Partial<ProjectCollectedData>
+): { message: ChatMessage; nextAction: any } {
+  const specialistData = BEAUTY_SPECIALIST_DATA[subCategory];
+
+  if (!specialistData) {
+    return {
+      message: {
+        id: generateMessageId(),
+        role: 'assistant',
+        content: '어떤 제품인지 조금 더 알려주시겠어요?',
+        agentType: 'INTAKE',
+        metadata: { uiType: 'text' },
+        createdAt: new Date(),
+      },
+      nextAction: { type: 'await_input' as const },
+    };
+  }
+
+  // 트렌드를 제품 추천으로 변환
+  const trendOptions = specialistData.trends.slice(0, 5).map((trend, idx) => ({
+    id: `trend_${idx}`,
+    label: trend,
+    value: trend,
+    description: `인기 ${specialistData.name} 제품`,
+  }));
+
+  const message: ChatMessage = {
+    id: generateMessageId(),
+    role: 'assistant',
+    content: `${specialistData.emoji} 괜찮아요! 요즘 인기있는 ${specialistData.name} 제품들을 추천해드릴게요!\n\n` +
+      `아래 중에서 관심있는 제품 유형을 선택하시거나, 직접 제품명을 알려주셔도 돼요.`,
+    agentType: 'INTAKE',
+    metadata: {
+      uiType: 'options',
+      options: trendOptions,
+      askingField: 'productName',
+    },
+    createdAt: new Date(),
+  };
+
+  return {
+    message,
+    nextAction: { type: 'await_input' as const },
+  };
+}
+
 export async function intakeAgent(
   state: ChatAgentState
 ): Promise<Partial<ChatAgentState>> {
@@ -95,6 +156,24 @@ export async function intakeAgent(
   if (!lastUserMessage) {
     return {
       nextAction: { type: 'await_input' },
+    };
+  }
+
+  const userContent = lastUserMessage.content;
+
+  // ★ "모르겠어" 응답 처리 - 이미 서브카테고리가 있으면 제품 추천
+  if (isUncertainResponse(userContent) && collectedData.subCategory && !collectedData.productName) {
+    console.log('[Intake] Uncertain response detected, providing product recommendations for:', collectedData.subCategory);
+
+    const { message, nextAction } = createProductRecommendationMessage(
+      collectedData.subCategory as BeautySubCategory,
+      collectedData
+    );
+
+    return {
+      messages: [message],
+      currentAgent: 'INTAKE',
+      nextAction,
     };
   }
 
