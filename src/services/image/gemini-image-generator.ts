@@ -843,24 +843,34 @@ ${imagePrompt}`;
 Design overlay text like a professional Korean e-commerce detail page designer.
 Be CREATIVE and BOLD with typography - NOT just plain blue text!
 
+★★★ FONT SIZE (정확한 픽셀값 사용!) ★★★
+- 브랜드명/섹션명: 12-16px (작고 절제된)
+- 헤드라인: 24-36px (핵심 메시지, bold)
+- 서브헤드라인: 16-22px (보조 설명, medium)
+- 본문: 12-16px (상세 설명, normal)
+- 통계 숫자: 32-48px (강조, bold)
+- CTA: 14-18px (행동 유도)
+
+★★★ POSITION (x, y는 0-100% 정수값) ★★★
+- y: 5-15 = 상단 (브랜드명, 섹션명)
+- y: 20-40 = 상단-중앙 (헤드라인)
+- y: 45-65 = 중앙 (핵심 메시지, 통계)
+- y: 70-85 = 하단-중앙 (본문, 설명)
+- y: 88-95 = 하단 (CTA, 태그라인)
+- x: 50 = 중앙 정렬 (가장 일반적)
+- 텍스트 간 y값 최소 10 이상 간격 유지!
+
 COLOR VARIETY (use diverse, eye-catching colors):
-- Vibrant: #FF6B6B (coral red), #4ECDC4 (teal), #FFE66D (golden yellow)
-- Elegant: #2C3E50 (dark navy), #E74C3C (crimson), #1ABC9C (emerald)
-- Trendy: #9B59B6 (purple), #F39C12 (orange), #3498DB (sky blue)
+- Vibrant: #FF6B6B (coral), #4ECDC4 (teal), #FFE66D (golden)
+- Elegant: #2C3E50 (navy), #E74C3C (crimson), #1ABC9C (emerald)
 - Luxurious: #C9B037 (gold), #BF9270 (rose gold), #2E4057 (charcoal)
 - Match colors to product mood and category
 
-FONT STYLES (mix for visual hierarchy):
-- Headlines: bold, 28-36px, impactful colors
-- Subheadlines: medium, 18-24px, complementary colors
-- Body: normal/light, 12-16px, readable contrast
-- Statistics: extra-bold, 40-60px, accent colors with visual pop
-
-LAYOUT CREATIVITY:
-- Vary text positions (not always centered)
-- Use dynamic angles conceptually
-- Create visual rhythm with size contrast
-- Consider Korean typography aesthetics (깔끔하고 세련된)
+CRITICAL RULES:
+- fontSize must be INTEGER between 12-48
+- x, y must be INTEGER between 0-100
+- Use textAlign: "center" for most cases
+- Do NOT overlap texts (maintain y gap of 10+)
 `;
 
   const overlayTextRequest = `
@@ -1672,24 +1682,34 @@ ${scenarioPrompt}
 Design overlay text like a professional Korean e-commerce detail page designer.
 Be CREATIVE and BOLD with typography - NOT just plain blue text!
 
+★★★ FONT SIZE (정확한 픽셀값 사용!) ★★★
+- 브랜드명/섹션명: 12-16px (작고 절제된)
+- 헤드라인: 24-36px (핵심 메시지, bold)
+- 서브헤드라인: 16-22px (보조 설명, medium)
+- 본문: 12-16px (상세 설명, normal)
+- 통계 숫자: 32-48px (강조, bold)
+- CTA: 14-18px (행동 유도)
+
+★★★ POSITION (x, y는 0-100% 정수값) ★★★
+- y: 5-15 = 상단 (브랜드명, 섹션명)
+- y: 20-40 = 상단-중앙 (헤드라인)
+- y: 45-65 = 중앙 (핵심 메시지, 통계)
+- y: 70-85 = 하단-중앙 (본문, 설명)
+- y: 88-95 = 하단 (CTA, 태그라인)
+- x: 50 = 중앙 정렬 (가장 일반적)
+- 텍스트 간 y값 최소 10 이상 간격 유지!
+
 COLOR VARIETY (use diverse, eye-catching colors):
-- Vibrant: #FF6B6B (coral red), #4ECDC4 (teal), #FFE66D (golden yellow)
-- Elegant: #2C3E50 (dark navy), #E74C3C (crimson), #1ABC9C (emerald)
-- Trendy: #9B59B6 (purple), #F39C12 (orange), #3498DB (sky blue)
+- Vibrant: #FF6B6B (coral), #4ECDC4 (teal), #FFE66D (golden)
+- Elegant: #2C3E50 (navy), #E74C3C (crimson), #1ABC9C (emerald)
 - Luxurious: #C9B037 (gold), #BF9270 (rose gold), #2E4057 (charcoal)
 - Match colors to product mood and category
 
-FONT STYLES (mix for visual hierarchy):
-- Headlines: bold, 28-36px, impactful colors
-- Subheadlines: medium, 18-24px, complementary colors
-- Body: normal/light, 12-16px, readable contrast
-- Statistics: extra-bold, 40-60px, accent colors with visual pop
-
-LAYOUT CREATIVITY:
-- Vary text positions (not always centered)
-- Use dynamic angles conceptually
-- Create visual rhythm with size contrast
-- Consider Korean typography aesthetics (깔끔하고 세련된)
+CRITICAL RULES:
+- fontSize must be INTEGER between 12-48
+- x, y must be INTEGER between 0-100
+- Use textAlign: "center" for most cases
+- Do NOT overlap texts (maintain y gap of 10+)
 `;
 
   const overlayTextRequest = `

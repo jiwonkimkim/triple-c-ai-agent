@@ -955,18 +955,50 @@ ${examplesJson}
   ]
 }
 
-## 텍스트 배치 가이드
-- x: 0-100 (가로 위치, 50이 중앙)
-- y: 0-100 (세로 위치, 0이 상단, 100이 하단)
-- fontSize: 12-48 (중요도에 따라 조절)
-- fontWeight: "normal", "medium", "bold"
-- textAlign: "left", "center", "right"
+## ★★★ 텍스트 배치 가이드 (정확한 수치 사용!) ★★★
 
-## 창의적으로 결정할 것
-- 텍스트 개수: 1개도 좋고 5개도 좋음 - 이미지가 답을 알려줌
-- 위치: 이미지의 빈 공간을 찾아 자연스럽게
-- 크기: 강조할 부분은 크게, 보조는 작게
-- 배치: 이미지 위에 텍스트를 디자인하고 싶은 위치로 자유롭게 배치
+### 위치 (x, y) - 퍼센트 기준
+- x: 0-100 (가로 위치)
+  - 0-20: 왼쪽 영역
+  - 40-60: 중앙 영역 (가장 일반적)
+  - 80-100: 오른쪽 영역
+- y: 0-100 (세로 위치)
+  - 5-15: 상단 (브랜드명, 섹션 타이틀)
+  - 20-40: 상단-중앙 (헤드라인)
+  - 45-65: 중앙 (핵심 메시지, 통계)
+  - 70-85: 하단-중앙 (본문, 설명)
+  - 88-95: 하단 (CTA, 태그라인)
+
+### 글씨 크기 (fontSize) - 정확한 픽셀값 사용!
+- 브랜드명/섹션명: 12-16px (작고 절제된)
+- 헤드라인: 24-36px (눈에 띄는 핵심 메시지)
+- 서브헤드라인: 16-22px (보조 설명)
+- 본문: 12-16px (상세 설명)
+- 통계 숫자: 32-48px (강조되는 수치)
+- CTA/버튼: 14-18px (행동 유도)
+
+### 글씨 굵기 (fontWeight)
+- "normal": 일반 설명, 본문
+- "medium": 서브헤드라인, 중요 정보
+- "bold": 헤드라인, 통계 숫자, 강조
+
+### 정렬 (textAlign)
+- "center": 대부분의 상세페이지 텍스트 (기본)
+- "left": 스텝별 설명, 목록형 콘텐츠
+- "right": 특수한 디자인 의도
+
+## 섹션별 권장 레이아웃 (${section})
+헤드라인: x=${layoutGuide.headline.x}, y=${layoutGuide.headline.y}, fontSize=${layoutGuide.headline.fontSize}px, align=${layoutGuide.headline.align}
+서브헤드라인: x=${layoutGuide.subheadline.x}, y=${layoutGuide.subheadline.y}, fontSize=${layoutGuide.subheadline.fontSize}px
+통계: x=${layoutGuide.statistics.x}, y=${layoutGuide.statistics.y}, fontSize=${layoutGuide.statistics.fontSize}px
+CTA: x=${layoutGuide.cta.x}, y=${layoutGuide.cta.y}, fontSize=${layoutGuide.cta.fontSize}px
+
+## 중요: 정확도 체크리스트
+✅ fontSize는 반드시 12-48 범위의 정수값 사용
+✅ x, y는 0-100 범위의 정수값 사용
+✅ 텍스트가 겹치지 않도록 y값을 최소 10 이상 간격 유지
+✅ 제품 이미지가 있는 중앙(y: 30-70) 영역은 텍스트 최소화
+✅ 섹션별 권장 레이아웃을 기준으로 ±10% 이내에서 조정
 
 - JSON만 반환 (설명 없이)`;
 }
