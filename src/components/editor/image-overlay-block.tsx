@@ -1059,6 +1059,8 @@ export function ImageOverlayBlockRenderer({
             src={block.src}
             alt={block.alt || '상세페이지 이미지'}
             className="w-full h-auto block"
+            draggable={false}
+            onDragStart={(e) => e.preventDefault()}
           />
         ) : (
           <div
@@ -1494,6 +1496,7 @@ export function ImageOverlayBlockRenderer({
                 src={block.src}
                 alt="미니 프리뷰"
                 className="w-full h-full object-cover opacity-40"
+                draggable={false}
               />
             )}
             {/* 레이어 위치 표시 */}
