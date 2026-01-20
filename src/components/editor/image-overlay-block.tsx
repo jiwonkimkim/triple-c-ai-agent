@@ -1115,7 +1115,8 @@ export function ImageOverlayBlockRenderer({
                 }, -50%) rotate(${overlayText.style.rotation || 0}deg)`,
                 zIndex: overlayText.zIndex || 0,
                 opacity: (overlayText.style.opacity || 100) / 100,
-                width: overlayText.style.width ? `${overlayText.style.width}%` : 'auto',
+                // ★ width: auto 대신 max-content 사용 - 컨테이너 밖으로 나가도 텍스트 줄바꿈 안됨
+                width: overlayText.style.width ? `${overlayText.style.width}%` : 'max-content',
               }}
               onMouseDown={(e) => handleDragStart(e, overlayText.id)}
               onDragStart={(e) => e.preventDefault()}
@@ -2065,7 +2066,8 @@ export function ImageOverlayBlockPreview({
               }, -50%) rotate(${overlayText.style.rotation || 0}deg)`,
               zIndex: overlayText.zIndex || 0,
               opacity: (overlayText.style.opacity || 100) / 100,
-              width: overlayText.style.width ? `${overlayText.style.width}%` : 'auto',
+              // ★ width: auto 대신 max-content 사용 - 컨테이너 밖으로 나가도 텍스트 줄바꿈 안됨
+              width: overlayText.style.width ? `${overlayText.style.width}%` : 'max-content',
               color: overlayText.style.color || '#ffffff',
               backgroundColor: overlayText.style.backgroundColor,
               padding: overlayText.style.padding,
