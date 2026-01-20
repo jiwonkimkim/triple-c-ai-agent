@@ -343,14 +343,20 @@ export async function generateImageWithGemini(
 
     let response;
     try {
-      // ★★★ T2I 모드: Google AI 공식 문서 형식 ★★★
-      // https://ai.google.dev/gemini-api/docs/image-generation
-      // contents: [prompt] 형식 + responseModalities로 텍스트+이미지 동시 반환
+      // ★★★ T2I 모드: I2I와 동일한 구조 사용 (이미지 데이터만 제외) ★★★
+      // I2I에서 작동하는 형식을 그대로 사용하여 일관성 보장
       response = await client.models.generateContent({
         model: model,
-        contents: [enhancedPrompt],  // ★ 배열로 감싸기 (공식 문서 형식)
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { text: enhancedPrompt },
+            ],
+          },
+        ],
         config: {
-          responseModalities: ['Text', 'Image'],  // ★ 텍스트+이미지 둘 다 반환 (오버레이 텍스트 포함)
+          responseModalities: ['TEXT', 'IMAGE'],  // ★ I2I와 동일하게 대문자
           ...(imageConfig && { imageConfig }),
         },
       });
