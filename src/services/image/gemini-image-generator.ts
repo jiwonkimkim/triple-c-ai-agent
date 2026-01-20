@@ -816,12 +816,24 @@ ${imagePrompt}`;
   const isFlashModel = model === 'gemini-2.5-flash-image';
   const noTextInImageReinforcement = isFlashModel ? `
 
-[⚠️ CRITICAL - DO NOT RENDER TEXT IN IMAGE ⚠️]
-- DO NOT draw, render, or generate ANY text/letters/words/typography INSIDE the image
-- The generated image must be PURELY VISUAL (product, background, props, lighting only)
-- ALL text content (headlines, copy, stats) goes in the overlay JSON, NOT in the image
-- If you want to show "24H", "95%", or any text → put it in overlay JSON statistics field
-- The frontend will render text ON TOP of your image using the overlay JSON data
+[⚠️⚠️⚠️ CRITICAL - ABSOLUTELY NO TEXT IN IMAGE ⚠️⚠️⚠️]
+★★★ THIS IS THE MOST IMPORTANT RULE ★★★
+
+1. DO NOT generate ANY text, letters, words, numbers, or typography INSIDE the image
+2. DO NOT render Korean (한글), English, Chinese, or ANY language text in the image
+3. The image must be 100% PURELY VISUAL: only product, background, props, lighting, effects
+4. NEVER attempt to write "24H", "95%", "글로시", "촉촉한", or ANY text directly in the image
+5. Korean text especially MUST NOT appear in images - it will look broken and distorted!
+
+★ WHERE TEXT GOES:
+- All text content → overlay JSON (statistics, headline, subheadline, body, cta fields)
+- The frontend renders text ON TOP of your clean image using HTML/CSS
+- Your job: generate a beautiful TEXT-FREE background image only
+
+★ VIOLATION = FAILED IMAGE:
+- If ANY text/letters/numbers/Korean characters appear in the generated image, it is REJECTED
+- This includes: product labels with text, stats, titles, Korean words, watermarks, ANY text at all
+- Generate ONLY: product visuals, backgrounds, lighting effects, decorative elements (NO TEXT)
 ` : '';
 
   // ★★★ 크리에이티브 오버레이 디자인 가이드 ★★★
@@ -1633,12 +1645,24 @@ ${scenarioPrompt}
   const isFlashModel = model === 'gemini-2.5-flash-image';
   const noTextInImageReinforcement = isFlashModel ? `
 
-[⚠️ CRITICAL - DO NOT RENDER TEXT IN IMAGE ⚠️]
-- DO NOT draw, render, or generate ANY text/letters/words/typography INSIDE the image
-- The generated image must be PURELY VISUAL (product, background, props, lighting only)
-- ALL text content (headlines, copy, stats) goes in the overlay JSON, NOT in the image
-- If you want to show "24H", "95%", or any text → put it in overlay JSON statistics field
-- The frontend will render text ON TOP of your image using the overlay JSON data
+[⚠️⚠️⚠️ CRITICAL - ABSOLUTELY NO TEXT IN IMAGE ⚠️⚠️⚠️]
+★★★ THIS IS THE MOST IMPORTANT RULE ★★★
+
+1. DO NOT generate ANY text, letters, words, numbers, or typography INSIDE the image
+2. DO NOT render Korean (한글), English, Chinese, or ANY language text in the image
+3. The image must be 100% PURELY VISUAL: only product, background, props, lighting, effects
+4. NEVER attempt to write "24H", "95%", "글로시", "촉촉한", or ANY text directly in the image
+5. Korean text especially MUST NOT appear in images - it will look broken and distorted!
+
+★ WHERE TEXT GOES:
+- All text content → overlay JSON (statistics, headline, subheadline, body, cta fields)
+- The frontend renders text ON TOP of your clean image using HTML/CSS
+- Your job: generate a beautiful TEXT-FREE background image only
+
+★ VIOLATION = FAILED IMAGE:
+- If ANY text/letters/numbers/Korean characters appear in the generated image, it is REJECTED
+- This includes: product labels with text, stats, titles, Korean words, watermarks, ANY text at all
+- Generate ONLY: product visuals, backgrounds, lighting effects, decorative elements (NO TEXT)
 ` : '';
 
   // ★★★ 크리에이티브 오버레이 디자인 가이드 ★★★

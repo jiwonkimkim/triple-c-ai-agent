@@ -127,6 +127,9 @@ export function DetailPageEditor({
   // Section regeneration state
   const [regeneratingSectionId, setRegeneratingSectionId] = useState<string | null>(null);
 
+  // ★★★ 우측 패널 상태 (텍스트 편집 / 레이어 패널) ★★★
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
+
   // 대화 히스토리 로드 (conversationId가 있는 경우)
   useEffect(() => {
     if (!conversationId) return;
@@ -1441,6 +1444,7 @@ export function DetailPageEditor({
       </div>
 
       {/* Main content area - overflow-visible로 텍스트가 이미지 밖으로 나갈 수 있게 허용 */}
+      {/* ★★★ AI 편집창 열림 + 우측 패널 열림에 따라 캔버스 영역이 동적으로 줄어듦 ★★★ */}
       <div className="flex flex-1 overflow-y-hidden overflow-x-visible">
         {/* AI Chat Panel - 왼쪽 배치 (Genspark 스타일) */}
         {isChatOpen && (
@@ -1757,10 +1761,13 @@ export function DetailPageEditor({
           </div>
         )}
 
-        {/* Editor canvas */}
+        {/* Editor canvas - 우측 패널이 열리면 오른쪽 여백 추가 */}
         <div
           id="editor-scroll-area"
-          className="relative flex-1 overflow-y-auto bg-muted/30 p-6"
+          className={cn(
+            "relative flex-1 overflow-y-auto bg-muted/30 p-6 transition-all duration-200",
+            isRightPanelOpen && "pr-[320px]"  // 우측 패널 너비 + 여백
+          )}
           onClick={() => {
             selectBlock(null);
             selectSection(null);
@@ -1851,6 +1858,7 @@ export function DetailPageEditor({
                             isMain={isMain}
                             isRegenerating={regeneratingSectionId === section.id}
                             previewMode={previewMode}
+                            onRightPanelChange={setIsRightPanelOpen}
                             onSelectSection={() => selectSection(section.id)}
                             onSelectBlock={selectBlock}
                             onUpdateSection={(updates) => updateSection(section.id, updates)}

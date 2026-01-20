@@ -18,11 +18,13 @@ interface BlockRendererProps {
   isSelected: boolean;
   isMain?: boolean;  // MAIN 섹션 여부 - 1:1 비율 적용
   previewMode?: 'desktop' | 'tablet' | 'mobile';  // 미리보기 모드 (텍스트 크기 비율 조절)
+  /** ★★★ 우측 패널 열림 상태 콜백 ★★★ */
+  onRightPanelChange?: (isOpen: boolean) => void;
   onSelect: () => void;
   onUpdate: (updates: Partial<EditorBlock>) => void;
 }
 
-export function BlockRenderer({ block, isSelected, isMain = false, previewMode = 'desktop', onSelect, onUpdate }: BlockRendererProps) {
+export function BlockRenderer({ block, isSelected, isMain = false, previewMode = 'desktop', onRightPanelChange, onSelect, onUpdate }: BlockRendererProps) {
   switch (block.type) {
     case 'heading':
       return (
@@ -61,6 +63,7 @@ export function BlockRenderer({ block, isSelected, isMain = false, previewMode =
           isSelected={isSelected}
           isMain={isMain}
           previewMode={previewMode}
+          onRightPanelChange={onRightPanelChange}
           onSelect={onSelect}
           onUpdate={onUpdate}
         />

@@ -86,6 +86,8 @@ interface EditorSectionProps {
   isRegenerating?: boolean;
   /** 미리보기 모드 (텍스트 크기 비율 조절용) */
   previewMode?: 'desktop' | 'tablet' | 'mobile';
+  /** ★★★ 우측 패널 열림 상태 콜백 ★★★ */
+  onRightPanelChange?: (isOpen: boolean) => void;
   onSelectSection: () => void;
   onSelectBlock: (blockId: string | null) => void;
   onUpdateSection: (updates: Partial<Omit<Section, 'id'>>) => void;
@@ -153,6 +155,7 @@ export function EditorSection({
   isMain = false,
   isRegenerating = false,
   previewMode = 'desktop',
+  onRightPanelChange,
   onSelectSection,
   onSelectBlock,
   onUpdateSection,
@@ -439,6 +442,7 @@ export function EditorSection({
                     isSelected={selectedBlockId === block.id}
                     isMain={isMain}
                     previewMode={previewMode}
+                    onRightPanelChange={onRightPanelChange}
                     onSelect={() => onSelectBlock(block.id)}
                     onUpdate={(updates) => onUpdateBlock(block.id, updates)}
                   />

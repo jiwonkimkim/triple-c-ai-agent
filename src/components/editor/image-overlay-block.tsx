@@ -63,6 +63,8 @@ interface ImageOverlayBlockRendererProps {
   isSelected: boolean;
   isMain?: boolean;  // MAIN 섹션 여부 - 1:1 비율 적용
   previewMode?: 'desktop' | 'tablet' | 'mobile';  // 미리보기 모드 (텍스트 크기 비율 조절)
+  /** ★★★ 우측 패널 열림 상태 콜백 ★★★ */
+  onRightPanelChange?: (isOpen: boolean) => void;
   onSelect: () => void;
   onUpdate: (updates: Partial<ImageOverlayBlock>) => void;
 }
@@ -152,6 +154,7 @@ export function ImageOverlayBlockRenderer({
   isSelected,
   isMain = false,
   previewMode = 'desktop',
+  onRightPanelChange,
   onSelect,
   onUpdate,
 }: ImageOverlayBlockRendererProps) {
@@ -390,6 +393,12 @@ export function ImageOverlayBlockRenderer({
       resizeObserver.disconnect();
     };
   }, []);
+
+  // ★★★ 우측 패널 열림 상태 콜백 호출 ★★★
+  useEffect(() => {
+    const isPanelOpen = isSelected && (showLayerPanel || !!selectedTextId);
+    onRightPanelChange?.(isPanelOpen);
+  }, [isSelected, showLayerPanel, selectedTextId, onRightPanelChange]);
 
   // 오버레이 텍스트 추가
   const handleAddOverlayText = (type: OverlayText['type']) => {
@@ -1198,11 +1207,11 @@ export function ImageOverlayBlockRenderer({
         </div>
       )}
 
-      {/* 레이어 패널 - 포토샵 스타일 (텍스트 편집 패널이 있으면 오른쪽, 없으면 왼쪽) */}
+      {/* 레이어 패널 - 포토샵 스타일 (우측 배치, 텍스트 편집 패널이 있으면 왼쪽으로 이동) */}
       {isSelected && showLayerPanel && (
         <div className={cn(
           "fixed top-[224px] bottom-6 w-72 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl overflow-hidden z-50 flex flex-col transition-all duration-200",
-          selectedText ? "left-[330px]" : "left-6"
+          selectedText ? "right-[330px]" : "right-6"
         )}>
           {/* 헤더 - 포토샵 스타일 */}
           <div className="flex items-center justify-between px-3 py-2 bg-zinc-800 border-b border-zinc-700">
@@ -1583,9 +1592,9 @@ export function ImageOverlayBlockRenderer({
         </div>
       )}
 
-      {/* 선택된 텍스트 편집 패널 - 다크 테마 (레이어 패널과 동일) */}
+      {/* 선택된 텍스트 편집 패널 - 다크 테마 (우측 배치) */}
       {isSelected && selectedText && (
-        <div className="fixed top-[224px] bottom-6 left-6 w-72 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl overflow-hidden z-50 flex flex-col">
+        <div className="fixed top-[224px] bottom-6 right-6 w-72 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl overflow-hidden z-50 flex flex-col">
           {/* 헤더 - 포토샵 스타일 */}
           <div className="flex items-center justify-between px-3 py-2 bg-zinc-800 border-b border-zinc-700">
             <span className="text-xs font-medium text-zinc-300">텍스트 편집</span>
