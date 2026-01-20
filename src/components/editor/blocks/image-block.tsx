@@ -71,6 +71,8 @@ export function ImageBlock({ block, isSelected, onSelect, onUpdate }: ImageBlock
               src={block.src}
               alt={block.alt || 'Product image'}
               className="w-full h-auto"
+              draggable={false}
+              onDragStart={(e) => e.preventDefault()}
             />
 
             {/* Overlay controls on hover */}

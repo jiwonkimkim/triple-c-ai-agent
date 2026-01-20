@@ -587,6 +587,7 @@ export function TemplateImportModal({
                                 src={template.thumbnailUrl}
                                 alt={template.name}
                                 className="w-full h-full object-cover"
+                                draggable={false}
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
@@ -784,6 +785,7 @@ export function TemplateImportModal({
                               src={uploadedFile.preview}
                               alt={uploadedFile.file.name}
                               className="w-full h-full object-cover"
+                              draggable={false}
                             />
                           </div>
                         ) : (

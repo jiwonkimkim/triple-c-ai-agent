@@ -807,6 +807,8 @@ function EditableElementComponent({
             alt={element.alt || ''}
             style={styles}
             className="w-full rounded"
+            draggable={false}
+            onDragStart={(e) => e.preventDefault()}
           />
         ) : (
           <div
