@@ -8,6 +8,185 @@ import { buildOverlayTextPrompt, BlockOverlayOptions } from '@/services/ai/promp
 // ============================================
 
 /**
+ * 섹션 타입별 aspectRatio 결정
+ * - MAIN: 1:1 (정사각형 썸네일)
+ * - TEXT_BANNER, DIVIDER_VISUAL, KEY_MESSAGE 등 텍스트 배경: 16:9 (가로 배너)
+ * - 나머지: undefined (자유 비율)
+ */
+function getSectionAspectRatio(sectionType: string): ImageAspectRatio | undefined {
+  const upperType = sectionType.toUpperCase();
+
+  // MAIN 섹션: 1:1 정사각형
+  if (/^MAIN|THUMBNAIL/.test(upperType)) {
+    return '1:1';
+  }
+
+  // 텍스트 배경 섹션: 16:9 가로 비율
+  if (/TEXT_BANNER|KEY_MESSAGE|BENEFIT_HIGHLIGHT|DIVIDER_VISUAL|BRAND_HEADER/.test(upperType)) {
+    return '16:9';
+  }
+
+  // 나머지: 자유 비율
+  return undefined;
+}
+
+/**
+ * ★★★ 공통 섹션 프롬프트 템플릿 (T2I/I2I 공유) ★★★
+ * 이미지 입력 여부와 무관한 섹션별 시각 지침
+ */
+interface SectionPromptParams {
+  productName: string;
+  category: string;
+  ingredientObjects: string[];
+  moodSelection: string[];
+  audienceStyle: string;
+  featureHighlight: string;
+  isI2I?: boolean;  // I2I 모드면 "USE THE PROVIDED PRODUCT IMAGE" 추가
+}
+
+function buildSharedSectionPrompt(sectionType: SectionType, params: SectionPromptParams): string {
+  const { productName, ingredientObjects, moodSelection, audienceStyle, featureHighlight, isI2I } = params;
+
+  const i2iPrefix = isI2I
+    ? '\nUSE THE PROVIDED PRODUCT IMAGE as reference - include this exact product in the new composition.\n'
+    : '';
+
+  // ★ 주요 섹션 타입만 정의, 나머지는 CUSTOM 폴백 사용
+  const prompts: Partial<Record<SectionType, string>> = {
+    MAIN: `Create a KOREAN E-COMMERCE DETAIL PAGE THUMBNAIL for "${productName}".
+${i2iPrefix}
+[KOREAN DETAIL PAGE STYLE - 올리브영/쿠팡 스타일]
+- Premium beauty product thumbnail style (한국 뷰티 상세페이지)
+- Clean, bright, aspirational aesthetic that Korean consumers love
+- Magazine editorial meets e-commerce quality
+- Soft gradient background complementing product colors
+
+[CREATIVE COMPOSITION]
+Design a visually striking thumbnail featuring ${isI2I ? 'the provided product' : productName}.
+- Product as HERO (50-60% of frame), sharp focus, eye-catching
+- Product placement: CENTER or slightly UPPER-CENTER
+- Decorative objects (15-20%): ${ingredientObjects.join(', ')}
+- Atmospheric elements (10-15%): ${moodSelection.join(', ')}
+- Create depth with layered composition (foreground → product → background)
+- Leave CLEAN SPACE at top (20%) for text overlay (slogan area)
+
+[STYLING DIRECTION]
+Target aesthetic: ${audienceStyle}
+${featureHighlight}
+Korean beauty trend: 글로우, 투명감, 프리미엄
+
+[TECHNICAL REQUIREMENTS]
+- Soft, diffused studio lighting with gentle rim light
+- Shallow depth of field, soft bokeh background
+- Rich, vibrant colors with professional color grading
+- Premium commercial photography that triggers purchase desire
+- 8K resolution, photorealistic, no text in image`,
+
+    HERO: `Create KOREAN E-COMMERCE HERO BANNER IMAGE for ${productName}.
+${i2iPrefix}
+[SCENARIO: 상세페이지 최상단 히어로 배너]
+- 고객이 처음 보는 강렬한 첫인상 이미지
+- 제품이 돋보이면서 브랜드 슬로건이 들어갈 공간 필요
+- 프리미엄하고 드라마틱한 분위기
+
+[COMPOSITION]
+- WIDE FORMAT (16:9 ratio) - horizontal banner
+- Product featured prominently but with ample text space
+- Dramatic lighting, cinematic feel
+- Background: gradient or lifestyle scene
+- Decorative elements: ${ingredientObjects.join(', ')}
+
+[STYLE]
+${audienceStyle}
+Korean luxury beauty aesthetic
+8K resolution, no text in image`,
+
+    FEATURES: `Create KOREAN E-COMMERCE FEATURES SECTION IMAGE for ${productName}.
+${i2iPrefix}
+[SCENARIO: 제품 특징/성분 강조 섹션]
+- 제품의 핵심 성분이나 기능을 시각화
+- 깔끔하고 정보 전달력 있는 구성
+
+[COMPOSITION]
+- Clean, organized layout
+- Product with ingredient/feature visualization
+- Supporting elements: ${ingredientObjects.join(', ')}
+- Professional, informative aesthetic
+
+[STYLE]
+${audienceStyle}
+${featureHighlight}
+8K resolution, no text in image`,
+
+    SOCIAL_PROOF: `Create KOREAN E-COMMERCE SOCIAL PROOF IMAGE for ${productName}.
+${i2iPrefix}
+[SCENARIO: 리뷰/후기 섹션 배경]
+- 신뢰감을 주는 따뜻하고 자연스러운 분위기
+- 실제 사용 환경이나 뷰티 라이프스타일
+
+[COMPOSITION]
+- Lifestyle setting (bathroom, vanity, skincare routine)
+- Warm, inviting atmosphere
+- Product in natural use context
+- Soft, approachable lighting
+
+[STYLE]
+${audienceStyle}
+Authentic, relatable aesthetic
+8K resolution, no text in image`,
+
+    HOW_TO_USE: `Create KOREAN E-COMMERCE HOW-TO-USE IMAGE for ${productName}.
+${i2iPrefix}
+[SCENARIO: 사용 방법 안내 섹션]
+- 제품 사용 단계를 보여주는 깔끔한 이미지
+- 교육적이면서 매력적인 구성
+
+[COMPOSITION]
+- Step-by-step visual guide concept
+- Clean, instructional layout
+- Product application moment
+- Hands or skin texture (optional)
+
+[STYLE]
+${audienceStyle}
+Educational yet beautiful
+8K resolution, no text in image`,
+
+    FAQ: `Create KOREAN E-COMMERCE FAQ SECTION IMAGE for ${productName}.
+${i2iPrefix}
+[SCENARIO: 자주 묻는 질문 섹션 배경]
+- 친근하고 도움이 되는 느낌
+- 깔끔한 배경 이미지
+
+[COMPOSITION]
+- Simple, clean background
+- Subtle product placement
+- Soft, reassuring atmosphere
+- Professional yet approachable
+
+[STYLE]
+${audienceStyle}
+Helpful, trustworthy aesthetic
+8K resolution, no text in image`,
+
+    CUSTOM: `Create KOREAN E-COMMERCE IMAGE for ${productName}.
+${i2iPrefix}
+[COMPOSITION]
+- Premium Korean beauty aesthetic
+- Product featured beautifully
+- Decorative elements: ${ingredientObjects.join(', ')}
+
+[STYLE]
+${audienceStyle}
+${featureHighlight}
+8K resolution, no text in image`,
+  };
+
+  // CUSTOM은 항상 정의되어 있으므로 non-null assertion 사용
+  return prompts[sectionType] || prompts.CUSTOM!;
+}
+
+/**
  * 다양한 섹션 타입명을 기본 SectionType으로 변환
  * ★ 새로운 섹션 타입도 자동 매핑 (패턴 기반)
  *
@@ -484,7 +663,8 @@ function extractIngredientObjects(productName: string, category: string): string
 
 /**
  * 섹션 타입별 Text-to-Image 생성
- * - MAIN: 1:1 정사각형, 제품 정보 기반 맞춤 오브제 포함
+ * - MAIN: 1:1 정사각형
+ * - TEXT_BANNER, DIVIDER_VISUAL, KEY_MESSAGE 등 텍스트 배경: 16:9 가로
  * - 나머지: 자유 비율
  */
 export async function generateSectionImageWithGemini(
@@ -500,8 +680,9 @@ export async function generateSectionImageWithGemini(
   const mappedSectionType = mapToBaseSectionType(sectionType);
   console.log(`[Gemini T2I] Section type mapping: ${sectionType} → ${mappedSectionType}`);
 
-  // MAIN 섹션은 1:1, 나머지는 자유 비율
-  const aspectRatio: ImageAspectRatio | undefined = mappedSectionType === 'MAIN' ? '1:1' : undefined;
+  // ★★★ 섹션별 aspectRatio 결정 (공통 함수 사용) ★★★
+  // - MAIN: 1:1, TEXT_BANNER/DIVIDER_VISUAL 등: 16:9, 나머지: 자유
+  const aspectRatio = getSectionAspectRatio(sectionType);
 
   // ★★★ I2I와 동일한 섹션별 템플릿 사용 (T2I도 동일한 프롬프트 품질 보장) ★★★
 
@@ -1435,19 +1616,22 @@ ${additionalPrompt ? `Additional style: ${additionalPrompt}` : ''}
 OUTPUT: High-quality commercial photography, 8K resolution, no text on image.
 ${overlayTextRequest}`;
 
-  console.log(`[Gemini I2I] Generating ${sectionType} (→${mappedSectionType}) section image`);
+  // ★★★ 섹션별 aspectRatio 결정 (공통 함수 사용) ★★★
+  // - MAIN: 1:1, TEXT_BANNER/DIVIDER_VISUAL 등: 16:9, 나머지: 자유
+  const aspectRatio = getSectionAspectRatio(sectionType);
+
+  console.log(`[Gemini I2I] Generating ${sectionType} (→${mappedSectionType}) section image, aspectRatio: ${aspectRatio || 'free'}`);
   if (mappedSectionType === 'MAIN') {
     console.log(`[Gemini I2I] MAIN with custom objects - keyFeatures: ${keyFeatures?.join(', ')}, target: ${targetAudience}`);
   }
 
-  // MAIN 섹션만 1:1 정사각형, 나머지는 비율 지정 안함 (자유 비율)
   // ★ preserveStrength 0.75: 제품 형태를 최대한 유지하면서 배경/스타일만 변경
   const images = await generateImageFromImage({
     sourceImage,
     prompt: fullPrompt,
     model,
     preserveStrength: 0.75, // ★ 0.4 → 0.75: 제품 일관성 강화
-    ...(mappedSectionType === 'MAIN' && { aspectRatio: '1:1' as const }),
+    ...(aspectRatio && { aspectRatio }),
   });
 
   if (images.length === 0) {
