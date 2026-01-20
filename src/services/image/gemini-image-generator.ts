@@ -330,21 +330,17 @@ export async function generateImageWithGemini(
     console.log(`[Gemini] Generating image with model: ${model}, aspectRatio: ${aspectRatio || 'free'}`);
     console.log(`[Gemini] Prompt: ${prompt.substring(0, 100)}...`);
 
-    // image_config 설정 (aspectRatio가 지정된 경우만)
-    const imageConfig = aspectRatio ? {
-      aspectRatio: aspectRatio,  // "1:1", "3:4", "16:9" 등
-    } : undefined;
-
     // Generate images using Gemini with correct responseModalities format
     console.log(`[Gemini T2I] ★★★ Sending TEXT-TO-IMAGE request ★★★`);
     console.log(`[Gemini T2I] Model: ${model}`);
-    console.log(`[Gemini T2I] AspectRatio: ${aspectRatio || 'free'}`);
+    console.log(`[Gemini T2I] AspectRatio: ${aspectRatio || 'free'} (via prompt instruction)`);
     console.log(`[Gemini T2I] Prompt length: ${enhancedPrompt.length} chars`);
 
     let response;
     try {
-      // ★★★ T2I 모드: I2I와 동일한 구조 사용 (이미지 데이터만 제외) ★★★
-      // I2I에서 작동하는 형식을 그대로 사용하여 일관성 보장
+      // ★★★ T2I 모드: imageConfig 없이 순수 텍스트만 전송 ★★★
+      // aspectRatio는 프롬프트 텍스트에 이미 포함됨 (enhancedPrompt에 [IMAGE FORMAT] 지시 포함)
+      // imageConfig가 T2I에서 문제를 일으킬 수 있어 제거
       response = await client.models.generateContent({
         model: model,
         contents: [
@@ -356,8 +352,7 @@ export async function generateImageWithGemini(
           },
         ],
         config: {
-          responseModalities: ['TEXT', 'IMAGE'],  // ★ I2I와 동일하게 대문자
-          ...(imageConfig && { imageConfig }),
+          responseModalities: ['TEXT', 'IMAGE'],
         },
       });
     } catch (apiError: unknown) {
