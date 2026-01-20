@@ -811,6 +811,46 @@ ${imagePrompt}`;
 
   // 이미지 생성 프롬프트에 오버레이 텍스트 요청 추가
   // ★★★ 이미지 생성이 최우선임을 명확히 함 (기본 모델 호환성) ★★★
+
+  // ★★★ Flash 모델용 강화 프롬프트 (이미지 내 텍스트 생성 금지) ★★★
+  const isFlashModel = model === 'gemini-2.5-flash-image';
+  const noTextInImageReinforcement = isFlashModel ? `
+
+[⚠️ CRITICAL - DO NOT RENDER TEXT IN IMAGE ⚠️]
+- DO NOT draw, render, or generate ANY text/letters/words/typography INSIDE the image
+- The generated image must be PURELY VISUAL (product, background, props, lighting only)
+- ALL text content (headlines, copy, stats) goes in the overlay JSON, NOT in the image
+- If you want to show "24H", "95%", or any text → put it in overlay JSON statistics field
+- The frontend will render text ON TOP of your image using the overlay JSON data
+` : '';
+
+  // ★★★ 크리에이티브 오버레이 디자인 가이드 ★★★
+  const creativeOverlayGuide = `
+
+[★ CREATIVE OVERLAY TEXT DESIGN - 상세페이지 디자이너처럼 ★]
+Design overlay text like a professional Korean e-commerce detail page designer.
+Be CREATIVE and BOLD with typography - NOT just plain blue text!
+
+COLOR VARIETY (use diverse, eye-catching colors):
+- Vibrant: #FF6B6B (coral red), #4ECDC4 (teal), #FFE66D (golden yellow)
+- Elegant: #2C3E50 (dark navy), #E74C3C (crimson), #1ABC9C (emerald)
+- Trendy: #9B59B6 (purple), #F39C12 (orange), #3498DB (sky blue)
+- Luxurious: #C9B037 (gold), #BF9270 (rose gold), #2E4057 (charcoal)
+- Match colors to product mood and category
+
+FONT STYLES (mix for visual hierarchy):
+- Headlines: bold, 28-36px, impactful colors
+- Subheadlines: medium, 18-24px, complementary colors
+- Body: normal/light, 12-16px, readable contrast
+- Statistics: extra-bold, 40-60px, accent colors with visual pop
+
+LAYOUT CREATIVITY:
+- Vary text positions (not always centered)
+- Use dynamic angles conceptually
+- Create visual rhythm with size contrast
+- Consider Korean typography aesthetics (깔끔하고 세련된)
+`;
+
   const overlayTextRequest = `
 
 [★★★ OUTPUT REQUIREMENTS ★★★]
@@ -821,7 +861,8 @@ ${imagePrompt}`;
 - NOT text inside the image
 - This is typography metadata (content, position, style) for frontend rendering
 - The overlay will be rendered as HTML/CSS on top of your generated image
-
+${noTextInImageReinforcement}
+${creativeOverlayGuide}
 ${overlayTextPrompt}
 
 CRITICAL: You MUST generate an image. The overlay JSON is additional metadata for text positioning.`;
@@ -1587,6 +1628,46 @@ ${scenarioPrompt}
   );
 
   // ★★★ 이미지 생성이 최우선임을 명확히 함 (기본 모델 호환성) ★★★
+
+  // ★★★ Flash 모델용 강화 프롬프트 (이미지 내 텍스트 생성 금지) ★★★
+  const isFlashModel = model === 'gemini-2.5-flash-image';
+  const noTextInImageReinforcement = isFlashModel ? `
+
+[⚠️ CRITICAL - DO NOT RENDER TEXT IN IMAGE ⚠️]
+- DO NOT draw, render, or generate ANY text/letters/words/typography INSIDE the image
+- The generated image must be PURELY VISUAL (product, background, props, lighting only)
+- ALL text content (headlines, copy, stats) goes in the overlay JSON, NOT in the image
+- If you want to show "24H", "95%", or any text → put it in overlay JSON statistics field
+- The frontend will render text ON TOP of your image using the overlay JSON data
+` : '';
+
+  // ★★★ 크리에이티브 오버레이 디자인 가이드 ★★★
+  const creativeOverlayGuide = `
+
+[★ CREATIVE OVERLAY TEXT DESIGN - 상세페이지 디자이너처럼 ★]
+Design overlay text like a professional Korean e-commerce detail page designer.
+Be CREATIVE and BOLD with typography - NOT just plain blue text!
+
+COLOR VARIETY (use diverse, eye-catching colors):
+- Vibrant: #FF6B6B (coral red), #4ECDC4 (teal), #FFE66D (golden yellow)
+- Elegant: #2C3E50 (dark navy), #E74C3C (crimson), #1ABC9C (emerald)
+- Trendy: #9B59B6 (purple), #F39C12 (orange), #3498DB (sky blue)
+- Luxurious: #C9B037 (gold), #BF9270 (rose gold), #2E4057 (charcoal)
+- Match colors to product mood and category
+
+FONT STYLES (mix for visual hierarchy):
+- Headlines: bold, 28-36px, impactful colors
+- Subheadlines: medium, 18-24px, complementary colors
+- Body: normal/light, 12-16px, readable contrast
+- Statistics: extra-bold, 40-60px, accent colors with visual pop
+
+LAYOUT CREATIVITY:
+- Vary text positions (not always centered)
+- Use dynamic angles conceptually
+- Create visual rhythm with size contrast
+- Consider Korean typography aesthetics (깔끔하고 세련된)
+`;
+
   const overlayTextRequest = `
 
 [★★★ OUTPUT REQUIREMENTS ★★★]
@@ -1597,7 +1678,8 @@ ${scenarioPrompt}
 - NOT text inside the image
 - This is typography metadata (content, position, style) for frontend rendering
 - The overlay will be rendered as HTML/CSS on top of your generated image
-
+${noTextInImageReinforcement}
+${creativeOverlayGuide}
 ${overlayTextPrompt}
 
 CRITICAL: You MUST generate an image. The overlay JSON is additional metadata for text positioning.`;
