@@ -187,6 +187,12 @@ export function ImageOverlayBlockRenderer({
   const [resizeStartPosX, setResizeStartPosX] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [copiedStyle, setCopiedStyle] = useState<Partial<OverlayTextStyle> | null>(null);
+  // ★★★ 드래그 선택 박스 상태 ★★★
+  const [isSelectionDragging, setIsSelectionDragging] = useState(false);
+  const [selectionBox, setSelectionBox] = useState<{ startX: number; startY: number; endX: number; endY: number } | null>(null);
+  // ★★★ 다중 선택 드래그 이동 상태 ★★★
+  const [isMultiDragging, setIsMultiDragging] = useState(false);
+  const [multiDragStart, setMultiDragStart] = useState<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -214,22 +220,65 @@ export function ImageOverlayBlockRenderer({
     });
   }, [selectedTextId, copiedStyle, block.overlayTexts, onUpdate]);
 
-  // 드래그 시작
+  // 드래그 시작 - 다중 선택된 경우 함께 이동
   const handleDragStart = useCallback((e: React.MouseEvent, textId: string) => {
     e.preventDefault();
     e.stopPropagation();
-    setSelectedTextId(textId);
-    setIsDragging(true);
-  }, []);
+
+    // 다중 선택 상태에서 선택된 텍스트를 드래그하면 모두 함께 이동
+    if (selectedLayerIds.size > 1 && selectedLayerIds.has(textId)) {
+      setIsMultiDragging(true);
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setMultiDragStart({
+          x: ((e.clientX - rect.left) / rect.width) * 100,
+          y: ((e.clientY - rect.top) / rect.height) * 100,
+        });
+      }
+    } else {
+      // 단일 선택 드래그
+      setSelectedTextId(textId);
+      setSelectedLayerIds(new Set([textId]));
+      setIsDragging(true);
+    }
+  }, [selectedLayerIds]);
 
   // 드래그 중 - 범위 제한 없이 자유롭게 이동 가능 (밖으로 나갈 수 있음)
-  // ★ 그룹화된 레이어들은 함께 이동
+  // ★ 그룹화된 레이어들 또는 다중 선택된 레이어들은 함께 이동
   const handleDrag = useCallback((e: MouseEvent) => {
-    if (!isDragging || !selectedTextId || !containerRef.current) return;
+    if (!containerRef.current) return;
 
     const rect = containerRef.current.getBoundingClientRect();
     const newX = ((e.clientX - rect.left) / rect.width) * 100;
     const newY = ((e.clientY - rect.top) / rect.height) * 100;
+
+    // ★★★ 다중 선택 드래그 이동 ★★★
+    if (isMultiDragging && multiDragStart && selectedLayerIds.size > 1) {
+      const deltaX = newX - multiDragStart.x;
+      const deltaY = newY - multiDragStart.y;
+
+      onUpdate({
+        overlayTexts: block.overlayTexts.map((text) => {
+          if (selectedLayerIds.has(text.id)) {
+            return {
+              ...text,
+              style: {
+                ...text.style,
+                x: text.style.x + deltaX,
+                y: text.style.y + deltaY,
+              },
+            };
+          }
+          return text;
+        }),
+      });
+
+      setMultiDragStart({ x: newX, y: newY });
+      return;
+    }
+
+    // 단일 드래그
+    if (!isDragging || !selectedTextId) return;
 
     // 선택된 텍스트 찾기
     const selectedText = block.overlayTexts.find(t => t.id === selectedTextId);
@@ -258,12 +307,80 @@ export function ImageOverlayBlockRenderer({
         return text;
       }),
     });
-  }, [isDragging, selectedTextId, block.overlayTexts, onUpdate]);
+  }, [isDragging, isMultiDragging, multiDragStart, selectedTextId, selectedLayerIds, block.overlayTexts, onUpdate]);
 
   // 드래그 종료
   const handleDragEnd = useCallback(() => {
     setIsDragging(false);
+    setIsMultiDragging(false);
+    setMultiDragStart(null);
   }, []);
+
+  // ★★★ 캔버스에서 드래그 선택 박스 시작 ★★★
+  const handleSelectionStart = useCallback((e: React.MouseEvent) => {
+    // 텍스트 요소 클릭이면 무시
+    if ((e.target as HTMLElement).closest('[data-overlay-text]')) return;
+
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    setIsSelectionDragging(true);
+    setSelectionBox({ startX: x, startY: y, endX: x, endY: y });
+    // 선택 해제
+    setSelectedTextId(null);
+    setSelectedLayerIds(new Set());
+  }, []);
+
+  // ★★★ 드래그 선택 박스 업데이트 ★★★
+  const handleSelectionMove = useCallback((e: MouseEvent) => {
+    if (!isSelectionDragging || !selectionBox || !containerRef.current) return;
+
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+    setSelectionBox(prev => prev ? { ...prev, endX: x, endY: y } : null);
+  }, [isSelectionDragging, selectionBox]);
+
+  // ★★★ 드래그 선택 박스 종료 - 박스 안의 텍스트 선택 ★★★
+  const handleSelectionEnd = useCallback(() => {
+    if (!isSelectionDragging || !selectionBox) {
+      setIsSelectionDragging(false);
+      setSelectionBox(null);
+      return;
+    }
+
+    // 선택 박스 영역 계산 (정규화)
+    const minX = Math.min(selectionBox.startX, selectionBox.endX);
+    const maxX = Math.max(selectionBox.startX, selectionBox.endX);
+    const minY = Math.min(selectionBox.startY, selectionBox.endY);
+    const maxY = Math.max(selectionBox.startY, selectionBox.endY);
+
+    // 선택 박스 안에 있는 텍스트 찾기
+    const selectedIds = new Set<string>();
+    block.overlayTexts.forEach((text) => {
+      if (!text.isFolder && !isLayerHidden(text.id)) {
+        const textX = text.style.x;
+        const textY = text.style.y;
+        // 텍스트 중심점이 선택 박스 안에 있으면 선택
+        if (textX >= minX && textX <= maxX && textY >= minY && textY <= maxY) {
+          selectedIds.add(text.id);
+        }
+      }
+    });
+
+    if (selectedIds.size > 0) {
+      setSelectedLayerIds(selectedIds);
+      // 첫 번째 선택된 텍스트를 활성 텍스트로 설정
+      const firstId = Array.from(selectedIds)[0];
+      setSelectedTextId(firstId);
+    }
+
+    setIsSelectionDragging(false);
+    setSelectionBox(null);
+  }, [isSelectionDragging, selectionBox, block.overlayTexts, isLayerHidden]);
 
   // 리사이즈 시작
   const handleResizeStart = useCallback((e: React.MouseEvent, textId: string, direction: 'left' | 'right' | 'both' | 'corner-tl' | 'corner-tr' | 'corner-bl' | 'corner-br' = 'both') => {
@@ -349,7 +466,7 @@ export function ImageOverlayBlockRenderer({
 
   // 마우스 이벤트 리스너
   useEffect(() => {
-    if (isDragging) {
+    if (isDragging || isMultiDragging) {
       window.addEventListener('mousemove', handleDrag);
       window.addEventListener('mouseup', handleDragEnd);
       return () => {
@@ -365,7 +482,16 @@ export function ImageOverlayBlockRenderer({
         window.removeEventListener('mouseup', handleResizeEnd);
       };
     }
-  }, [isDragging, isResizing, handleDrag, handleDragEnd, handleResize, handleResizeEnd]);
+    // ★★★ 드래그 선택 박스 이벤트 ★★★
+    if (isSelectionDragging) {
+      window.addEventListener('mousemove', handleSelectionMove);
+      window.addEventListener('mouseup', handleSelectionEnd);
+      return () => {
+        window.removeEventListener('mousemove', handleSelectionMove);
+        window.removeEventListener('mouseup', handleSelectionEnd);
+      };
+    }
+  }, [isDragging, isMultiDragging, isResizing, isSelectionDragging, handleDrag, handleDragEnd, handleResize, handleResizeEnd, handleSelectionMove, handleSelectionEnd]);
 
   // ★ 컨테이너 크기 변화 감지 (AI 편집창 열릴 때 등)
   useEffect(() => {
@@ -912,13 +1038,20 @@ export function ImageOverlayBlockRenderer({
     >
       {/* 이미지 캔버스 - overflow-visible로 텍스트가 이미지 밖으로 나갈 수 있음 */}
       {/* 가로 폭 100%, 세로는 이미지 비율에 맞춤 */}
+      {/* ★★★ 드래그로 다중 선택 지원 ★★★ */}
       <div
         ref={containerRef}
         className="relative bg-muted overflow-visible"
+        onMouseDown={(e) => {
+          // 왼쪽 클릭만 처리
+          if (e.button !== 0) return;
+          handleSelectionStart(e);
+        }}
         onClick={(e) => {
           // 이미지 빈 공간 클릭 시 텍스트 선택 해제
           if (e.target === containerRef.current || e.target === containerRef.current?.querySelector('img')) {
             setSelectedTextId(null);
+            setSelectedLayerIds(new Set());
           }
         }}
       >
@@ -964,9 +1097,12 @@ export function ImageOverlayBlockRenderer({
           .map((overlayText) => (
             <div
               key={overlayText.id}
+              data-overlay-text="true"
               className={cn(
                 'absolute cursor-move select-none transition-shadow',
-                (isDragging || isResizing) && selectedTextId === overlayText.id && 'cursor-grabbing'
+                (isDragging || isResizing || isMultiDragging) && selectedTextId === overlayText.id && 'cursor-grabbing',
+                // ★★★ 다중 선택된 텍스트 강조 표시 ★★★
+                selectedLayerIds.has(overlayText.id) && selectedLayerIds.size > 1 && 'ring-2 ring-blue-500 ring-offset-1'
               )}
               style={{
                 left: `${overlayText.style.x}%`,
@@ -1102,6 +1238,26 @@ export function ImageOverlayBlockRenderer({
               )}
             </div>
           ))}
+
+        {/* ★★★ 드래그 선택 박스 ★★★ */}
+        {isSelectionDragging && selectionBox && (
+          <div
+            className="absolute border-2 border-blue-500 bg-blue-500/20 pointer-events-none z-50"
+            style={{
+              left: `${Math.min(selectionBox.startX, selectionBox.endX)}%`,
+              top: `${Math.min(selectionBox.startY, selectionBox.endY)}%`,
+              width: `${Math.abs(selectionBox.endX - selectionBox.startX)}%`,
+              height: `${Math.abs(selectionBox.endY - selectionBox.startY)}%`,
+            }}
+          />
+        )}
+
+        {/* ★★★ 다중 선택 안내 표시 ★★★ */}
+        {selectedLayerIds.size > 1 && (
+          <div className="absolute top-2 left-2 px-2 py-1 bg-blue-500 text-white text-xs rounded shadow-lg z-50">
+            {selectedLayerIds.size}개 선택됨 - 드래그하여 함께 이동
+          </div>
+        )}
       </div>
 
       {/* 상단 도구 버튼 */}
