@@ -316,6 +316,7 @@ export function getColorSchemeForBackground(backgroundType: BackgroundType) {
 // 섹션별 레이아웃 가이드 (실제 상세페이지 분석 기반)
 // ============================================
 
+// ★ 1000x1000 픽셀 캔버스 기준 좌표
 const SECTION_LAYOUT_GUIDE: Record<string, {
   headline: { x: number; y: number; align: 'left' | 'center' | 'right'; fontSize: number };
   subheadline: { x: number; y: number; align: 'left' | 'center' | 'right'; fontSize: number };
@@ -326,93 +327,93 @@ const SECTION_LAYOUT_GUIDE: Record<string, {
   safeArea: string;
 }> = {
   MAIN: {
-    headline: { x: 50, y: 5, align: 'center', fontSize: 14 },      // 브랜드명 (작게)
-    subheadline: { x: 50, y: 12, align: 'center', fontSize: 28 },  // 제품라인명 (크게)
-    body: { x: 50, y: 22, align: 'center', fontSize: 16 },         // 기술명/한글명
-    statistics: { x: 50, y: 85, fontSize: 18 },                    // 태그라인
-    cta: { x: 50, y: 92, fontSize: 14 },
-    productArea: '중앙 (20-80%, 35-75%)',
-    safeArea: '상단 (0-30%), 하단 (80-100%)',
+    headline: { x: 500, y: 50, align: 'center', fontSize: 14 },      // 브랜드명 (작게)
+    subheadline: { x: 500, y: 120, align: 'center', fontSize: 28 },  // 제품라인명 (크게)
+    body: { x: 500, y: 220, align: 'center', fontSize: 16 },         // 기술명/한글명
+    statistics: { x: 500, y: 850, fontSize: 18 },                    // 태그라인
+    cta: { x: 500, y: 920, fontSize: 14 },
+    productArea: '중앙 (200-800px, 350-750px)',
+    safeArea: '상단 (0-300px), 하단 (800-1000px)',
   },
   HERO: {
-    headline: { x: 50, y: 8, align: 'center', fontSize: 24 },
-    subheadline: { x: 50, y: 18, align: 'center', fontSize: 16 },
-    body: { x: 50, y: 28, align: 'center', fontSize: 12 },
-    statistics: { x: 50, y: 50, fontSize: 56 },
-    cta: { x: 50, y: 90, fontSize: 14 },
-    productArea: '중앙 (25-75%, 35-70%)',
+    headline: { x: 500, y: 80, align: 'center', fontSize: 24 },
+    subheadline: { x: 500, y: 180, align: 'center', fontSize: 16 },
+    body: { x: 500, y: 280, align: 'center', fontSize: 12 },
+    statistics: { x: 500, y: 500, fontSize: 56 },
+    cta: { x: 500, y: 900, fontSize: 14 },
+    productArea: '중앙 (250-750px, 350-700px)',
     safeArea: '상단/하단 가장자리',
   },
   FEATURES: {
-    headline: { x: 50, y: 5, align: 'center', fontSize: 14 },      // 설명문
-    subheadline: { x: 50, y: 12, align: 'center', fontSize: 12 },  // 해시태그
-    body: { x: 50, y: 45, align: 'center', fontSize: 20 },         // 영문 섹션명
-    statistics: { x: 50, y: 55, fontSize: 32 },                    // 숫자+효과
-    cta: { x: 50, y: 70, fontSize: 14 },
-    productArea: '중앙 (20-80%, 25-75%)',
+    headline: { x: 500, y: 50, align: 'center', fontSize: 14 },      // 설명문
+    subheadline: { x: 500, y: 120, align: 'center', fontSize: 12 },  // 해시태그
+    body: { x: 500, y: 450, align: 'center', fontSize: 20 },         // 영문 섹션명
+    statistics: { x: 500, y: 550, fontSize: 32 },                    // 숫자+효과
+    cta: { x: 500, y: 700, fontSize: 14 },
+    productArea: '중앙 (200-800px, 250-750px)',
     safeArea: '상단/하단',
   },
   SOCIAL_PROOF: {
-    headline: { x: 50, y: 55, align: 'center', fontSize: 16 },     // BENEFIT 등 섹션명
-    subheadline: { x: 50, y: 62, align: 'center', fontSize: 20 },  // 헤드라인
-    body: { x: 50, y: 90, align: 'center', fontSize: 12 },
-    statistics: { x: 50, y: 78, fontSize: 36 },                    // 79% 24H 등
-    cta: { x: 50, y: 95, fontSize: 12 },
-    productArea: '상단 모델/제품 영역 (0-50%)',
-    safeArea: '하단 (50-100%)',
+    headline: { x: 500, y: 550, align: 'center', fontSize: 16 },     // BENEFIT 등 섹션명
+    subheadline: { x: 500, y: 620, align: 'center', fontSize: 20 },  // 헤드라인
+    body: { x: 500, y: 900, align: 'center', fontSize: 12 },
+    statistics: { x: 500, y: 780, fontSize: 36 },                    // 79% 24H 등
+    cta: { x: 500, y: 950, fontSize: 12 },
+    productArea: '상단 모델/제품 영역 (0-500px)',
+    safeArea: '하단 (500-1000px)',
   },
   HOW_TO_USE: {
-    headline: { x: 50, y: 5, align: 'center', fontSize: 16 },
-    subheadline: { x: 50, y: 12, align: 'center', fontSize: 20 },
-    body: { x: 50, y: 85, align: 'center', fontSize: 14 },
-    statistics: { x: 50, y: 50, fontSize: 24 },
-    cta: { x: 50, y: 92, fontSize: 14 },
+    headline: { x: 500, y: 50, align: 'center', fontSize: 16 },
+    subheadline: { x: 500, y: 120, align: 'center', fontSize: 20 },
+    body: { x: 500, y: 850, align: 'center', fontSize: 14 },
+    statistics: { x: 500, y: 500, fontSize: 24 },
+    cta: { x: 500, y: 920, fontSize: 14 },
     productArea: '중앙 (사용법 이미지)',
     safeArea: '상단/하단',
   },
   FAQ: {
-    headline: { x: 50, y: 8, align: 'center', fontSize: 20 },
-    subheadline: { x: 50, y: 18, align: 'center', fontSize: 14 },
-    body: { x: 50, y: 50, align: 'center', fontSize: 16 },
-    statistics: { x: 50, y: 70, fontSize: 28 },
-    cta: { x: 50, y: 88, fontSize: 16 },
+    headline: { x: 500, y: 80, align: 'center', fontSize: 20 },
+    subheadline: { x: 500, y: 180, align: 'center', fontSize: 14 },
+    body: { x: 500, y: 500, align: 'center', fontSize: 16 },
+    statistics: { x: 500, y: 700, fontSize: 28 },
+    cta: { x: 500, y: 880, fontSize: 16 },
     productArea: '하단 제품 배치',
     safeArea: '상단/중앙',
   },
   // 추가 섹션들 (2차 고도화)
   PRODUCT_LINEUP: {
-    headline: { x: 50, y: 5, align: 'center', fontSize: 14 },      // "Color Chart" 등
-    subheadline: { x: 50, y: 12, align: 'center', fontSize: 20 },  // 라인업 제목
-    body: { x: 50, y: 85, align: 'center', fontSize: 12 },         // 부가 설명
-    statistics: { x: 50, y: 50, fontSize: 14 },                    // 컬러명들
-    cta: { x: 50, y: 92, fontSize: 12 },
+    headline: { x: 500, y: 50, align: 'center', fontSize: 14 },      // "Color Chart" 등
+    subheadline: { x: 500, y: 120, align: 'center', fontSize: 20 },  // 라인업 제목
+    body: { x: 500, y: 850, align: 'center', fontSize: 12 },         // 부가 설명
+    statistics: { x: 500, y: 500, fontSize: 14 },                    // 컬러명들
+    cta: { x: 500, y: 920, fontSize: 12 },
     productArea: '중앙 그리드 (컬러 스와치 배치)',
     safeArea: '상단 타이틀, 하단 설명',
   },
   INGREDIENT: {
-    headline: { x: 50, y: 5, align: 'center', fontSize: 14 },      // 영문 섹션명
-    subheadline: { x: 50, y: 12, align: 'center', fontSize: 22 },  // 핵심 성분명
-    body: { x: 50, y: 80, align: 'center', fontSize: 14 },         // 성분 설명
-    statistics: { x: 50, y: 55, fontSize: 28 },                    // 함량/수치
-    cta: { x: 50, y: 90, fontSize: 12 },
+    headline: { x: 500, y: 50, align: 'center', fontSize: 14 },      // 영문 섹션명
+    subheadline: { x: 500, y: 120, align: 'center', fontSize: 22 },  // 핵심 성분명
+    body: { x: 500, y: 800, align: 'center', fontSize: 14 },         // 성분 설명
+    statistics: { x: 500, y: 550, fontSize: 28 },                    // 함량/수치
+    cta: { x: 500, y: 900, fontSize: 12 },
     productArea: '중앙 (성분 비주얼)',
     safeArea: '상단/하단',
   },
   TEXTURE: {
-    headline: { x: 50, y: 5, align: 'center', fontSize: 14 },
-    subheadline: { x: 50, y: 12, align: 'center', fontSize: 20 },
-    body: { x: 50, y: 85, align: 'center', fontSize: 14 },
-    statistics: { x: 50, y: 50, fontSize: 24 },
-    cta: { x: 50, y: 92, fontSize: 12 },
+    headline: { x: 500, y: 50, align: 'center', fontSize: 14 },
+    subheadline: { x: 500, y: 120, align: 'center', fontSize: 20 },
+    body: { x: 500, y: 850, align: 'center', fontSize: 14 },
+    statistics: { x: 500, y: 500, fontSize: 24 },
+    cta: { x: 500, y: 920, fontSize: 12 },
     productArea: '중앙 (텍스처 클로즈업)',
     safeArea: '상단/하단',
   },
   CTA: {
-    headline: { x: 50, y: 20, align: 'center', fontSize: 24 },     // 구매 유도 문구
-    subheadline: { x: 50, y: 35, align: 'center', fontSize: 16 },  // 혜택/이벤트
-    body: { x: 50, y: 50, align: 'center', fontSize: 14 },
-    statistics: { x: 50, y: 65, fontSize: 20 },
-    cta: { x: 50, y: 80, fontSize: 18 },                           // 버튼 텍스트
+    headline: { x: 500, y: 200, align: 'center', fontSize: 24 },     // 구매 유도 문구
+    subheadline: { x: 500, y: 350, align: 'center', fontSize: 16 },  // 혜택/이벤트
+    body: { x: 500, y: 500, align: 'center', fontSize: 14 },
+    statistics: { x: 500, y: 650, fontSize: 20 },
+    cta: { x: 500, y: 800, fontSize: 18 },                           // 버튼 텍스트
     productArea: '하단 (제품 이미지)',
     safeArea: '상단/중앙 (텍스트 영역)',
   },
@@ -931,13 +932,14 @@ ${examplesJson}
 
 ## 응답 형식
 자유롭게 배치할 텍스트들을 texts 배열로 반환하세요:
+★★★ 좌표는 1000x1000 픽셀 캔버스 기준입니다! ★★★
 
 {
   "texts": [
     {
       "text": "첫 번째 텍스트 (가장 중요한 메시지)",
-      "x": 50,
-      "y": 20,
+      "x": 500,
+      "y": 150,
       "fontSize": 32,
       "fontWeight": "bold",
       "color": "${textColors.headline}",
@@ -945,8 +947,8 @@ ${examplesJson}
     },
     {
       "text": "두 번째 텍스트 (필요하면 추가)",
-      "x": 50,
-      "y": 35,
+      "x": 500,
+      "y": 250,
       "fontSize": 18,
       "fontWeight": "normal",
       "color": "${textColors.subheadline}",
@@ -955,19 +957,19 @@ ${examplesJson}
   ]
 }
 
-## ★★★ 텍스트 배치 가이드 (정확한 수치 사용!) ★★★
+## ★★★ 텍스트 배치 가이드 (1000x1000 픽셀 캔버스 기준!) ★★★
 
-### 위치 (x, y) - 퍼센트 기준
-- x: 0-100 (가로 위치)
-  - 0-20: 왼쪽 영역
-  - 40-60: 중앙 영역 (가장 일반적)
-  - 80-100: 오른쪽 영역
-- y: 0-100 (세로 위치)
-  - 5-15: 상단 (브랜드명, 섹션 타이틀)
-  - 20-40: 상단-중앙 (헤드라인)
-  - 45-65: 중앙 (핵심 메시지, 통계)
-  - 70-85: 하단-중앙 (본문, 설명)
-  - 88-95: 하단 (CTA, 태그라인)
+### 위치 (x, y) - 1000x1000 픽셀 캔버스 기준
+- x: 0-1000 (가로 위치, 픽셀)
+  - 0-200: 왼쪽 영역
+  - 400-600: 중앙 영역 (가장 일반적, 500 = 정중앙)
+  - 800-1000: 오른쪽 영역
+- y: 0-1000 (세로 위치, 픽셀)
+  - 50-150: 상단 (브랜드명, 섹션 타이틀)
+  - 150-350: 상단-중앙 (헤드라인)
+  - 400-600: 중앙 (핵심 메시지, 통계)
+  - 650-850: 하단-중앙 (본문, 설명)
+  - 880-950: 하단 (CTA, 태그라인)
 
 ### 글씨 크기 (fontSize) - 정확한 픽셀값 사용!
 - 브랜드명/섹션명: 12-16px (작고 절제된)
@@ -993,12 +995,13 @@ ${examplesJson}
 통계: x=${layoutGuide.statistics.x}, y=${layoutGuide.statistics.y}, fontSize=${layoutGuide.statistics.fontSize}px
 CTA: x=${layoutGuide.cta.x}, y=${layoutGuide.cta.y}, fontSize=${layoutGuide.cta.fontSize}px
 
-## 중요: 정확도 체크리스트
+## 중요: 정확도 체크리스트 (1000x1000 캔버스)
 ✅ fontSize는 반드시 12-48 범위의 정수값 사용
-✅ x, y는 0-100 범위의 정수값 사용
-✅ 텍스트가 겹치지 않도록 y값을 최소 10 이상 간격 유지
-✅ 제품 이미지가 있는 중앙(y: 30-70) 영역은 텍스트 최소화
-✅ 섹션별 권장 레이아웃을 기준으로 ±10% 이내에서 조정
+✅ x는 0-1000 범위의 정수값 사용 (500 = 중앙)
+✅ y는 0-1000 범위의 정수값 사용 (0 = 상단, 1000 = 하단)
+✅ 텍스트가 겹치지 않도록 y값을 최소 80픽셀 이상 간격 유지
+✅ 제품 이미지가 있는 중앙(y: 300-700) 영역은 텍스트 최소화
+✅ 섹션별 권장 레이아웃을 기준으로 ±100픽셀 이내에서 조정
 
 - JSON만 반환 (설명 없이)`;
 }

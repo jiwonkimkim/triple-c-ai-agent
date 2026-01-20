@@ -441,6 +441,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           };
         };
 
+        // ★ 픽셀(0-1000) → 백분율(0-100) 변환 함수
+        // AI가 1000x1000 캔버스 기준 픽셀 좌표로 반환하므로 변환 필요
+        const convertToPercent = (value: number | undefined, defaultValue: number): number => {
+          if (value === undefined) return defaultValue;
+          // 값이 100보다 크면 픽셀 좌표로 간주하고 10으로 나눔
+          if (value > 100) return Math.round(value / 10);
+          // 값이 100 이하면 이미 백분율로 간주
+          return value;
+        };
+
         if (aiOverlayText) {
           // ★ 새 형식: texts 배열이 있으면 우선 사용 (AI 자유 디자인)
           if (aiOverlayText.texts && Array.isArray(aiOverlayText.texts) && aiOverlayText.texts.length > 0) {
@@ -451,8 +461,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 type: idx === 0 ? 'headline' : 'body',  // 첫 번째는 headline, 나머지는 body
                 content: item.text || '',
                 style: {
-                  x: item.x ?? 50,
-                  y: item.y ?? (30 + idx * 15),
+                  x: convertToPercent(item.x, 50),
+                  y: convertToPercent(item.y, 30 + idx * 15),
                   fontSize: item.fontSize ?? 24,
                   fontWeight: (item.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'medium',
                   fontFamily: item.fontFamily ?? 'Pretendard, sans-serif',
@@ -477,8 +487,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 type: 'headline',
                 content: headlineData.text || '',
                 style: {
-                  x: headlineData.x ?? textPosition.headline.x,
-                  y: headlineData.y ?? textPosition.headline.y,
+                  x: headlineData.x ? convertToPercent(headlineData.x, textPosition.headline.x) : textPosition.headline.x,
+                  y: headlineData.y ? convertToPercent(headlineData.y, textPosition.headline.y) : textPosition.headline.y,
                   fontSize: headlineData.fontSize ?? (isMain ? 32 : 28),
                   fontWeight: (headlineData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'bold',
                   fontFamily: headlineData.fontFamily ?? 'Pretendard, sans-serif',
@@ -502,8 +512,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 type: 'subheadline',
                 content: subheadlineData.text || '',
                 style: {
-                  x: subheadlineData.x ?? textPosition.body.x,
-                  y: subheadlineData.y ?? (textPosition.headline.y + 12),
+                  x: subheadlineData.x ? convertToPercent(subheadlineData.x, textPosition.body.x) : textPosition.body.x,
+                  y: subheadlineData.y ? convertToPercent(subheadlineData.y, textPosition.headline.y + 12) : (textPosition.headline.y + 12),
                   fontSize: subheadlineData.fontSize ?? (isMain ? 18 : 16),
                   fontWeight: (subheadlineData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'medium',
                   fontFamily: subheadlineData.fontFamily ?? 'Pretendard, sans-serif',
@@ -531,8 +541,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 type: 'body',
                 content: finalBodyData.text || '',
                 style: {
-                  x: finalBodyData.x ?? textPosition.body.x,
-                  y: finalBodyData.y ?? (isMain ? 40 : 85),
+                  x: finalBodyData.x ? convertToPercent(finalBodyData.x, textPosition.body.x) : textPosition.body.x,
+                  y: finalBodyData.y ? convertToPercent(finalBodyData.y, isMain ? 40 : 85) : (isMain ? 40 : 85),
                   fontSize: finalBodyData.fontSize ?? 14,
                   fontWeight: (finalBodyData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'normal',
                   fontFamily: finalBodyData.fontFamily ?? 'Pretendard, sans-serif',
@@ -559,8 +569,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                   type: 'statistic',
                   content: statData.text || '',
                   style: {
-                    x: statData.x ?? 50,
-                    y: statData.y ?? (50 + (idx * 15)),
+                    x: convertToPercent(statData.x, 50),
+                    y: convertToPercent(statData.y, 50 + (idx * 15)),
                     fontSize: statData.fontSize ?? 48,
                     fontWeight: (statData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'bold',
                     fontFamily: statData.fontFamily ?? 'Montserrat, sans-serif',
@@ -584,8 +594,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 type: 'cta',
                 content: ctaData.text || '',
                 style: {
-                  x: ctaData.x ?? 50,
-                  y: ctaData.y ?? 90,
+                  x: convertToPercent(ctaData.x, 50),
+                  y: convertToPercent(ctaData.y, 90),
                   fontSize: ctaData.fontSize ?? 16,
                   fontWeight: (ctaData.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'semibold',
                   fontFamily: ctaData.fontFamily ?? 'Pretendard, sans-serif',

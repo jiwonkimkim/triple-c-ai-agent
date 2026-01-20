@@ -836,12 +836,15 @@ ${imagePrompt}`;
 - Generate ONLY: product visuals, backgrounds, lighting effects, decorative elements (NO TEXT)
 ` : '';
 
-  // ★★★ 크리에이티브 오버레이 디자인 가이드 ★★★
+  // ★★★ 크리에이티브 오버레이 디자인 가이드 (1000x1000 픽셀 캔버스 기준) ★★★
   const creativeOverlayGuide = `
 
 [★ CREATIVE OVERLAY TEXT DESIGN - 상세페이지 디자이너처럼 ★]
 Design overlay text like a professional Korean e-commerce detail page designer.
 Be CREATIVE and BOLD with typography - NOT just plain blue text!
+
+★★★ COORDINATE SYSTEM: 1000x1000 PIXEL CANVAS ★★★
+All x, y coordinates are in PIXELS based on a 1000x1000 reference canvas.
 
 ★★★ FONT SIZE (정확한 픽셀값 사용!) ★★★
 - 브랜드명/섹션명: 12-16px (작고 절제된)
@@ -851,14 +854,14 @@ Be CREATIVE and BOLD with typography - NOT just plain blue text!
 - 통계 숫자: 32-48px (강조, bold)
 - CTA: 14-18px (행동 유도)
 
-★★★ POSITION (x, y는 0-100% 정수값) ★★★
-- y: 5-15 = 상단 (브랜드명, 섹션명)
-- y: 20-40 = 상단-중앙 (헤드라인)
-- y: 45-65 = 중앙 (핵심 메시지, 통계)
-- y: 70-85 = 하단-중앙 (본문, 설명)
-- y: 88-95 = 하단 (CTA, 태그라인)
-- x: 50 = 중앙 정렬 (가장 일반적)
-- 텍스트 간 y값 최소 10 이상 간격 유지!
+★★★ POSITION (1000x1000 픽셀 캔버스 기준) ★★★
+- y: 50-150 = 상단 (브랜드명, 섹션명)
+- y: 150-350 = 상단-중앙 (헤드라인)
+- y: 400-600 = 중앙 (핵심 메시지, 통계)
+- y: 650-850 = 하단-중앙 (본문, 설명)
+- y: 880-950 = 하단 (CTA, 태그라인)
+- x: 500 = 중앙 정렬 (가장 일반적)
+- 텍스트 간 y값 최소 80픽셀 이상 간격 유지!
 
 COLOR VARIETY (use diverse, eye-catching colors):
 - Vibrant: #FF6B6B (coral), #4ECDC4 (teal), #FFE66D (golden)
@@ -868,9 +871,10 @@ COLOR VARIETY (use diverse, eye-catching colors):
 
 CRITICAL RULES:
 - fontSize must be INTEGER between 12-48
-- x, y must be INTEGER between 0-100
+- x must be INTEGER between 0-1000 (500 = center)
+- y must be INTEGER between 0-1000 (0 = top, 1000 = bottom)
 - Use textAlign: "center" for most cases
-- Do NOT overlap texts (maintain y gap of 10+)
+- Do NOT overlap texts (maintain y gap of 80+ pixels)
 `;
 
   const overlayTextRequest = `
@@ -1675,12 +1679,15 @@ ${scenarioPrompt}
 - Generate ONLY: product visuals, backgrounds, lighting effects, decorative elements (NO TEXT)
 ` : '';
 
-  // ★★★ 크리에이티브 오버레이 디자인 가이드 ★★★
+  // ★★★ 크리에이티브 오버레이 디자인 가이드 (1000x1000 픽셀 캔버스 기준) ★★★
   const creativeOverlayGuide = `
 
 [★ CREATIVE OVERLAY TEXT DESIGN - 상세페이지 디자이너처럼 ★]
 Design overlay text like a professional Korean e-commerce detail page designer.
 Be CREATIVE and BOLD with typography - NOT just plain blue text!
+
+★★★ COORDINATE SYSTEM: 1000x1000 PIXEL CANVAS ★★★
+All x, y coordinates are in PIXELS based on a 1000x1000 reference canvas.
 
 ★★★ FONT SIZE (정확한 픽셀값 사용!) ★★★
 - 브랜드명/섹션명: 12-16px (작고 절제된)
@@ -1690,14 +1697,14 @@ Be CREATIVE and BOLD with typography - NOT just plain blue text!
 - 통계 숫자: 32-48px (강조, bold)
 - CTA: 14-18px (행동 유도)
 
-★★★ POSITION (x, y는 0-100% 정수값) ★★★
-- y: 5-15 = 상단 (브랜드명, 섹션명)
-- y: 20-40 = 상단-중앙 (헤드라인)
-- y: 45-65 = 중앙 (핵심 메시지, 통계)
-- y: 70-85 = 하단-중앙 (본문, 설명)
-- y: 88-95 = 하단 (CTA, 태그라인)
-- x: 50 = 중앙 정렬 (가장 일반적)
-- 텍스트 간 y값 최소 10 이상 간격 유지!
+★★★ POSITION (1000x1000 픽셀 캔버스 기준) ★★★
+- y: 50-150 = 상단 (브랜드명, 섹션명)
+- y: 150-350 = 상단-중앙 (헤드라인)
+- y: 400-600 = 중앙 (핵심 메시지, 통계)
+- y: 650-850 = 하단-중앙 (본문, 설명)
+- y: 880-950 = 하단 (CTA, 태그라인)
+- x: 500 = 중앙 정렬 (가장 일반적)
+- 텍스트 간 y값 최소 80픽셀 이상 간격 유지!
 
 COLOR VARIETY (use diverse, eye-catching colors):
 - Vibrant: #FF6B6B (coral), #4ECDC4 (teal), #FFE66D (golden)
@@ -1707,9 +1714,10 @@ COLOR VARIETY (use diverse, eye-catching colors):
 
 CRITICAL RULES:
 - fontSize must be INTEGER between 12-48
-- x, y must be INTEGER between 0-100
+- x must be INTEGER between 0-1000 (500 = center)
+- y must be INTEGER between 0-1000 (0 = top, 1000 = bottom)
 - Use textAlign: "center" for most cases
-- Do NOT overlap texts (maintain y gap of 10+)
+- Do NOT overlap texts (maintain y gap of 80+ pixels)
 `;
 
   const overlayTextRequest = `
