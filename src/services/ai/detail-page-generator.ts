@@ -717,32 +717,15 @@ export async function generateDetailPage(
           const imageModel = input.imageModel || DEFAULT_IMAGE_MODEL;
           console.log(`[AI] ★★★ Using Image Model: ${imageModel} ★★★`);
 
-          // ★★★ T2I 모드: 섹션을 순차적으로 처리 (Rate Limiting 방지) ★★★
-          // 19개 섹션을 동시에 호출하면 API Rate Limit 초과됨
+          // ★★★ T2I 모드: 전체 섹션 병렬 처리 ★★★
           versions = await Promise.all(
             versions.map(async (version) => {
-              const updatedSections: typeof version.sections = [];
               const totalSections = version.sections.length;
+              console.log(`[AI T2I] ★★★ Processing ${totalSections} sections in FULL PARALLEL ★★★`);
 
-              // ★★★ 배치 처리 (한 번에 2개씩 병렬 처리) - Rate Limit 방지 + 안정성 우선 ★★★
-              const BATCH_SIZE = 2;
-              const batches: typeof version.sections[] = [];
-              for (let i = 0; i < version.sections.length; i += BATCH_SIZE) {
-                batches.push(version.sections.slice(i, i + BATCH_SIZE));
-              }
-
-              console.log(`[AI T2I] ★★★ Processing ${totalSections} sections in ${batches.length} batches (BATCH_SIZE=${BATCH_SIZE}) ★★★`);
-
-              for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
-                const batch = batches[batchIdx];
-                const batchStart = batchIdx * BATCH_SIZE;
-                console.log(`[AI T2I] [Batch ${batchIdx + 1}/${batches.length}] Processing ${batch.length} sections...`);
-
-                // 배치 내 섹션들 병렬 처리
-                const batchResults = await Promise.all(
-                  batch.map(async (section, indexInBatch) => {
-                    const sectionIdx = batchStart + indexInBatch;
-                    const prompts = section.imagePrompts || (section.imagePrompt ? [section.imagePrompt] : []);
+              const updatedSections = await Promise.all(
+                version.sections.map(async (section, sectionIdx) => {
+                  const prompts = section.imagePrompts || (section.imagePrompt ? [section.imagePrompt] : []);
 
                     if (prompts.length === 0) {
                       console.warn(`[AI T2I] ⚠️ SKIPPING ${section.type} - no imagePrompts available`);
@@ -839,17 +822,7 @@ export async function generateDetailPage(
                   })
                 );
 
-                // 배치 결과를 updatedSections에 추가
-                updatedSections.push(...batchResults);
-
-                // ★★★ 배치 간 대기 (Rate Limit 방지) - 2초 대기 ★★★
-                if (batchIdx < batches.length - 1) {
-                  console.log(`[AI T2I] Waiting 2s before next batch (Rate Limit Prevention)...`);
-                  await new Promise(resolve => setTimeout(resolve, 2000));
-                }
-              }
-
-              console.log(`[AI T2I] ★★★ All ${totalSections} sections processed in ${batches.length} batches ★★★`);
+              console.log(`[AI T2I] ★★★ All ${totalSections} sections processed in FULL PARALLEL ★★★`);
 
               return {
                 ...version,
