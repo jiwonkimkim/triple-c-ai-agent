@@ -110,7 +110,15 @@ export async function coordinatorAgent(
   switch (parsedIntent.intent) {
     // === Discovery 모드 ===
     case 'QUESTION':
+      // ★ 이미 카테고리/서브카테고리가 설정되어 있으면 Intake로 (제품 추천)
       if (isDiscoveryRequest(userContent)) {
+        if (collectedData.subCategory) {
+          console.log('[Coordinator] Discovery request but subCategory exists, routing to INTAKE for product recommendation');
+          return {
+            currentAgent: 'INTAKE',
+            nextAction: { type: 'continue', targetAgent: 'INTAKE' as AgentType },
+          };
+        }
         return {
           currentAgent: 'COORDINATOR',
           nextAction: { type: 'discovery' as any }, // Discovery Agent로 라우팅
@@ -124,6 +132,12 @@ export async function coordinatorAgent(
 
     case 'GREETING':
       if (isDiscoveryRequest(userContent)) {
+        if (collectedData.subCategory) {
+          return {
+            currentAgent: 'INTAKE',
+            nextAction: { type: 'continue', targetAgent: 'INTAKE' as AgentType },
+          };
+        }
         return {
           currentAgent: 'COORDINATOR',
           nextAction: { type: 'discovery' as any },
@@ -294,7 +308,15 @@ export async function coordinatorAgent(
   // 7. 상태 기반 라우팅
 
   // Discovery 요청인지 다시 확인
+  // ★ 이미 subCategory가 설정되어 있으면 Intake로 라우팅 (제품 추천)
   if (isDiscoveryRequest(userContent)) {
+    if (collectedData.subCategory) {
+      console.log('[Coordinator] Discovery request but subCategory exists (state routing), routing to INTAKE');
+      return {
+        currentAgent: 'INTAKE',
+        nextAction: { type: 'continue', targetAgent: 'INTAKE' as AgentType },
+      };
+    }
     return {
       currentAgent: 'COORDINATOR',
       nextAction: { type: 'discovery' as any }, // Discovery Agent 호출
