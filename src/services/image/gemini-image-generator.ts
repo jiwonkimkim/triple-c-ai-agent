@@ -186,6 +186,120 @@ ${featureHighlight}
   return prompts[sectionType] || prompts.CUSTOM!;
 }
 
+// ============================================
+// ★★★ 공통 상수 (T2I/I2I 모두 사용) ★★★
+// ============================================
+
+/**
+ * Flash 모델용 이미지 내 텍스트 생성 금지 강화 프롬프트
+ */
+const NO_TEXT_IN_IMAGE_REINFORCEMENT = `
+[⚠️⚠️⚠️ CRITICAL - ABSOLUTELY NO TEXT IN IMAGE ⚠️⚠️⚠️]
+★★★ THIS IS THE MOST IMPORTANT RULE ★★★
+
+1. DO NOT generate ANY text, letters, words, numbers, or typography INSIDE the image
+2. DO NOT render Korean (한글), English, Chinese, or ANY language text in the image
+3. The image must be 100% PURELY VISUAL: only product, background, props, lighting, effects
+4. NEVER attempt to write "24H", "95%", "글로시", "촉촉한", or ANY text directly in the image
+5. Korean text especially MUST NOT appear in images - it will look broken and distorted!
+
+★ WHERE TEXT GOES:
+- All text content → overlay JSON (statistics, headline, subheadline, body, cta fields)
+- The frontend renders text ON TOP of your clean image using HTML/CSS
+- Your job: generate a beautiful TEXT-FREE background image only
+
+★ VIOLATION = FAILED IMAGE:
+- If ANY text/letters/numbers/Korean characters appear in the generated image, it is REJECTED
+- This includes: product labels with text, stats, titles, Korean words, watermarks, ANY text at all
+- Generate ONLY: product visuals, backgrounds, lighting effects, decorative elements (NO TEXT)
+`;
+
+/**
+ * 자유로운 크리에이티브 오버레이 디자인 가이드
+ */
+const CREATIVE_OVERLAY_GUIDE = `
+[★ CREATIVE OVERLAY TEXT DESIGN - 키치하고 트렌디한 상세페이지 스타일 ★]
+You are a trendy Korean e-commerce detail page designer.
+Design CREATIVE, PLAYFUL, and BOLD typography that matches the generated image!
+
+★★★ DESIGN FREEDOM ★★★
+- Look at the image you generated and design text that COMPLEMENTS it
+- Be creative with placement - not everything needs to be centered!
+- Use unexpected positions, dynamic layouts, asymmetric designs
+- Mix different sizes dramatically for visual impact
+- 키치하고 감각적인 한국 상세페이지 스타일!
+
+★★★ COORDINATE SYSTEM: 1000x1000 PIXEL CANVAS ★★★
+- x: 0-1000 (0=left, 500=center, 1000=right)
+- y: 0-1000 (0=top, 500=middle, 1000=bottom)
+- fontSize: 12-72px (be bold with sizes!)
+- Place texts where they look BEST with the image
+
+★★★ COLOR & STYLE INSPIRATION ★★★
+- Vibrant: #FF6B6B, #4ECDC4, #FFE66D, #FF8C42
+- Elegant: #2C3E50, #E74C3C, #1ABC9C, #9B59B6
+- Luxurious: #C9B037, #BF9270, #2E4057, #8B4513
+- Pastel: #FFB3BA, #BAFFC9, #BAE1FF, #FFFFBA
+- Match colors to the image mood!
+
+CRITICAL RULES:
+- fontSize: INTEGER 12-72
+- x, y: INTEGER 0-1000
+- Do NOT overlap texts (maintain 60+ pixel gap)
+- Make it look like professional Korean detail page design!
+`;
+
+/**
+ * 타겟 고객 기반 스타일 문자열 생성
+ */
+function buildAudienceStyle(targetAudience?: string): string {
+  if (!targetAudience) return 'Premium universal appeal';
+
+  const audienceLower = targetAudience.toLowerCase();
+  if (audienceLower.includes('20대') || audienceLower.includes('young') || audienceLower.includes('젊')) {
+    return 'trendy, vibrant, youthful energy';
+  } else if (audienceLower.includes('30대') || audienceLower.includes('40대') || audienceLower.includes('mature')) {
+    return 'sophisticated, elegant, refined luxury';
+  } else if (audienceLower.includes('남성') || audienceLower.includes('men') || audienceLower.includes('male')) {
+    return 'masculine, bold, minimalist strength';
+  } else if (audienceLower.includes('민감') || audienceLower.includes('sensitive')) {
+    return 'gentle, calming, pure and clean';
+  }
+  return 'Premium universal appeal';
+}
+
+/**
+ * 핵심 특징 강조 문자열 생성
+ */
+function buildFeatureHighlight(keyFeatures?: string[]): string {
+  return keyFeatures && keyFeatures.length > 0
+    ? `Emphasize: ${keyFeatures[0]}`
+    : 'Highlight product quality';
+}
+
+/**
+ * 오버레이 텍스트 요청 프롬프트 생성 (공통)
+ */
+function buildOverlayTextRequest(overlayTextPrompt: string, isFlashModel: boolean): string {
+  const noTextReinforcement = isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : '';
+
+  return `
+
+[★★★ OUTPUT REQUIREMENTS ★★★]
+1. GENERATE IMAGE FIRST (REQUIRED) - This is the primary output
+2. THEN return overlay text JSON (for placing text ON TOP of the generated image)
+
+[OVERLAY TEXT = Text to be placed ON TOP of the generated image]
+- NOT text inside the image
+- This is typography metadata (content, position, style) for frontend rendering
+- The overlay will be rendered as HTML/CSS on top of your generated image
+${noTextReinforcement}
+${CREATIVE_OVERLAY_GUIDE}
+${overlayTextPrompt}
+
+CRITICAL: You MUST generate an image. The overlay JSON is additional metadata for text positioning.`;
+}
+
 /**
  * 다양한 섹션 타입명을 기본 SectionType으로 변환
  * ★ 새로운 섹션 타입도 자동 매핑 (패턴 기반)
@@ -668,225 +782,46 @@ export async function generateSectionImageWithGemini(
   // - MAIN: 1:1, TEXT_BANNER/DIVIDER_VISUAL 등: 16:9, 나머지: 자유
   const aspectRatio = getSectionAspectRatio(sectionType);
 
-  // ★★★ I2I와 동일한 섹션별 템플릿 사용 (T2I도 동일한 프롬프트 품질 보장) ★★★
-
-  // 1. 제품명에서 실제 재료 오브제 추출 (매번 다른 조합)
+  // ★★★ 공통 함수 사용 (T2I/I2I 동일) ★★★
   const ingredientObjects = extractIngredientObjects(productName, category);
-
-  // 2. 랜덤 분위기 오브제 선택 (매번 다른 무드)
   const moodSelection = selectRandomMoodObjects();
+  const audienceStyle = buildAudienceStyle(targetAudience);
+  const featureHighlight = buildFeatureHighlight(keyFeatures);
 
-  // 3. 타겟 고객 기반 스타일링
-  let audienceStyle = 'Premium universal appeal';
-  if (targetAudience) {
-    const audienceLower = targetAudience.toLowerCase();
-    if (audienceLower.includes('20대') || audienceLower.includes('young') || audienceLower.includes('젊')) {
-      audienceStyle = 'trendy, vibrant, youthful energy';
-    } else if (audienceLower.includes('30대') || audienceLower.includes('40대') || audienceLower.includes('mature')) {
-      audienceStyle = 'sophisticated, elegant, refined luxury';
-    } else if (audienceLower.includes('남성') || audienceLower.includes('men') || audienceLower.includes('male')) {
-      audienceStyle = 'masculine, bold, minimalist strength';
-    } else if (audienceLower.includes('민감') || audienceLower.includes('sensitive')) {
-      audienceStyle = 'gentle, calming, pure and clean';
-    }
-  }
-
-  // 4. 핵심 특징 반영
-  const featureHighlight = keyFeatures && keyFeatures.length > 0
-    ? `Emphasize: ${keyFeatures[0]}`
-    : 'Highlight product quality';
-
-  // ★★★ 섹션별 T2I 템플릿 (I2I와 동일한 구조) ★★★
-  const sectionPrompts: Record<string, string> = {
-    MAIN: `Create a KOREAN E-COMMERCE DETAIL PAGE THUMBNAIL for "${productName}".
-
-[KOREAN DETAIL PAGE STYLE - 올리브영/쿠팡 스타일]
-- Premium beauty product thumbnail style (한국 뷰티 상세페이지)
-- Clean, bright, aspirational aesthetic that Korean consumers love
-- Magazine editorial meets e-commerce quality
-- Soft gradient background complementing product colors
-
-[CREATIVE COMPOSITION]
-Design a visually striking thumbnail featuring ${productName}.
-- Product as HERO (50-60% of frame), sharp focus, eye-catching
-- Product placement: CENTER or slightly UPPER-CENTER
-- Decorative objects (15-20%): ${ingredientObjects.join(', ')}
-- Atmospheric elements (10-15%): ${moodSelection.selected.join(', ')}
-- Create depth with layered composition (foreground → product → background)
-- Leave CLEAN SPACE at top (20%) for text overlay (slogan area)
-
-[STYLING DIRECTION]
-Target aesthetic: ${audienceStyle}
-${featureHighlight}
-Korean beauty trend: 글로우, 투명감, 프리미엄
-
-[TECHNICAL REQUIREMENTS]
-- Soft, diffused studio lighting with gentle rim light
-- Shallow depth of field, soft bokeh background
-- Rich, vibrant colors with professional color grading
-- Premium commercial photography that triggers purchase desire
-- 8K resolution, photorealistic, no text in image`,
-
-    HERO: `Create KOREAN E-COMMERCE HERO BANNER IMAGE for ${productName}.
-[SCENARIO: 상세페이지 최상단 히어로 배너]
-- 고객이 처음 보는 강렬한 첫인상 이미지
-- 제품이 돋보이면서 브랜드 슬로건이 들어갈 공간 필요
-- 프리미엄하고 드라마틱한 분위기
-- 올리브영/쿠팡 스타일 hero banner
-${featureHighlight}
-Target aesthetic: ${audienceStyle}
-8K, photorealistic, no text.`,
-
-    FEATURES: `Create KOREAN E-COMMERCE FEATURES SECTION IMAGE for ${productName}.
-[SCENARIO: 제품 특징 소개 섹션]
-- 제품의 장점과 특징을 설명하는 섹션용 이미지
-- 제품 디테일이 잘 보이도록 각도 조절
-- 특징 아이콘이나 설명이 들어갈 여백 고려
-- 클린하고 정보전달에 효과적인 구성
-${keyFeatures ? `Features: ${keyFeatures.slice(0, 2).join(', ')}` : ''}
-Target aesthetic: ${audienceStyle}
-8K, photorealistic, no text.`,
-
-    SOCIAL_PROOF: `Create KOREAN E-COMMERCE REVIEW/TESTIMONIAL IMAGE for ${productName}.
-[SCENARIO: 고객 후기/리뷰 섹션]
-- 리뷰와 별점이 함께 표시되는 섹션용 이미지
-- 제품이 작고 자연스럽게 배치된 라이프스타일 느낌
-- 신뢰감을 주는 따뜻한 분위기
-- 후기 텍스트가 들어갈 충분한 공간
-${targetAudience ? `Target: ${targetAudience}` : ''}
-8K, photorealistic, no text.`,
-
-    HOW_TO_USE: `Create KOREAN E-COMMERCE HOW-TO-USE IMAGE for ${productName}.
-[SCENARIO: 사용법 안내 섹션]
-- 제품 사용 방법을 단계별로 설명하는 섹션용 이미지
-- 제품을 손에 들거나 사용하는 맥락 표현
-- 단계별 설명(STEP 1, 2, 3)이 들어갈 공간 고려
-- 밝고 명확한 튜토리얼 분위기
-Target aesthetic: ${audienceStyle}
-8K, photorealistic, no text.`,
-
-    FAQ: `Create KOREAN E-COMMERCE FAQ/INFO IMAGE for ${productName}.
-[SCENARIO: FAQ/추가정보 섹션]
-- 자주 묻는 질문과 답변이 표시되는 섹션용 이미지
-- 제품이 깔끔하게 보이는 미니멀한 구성
-- Q&A 텍스트가 들어갈 충분한 여백
-- 정보 전달에 집중하는 심플한 분위기
-8K, photorealistic, no text.`,
-  };
-
-  // 섹션 템플릿 선택 (mappedSectionType 사용, 없으면 동적 생성)
-  let enhancedPrompt = sectionPrompts[mappedSectionType];
-  if (!enhancedPrompt) {
-    console.log(`[Gemini T2I] ⚠️ No template for section type: ${sectionType} (mapped: ${mappedSectionType}), using dynamic fallback`);
-    const sectionLabel = sectionType.replace(/_/g, ' ').toLowerCase();
-    enhancedPrompt = `Create KOREAN E-COMMERCE ${sectionType} IMAGE for ${productName}.
-[KOREAN DETAIL PAGE - ${sectionType} SECTION ${sectionLabel} 섹션]
-- Professional Korean e-commerce aesthetic
-- Product-focused composition appropriate for ${sectionLabel}
-- Clean, premium background with Korean beauty style
-- High-quality commercial photography
-Section type: ${sectionType}
-Korean beauty detail page style, 올리브영/쿠팡 스타일.
-8K, photorealistic, no text in image.`;
-  }
+  // ★★★ 공통 섹션 프롬프트 템플릿 사용 ★★★
+  let sectionPrompt = buildSharedSectionPrompt(mappedSectionType, {
+    productName,
+    category,
+    ingredientObjects,
+    moodSelection: moodSelection.selected,
+    audienceStyle,
+    featureHighlight,
+    isI2I: false,  // T2I 모드
+  });
 
   // ★ imagePrompt가 있으면 오케스트레이션 컨텍스트로 추가 (MAIN 제외)
   if (mappedSectionType !== 'MAIN' && imagePrompt && imagePrompt.trim()) {
-    enhancedPrompt = `${enhancedPrompt}
+    sectionPrompt = `${sectionPrompt}
 
 [ORCHESTRATION CONTEXT - 상세페이지 전체 메시지]
 ${imagePrompt}`;
   }
 
-  console.log(`[Gemini T2I] Using section template for ${sectionType} → ${mappedSectionType}`)
+  console.log(`[Gemini T2I] Using shared section template for ${sectionType} → ${mappedSectionType}`);
 
-  // ★★★ 오버레이 텍스트 JSON 요청 - overlay-prompts.ts의 buildOverlayTextPrompt 사용
+  // ★★★ 공통 오버레이 텍스트 요청 생성 ★★★
   const overlayTextPrompt = buildOverlayTextPrompt(
-    mappedSectionType as SectionType,  // ★ mappedSectionType 사용
+    mappedSectionType as SectionType,
     productName,
     category,
     keyFeatures || [],
     targetAudience || 'General'
   );
 
-  // 이미지 생성 프롬프트에 오버레이 텍스트 요청 추가
-  // ★★★ 이미지 생성이 최우선임을 명확히 함 (기본 모델 호환성) ★★★
-
-  // ★★★ Flash 모델용 강화 프롬프트 (이미지 내 텍스트 생성 금지) ★★★
   const isFlashModel = model === 'gemini-2.5-flash-image';
-  const noTextInImageReinforcement = isFlashModel ? `
+  const overlayTextRequest = buildOverlayTextRequest(overlayTextPrompt, isFlashModel);
 
-[⚠️⚠️⚠️ CRITICAL - ABSOLUTELY NO TEXT IN IMAGE ⚠️⚠️⚠️]
-★★★ THIS IS THE MOST IMPORTANT RULE ★★★
-
-1. DO NOT generate ANY text, letters, words, numbers, or typography INSIDE the image
-2. DO NOT render Korean (한글), English, Chinese, or ANY language text in the image
-3. The image must be 100% PURELY VISUAL: only product, background, props, lighting, effects
-4. NEVER attempt to write "24H", "95%", "글로시", "촉촉한", or ANY text directly in the image
-5. Korean text especially MUST NOT appear in images - it will look broken and distorted!
-
-★ WHERE TEXT GOES:
-- All text content → overlay JSON (statistics, headline, subheadline, body, cta fields)
-- The frontend renders text ON TOP of your clean image using HTML/CSS
-- Your job: generate a beautiful TEXT-FREE background image only
-
-★ VIOLATION = FAILED IMAGE:
-- If ANY text/letters/numbers/Korean characters appear in the generated image, it is REJECTED
-- This includes: product labels with text, stats, titles, Korean words, watermarks, ANY text at all
-- Generate ONLY: product visuals, backgrounds, lighting effects, decorative elements (NO TEXT)
-` : '';
-
-  // ★★★ 자유로운 크리에이티브 오버레이 디자인 ★★★
-  const creativeOverlayGuide = `
-
-[★ CREATIVE OVERLAY TEXT DESIGN - 키치하고 트렌디한 상세페이지 스타일 ★]
-You are a trendy Korean e-commerce detail page designer.
-Design CREATIVE, PLAYFUL, and BOLD typography that matches the generated image!
-
-★★★ DESIGN FREEDOM ★★★
-- Look at the image you generated and design text that COMPLEMENTS it
-- Be creative with placement - not everything needs to be centered!
-- Use unexpected positions, dynamic layouts, asymmetric designs
-- Mix different sizes dramatically for visual impact
-- 키치하고 감각적인 한국 상세페이지 스타일!
-
-★★★ COORDINATE SYSTEM: 1000x1000 PIXEL CANVAS ★★★
-- x: 0-1000 (0=left, 500=center, 1000=right)
-- y: 0-1000 (0=top, 500=middle, 1000=bottom)
-- fontSize: 12-72px (be bold with sizes!)
-- Place texts where they look BEST with the image
-
-★★★ COLOR & STYLE INSPIRATION ★★★
-- Vibrant: #FF6B6B, #4ECDC4, #FFE66D, #FF8C42
-- Elegant: #2C3E50, #E74C3C, #1ABC9C, #9B59B6
-- Luxurious: #C9B037, #BF9270, #2E4057, #8B4513
-- Pastel: #FFB3BA, #BAFFC9, #BAE1FF, #FFFFBA
-- Match colors to the image mood!
-
-CRITICAL RULES:
-- fontSize: INTEGER 12-72
-- x, y: INTEGER 0-1000
-- Do NOT overlap texts (maintain 60+ pixel gap)
-- Make it look like professional Korean detail page design!
-`;
-
-  const overlayTextRequest = `
-
-[★★★ OUTPUT REQUIREMENTS ★★★]
-1. GENERATE IMAGE FIRST (REQUIRED) - This is the primary output
-2. THEN return overlay text JSON (for placing text ON TOP of the generated image)
-
-[OVERLAY TEXT = Text to be placed ON TOP of the generated image]
-- NOT text inside the image
-- This is typography metadata (content, position, style) for frontend rendering
-- The overlay will be rendered as HTML/CSS on top of your generated image
-${noTextInImageReinforcement}
-${creativeOverlayGuide}
-${overlayTextPrompt}
-
-CRITICAL: You MUST generate an image. The overlay JSON is additional metadata for text positioning.`;
-
-  const finalPrompt = enhancedPrompt + overlayTextRequest;
+  const finalPrompt = sectionPrompt + overlayTextRequest;
 
   console.log(`[Gemini T2I] Generating ${sectionType} (→${mappedSectionType}) with aspectRatio: ${aspectRatio || 'free'}, with overlay text request`);
 
@@ -1468,140 +1403,24 @@ export async function generateSectionImageFromProduct(
   const mappedSectionType = mapToBaseSectionType(sectionType);
   console.log(`[Gemini I2I] Section type mapping: ${sectionType} → ${mappedSectionType}`);
 
-  // MAIN 섹션: 제품명 기반 오브제 + 타겟/특징 반영
-  let mainPrompt = '';
-  if (mappedSectionType === 'MAIN') {
-    // 1. 제품명에서 실제 재료 오브제 추출 (매번 다른 조합)
-    const ingredientObjects = extractIngredientObjects(productName, category);
+  // ★★★ 공통 함수 사용 (T2I/I2I 동일) ★★★
+  const ingredientObjects = extractIngredientObjects(productName, category);
+  const moodSelection = selectRandomMoodObjects();
+  const audienceStyle = buildAudienceStyle(targetAudience);
+  const featureHighlight = buildFeatureHighlight(keyFeatures);
 
-    // 2. 랜덤 분위기 오브제 선택 (매번 다른 무드)
-    const moodSelection = selectRandomMoodObjects();
+  // ★★★ 공통 섹션 프롬프트 템플릿 사용 ★★★
+  const basePrompt = buildSharedSectionPrompt(mappedSectionType, {
+    productName,
+    category,
+    ingredientObjects,
+    moodSelection: moodSelection.selected,
+    audienceStyle,
+    featureHighlight,
+    isI2I: true,  // I2I 모드 - "USE THE PROVIDED PRODUCT IMAGE" 추가
+  });
 
-    // 3. 타겟 고객 기반 스타일링
-    let audienceStyle = 'Premium universal appeal';
-    if (targetAudience) {
-      const audienceLower = targetAudience.toLowerCase();
-      if (audienceLower.includes('20대') || audienceLower.includes('young') || audienceLower.includes('젊')) {
-        audienceStyle = 'trendy, vibrant, youthful energy';
-      } else if (audienceLower.includes('30대') || audienceLower.includes('40대') || audienceLower.includes('mature')) {
-        audienceStyle = 'sophisticated, elegant, refined luxury';
-      } else if (audienceLower.includes('남성') || audienceLower.includes('men') || audienceLower.includes('male')) {
-        audienceStyle = 'masculine, bold, minimalist strength';
-      } else if (audienceLower.includes('민감') || audienceLower.includes('sensitive')) {
-        audienceStyle = 'gentle, calming, pure and clean';
-      }
-    }
-
-    // 4. 핵심 특징 반영
-    const featureHighlight = keyFeatures && keyFeatures.length > 0
-      ? `Emphasize: ${keyFeatures[0]}`
-      : 'Highlight product quality';
-
-    mainPrompt = `Create a KOREAN E-COMMERCE DETAIL PAGE THUMBNAIL for "${productName}".
-
-USE THE PROVIDED PRODUCT IMAGE as reference - include this exact product in the new composition.
-
-[KOREAN DETAIL PAGE STYLE - 올리브영/쿠팡 스타일]
-- Premium beauty product thumbnail style (한국 뷰티 상세페이지)
-- Clean, bright, aspirational aesthetic that Korean consumers love
-- Magazine editorial meets e-commerce quality
-- Soft gradient background complementing product colors
-
-[CREATIVE COMPOSITION]
-Design a visually striking thumbnail featuring the provided product.
-- Product as HERO (50-60% of frame), sharp focus, eye-catching
-- Product placement: CENTER or slightly UPPER-CENTER
-- Decorative objects (15-20%): ${ingredientObjects.join(', ')}
-- Atmospheric elements (10-15%): ${moodSelection.selected.join(', ')}
-- Create depth with layered composition (foreground → product → background)
-- Leave CLEAN SPACE at top (20%) for text overlay (slogan area)
-
-[STYLING DIRECTION]
-Target aesthetic: ${audienceStyle}
-${featureHighlight}
-Korean beauty trend: 글로우, 투명감, 프리미엄
-
-[TECHNICAL REQUIREMENTS]
-- Soft, diffused studio lighting with gentle rim light
-- Shallow depth of field, soft bokeh background
-- Rich, vibrant colors with professional color grading
-- Premium commercial photography that triggers purchase desire
-- 8K resolution, photorealistic, no text in image`;
-  }
-
-  // 섹션별 스타일 프롬프트 - 시나리오만 설명, 배치는 AI가 자연스럽게 결정
-  const sectionPrompts: Record<string, string> = {
-    MAIN: mainPrompt,
-
-    HERO: `Create KOREAN E-COMMERCE HERO BANNER IMAGE using the provided product.
-[SCENARIO: 상세페이지 최상단 히어로 배너]
-- 고객이 처음 보는 강렬한 첫인상 이미지
-- 제품이 돋보이면서 브랜드 슬로건이 들어갈 공간 필요
-- 프리미엄하고 드라마틱한 분위기
-- 올리브영/쿠팡 스타일 hero banner
-${keyFeatures ? `Emphasize: ${keyFeatures[0]}` : ''}
-8K, photorealistic, no text.`,
-
-    FEATURES: `Create KOREAN E-COMMERCE FEATURES SECTION IMAGE using the provided product.
-[SCENARIO: 제품 특징 소개 섹션]
-- 제품의 장점과 특징을 설명하는 섹션용 이미지
-- 제품 디테일이 잘 보이도록 각도 조절
-- 특징 아이콘이나 설명이 들어갈 여백 고려
-- 클린하고 정보전달에 효과적인 구성
-${keyFeatures ? `Features: ${keyFeatures.slice(0, 2).join(', ')}` : ''}
-8K, photorealistic, no text.`,
-
-    SOCIAL_PROOF: `Create KOREAN E-COMMERCE REVIEW/TESTIMONIAL IMAGE using the provided product.
-[SCENARIO: 고객 후기/리뷰 섹션]
-- 리뷰와 별점이 함께 표시되는 섹션용 이미지
-- 제품이 작고 자연스럽게 배치된 라이프스타일 느낌
-- 신뢰감을 주는 따뜻한 분위기
-- 후기 텍스트가 들어갈 충분한 공간
-${targetAudience ? `Target: ${targetAudience}` : ''}
-8K, photorealistic, no text.`,
-
-    HOW_TO_USE: `Create KOREAN E-COMMERCE HOW-TO-USE IMAGE using the provided product.
-[SCENARIO: 사용법 안내 섹션]
-- 제품 사용 방법을 단계별로 설명하는 섹션용 이미지
-- 제품을 손에 들거나 사용하는 맥락 표현
-- 단계별 설명(STEP 1, 2, 3)이 들어갈 공간 고려
-- 밝고 명확한 튜토리얼 분위기
-8K, photorealistic, no text.`,
-
-    FAQ: `Create KOREAN E-COMMERCE FAQ/INFO IMAGE using the provided product.
-[SCENARIO: FAQ/추가정보 섹션]
-- 자주 묻는 질문과 답변이 표시되는 섹션용 이미지
-- 제품이 깔끔하게 보이는 미니멀한 구성
-- Q&A 텍스트가 들어갈 충분한 여백
-- 정보 전달에 집중하는 심플한 분위기
-8K, photorealistic, no text.`,
-  };
-
-  // ★★★ 기본 템플릿 + 오케스트레이션 프롬프트 결합 ★★★
-  // 1. 기본 템플릿: 카테고리별/섹션별 시각적 지시 (sectionPrompts)
-  // 2. 오케스트레이션 프롬프트: 전체 상세페이지 메시지/컨텍스트 (scenarioPrompt)
-  // 둘 다 결합하여 일관된 메시지 + 섹션별 스타일 모두 반영
-  // ★ mappedSectionType은 함수 초반에서 이미 정의됨
-
-  // 1. 기본 섹션 템플릿 가져오기 (mappedSectionType 사용)
-  let basePrompt = sectionPrompts[mappedSectionType];
-
-  if (!basePrompt) {
-    console.log(`[Gemini I2I] ⚠️ No template for section type: ${sectionType} (mapped: ${mappedSectionType}), using dynamic fallback`);
-    // 미정의 섹션 타입에 대해 동적으로 프롬프트 생성 (섹션 타입명 포함)
-    const sectionLabel = sectionType.replace(/_/g, ' ').toLowerCase();
-    basePrompt = `Create KOREAN E-COMMERCE ${sectionType} IMAGE using the provided product as reference.
-[KOREAN DETAIL PAGE - ${sectionType} SECTION ${sectionLabel} 섹션]
-- Professional Korean e-commerce aesthetic
-- Product-focused composition appropriate for ${sectionLabel}
-- Clean, premium background with Korean beauty style
-- High-quality commercial photography
-Section type: ${sectionType}
-Korean beauty detail page style, 올리브영/쿠팡 스타일.
-8K, photorealistic, no text in image.`;
-  } else {
-    console.log(`[Gemini I2I] Using section template for ${sectionType}`);
-  }
+  console.log(`[Gemini I2I] Using shared section template for ${sectionType} → ${mappedSectionType}`);
 
   // 2. 오케스트레이션 프롬프트 추가 (있으면)
   // 전체 상세페이지의 일관된 메시지와 컨텍스트를 담은 추가 지시
@@ -1637,90 +1456,17 @@ ${scenarioPrompt}
     additionalPrompt ? `Additional style: ${additionalPrompt}` : '',
   ].filter(Boolean);
 
-  // ★★★ 오버레이 텍스트 JSON 요청 - overlay-prompts.ts의 buildOverlayTextPrompt 사용
+  // ★★★ 공통 오버레이 텍스트 요청 생성 ★★★
   const overlayTextPrompt = buildOverlayTextPrompt(
-    mappedSectionType,  // ★ 이미 매핑된 타입 사용
+    mappedSectionType,
     productName,
     category,
     keyFeatures || [],
     targetAudience || 'General'
   );
 
-  // ★★★ 이미지 생성이 최우선임을 명확히 함 (기본 모델 호환성) ★★★
-
-  // ★★★ Flash 모델용 강화 프롬프트 (이미지 내 텍스트 생성 금지) ★★★
   const isFlashModel = model === 'gemini-2.5-flash-image';
-  const noTextInImageReinforcement = isFlashModel ? `
-
-[⚠️⚠️⚠️ CRITICAL - ABSOLUTELY NO TEXT IN IMAGE ⚠️⚠️⚠️]
-★★★ THIS IS THE MOST IMPORTANT RULE ★★★
-
-1. DO NOT generate ANY text, letters, words, numbers, or typography INSIDE the image
-2. DO NOT render Korean (한글), English, Chinese, or ANY language text in the image
-3. The image must be 100% PURELY VISUAL: only product, background, props, lighting, effects
-4. NEVER attempt to write "24H", "95%", "글로시", "촉촉한", or ANY text directly in the image
-5. Korean text especially MUST NOT appear in images - it will look broken and distorted!
-
-★ WHERE TEXT GOES:
-- All text content → overlay JSON (statistics, headline, subheadline, body, cta fields)
-- The frontend renders text ON TOP of your clean image using HTML/CSS
-- Your job: generate a beautiful TEXT-FREE background image only
-
-★ VIOLATION = FAILED IMAGE:
-- If ANY text/letters/numbers/Korean characters appear in the generated image, it is REJECTED
-- This includes: product labels with text, stats, titles, Korean words, watermarks, ANY text at all
-- Generate ONLY: product visuals, backgrounds, lighting effects, decorative elements (NO TEXT)
-` : '';
-
-  // ★★★ 자유로운 크리에이티브 오버레이 디자인 ★★★
-  const creativeOverlayGuide = `
-
-[★ CREATIVE OVERLAY TEXT DESIGN - 키치하고 트렌디한 상세페이지 스타일 ★]
-You are a trendy Korean e-commerce detail page designer.
-Design CREATIVE, PLAYFUL, and BOLD typography that matches the generated image!
-
-★★★ DESIGN FREEDOM ★★★
-- Look at the image you generated and design text that COMPLEMENTS it
-- Be creative with placement - not everything needs to be centered!
-- Use unexpected positions, dynamic layouts, asymmetric designs
-- Mix different sizes dramatically for visual impact
-- 키치하고 감각적인 한국 상세페이지 스타일!
-
-★★★ COORDINATE SYSTEM: 1000x1000 PIXEL CANVAS ★★★
-- x: 0-1000 (0=left, 500=center, 1000=right)
-- y: 0-1000 (0=top, 500=middle, 1000=bottom)
-- fontSize: 12-72px (be bold with sizes!)
-- Place texts where they look BEST with the image
-
-★★★ COLOR & STYLE INSPIRATION ★★★
-- Vibrant: #FF6B6B, #4ECDC4, #FFE66D, #FF8C42
-- Elegant: #2C3E50, #E74C3C, #1ABC9C, #9B59B6
-- Luxurious: #C9B037, #BF9270, #2E4057, #8B4513
-- Pastel: #FFB3BA, #BAFFC9, #BAE1FF, #FFFFBA
-- Match colors to the image mood!
-
-CRITICAL RULES:
-- fontSize: INTEGER 12-72
-- x, y: INTEGER 0-1000
-- Do NOT overlap texts (maintain 60+ pixel gap)
-- Make it look like professional Korean detail page design!
-`;
-
-  const overlayTextRequest = `
-
-[★★★ OUTPUT REQUIREMENTS ★★★]
-1. GENERATE IMAGE FIRST (REQUIRED) - This is the primary output
-2. THEN return overlay text JSON (for placing text ON TOP of the generated image)
-
-[OVERLAY TEXT = Text to be placed ON TOP of the generated image]
-- NOT text inside the image
-- This is typography metadata (content, position, style) for frontend rendering
-- The overlay will be rendered as HTML/CSS on top of your generated image
-${noTextInImageReinforcement}
-${creativeOverlayGuide}
-${overlayTextPrompt}
-
-CRITICAL: You MUST generate an image. The overlay JSON is additional metadata for text positioning.`;
+  const overlayTextRequest = buildOverlayTextRequest(overlayTextPrompt, isFlashModel);
 
   const fullPrompt = `${basePrompt}${orchestrationContext}
 
