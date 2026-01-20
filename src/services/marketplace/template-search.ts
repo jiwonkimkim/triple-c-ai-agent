@@ -26,7 +26,14 @@ export interface TemplateSearchResult {
   rating: number | null;
   ratingCount: number;
   publishedAt: Date | null;
-  similarity: number; // cosine similarity (0 ~ 1)
+  similarity: number; // combined score (0 ~ 1)
+  // 점수 상세 (디버깅/분석용)
+  scoreDetails?: {
+    semanticScore: number;  // Dense: 벡터 유사도 (0~1)
+    keywordScore: number;   // Sparse: 키워드 매칭 (0~1.4)
+    combinedScore: number;  // 최종 하이브리드 점수
+    hybridWeight: number;   // 시멘틱 가중치 (0~1)
+  };
   seller: {
     id: string;
     name: string;
@@ -47,6 +54,8 @@ interface RawSearchResult {
   ratingCount: number;
   publishedAt: Date | null;
   similarity: number;
+  semantic_score: number;
+  keyword_score: number;
   user_id: string | null;
   user_name: string | null;
   user_nickname: string | null;
@@ -125,6 +134,8 @@ export async function semanticSearchTemplates(
     combined_scores AS (
       SELECT
         COALESCE(s.id, k.id) as id,
+        COALESCE(s.semantic_score, 0) as semantic_score,
+        COALESCE(k.keyword_score, 0) as keyword_score,
         (COALESCE(s.semantic_score, 0) * ${hybridWeight} +
          COALESCE(k.keyword_score, 0) * ${1 - hybridWeight}) as combined_score
       FROM semantic_scores s
@@ -145,6 +156,8 @@ export async function semanticSearchTemplates(
       t.rating_count as "ratingCount",
       t.published_at as "publishedAt",
       c.combined_score as similarity,
+      c.semantic_score,
+      c.keyword_score,
       t.user_id,
       u.name as user_name,
       u.nickname as user_nickname,
@@ -192,7 +205,7 @@ export async function semanticSearchTemplates(
        OR COALESCE(k.keyword_score, 0) > 0
   `;
 
-  const templates = results.map((r) => ({
+  const templates: TemplateSearchResult[] = results.map((r) => ({
     id: r.id,
     name: r.name,
     category: r.category,
@@ -205,6 +218,12 @@ export async function semanticSearchTemplates(
     ratingCount: r.ratingCount,
     publishedAt: r.publishedAt,
     similarity: r.similarity,
+    scoreDetails: {
+      semanticScore: Number(r.semantic_score) || 0,
+      keywordScore: Number(r.keyword_score) || 0,
+      combinedScore: Number(r.similarity) || 0,
+      hybridWeight,
+    },
     seller: r.user_id
       ? {
         id: r.user_id,

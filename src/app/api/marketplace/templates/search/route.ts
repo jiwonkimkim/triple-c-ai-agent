@@ -129,6 +129,13 @@ export async function GET(request: NextRequest) {
         query,
         mode,
         category: finalCategory,
+        hybridWeight,
+        // 점수 설명
+        scoring: {
+          semantic: `Dense search (벡터 유사도) - 가중치 ${(hybridWeight * 100).toFixed(0)}%`,
+          keyword: `Sparse search (키워드 매칭) - 가중치 ${((1 - hybridWeight) * 100).toFixed(0)}%`,
+          formula: 'combined = (semantic × hybridWeight) + (keyword × (1 - hybridWeight))',
+        },
       },
     });
   } catch (error) {
