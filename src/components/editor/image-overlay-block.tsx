@@ -81,7 +81,7 @@ import { getFontOptionsForEditor } from '@/constants/fonts';
 const fontOptions = getFontOptionsForEditor();
 
 // 텍스트 타입별 기본 스타일
-// width가 설정되면 화면 안에서 줄바꿈됨, 이동해도 동적으로 줄어들지 않음
+// width 없음 = 텍스트 길이에 맞게 auto 크기
 const defaultStylesByType: Record<OverlayText['type'], Partial<OverlayTextStyle>> = {
   headline: {
     x: 50,
@@ -91,7 +91,7 @@ const defaultStylesByType: Record<OverlayText['type'], Partial<OverlayTextStyle>
     color: '#ffffff',
     textShadow: true,
     textAlign: 'center',
-    width: 80,  // 기본 너비 80% - 화면 안에서 줄바꿈
+    // width 없음 - 텍스트 길이에 맞게 자동 조절
   },
   subheadline: {
     x: 50,
@@ -101,7 +101,7 @@ const defaultStylesByType: Record<OverlayText['type'], Partial<OverlayTextStyle>
     color: '#ffffff',
     textShadow: true,
     textAlign: 'center',
-    width: 70,  // 기본 너비 70%
+    // width 없음 - 텍스트 길이에 맞게 자동 조절
   },
   body: {
     x: 50,
@@ -111,7 +111,7 @@ const defaultStylesByType: Record<OverlayText['type'], Partial<OverlayTextStyle>
     color: '#ffffff',
     textShadow: true,
     textAlign: 'center',
-    width: 80,  // 기본 너비 80%
+    // width 없음 - 텍스트 길이에 맞게 자동 조절
   },
   statistic: {
     x: 50,
@@ -121,7 +121,6 @@ const defaultStylesByType: Record<OverlayText['type'], Partial<OverlayTextStyle>
     color: '#ffffff',
     textShadow: true,
     textAlign: 'center',
-    // 통계 숫자는 보통 짧아서 width 없음
   },
   cta: {
     x: 50,
@@ -132,7 +131,6 @@ const defaultStylesByType: Record<OverlayText['type'], Partial<OverlayTextStyle>
     backgroundColor: 'rgba(0,0,0,0.7)',
     padding: '12px 24px',
     textAlign: 'center',
-    // CTA 버튼은 보통 짧아서 width 없음
   },
   folder: {
     // 폴더는 컨테이너 레이어이므로 렌더링되지 않음
@@ -1098,6 +1096,7 @@ export function ImageOverlayBlockRenderer({
             <div
               key={overlayText.id}
               data-overlay-text="true"
+              draggable={false}
               className={cn(
                 'absolute cursor-move select-none transition-shadow',
                 (isDragging || isResizing || isMultiDragging) && selectedTextId === overlayText.id && 'cursor-grabbing',
@@ -1117,6 +1116,7 @@ export function ImageOverlayBlockRenderer({
                 width: overlayText.style.width ? `${overlayText.style.width}%` : 'auto',
               }}
               onMouseDown={(e) => handleDragStart(e, overlayText.id)}
+              onDragStart={(e) => e.preventDefault()}
               onDoubleClick={(e) => {
                 e.stopPropagation();
                 setSelectedTextId(overlayText.id);
@@ -1149,6 +1149,8 @@ export function ImageOverlayBlockRenderer({
                 />
               ) : (
                 <div
+                  draggable={false}
+                  onDragStart={(e) => e.preventDefault()}
                   style={{
                     color: overlayText.style.color || '#ffffff',
                     backgroundColor: overlayText.style.backgroundColor,
