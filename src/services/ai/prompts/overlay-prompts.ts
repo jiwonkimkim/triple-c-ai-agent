@@ -334,10 +334,10 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: '{브랜드명}', x: 50, y: 8, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
-          { text: '{제품라인 영문}', x: 50, y: 18, fontSize: 32, fontWeight: 'bold', textAlign: 'center' },
-          { text: 'NEW {제품명 한글}', x: 50, y: 28, fontSize: 20, fontWeight: 'normal', textAlign: 'center' },
-          { text: '{브랜드 슬로건}', x: 50, y: 88, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+          { text: '{브랜드명}', x: 50.0, y: 8.0, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+          { text: '{제품라인 영문}', x: 50.0, y: 18.0, fontSize: 32, fontWeight: 'bold', textAlign: 'center' },
+          { text: 'NEW {제품명 한글}', x: 50.0, y: 28.0, fontSize: 20, fontWeight: 'normal', textAlign: 'center' },
+          { text: '{브랜드 슬로건}', x: 50.0, y: 88.0, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
         ],
       },
     ],
@@ -347,17 +347,17 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: '{핵심 효능 한 문장}', x: 50, y: 10, fontSize: 18, fontWeight: 'normal', textAlign: 'center' },
-          { text: '#{키워드1} #{키워드2} #{키워드3}', x: 50, y: 18, fontSize: 12, fontWeight: 'normal', textAlign: 'center' },
-          { text: 'HYALURONIC ACID', x: 50, y: 55, fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
-          { text: '48H 보습 지속', x: 50, y: 65, fontSize: 16, fontWeight: 'normal', textAlign: 'center' },
+          { text: '{핵심 효능 한 문장}', x: 50.0, y: 10.0, fontSize: 18, fontWeight: 'normal', textAlign: 'center' },
+          { text: '#{키워드1} #{키워드2} #{키워드3}', x: 50.0, y: 18.0, fontSize: 12, fontWeight: 'normal', textAlign: 'center' },
+          { text: 'HYALURONIC ACID', x: 50.0, y: 55.0, fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
+          { text: '48H 보습 지속', x: 50.0, y: 65.0, fontSize: 16, fontWeight: 'normal', textAlign: 'center' },
         ],
       },
       {
         texts: [
-          { text: 'Point 01', x: 50, y: 12, fontSize: 14, fontWeight: 'bold', textAlign: 'center' },
-          { text: '{첫 번째 핵심 특징}', x: 50, y: 22, fontSize: 22, fontWeight: 'bold', textAlign: 'center' },
-          { text: '{특징 상세 설명}', x: 50, y: 32, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+          { text: 'Point 01', x: 50.0, y: 12.0, fontSize: 14, fontWeight: 'bold', textAlign: 'center' },
+          { text: '{첫 번째 핵심 특징}', x: 50.0, y: 22.0, fontSize: 22, fontWeight: 'bold', textAlign: 'center' },
+          { text: '{특징 상세 설명}', x: 50.0, y: 32.0, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
         ],
       },
     ],
@@ -367,14 +367,14 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: 'CLINICAL TEST', x: 50, y: 55, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
-          { text: '{핵심 효과 한 문장}', x: 50, y: 65, fontSize: 20, fontWeight: 'bold', textAlign: 'center' },
-          { text: '98%', x: 25, y: 78, fontSize: 36, fontWeight: 'bold', textAlign: 'center' },
-          { text: '만족도', x: 25, y: 88, fontSize: 12, fontWeight: 'normal', textAlign: 'center' },
-          { text: '24H', x: 50, y: 78, fontSize: 36, fontWeight: 'bold', textAlign: 'center' },
-          { text: '지속력', x: 50, y: 88, fontSize: 12, fontWeight: 'normal', textAlign: 'center' },
-          { text: '2.5배', x: 75, y: 78, fontSize: 36, fontWeight: 'bold', textAlign: 'center' },
-          { text: '흡수력', x: 75, y: 88, fontSize: 12, fontWeight: 'normal', textAlign: 'center' },
+          { text: 'CLINICAL TEST', x: 50.0, y: 55.0, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+          { text: '{핵심 효과 한 문장}', x: 50.0, y: 65.0, fontSize: 20, fontWeight: 'bold', textAlign: 'center' },
+          { text: '98%', x: 25.0, y: 78.0, fontSize: 36, fontWeight: 'bold', textAlign: 'center' },
+          { text: '만족도', x: 25.0, y: 88.0, fontSize: 12, fontWeight: 'normal', textAlign: 'center' },
+          { text: '24H', x: 50.0, y: 78.0, fontSize: 36, fontWeight: 'bold', textAlign: 'center' },
+          { text: '지속력', x: 50.0, y: 88.0, fontSize: 12, fontWeight: 'normal', textAlign: 'center' },
+          { text: '2.5배', x: 75.0, y: 78.0, fontSize: 36, fontWeight: 'bold', textAlign: 'center' },
+          { text: '흡수력', x: 75.0, y: 88.0, fontSize: 12, fontWeight: 'normal', textAlign: 'center' },
         ],
       },
     ],
@@ -384,14 +384,14 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: '3 STEP', x: 50, y: 12, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
-          { text: '{간단한 사용법 요약}', x: 50, y: 22, fontSize: 18, fontWeight: 'bold', textAlign: 'center' },
+          { text: '3 STEP', x: 50.0, y: 12.0, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+          { text: '{간단한 사용법 요약}', x: 50.0, y: 22.0, fontSize: 18, fontWeight: 'bold', textAlign: 'center' },
         ],
       },
       {
         texts: [
-          { text: 'STEP 1', x: 50, y: 15, fontSize: 16, fontWeight: 'bold', textAlign: 'center' },
-          { text: '{동작 설명}', x: 50, y: 25, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+          { text: 'STEP 1', x: 50.0, y: 15.0, fontSize: 16, fontWeight: 'bold', textAlign: 'center' },
+          { text: '{동작 설명}', x: 50.0, y: 25.0, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
         ],
       },
     ],
@@ -401,9 +401,9 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: 'Color Chart', x: 50, y: 10, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
-          { text: '{라인업명}', x: 50, y: 20, fontSize: 22, fontWeight: 'bold', textAlign: 'center' },
-          { text: 'PINK FLAKE 핑크 플레이크', x: 50, y: 75, fontSize: 12, fontWeight: 'normal', textAlign: 'center' },
+          { text: 'Color Chart', x: 50.0, y: 10.0, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+          { text: '{라인업명}', x: 50.0, y: 20.0, fontSize: 22, fontWeight: 'bold', textAlign: 'center' },
+          { text: 'PINK FLAKE 핑크 플레이크', x: 50.0, y: 75.0, fontSize: 12, fontWeight: 'normal', textAlign: 'center' },
         ],
       },
     ],
@@ -413,10 +413,10 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: 'KEY INGREDIENT', x: 50, y: 12, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
-          { text: '{핵심 성분명}', x: 50, y: 25, fontSize: 28, fontWeight: 'bold', textAlign: 'center' },
-          { text: '95%', x: 50, y: 40, fontSize: 36, fontWeight: 'bold', textAlign: 'center' },
-          { text: '{성분 효능 설명}', x: 50, y: 52, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+          { text: 'KEY INGREDIENT', x: 50.0, y: 12.0, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+          { text: '{핵심 성분명}', x: 50.0, y: 25.0, fontSize: 28, fontWeight: 'bold', textAlign: 'center' },
+          { text: '95%', x: 50.0, y: 40.0, fontSize: 36, fontWeight: 'bold', textAlign: 'center' },
+          { text: '{성분 효능 설명}', x: 50.0, y: 52.0, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
         ],
       },
     ],
@@ -426,9 +426,9 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: 'TEXTURE', x: 50, y: 15, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
-          { text: '{텍스처 특징}', x: 50, y: 28, fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
-          { text: '{감촉} · {발림성} · {마무리감}', x: 50, y: 40, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+          { text: 'TEXTURE', x: 50.0, y: 15.0, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+          { text: '{텍스처 특징}', x: 50.0, y: 28.0, fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
+          { text: '{감촉} · {발림성} · {마무리감}', x: 50.0, y: 40.0, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
         ],
       },
     ],
@@ -438,8 +438,8 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: '{구매 유도 핵심 문구}', x: 50, y: 40, fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
-          { text: '{한정 혜택/이벤트}', x: 50, y: 55, fontSize: 16, fontWeight: 'normal', textAlign: 'center' },
+          { text: '{구매 유도 핵심 문구}', x: 50.0, y: 40.0, fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
+          { text: '{한정 혜택/이벤트}', x: 50.0, y: 55.0, fontSize: 16, fontWeight: 'normal', textAlign: 'center' },
         ],
       },
     ],
@@ -813,14 +813,14 @@ Design with free text colors that match the image.
 
 ## 응답 형식
 자유롭게 배치할 텍스트들을 texts 배열로 반환하세요:
-★★★ 좌표는 0-100% 퍼센트입니다! (50=중앙) ★★★
+★★★ 좌표는 0-100% 퍼센트입니다! (50.0=중앙, 소수점 사용) ★★★
 
 {
   "texts": [
     {
       "text": "텍스트 내용",
-      "x": 50,
-      "y": 15,
+      "x": 50.0,
+      "y": 15.0,
       "fontSize": 24,
       "fontWeight": "bold",
       "color": "#333333",
@@ -832,8 +832,8 @@ Design with free text colors that match the image.
 ## 텍스트 배치 가이드 (0-100% 좌표계)
 
 ### 위치 (x, y)
-- x: 0-100 (가로 위치, 50 = 정중앙)
-- y: 0-100 (세로 위치, 0 = 상단, 100 = 하단)
+- x: 0.0-100.0 (가로 위치, 50.0 = 정중앙)
+- y: 0.0-100.0 (세로 위치, 0.0 = 상단, 100.0 = 하단)
 
 ### 글씨 크기 (fontSize)
 - Choose the size freely based on your design intent
