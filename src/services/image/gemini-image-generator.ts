@@ -1593,9 +1593,11 @@ export async function generateSectionImageFromProduct(
   // ★★★ 텍스트 배경 섹션은 제품 이미지 없이 T2I로 생성해야 함
   const isTextBackgroundSection = /^(TEXT_BANNER|KEY_MESSAGE|BENEFIT_HIGHLIGHT|DIVIDER_VISUAL)/i.test(sectionType);
   if (isTextBackgroundSection) {
-    console.log(`[Gemini I2I] ★ TEXT BACKGROUND SECTION: ${sectionType} - Redirecting to T2I mode (no product)`);
+    console.log(`[Gemini I2I] ★ TEXT BACKGROUND SECTION: ${sectionType} - Using direct color prompt (bypassing buildSharedSectionPrompt)`);
 
-    // ★★★ orchestration-service.ts와 동일한 로직 사용 ★★★
+    // ★★★ generateImageWithGemini 직접 호출 (buildSharedSectionPrompt 우회!)
+    // generateSectionImageWithGemini를 거치면 제품 관련 내용이 포함되므로 직접 호출
+
     const categoryColorMap: Record<string, { primary: string; gradient: string; name: string }> = {
       lip: { primary: '#FFB6C1', gradient: 'soft pink to coral', name: 'pink' },
       skincare: { primary: '#98D8AA', gradient: 'white to soft mint', name: 'mint' },
@@ -1611,19 +1613,43 @@ export async function generateSectionImageFromProduct(
     const colorPrompt = `Pure solid ${colorInfo.name} (${colorInfo.primary}) color fill only, completely flat empty background, no objects, no shapes, no textures, no patterns, just clean solid color, 8K resolution`;
     const negativePrompt = 'product, cosmetic, bottle, tube, packaging, container, objects, shapes, decorations, patterns, textures, elements, water droplets, leaves, botanical, sparkles, glow effects, text, letters, words, typography';
 
-    const t2iPrompt = scenarioPrompt ||
-      `${colorPrompt}, absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only --negative ${negativePrompt}`;
-
-    // ★ 텍스트 배경 섹션은 'FEATURES'를 기본값으로 사용 (자유 비율)
-    return generateSectionImageWithGemini(
-      'FEATURES',
-      t2iPrompt,
+    // ★★★ 오버레이 텍스트 요청 생성
+    const textBgOverlayPrompt = buildOverlayTextPrompt(
+      'FEATURES' as SectionType,
       productName,
       category,
-      model,
-      keyFeatures,
-      targetAudience
+      keyFeatures || [],
+      targetAudience || 'General'
     );
+    const isFlashModel = model === 'gemini-2.5-flash-image';
+    const overlayTextRequest = buildOverlayTextRequest(textBgOverlayPrompt, isFlashModel, '16:9');
+
+    // ★★★ 최종 프롬프트: 색상 + 오버레이 (제품 관련 내용 없음!)
+    const textBgFinalPrompt = `${colorPrompt}, absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only --negative ${negativePrompt}${overlayTextRequest}`;
+
+    // ★★★ generateImageWithGemini 직접 호출
+    const textBgImages = await generateImageWithGemini({
+      prompt: textBgFinalPrompt,
+      model,
+      aspectRatio: '16:9',
+    });
+
+    if (textBgImages.length === 0) {
+      throw new Error(`No image generated for text background section ${sectionType}`);
+    }
+
+    // ★★★ promptComponents 설정 (텍스트 배경 전용)
+    return {
+      ...textBgImages[0],
+      revisedPrompt: textBgFinalPrompt,
+      promptComponents: {
+        overlayTextPrompt: textBgOverlayPrompt,
+        overlayGuidePrompt: buildCreativeOverlayGuide('16:9'),
+        noTextReinforcement: isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : undefined,
+        fixedPrompt: `[TEXT BACKGROUND - ${sectionType}]\n${colorPrompt}\n\n--negative ${negativePrompt}`,
+        dynamicPrompt: `[Direct color prompt - no product, no buildSharedSectionPrompt]`,
+      },
+    };
   }
 
   // ★★★ 모듈 레벨 mapToBaseSectionType 사용 (함수 초반에 정의)
@@ -1838,9 +1864,11 @@ export async function generateSectionImageWithOverlay(
   } else {
     // T2I 모드: 프롬프트 기반 생성
     // ★★★ 텍스트 배경 섹션일 때는 제품 없는 순수 색상 프롬프트 사용
-    let t2iPrompt: string;
     if (isTextBackgroundSection) {
-      // ★★★ orchestration-service.ts와 동일한 로직 사용 ★★★
+      // ★★★ 텍스트 배경 섹션: generateImageWithGemini 직접 호출 ★★★
+      // generateSectionImageWithGemini를 거치면 buildSharedSectionPrompt가 실행되어 제품 관련 내용이 포함됨
+      // 따라서 직접 generateImageWithGemini를 호출하여 순수 색상 프롬프트만 사용
+
       // 카테고리별 색상 매핑
       const categoryColorMap: Record<string, { primary: string; gradient: string; name: string }> = {
         lip: { primary: '#FFB6C1', gradient: 'soft pink to coral', name: 'pink' },
@@ -1864,25 +1892,65 @@ export async function generateSectionImageWithOverlay(
       // ★ 동일한 negative prompt
       const negativePrompt = 'product, cosmetic, bottle, tube, packaging, container, objects, shapes, decorations, patterns, textures, elements, water droplets, leaves, botanical, sparkles, glow effects, text, letters, words, typography';
 
-      // ★★★ 텍스트 배경 섹션은 imagePrompt/scenarioPrompt를 무시하고 컬러 프롬프트만 사용
-      // (scenarioPrompt에 제품 관련 내용이 포함되어 제품이 나오는 문제 방지)
-      t2iPrompt = `${colorPrompt}, absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only --negative ${negativePrompt}`;
-      console.log(`[Image+Overlay] ★ Text background section ${sectionType}: Using ${blockVariant} color prompt (no product)`);
-    } else {
-      t2iPrompt = imagePrompt || scenarioPrompt || `${productName} ${category} product image`;
-    }
+      // ★★★ 오버레이 텍스트 요청 생성 (텍스트 배경용)
+      const textBgOverlayPrompt = buildOverlayTextPrompt(
+        'FEATURES' as SectionType,  // 텍스트 배경은 FEATURES 레이아웃 사용
+        productName,
+        category,
+        keyFeatures || [],
+        targetAudience || 'General'
+      );
+      const isFlashModel = model === 'gemini-2.5-flash-image';
+      const overlayTextRequest = buildOverlayTextRequest(textBgOverlayPrompt, isFlashModel, '16:9');
 
-    generatedImage = await generateSectionImageWithGemini(
-      normalizedSectionType,
-      t2iPrompt,
-      productName,
-      category,
-      model,
-      keyFeatures,
-      targetAudience
-    );
-    // ★ 이미지에 사용된 프롬프트 저장
-    usedImagePrompt = generatedImage.revisedPrompt || t2iPrompt;
+      // ★★★ 최종 프롬프트: 색상 프롬프트 + 오버레이 텍스트 요청 (제품 관련 내용 없음!)
+      const textBgFinalPrompt = `${colorPrompt}, absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only --negative ${negativePrompt}${overlayTextRequest}`;
+
+      console.log(`[Image+Overlay] ★ Text background section ${sectionType}: Using ${blockVariant} color prompt DIRECTLY (bypassing buildSharedSectionPrompt)`);
+
+      // ★★★ generateImageWithGemini 직접 호출 (buildSharedSectionPrompt 우회!)
+      const textBgImages = await generateImageWithGemini({
+        prompt: textBgFinalPrompt,
+        model,
+        aspectRatio: '16:9',  // 텍스트 배경은 16:9
+      });
+
+      if (textBgImages.length === 0) {
+        throw new Error(`No image generated for text background section ${sectionType}`);
+      }
+
+      // ★★★ promptComponents 설정 (텍스트 배경 전용 - sectionBasePrompt 없음!)
+      generatedImage = {
+        ...textBgImages[0],
+        revisedPrompt: textBgFinalPrompt,
+        promptComponents: {
+          // 텍스트 배경 섹션은 sectionBasePrompt 없음 (제품 관련 내용 방지)
+          // orchestrationPrompt도 없음 (색상 프롬프트만 사용)
+          overlayTextPrompt: textBgOverlayPrompt,
+          overlayGuidePrompt: buildCreativeOverlayGuide('16:9'),
+          noTextReinforcement: isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : undefined,
+          // 텍스트 배경 전용 프롬프트 (DEV 모드 표시용)
+          fixedPrompt: `[TEXT BACKGROUND - ${sectionType}]\n${colorPrompt}\n\n--negative ${negativePrompt}`,
+          dynamicPrompt: `[Direct color prompt - no product, no buildSharedSectionPrompt]`,
+        },
+      };
+      usedImagePrompt = textBgFinalPrompt;
+    } else {
+      // ★★★ 일반 섹션: generateSectionImageWithGemini 사용
+      const t2iPrompt = imagePrompt || scenarioPrompt || `${productName} ${category} product image`;
+
+      generatedImage = await generateSectionImageWithGemini(
+        normalizedSectionType,
+        t2iPrompt,
+        productName,
+        category,
+        model,
+        keyFeatures,
+        targetAudience
+      );
+      // ★ 이미지에 사용된 프롬프트 저장
+      usedImagePrompt = generatedImage.revisedPrompt || t2iPrompt;
+    }
   }
 
   // 2. 오버레이 텍스트 처리
