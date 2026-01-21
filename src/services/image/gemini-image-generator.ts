@@ -8,10 +8,38 @@ import { buildOverlayTextPrompt, BlockOverlayOptions } from '@/services/ai/promp
 // ============================================
 
 /**
+ * ★★★ 비율별 실제 해상도 매핑 (Gemini 3 Pro Image 1K 기준) ★★★
+ * 오버레이 텍스트 좌표 계산에 사용
+ */
+const ASPECT_RATIO_RESOLUTIONS: Record<string, { width: number; height: number }> = {
+  '1:1': { width: 1024, height: 1024 },
+  '2:3': { width: 848, height: 1264 },
+  '3:4': { width: 896, height: 1200 },
+  '4:3': { width: 1200, height: 896 },
+  '4:5': { width: 928, height: 1152 },
+  '5:4': { width: 1152, height: 928 },
+  '16:9': { width: 1376, height: 768 },
+  '9:16': { width: 768, height: 1376 },
+  '21:9': { width: 1584, height: 672 },
+  '3:2': { width: 1264, height: 848 },
+};
+
+// 기본 해상도 (비율이 지정되지 않은 경우 - 3:4 상세페이지 기본)
+const DEFAULT_RESOLUTION = { width: 896, height: 1200 };
+
+/**
+ * 비율에 해당하는 실제 해상도 반환
+ */
+function getResolutionForAspectRatio(aspectRatio?: string): { width: number; height: number } {
+  if (!aspectRatio) return DEFAULT_RESOLUTION;
+  return ASPECT_RATIO_RESOLUTIONS[aspectRatio] || DEFAULT_RESOLUTION;
+}
+
+/**
  * 섹션 타입별 aspectRatio 결정
  * - MAIN: 1:1 (정사각형 썸네일)
  * - TEXT_BANNER, DIVIDER_VISUAL, KEY_MESSAGE 등 텍스트 배경: 16:9 (가로 배너)
- * - 나머지: undefined (자유 비율)
+ * - 나머지: 3:4 (상세페이지 기본)
  */
 function getSectionAspectRatio(sectionType: string): ImageAspectRatio | undefined {
   const upperType = sectionType.toUpperCase();
@@ -26,8 +54,8 @@ function getSectionAspectRatio(sectionType: string): ImageAspectRatio | undefine
     return '16:9';
   }
 
-  // 나머지: 자유 비율
-  return undefined;
+  // 나머지: 3:4 상세페이지 기본 비율
+  return '3:4';
 }
 
 /**
@@ -215,9 +243,16 @@ const NO_TEXT_IN_IMAGE_REINFORCEMENT = `
 `;
 
 /**
- * 자유로운 크리에이티브 오버레이 디자인 가이드
+ * 자유로운 크리에이티브 오버레이 디자인 가이드 (% 좌표계)
+ * @param aspectRatio - 이미지 비율 (1:1, 3:4, 16:9 등)
  */
-const CREATIVE_OVERLAY_GUIDE = `
+function buildCreativeOverlayGuide(aspectRatio?: string): string {
+  const resolution = getResolutionForAspectRatio(aspectRatio);
+  const { width, height } = resolution;
+  const isWide = width > height;  // 16:9 등 가로형
+  const isTall = height > width;  // 3:4, 9:16 등 세로형
+
+  return `
 [★ CREATIVE OVERLAY TEXT DESIGN - 키치하고 트렌디한 상세페이지 스타일 ★]
 You are a trendy Korean e-commerce detail page designer.
 Design CREATIVE, PLAYFUL, and BOLD typography that matches the generated image!
@@ -229,9 +264,13 @@ Design CREATIVE, PLAYFUL, and BOLD typography that matches the generated image!
 - Mix different sizes dramatically for visual impact
 - 키치하고 감각적인 한국 상세페이지 스타일!
 
-★★★ COORDINATE SYSTEM: 1000x1000 PIXEL CANVAS ★★★
-- x: 0-1000 (0=left, 500=center, 1000=right)
-- y: 0-1000 (0=top, 500=middle, 1000=bottom)
+★★★ COORDINATE SYSTEM: PERCENTAGE (0-100) ★★★
+Image aspect ratio: ${aspectRatio || '3:4'} (${width}x${height}px)
+${isWide ? '⚠️ WIDE FORMAT (16:9 etc): Horizontal banner - spread text across width, use smaller fontSize' : ''}
+${isTall ? '⚠️ TALL FORMAT (3:4 etc): Vertical layout - stack text vertically, use y-axis spacing' : ''}
+
+- x: 0-100 (0=left edge, 50=center, 100=right edge) - PERCENTAGE!
+- y: 0-100 (0=top edge, 50=middle, 100=bottom edge) - PERCENTAGE!
 - fontSize: 12-72px (be bold with sizes!)
 - Place texts where they look BEST with the image
 
@@ -244,10 +283,11 @@ Design CREATIVE, PLAYFUL, and BOLD typography that matches the generated image!
 
 CRITICAL RULES:
 - fontSize: INTEGER 12-72
-- x, y: INTEGER 0-1000
-- Do NOT overlap texts (maintain 60+ pixel gap)
+- x, y: INTEGER 0-100 (PERCENTAGE, NOT pixels!)
+- Do NOT overlap texts (maintain 10+ percentage gap)
 - Make it look like professional Korean detail page design!
 `;
+}
 
 /**
  * 타겟 고객 기반 스타일 문자열 생성
@@ -279,9 +319,13 @@ function buildFeatureHighlight(keyFeatures?: string[]): string {
 
 /**
  * 오버레이 텍스트 요청 프롬프트 생성 (공통)
+ * @param overlayTextPrompt - 오버레이 텍스트 프롬프트
+ * @param isFlashModel - Flash 모델 여부 (텍스트 금지 강화)
+ * @param aspectRatio - 이미지 비율 (좌표계 결정용)
  */
-function buildOverlayTextRequest(overlayTextPrompt: string, isFlashModel: boolean): string {
+function buildOverlayTextRequest(overlayTextPrompt: string, isFlashModel: boolean, aspectRatio?: string): string {
   const noTextReinforcement = isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : '';
+  const creativeGuide = buildCreativeOverlayGuide(aspectRatio);
 
   return `
 
@@ -294,7 +338,7 @@ function buildOverlayTextRequest(overlayTextPrompt: string, isFlashModel: boolea
 - This is typography metadata (content, position, style) for frontend rendering
 - The overlay will be rendered as HTML/CSS on top of your generated image
 ${noTextReinforcement}
-${CREATIVE_OVERLAY_GUIDE}
+${creativeGuide}
 ${overlayTextPrompt}
 
 CRITICAL: You MUST generate an image. The overlay JSON is additional metadata for text positioning.`;
@@ -819,11 +863,11 @@ ${imagePrompt}`;
   );
 
   const isFlashModel = model === 'gemini-2.5-flash-image';
-  const overlayTextRequest = buildOverlayTextRequest(overlayTextPrompt, isFlashModel);
+  const overlayTextRequest = buildOverlayTextRequest(overlayTextPrompt, isFlashModel, aspectRatio);
 
   const finalPrompt = sectionPrompt + overlayTextRequest;
 
-  console.log(`[Gemini T2I] Generating ${sectionType} (→${mappedSectionType}) with aspectRatio: ${aspectRatio || 'free'}, with overlay text request`);
+  console.log(`[Gemini T2I] Generating ${sectionType} (→${mappedSectionType}) with aspectRatio: ${aspectRatio || '3:4'}, with overlay text request`);
 
   const images = await generateImageWithGemini({
     prompt: finalPrompt,  // ★ 오버레이 텍스트 요청 포함된 프롬프트
@@ -1465,8 +1509,12 @@ ${scenarioPrompt}
     targetAudience || 'General'
   );
 
+  // ★★★ 섹션별 aspectRatio 결정 (공통 함수 사용) ★★★
+  // - MAIN: 1:1, TEXT_BANNER/DIVIDER_VISUAL 등: 16:9, 나머지: 3:4
+  const aspectRatio = getSectionAspectRatio(sectionType);
+
   const isFlashModel = model === 'gemini-2.5-flash-image';
-  const overlayTextRequest = buildOverlayTextRequest(overlayTextPrompt, isFlashModel);
+  const overlayTextRequest = buildOverlayTextRequest(overlayTextPrompt, isFlashModel, aspectRatio);
 
   const fullPrompt = `${basePrompt}${orchestrationContext}
 
@@ -1477,11 +1525,7 @@ ${additionalPrompt ? `Additional style: ${additionalPrompt}` : ''}
 OUTPUT: High-quality commercial photography, 8K resolution, no text on image.
 ${overlayTextRequest}`;
 
-  // ★★★ 섹션별 aspectRatio 결정 (공통 함수 사용) ★★★
-  // - MAIN: 1:1, TEXT_BANNER/DIVIDER_VISUAL 등: 16:9, 나머지: 자유
-  const aspectRatio = getSectionAspectRatio(sectionType);
-
-  console.log(`[Gemini I2I] Generating ${sectionType} (→${mappedSectionType}) section image, aspectRatio: ${aspectRatio || 'free'}`);
+  console.log(`[Gemini I2I] Generating ${sectionType} (→${mappedSectionType}) section image, aspectRatio: ${aspectRatio || '3:4'}`);
   if (mappedSectionType === 'MAIN') {
     console.log(`[Gemini I2I] MAIN with custom objects - keyFeatures: ${keyFeatures?.join(', ')}, target: ${targetAudience}`);
   }
