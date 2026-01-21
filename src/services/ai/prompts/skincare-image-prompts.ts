@@ -205,7 +205,9 @@ export interface SkincareImagePromptOptions {
 }
 
 // ============================================
-// 섹션별 기본 프롬프트 템플릿
+// Section Base Prompt Templates (섹션별 기본 프롬프트 템플릿)
+// English first, Korean translation below
+// 영문 우선, 아래에 한글 번역
 // ============================================
 
 const SKINCARE_SECTION_BASE_PROMPTS: Record<SkincareDetailSectionType, string> = {
@@ -216,6 +218,13 @@ dermatological brand aesthetic, trustworthy medical skincare feel,
 soft blue and white color scheme, professional e-commerce header style,
 clean typography space reserved, horizontal banner composition,
 CRITICAL: NO TEXT NO LETTERS - visual elements only
+---
+깨끗하고 미니멀한 배너 디자인, 흰색 배경에 공식 브랜드 로고,
+정품 인증 배지, 약국 십자 기호 (해당되는 경우),
+피부과 브랜드 미학, 신뢰감 있는 의료 스킨케어 느낌,
+소프트 블루와 화이트 색상 조합, 전문 이커머스 헤더 스타일,
+타이포그래피 공간 확보, 가로형 배너 구성,
+중요: 텍스트/글자 없음 - 시각적 요소만
 `.trim(),
 
   AWARD_RANKING: `
@@ -227,6 +236,15 @@ Korean beauty award style layout, Olive Young ranking aesthetic,
 achievement badges floating, subtle confetti or sparkle elements,
 clean modern infographic style, premium skincare award announcement,
 CRITICAL: NO TEXT NO NUMBERS - decorative badge shapes only
+---
+수상 축하 배너 디자인, 골든 트로피 아이콘 또는 월계관,
+"No.1" 랭킹 시각적 배지 요소, 5성 별점 표시,
+스킨케어 맥락의 물방울 모티프,
+수분감을 암시하는 라이트 블루 그라데이션 배경,
+K-뷰티 어워드 스타일 레이아웃, 올리브영 랭킹 미학,
+떠다니는 수상 배지, 은은한 색종이/반짝임 요소,
+깔끔하고 모던한 인포그래픽 스타일, 프리미엄 스킨케어 수상 공지,
+중요: 텍스트/숫자 없음 - 장식용 배지 형태만
 `.trim(),
 
   HERO_SPLASH: `
@@ -239,6 +257,16 @@ ultra-hydrating skincare concept, refreshing clean aesthetic,
 studio lighting with caustic light effects, 4K product visualization,
 luxury pharmacy skincare mood, professional commercial photography,
 CRITICAL: ABSOLUTELY NO TEXT NO LETTERS on product or background
+---
+화장품 제품 사진, 맑은 물에 잠긴 투명한 스킨케어 보틀/튜브,
+제품 주변의 역동적인 물 스플래시 폭발,
+고속 촬영 동작 정지 효과,
+순수한 아쿠아 블루 색상 팔레트, 떠오르는 수중 기포,
+수면을 뚫고 들어오는 광선,
+초보습 스킨케어 컨셉, 상쾌하고 깨끗한 미학,
+코스틱 조명 효과가 있는 스튜디오 조명, 4K 제품 시각화,
+럭셔리 약국 스킨케어 무드, 전문 상업 사진,
+중요: 제품이나 배경에 절대 텍스트/글자 없음
 `.trim(),
 
   TEXT_BANNER_1: `
@@ -247,6 +275,12 @@ soft mint (#98D8AA) solid fill OR simple white to mint horizontal gradient,
 completely flat empty background - absolutely NO objects NO water droplets NO shapes,
 just color fill for text overlay,
 CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO SHAPES NO PATTERNS NO DECORATIONS
+---
+순수 단색 또는 심플한 그라데이션 배경만,
+소프트 민트 (#98D8AA) 단색 채움 또는 화이트에서 민트로 심플한 가로 그라데이션,
+완전히 평평하고 빈 배경 - 오브젝트/물방울/도형 절대 없음,
+텍스트 오버레이용 색상 채움만,
+중요: 단색 또는 심플 그라데이션만 - 제품/도형/패턴/장식 없음
 `.trim(),
 
   REVIEW_SHOWCASE: `
@@ -259,6 +293,16 @@ clean white review cards with rounded corners,
 social proof layout design, testimonial section aesthetic,
 friendly approachable feel, user-generated content style mockup,
 CRITICAL: NO TEXT - only UI mockup shapes and icons
+---
+고객 리뷰 쇼케이스 디자인, 말풍선 요소,
+떠다니는 하트 아이콘과 엄지척 기호,
+소프트 파스텔 핑크와 블루 그라데이션 배경,
+한국 SNS 리뷰 스타일 카드, 5성 별점 표시,
+만족한 고객 이모지 요소,
+둥근 모서리의 깨끗한 화이트 리뷰 카드,
+사회적 증명 레이아웃 디자인, 후기 섹션 미학,
+친근하고 접근하기 쉬운 느낌, 사용자 생성 콘텐츠 스타일 목업,
+중요: 텍스트 없음 - UI 목업 형태와 아이콘만
 `.trim(),
 
   KEY_MESSAGE_1: `
@@ -267,6 +311,12 @@ soft radial gradient with white center fading to aqua blue edges OR solid light 
 completely flat empty background - absolutely NO objects NO silhouettes NO water glow,
 just color for message overlay,
 CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO SHAPES NO GLOW EFFECTS NO DECORATIONS
+---
+순수 단색 또는 심플한 방사형 그라데이션 배경만,
+중앙 화이트에서 가장자리 아쿠아 블루로 페이딩되는 소프트 방사형 그라데이션 또는 단색 라이트 블루 채움,
+완전히 평평하고 빈 배경 - 오브젝트/실루엣/물빛 효과 절대 없음,
+메시지 오버레이용 색상만,
+중요: 단색 또는 심플 그라데이션만 - 제품/도형/글로우 효과/장식 없음
 `.trim(),
 
   EFFICACY_VISUAL: `
@@ -279,6 +329,16 @@ scientific skincare infographic style,
 clean medical illustration aesthetic,
 hydration technology demonstration, Korean beauty skin science visual,
 CRITICAL: NO TEXT NO LABELS - pure visual diagram only
+---
+피부 수분 컨셉 시각화,
+수분을 흡수하는 피부층 단면도,
+진피층으로 침투하는 수분자 일러스트레이션,
+촉촉한 글래스 스킨 텍스처 클로즈업, 수분 장벽 시각화,
+피부 표면에 보호층을 형성하는 블루 물방울,
+과학적 스킨케어 인포그래픽 스타일,
+깔끔한 의학 일러스트레이션 미학,
+수분 기술 시연, K-뷰티 피부 과학 비주얼,
+중요: 텍스트/라벨 없음 - 순수 시각적 다이어그램만
 `.trim(),
 
   BENEFIT_HIGHLIGHT_1: `
@@ -287,6 +347,12 @@ solid sky blue fill OR simple two-color split (aqua blue and white),
 completely flat empty background - absolutely NO icons NO shapes NO water droplets,
 just color zones for benefit text overlay,
 CRITICAL: ONLY SOLID COLORS OR SIMPLE GRADIENTS - NO ICONS NO SHAPES NO DECORATIONS NO ACCENTS
+---
+순수 단색 또는 심플한 투톤 배경만,
+단색 스카이 블루 채움 또는 심플한 투컬러 분할 (아쿠아 블루와 화이트),
+완전히 평평하고 빈 배경 - 아이콘/도형/물방울 절대 없음,
+혜택 텍스트 오버레이용 색상 영역만,
+중요: 단색 또는 심플 그라데이션만 - 아이콘/도형/장식/악센트 없음
 `.trim(),
 
   INGREDIENT_TECH: `
@@ -298,6 +364,15 @@ mineral water source imagery or natural ingredient origin,
 clinical dermatology aesthetic, research and development feel,
 ingredient breakdown visual flowchart, modern pharmaceutical design style,
 CRITICAL: NO TEXT NO CHEMICAL FORMULAS displayed
+---
+과학적 성분 인포그래픽, 떠다니는 분자 구조,
+독자 기술 다이어그램, 블루 수분자 3D 렌더,
+깨끗한 화이트 연구실 배경, 육각형 화학 결합 패턴,
+히알루론산 또는 핵심 성분 분자 시각화,
+미네랄 워터 원천 이미지 또는 천연 성분 기원,
+임상 피부과학 미학, 연구 개발 느낌,
+성분 분석 시각적 플로우차트, 모던 제약 디자인 스타일,
+중요: 텍스트/화학식 표시 없음
 `.trim(),
 
   MODEL_RESULT: `
@@ -310,6 +385,16 @@ water droplet highlight effect on cheek,
 minimalist clean background, editorial K-beauty photography style,
 healthy skin glow, natural no-makeup makeup look,
 CRITICAL: NO TEXT overlays on image
+---
+20-30대 한국 여성 모델, 화장솜이나 손끝으로 스킨케어 제품 바르는 모습,
+촉촉하고 빛나는 피부 결과, 건강하고 화사한 안색,
+자연스러운 소프트 조명, 욕실 화장대 또는 깨끗한 스튜디오 세팅,
+상쾌하고 깨끗한 아침 스킨케어 루틴 무드,
+수분감 있는 광채 피부 텍스처 클로즈업,
+볼 위의 물방울 하이라이트 효과,
+미니멀리스트 깔끔한 배경, 에디토리얼 K-뷰티 포토그래피 스타일,
+건강한 피부 광채, 내추럴 노메이크업 메이크업 룩,
+중요: 이미지에 텍스트 오버레이 없음
 `.trim(),
 
   DIVIDER_VISUAL_1: `
@@ -318,6 +403,12 @@ solid aqua blue strip OR simple white to mint gradient strip,
 completely flat thin color band - absolutely NO patterns NO waves NO water droplets,
 just a color strip,
 CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT STRIP - NO PATTERNS NO WAVES NO DECORATIONS
+---
+순수 단색 가로 스트립만,
+단색 아쿠아 블루 스트립 또는 화이트에서 민트로 심플한 그라데이션 스트립,
+완전히 평평하고 얇은 컬러 밴드 - 패턴/웨이브/물방울 절대 없음,
+컬러 스트립만,
+중요: 단색 또는 심플 그라데이션 스트립만 - 패턴/웨이브/장식 없음
 `.trim(),
 
   STEP_GUIDE: `
@@ -331,6 +422,17 @@ clean instructional diagram style,
 soft pastel blue background, minimal iconography,
 Korean skincare routine tutorial aesthetic,
 CRITICAL: NO TEXT - numbered circles and arrows only
+---
+단계별 스킨케어 도포 가이드 비주얼,
+3단계 프로세스 인포그래픽 레이아웃,
+토너가 묻은 화장솜을 들고 있는 손 또는 손끝에 제품,
+번호가 매겨진 원형 배지 (1, 2, 3 시각적 원형),
+도포 방향을 나타내는 화살표 플로우,
+얼굴에 가볍게 두드리는 모션 일러스트레이션,
+깔끔한 설명용 다이어그램 스타일,
+소프트 파스텔 블루 배경, 미니멀 아이코노그래피,
+한국 스킨케어 루틴 튜토리얼 미학,
+중요: 텍스트 없음 - 번호 원형과 화살표만
 `.trim(),
 
   KEY_MESSAGE_2: `
@@ -342,6 +444,15 @@ high-end cosmetic brand keynote presentation aesthetic,
 minimalist luxury style with subtle metallic accents,
 NO product images, NO text in image, just elegant frame layout for text overlay,
 CRITICAL: Empty center for text - elegant border frame only
+---
+프리미엄 스킨케어 브랜드를 위한 럭셔리 프레젠테이션 슬라이드 디자인,
+소프트 민트/아쿠아 그라데이션 배경에 우아하고 얇은 골드 또는 실버 프레임 테두리,
+코너에 세련된 기하학적 라인 악센트,
+텍스트 오버레이를 위해 예약된 크고 깨끗한 빈 중앙 영역,
+하이엔드 화장품 브랜드 키노트 프레젠테이션 미학,
+은은한 메탈릭 악센트가 있는 미니멀리스트 럭셔리 스타일,
+제품 이미지 없음, 이미지에 텍스트 없음, 텍스트 오버레이용 우아한 프레임 레이아웃만,
+중요: 텍스트용 빈 중앙 - 우아한 테두리 프레임만
 `.trim(),
 
   PRODUCT_LINEUP: `
@@ -355,6 +466,17 @@ professional catalog product photography,
 top-down or 45-degree angle view, consistent lighting,
 pharmacy skincare collection display,
 CRITICAL: NO TEXT NO LABELS on products
+---
+제품 패밀리 플랫 레이 배치,
+완전한 스킨케어 라인 제품 진열,
+토너, 세럼, 크림, 클렌징 워터 보틀 정렬,
+작은 것에서 큰 것으로 그라데이션 사이즈 배치,
+깨끗한 화이트 인피니티 배경, 아래 소프트 그림자,
+일관된 패키징 색상 구성,
+전문 카탈로그 제품 사진,
+탑다운 또는 45도 앵글 뷰, 일관된 조명,
+약국 스킨케어 컬렉션 디스플레이,
+중요: 제품에 텍스트/라벨 없음
 `.trim(),
 
   TEXT_BANNER_2: `
@@ -363,6 +485,12 @@ simple horizontal gradient from white to soft blue OR solid light mint fill,
 completely flat empty background - absolutely NO sparkles NO bokeh NO water droplets,
 just color fill for closing text overlay,
 CRITICAL: ONLY SOLID COLOR OR SIMPLE GRADIENT - NO PRODUCTS NO SHAPES NO SPARKLES NO DECORATIONS
+---
+순수 단색 또는 심플한 그라데이션 배경만,
+화이트에서 소프트 블루로 심플한 가로 그라데이션 또는 단색 라이트 민트 채움,
+완전히 평평하고 빈 배경 - 스파클/보케/물방울 절대 없음,
+클로징 텍스트 오버레이용 색상 채움만,
+중요: 단색 또는 심플 그라데이션만 - 제품/도형/스파클/장식 없음
 `.trim(),
 
   SIZE_OPTIONS: `
@@ -374,6 +502,15 @@ minimal white background, subtle size visual indicators,
 e-commerce product option display style,
 clear volume comparison infographic,
 CRITICAL: NO TEXT NO NUMBERS - visual size difference only
+---
+제품 사이즈 비교 시각화,
+나란히 놓인 다양한 보틀 사이즈 (예: 100ml, 250ml, 500ml),
+측정 스케일 인디케이터 비주얼, 밸류 사이즈 하이라이트,
+깔끔한 제품 실루엣 라인업,
+미니멀 화이트 배경, 은은한 사이즈 시각적 인디케이터,
+이커머스 제품 옵션 디스플레이 스타일,
+명확한 용량 비교 인포그래픽,
+중요: 텍스트/숫자 없음 - 시각적 사이즈 차이만
 `.trim(),
 
   CTA_CLOSING: `
@@ -387,6 +524,17 @@ blue gradient with white space for text overlay,
 trust badge icon shapes (shipping truck, checkmark icons),
 compelling purchase motivation layout,
 CRITICAL: NO TEXT - placeholder shapes for text overlay only
+---
+콜투액션 배너 디자인,
+버튼 요소 공간 (빈 둥근 사각형),
+물결 효과 배경,
+제품 파이널 히어로 샷,
+긴급성 시각적 요소 (배지 형태 선택적),
+깔끔하고 모던한 이커머스 클로징 배너,
+텍스트 오버레이용 화이트 공간이 있는 블루 그라데이션,
+신뢰 배지 아이콘 형태 (배송 트럭, 체크마크 아이콘),
+설득력 있는 구매 동기 부여 레이아웃,
+중요: 텍스트 없음 - 텍스트 오버레이용 플레이스홀더 형태만
 `.trim(),
 };
 
