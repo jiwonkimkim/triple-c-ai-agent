@@ -1394,9 +1394,6 @@ export async function generateOverlayTextWithAnalysis(
     return map[pos] || { x: 50, y: 50 };
   };
 
-  const headlinePos = positionToCoords(primarySafeZone?.position || 'top-center');
-  const subheadlinePos = positionToCoords(secondarySafeZone?.position || primarySafeZone?.position || 'top-center');
-
   const colorPalette = imageAnalysis.colorPalette || ['#333333', '#666666', '#888888'];
 
   const prompt = `당신은 한국 이커머스 상세페이지 타이포그래피 디자이너입니다.
@@ -1420,29 +1417,22 @@ export async function generateOverlayTextWithAnalysis(
 2. 텍스트 개수, 위치, 크기를 창의적으로 결정
 3. 한국 이커머스 상세페이지 스타일 (올리브영 참조)
 
-JSON 형식으로 응답:
+JSON 형식으로 응답 (texts 배열에 자유롭게 텍스트 배치):
 {
   "texts": [
     {
-      "text": "메인 텍스트",
-      "x": ${headlinePos.x},
-      "y": ${headlinePos.y},
-      "fontSize": 32,
+      "text": "자유롭게 작성",
+      "x": 50.0,
+      "y": 20.0,
+      "fontSize": 24,
       "fontWeight": "bold",
       "color": "${colorPalette[0]}",
       "textAlign": "center"
-    },
-    {
-      "text": "보조 텍스트 (필요시)",
-      "x": ${subheadlinePos.x},
-      "y": ${subheadlinePos.y + 10},
-      "fontSize": 18,
-      "fontWeight": "normal",
-      "color": "${colorPalette[1] || colorPalette[0]}",
-      "textAlign": "center"
     }
   ]
-}`;
+}
+
+★ 텍스트 개수, 위치, 크기, 스타일을 모두 자유롭게 디자인하세요.`;
 
   try {
     const response = await gemini.models.generateContent({
