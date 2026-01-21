@@ -41,18 +41,32 @@ const PRO_RESOLUTIONS: Record<string, { width: number; height: number }> = {
   '21:9': { width: 1584, height: 672 },
 };
 
-// 기본값은 Flash 해상도 사용 (호환성)
-const ASPECT_RATIO_RESOLUTIONS = FLASH_RESOLUTIONS;
-
 // 기본 해상도 (비율이 지정되지 않은 경우 - 3:4 상세페이지 기본)
-const DEFAULT_RESOLUTION = { width: 864, height: 1184 };
+const DEFAULT_FLASH_RESOLUTION = { width: 864, height: 1184 };
+const DEFAULT_PRO_RESOLUTION = { width: 896, height: 1200 };
 
 /**
- * 비율에 해당하는 실제 해상도 반환
+ * 모델과 비율에 해당하는 실제 해상도 반환
+ * @param aspectRatio - 이미지 비율 (1:1, 3:4 등)
+ * @param model - 사용 모델 (flash 또는 pro 포함 문자열)
  */
-function getResolutionForAspectRatio(aspectRatio?: string): { width: number; height: number } {
-  if (!aspectRatio) return DEFAULT_RESOLUTION;
-  return ASPECT_RATIO_RESOLUTIONS[aspectRatio] || DEFAULT_RESOLUTION;
+function getResolutionForAspectRatio(
+  aspectRatio?: string,
+  model?: string
+): { width: number; height: number } {
+  const isProModel = model?.toLowerCase().includes('pro');
+  const resolutions = isProModel ? PRO_RESOLUTIONS : FLASH_RESOLUTIONS;
+  const defaultRes = isProModel ? DEFAULT_PRO_RESOLUTION : DEFAULT_FLASH_RESOLUTION;
+
+  if (!aspectRatio) return defaultRes;
+  return resolutions[aspectRatio] || defaultRes;
+}
+
+/**
+ * 모델명으로 Pro 모델 여부 확인
+ */
+function isProImageModel(model?: string): boolean {
+  return model?.toLowerCase().includes('pro') ?? false;
 }
 
 /**
@@ -375,12 +389,14 @@ const NO_TEXT_IN_IMAGE_REINFORCEMENT = `
 /**
  * 자유로운 크리에이티브 오버레이 디자인 가이드 (% 좌표계)
  * @param aspectRatio - 이미지 비율 (1:1, 3:4, 16:9 등)
+ * @param model - 사용 모델 (Flash/Pro에 따라 해상도 다름)
  */
-function buildCreativeOverlayGuide(aspectRatio?: string): string {
-  const resolution = getResolutionForAspectRatio(aspectRatio);
+function buildCreativeOverlayGuide(aspectRatio?: string, model?: string): string {
+  const resolution = getResolutionForAspectRatio(aspectRatio, model);
   const { width, height } = resolution;
   const isWide = width > height;  // 16:9 등 가로형
   const isTall = height > width;  // 3:4, 9:16 등 세로형
+  const modelName = isProImageModel(model) ? 'Pro (1K)' : 'Flash';
 
   return `
 [★ CREATIVE OVERLAY TEXT DESIGN ★]
@@ -408,8 +424,8 @@ Design CREATIVE, PLAYFUL, and BOLD typography that matches the generated image!
 ★★★ CANVAS SIZE & COORDINATE SYSTEM ★★★
 (캔버스 크기 & 좌표 시스템)
 
-📐 OUTPUT IMAGE SIZE: ${width} x ${height} pixels
-(출력 이미지 크기: ${width} x ${height} 픽셀)
+📐 MODEL: ${modelName} | OUTPUT IMAGE SIZE: ${width} x ${height} pixels
+(모델: ${modelName} | 출력 이미지 크기: ${width} x ${height} 픽셀)
 Image aspect ratio: ${aspectRatio || '3:4'}
 (이미지 비율)
 ${isWide ? `⚠️ WIDE FORMAT: Horizontal banner - spread text across width
@@ -495,10 +511,16 @@ function buildFeatureHighlight(keyFeatures?: string[]): string {
  * @param overlayTextPrompt - 오버레이 텍스트 프롬프트
  * @param isFlashModel - Flash 모델 여부 (텍스트 금지 강화)
  * @param aspectRatio - 이미지 비율 (좌표계 결정용)
+ * @param model - 사용 모델 (해상도 결정용)
  */
-function buildOverlayTextRequest(overlayTextPrompt: string, isFlashModel: boolean, aspectRatio?: string): string {
+function buildOverlayTextRequest(
+  overlayTextPrompt: string,
+  isFlashModel: boolean,
+  aspectRatio?: string,
+  model?: string
+): string {
   const noTextReinforcement = isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : '';
-  const creativeGuide = buildCreativeOverlayGuide(aspectRatio);
+  const creativeGuide = buildCreativeOverlayGuide(aspectRatio, model);
 
   return `
 
@@ -1057,7 +1079,8 @@ ${imagePrompt}`;
   );
 
   const isFlashModel = model === 'gemini-2.5-flash-image';
-  const overlayTextRequest = buildOverlayTextRequest(overlayTextPrompt, isFlashModel, aspectRatio);
+  // ★ 모델별 해상도 적용 (Flash: 864x1184, Pro: 896x1200 등)
+  const overlayTextRequest = buildOverlayTextRequest(overlayTextPrompt, isFlashModel, aspectRatio, model);
 
   const finalPrompt = sectionPrompt + overlayTextRequest;
 
@@ -1658,7 +1681,8 @@ export async function generateSectionImageFromProduct(
       targetAudience || 'General'
     );
     const isFlashModel = model === 'gemini-2.5-flash-image';
-    const overlayTextRequest = buildOverlayTextRequest(textBgOverlayPrompt, isFlashModel, '16:9');
+    // ★ 모델별 해상도 적용 (16:9 텍스트 배경)
+    const overlayTextRequest = buildOverlayTextRequest(textBgOverlayPrompt, isFlashModel, '16:9', model);
 
     // ★★★ 최종 프롬프트: 색상 + 오버레이 (제품 관련 내용 없음!)
     const textBgFinalPrompt = `${colorPrompt}, absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only --negative ${negativePrompt}${overlayTextRequest}`;
@@ -1759,7 +1783,8 @@ ${scenarioPrompt}
   const aspectRatio = getSectionAspectRatio(sectionType);
 
   const isFlashModel = model === 'gemini-2.5-flash-image';
-  const overlayTextRequest = buildOverlayTextRequest(overlayTextPrompt, isFlashModel, aspectRatio);
+  // ★ 모델별 해상도 적용 (Flash: 864x1184, Pro: 896x1200 등)
+  const overlayTextRequest = buildOverlayTextRequest(overlayTextPrompt, isFlashModel, aspectRatio, model);
 
   const fullPrompt = `${basePrompt}${orchestrationContext}
 
@@ -1937,7 +1962,8 @@ export async function generateSectionImageWithOverlay(
         targetAudience || 'General'
       );
       const isFlashModel = model === 'gemini-2.5-flash-image';
-      const overlayTextRequest = buildOverlayTextRequest(textBgOverlayPrompt, isFlashModel, '16:9');
+      // ★ 모델별 해상도 적용 (16:9 텍스트 배경)
+      const overlayTextRequest = buildOverlayTextRequest(textBgOverlayPrompt, isFlashModel, '16:9', model);
 
       // ★★★ 최종 프롬프트: 색상 프롬프트 + 오버레이 텍스트 요청 (제품 관련 내용 없음!)
       const textBgFinalPrompt = `${colorPrompt}, absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only --negative ${negativePrompt}${overlayTextRequest}`;
