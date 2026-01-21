@@ -1067,6 +1067,9 @@ ${imagePrompt}`;
       overlayGuidePrompt: buildCreativeOverlayGuide(aspectRatio),  // 오버레이 디자인 가이드 (공통)
       // [3] 공통 프롬프트 (Flash 모델 전용)
       noTextReinforcement: isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : undefined,  // Flash 모델용 텍스트 금지 강화
+      // [4] ★★★ DEV 모드 표시용 (fixedPrompt/dynamicPrompt 매핑)
+      fixedPrompt: `[T2I ${sectionType} → ${mappedSectionType}]\n\n${sectionBasePrompt}`,
+      dynamicPrompt: `[Orchestration Context]\n${(mappedSectionType !== 'MAIN' && imagePrompt) ? imagePrompt : '(MAIN 섹션 - 오케스트레이션 없음)'}\n\n[Overlay Text Prompt]\n${overlayTextPrompt}`,
     },
   };
 }
