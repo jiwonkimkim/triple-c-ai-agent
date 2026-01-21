@@ -76,12 +76,13 @@ export async function POST(request: NextRequest) {
       validatedData.sectionType
     );
 
-    // 제품 이미지 확인 (텍스트 배경 섹션은 제외)
-    if (!isTextBackgroundSection && (!project.productImages || project.productImages.length === 0)) {
-      return NextResponse.json(
-        { success: false, error: '제품 이미지가 없습니다. 프로젝트에 제품 이미지를 먼저 등록해주세요.' },
-        { status: 400 }
-      );
+    // ★★★ T2I 모드 감지: 제품 이미지가 없으면 T2I 모드로 재생성
+    // (제품 이미지 없이 생성된 프로젝트는 T2I 모드로 재생성 가능)
+    const hasProductImages = project.productImages && project.productImages.length > 0;
+    const isT2IMode = !hasProductImages;
+
+    if (isT2IMode) {
+      console.log('[Section Regenerate] ★★★ T2I MODE: No product images - using text-to-image regeneration');
     }
 
     const productImageUrl = project.productImages?.[0] || '';
