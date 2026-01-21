@@ -835,10 +835,10 @@ ${examplesJson}
 - y: 0-100 (세로 위치, 0 = 상단, 100 = 하단)
 
 ### 글씨 크기 (fontSize)
-- 작은 텍스트: 12-16px
-- 중간 텍스트: 18-24px
-- 큰 텍스트: 28-36px
-- 강조 숫자: 36-48px
+- Choose the size freely based on your design intent
+- 디자인 의도에 맞게 자유롭게 폰트 크기를 선택하세요
+- Consider visual hierarchy and readability
+- 시각적 계층과 가독성을 고려하세요
 
 ### 글씨 굵기 (fontWeight)
 - "normal" / "bold"
@@ -847,7 +847,7 @@ ${examplesJson}
 - "left" / "center" / "right"
 
 ## 체크리스트
-✅ fontSize: 12-48 정수값
+✅ fontSize: Choose freely based on your design intent (디자인 의도에 맞게 자유롭게 선택)
 ✅ x, y: 0-100 정수값
 ✅ 텍스트 간 y값 최소 8% 간격
 ✅ 제품 중앙(y: 30-70%) 영역 피하기
