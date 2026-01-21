@@ -1040,6 +1040,12 @@ export function ImageOverlayBlockRenderer({
       <div
         ref={containerRef}
         className="relative bg-muted overflow-visible"
+        draggable={false}
+        onDragStart={(e) => {
+          // ★★★ 부모 블록의 드래그 이벤트 전파 방지 (선택 박스 드래그와 충돌 방지) ★★★
+          e.preventDefault();
+          e.stopPropagation();
+        }}
         onMouseDown={(e) => {
           // 왼쪽 클릭만 처리
           if (e.button !== 0) return;
