@@ -847,10 +847,8 @@ ${examplesJson}
 - "left" / "center" / "right"
 
 ## 체크리스트
-✅ fontSize: Choose freely based on your design intent (디자인 의도에 맞게 자유롭게 선택)
-✅ x, y: 0-100 정수값
-✅ 텍스트 간 y값 최소 8% 간격
-✅ 제품 중앙(y: 30-70%) 영역 피하기
+✅ fontSize: Choose freely (디자인 의도에 맞게 자유롭게 선택)
+✅ x, y: 0-100 (소수값 허용, 자유롭게 배치)
 
 - JSON만 반환 (설명 없이)`;
 }
