@@ -97,7 +97,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const body = await request.json();
     const { content, attachments = [], selectedOptionId } = body;
 
-    if (!content && !selectedOptionId) {
+    // 메시지 내용, 선택 옵션, 또는 첨부 파일 중 하나는 있어야 함
+    if (!content && !selectedOptionId && (!attachments || attachments.length === 0)) {
       return NextResponse.json(
         { error: '메시지 내용이 필요합니다.' },
         { status: 400 }
@@ -125,11 +126,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // 사용자 메시지 저장
+    // content 결정: 텍스트 > 선택 옵션 > 이미지 첨부
+    let messageContent = content;
+    if (!messageContent && selectedOptionId) {
+      messageContent = `[선택] ${selectedOptionId}`;
+    } else if (!messageContent && attachments.length > 0) {
+      messageContent = `[이미지 ${attachments.length}장 첨부]`;
+    }
+
     const userMessage = await prisma.conversationMessage.create({
       data: {
         conversationId,
         role: 'user',
-        content: content || `[선택] ${selectedOptionId}`,
+        content: messageContent || '',
         attachments,
         metadata: selectedOptionId ? { selectedOptionId } : {},
       },

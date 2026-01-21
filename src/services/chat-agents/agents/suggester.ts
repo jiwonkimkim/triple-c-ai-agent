@@ -215,12 +215,9 @@ export function processSuggesterSelection(
     case 'brandProfileId':
       return { brandProfileId: selectedOption.value || undefined };
     case 'productImageChoice':
-      // 이미지 업로드 선택: upload → 이미지 대기, skip → 빈 배열로 설정
-      if (selectedOption.value === 'skip') {
-        return { productImages: [] };
-      }
-      // upload 선택 시 undefined 유지하여 이미지 업로드 대기
-      return {};
+      // 이미지 업로드 선택: upload/skip 모두 빈 배열로 설정하여 다음 단계로 진행
+      // 실제 이미지는 첨부 시 messages/route.ts에서 productImages에 추가됨
+      return { productImages: [] };
     case 'imageModel':
       return { imageModel: selectedOption.value as any };
     default:
