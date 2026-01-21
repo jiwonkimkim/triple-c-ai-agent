@@ -440,12 +440,34 @@ ${isTall ? `⚠️ TALL FORMAT: Vertical layout - stack text vertically
 - y: 0.0-100.0 (0=top, 50=middle, 100=bottom)
   Examples: 8.5, 25.0, 45.5, 92.3
 
-🔤 FONT SIZE: Pixels for ${width}px wide canvas
-(폰트 크기: ${width}px 너비 캔버스 기준 픽셀값)
+🔤 FONT SIZE: Pixels for ${width} x ${height} canvas
+(폰트 크기: ${width} x ${height} 캔버스 기준 픽셀값)
+${isWide ? `
+★ WIDE BANNER (${width}x${height}) FONT SIZES:
+  (가로 배너 폰트 크기)
+  - Main headline: 48-64px (배너 메인 헤드라인)
+  - Sub headline: 28-36px (서브 헤드라인)
+  - Body text: 18-24px (본문)
+  - Small text: 14-16px (작은 텍스트)
+` : isTall ? `
+★ TALL PRODUCT (${width}x${height}) FONT SIZES:
+  (세로형 제품 이미지 폰트 크기)
+  - Main headline: 42-56px (메인 헤드라인)
+  - Sub headline: 24-32px (서브 헤드라인)
+  - Body text: 16-22px (본문)
+  - Small text: 12-14px (작은 텍스트)
+` : `
+★ SQUARE (${width}x${height}) FONT SIZES:
+  (정사각형 폰트 크기)
+  - Main headline: 48-72px (메인 헤드라인)
+  - Sub headline: 28-40px (서브 헤드라인)
+  - Body text: 18-24px (본문)
+  - Small text: 14-16px (작은 텍스트)
+`}
 - fontSize 24 = 24px on ${width}px canvas (약 ${Math.round(24/width*100*10)/10}% of width)
 - fontSize 48 = 48px on ${width}px canvas (약 ${Math.round(48/width*100*10)/10}% of width)
-- Be BOLD with sizes! Headlines: 36-72px, Body: 14-24px
-  (과감하게! 헤드라인: 36-72px, 본문: 14-24px)
+- Be BOLD with sizes based on the resolution above!
+  (위 해상도에 맞게 과감하게!)
 
 - Place texts where they look BEST with the image
   (이미지에 가장 잘 어울리는 위치에 배치)
