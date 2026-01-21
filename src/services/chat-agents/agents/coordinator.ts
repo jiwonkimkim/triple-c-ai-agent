@@ -55,14 +55,53 @@ export async function coordinatorAgent(
     };
   }
 
-  // 2. 생성 플래그 확인 - 바로 Generator로 라우팅
+  // 2. 생성 플래그 확인 - 확인 후 Generator로 라우팅
   if (collectedData.readyToGenerate) {
-    console.log('[Coordinator] readyToGenerate flag detected, routing to GENERATOR');
+    // ★ 이미 확인을 받았으면 (confirmedGenerate) 바로 생성
+    if (collectedData.confirmedGenerate) {
+      console.log('[Coordinator] confirmedGenerate flag detected, routing to GENERATOR');
+      return {
+        currentAgent: 'COORDINATOR',
+        nextAction: { type: 'generate' },
+        // 플래그들 제거 (일회성)
+        collectedData: {
+          ...collectedData,
+          readyToGenerate: undefined,
+          confirmedGenerate: undefined,
+        },
+      };
+    }
+
+    // ★ 첫 번째 요청: 확인 메시지를 보내고 사용자 응답 대기
+    console.log('[Coordinator] readyToGenerate flag detected, asking for confirmation');
+
+    const confirmMessage: ChatMessage = {
+      id: generateMessageId(),
+      role: 'assistant',
+      content: `기획안대로 상세페이지를 생성할게요!\n\n` +
+        `📋 **생성 정보**\n` +
+        `• 제품명: ${collectedData.productName || '미정'}\n` +
+        `• 카테고리: ${collectedData.subCategory || collectedData.category || '미정'}\n` +
+        `• 카피 스타일: ${collectedData.copyLength === 'short' ? '짧고 임팩트 있게' : collectedData.copyLength === 'long' ? '상세하고 풍부하게' : '적당한 길이로'}\n\n` +
+        `생성을 시작할까요?`,
+      agentType: 'COORDINATOR',
+      metadata: {
+        uiType: 'confirmation',
+        askingField: 'confirmGenerate',
+        options: [
+          { id: 'confirm', label: '네, 생성해주세요', value: 'confirm' },
+          { id: 'modify', label: '기획 수정하기', value: 'modify' },
+        ],
+      },
+      createdAt: new Date(),
+    };
+
     return {
+      messages: [confirmMessage],
       currentAgent: 'COORDINATOR',
-      nextAction: { type: 'generate' },
-      // readyToGenerate 플래그 제거 (일회성)
-      collectedData: { ...collectedData, readyToGenerate: undefined },
+      nextAction: { type: 'await_input' },
+      // readyToGenerate 유지, 다음 응답에서 confirmedGenerate 확인
+      collectedData: { ...collectedData },
     };
   }
 

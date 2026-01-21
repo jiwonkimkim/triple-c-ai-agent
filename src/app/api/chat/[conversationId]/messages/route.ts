@@ -200,6 +200,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                     shouldModifyStyle = true;
                     console.log('[Chat] Plan action: modify style selected');
                   }
+                }
+                // ★ confirmGenerate 확인 처리 (생성 최종 확인)
+                else if (askingField === 'confirmGenerate') {
+                  if (selectedOptionId === 'confirm') {
+                    updatedCollectedData = {
+                      ...updatedCollectedData,
+                      confirmedGenerate: true,
+                    };
+                    console.log('[Chat] Generation confirmed by user');
+                  } else if (selectedOptionId === 'modify') {
+                    // 기획 수정 요청
+                    updatedCollectedData = {
+                      ...updatedCollectedData,
+                      readyToGenerate: undefined,
+                      modifyRequest: 'sections',
+                    };
+                    console.log('[Chat] User wants to modify plan');
+                  }
                 } else {
                   // 일반 선택지 처리
                   const selectionUpdate = processSuggesterSelection(

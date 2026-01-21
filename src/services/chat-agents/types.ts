@@ -263,6 +263,7 @@ export interface ProjectCollectedData {
 
   // 생성/수정 플래그
   readyToGenerate?: boolean;
+  confirmedGenerate?: boolean;  // 사용자가 생성 최종 확인
   modifyRequest?: 'sections' | 'style';
 
   // 섹션 수정 요청 컨텍스트 (Feedback → Planner 전달용)
