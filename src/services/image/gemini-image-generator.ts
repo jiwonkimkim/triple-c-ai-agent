@@ -480,6 +480,8 @@ function buildOverlayTextRequest(overlayTextPrompt: string, isFlashModel: boolea
    (이미지 먼저 생성 (필수) - 이것이 주요 출력)
 2. THEN return overlay text JSON for placing text ON TOP of the generated image
    (그 다음 생성된 이미지 위에 배치할 오버레이 텍스트 JSON 반환)
+3. DO NOT put Korean text directly in the image - return it as overlay text instead
+   (이미지에 한글 텍스트를 직접 넣지 말고, 오버레이 텍스트로 반환하세요)
 
 [OVERLAY TEXT = Text to be placed ON TOP of the generated image]
 (오버레이 텍스트 = 생성된 이미지 위에 배치할 텍스트)
