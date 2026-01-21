@@ -283,14 +283,24 @@ ${messages.slice(-5).map(m => `[${m.role}]: ${m.content}`).join('\n')}
       if (isUncertainResponse(userContent)) {
         console.log('[Intake] Uncertain response - waiting for user input instead of auto-routing');
         nextAction = { type: 'await_input' as const };
-      } else if (updatedMissingFields.length === 0) {
-        // 모든 필수 정보 수집 완료 → Planner로
+      }
+      // ★★★ 질문을 던졌으면 무조건 사용자 입력 대기 (질문과 기획이 동시에 나오는 버그 수정)
+      else if (intakeResponse.askingFor) {
+        console.log('[Intake] Asking for:', intakeResponse.askingFor, '- waiting for user input');
+
+        // 선택지가 필요한 필드는 Suggester로 라우팅
+        if (intakeResponse.askingFor === 'category' ||
+            intakeResponse.askingFor === 'copyLength' ||
+            intakeResponse.askingFor === 'subCategory') {
+          nextAction = { type: 'continue' as const, targetAgent: 'SUGGESTER' as AgentType };
+        } else {
+          // 그 외 질문(targetAudience, keyFeatures 등)은 사용자 입력 대기
+          nextAction = { type: 'await_input' as const };
+        }
+      }
+      else if (updatedMissingFields.length === 0) {
+        // 질문이 없고 모든 필수 정보 수집 완료 → Planner로
         nextAction = { type: 'continue' as const, targetAgent: 'PLANNER' as AgentType };
-      } else if (intakeResponse.askingFor === 'category' ||
-                 intakeResponse.askingFor === 'copyLength' ||
-                 intakeResponse.askingFor === 'subCategory') {
-        // 선택지가 필요한 필드 → Suggester로
-        nextAction = { type: 'continue' as const, targetAgent: 'SUGGESTER' as AgentType };
       } else {
         // 사용자 입력 대기
         nextAction = { type: 'await_input' as const };

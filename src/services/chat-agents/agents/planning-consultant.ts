@@ -15,6 +15,11 @@ import {
   BEAUTY_SPECIALIST_DATA,
   generateMessageId,
 } from '../types';
+import {
+  getSubCategorySections,
+  hasAdvancedPromptSystem,
+  BEAUTY_SUBCATEGORY_META,
+} from '@/services/ai/prompts';
 
 // Lazy initialization
 let _model: ChatGoogleGenerativeAI | null = null;
@@ -128,16 +133,80 @@ export async function planningConsultantAgent(
   const specialistData = BEAUTY_SPECIALIST_DATA[subCategory];
   const recommendedStyles = CATEGORY_STYLE_MAP[subCategory] || ['clean', 'modern'];
 
-  // 추천 섹션 구성
-  const recommendedSections = specialistData.recommendedSections;
-  const plannedSections: PlannedSection[] = recommendedSections.map(type => {
-    const sectionInfo = SECTION_DESCRIPTIONS[type] || { name: type, description: '' };
-    return {
-      type,
-      name: sectionInfo.name,
-      description: sectionInfo.description,
+  // ★★★ 고도화된 프롬프트 시스템이 있는 서브카테고리는 전용 섹션 사용
+  let plannedSections: PlannedSection[];
+  let fullSectionCount: number;
+  const subCategoryMeta = BEAUTY_SUBCATEGORY_META.find(m => m.value === subCategory);
+  const subCategoryLabel = subCategoryMeta?.label || subCategory;
+
+  if (hasAdvancedPromptSystem(subCategory as BeautySubCategory)) {
+    // 고도화된 프롬프트 시스템의 전용 섹션 사용
+    const advancedSections = getSubCategorySections(subCategory as BeautySubCategory);
+    fullSectionCount = advancedSections.length;
+
+    // 확장된 섹션 설명 (서브카테고리별 전용 섹션 포함)
+    const extendedDescriptions: Record<string, { name: string; description: string }> = {
+      ...SECTION_DESCRIPTIONS,
+      // 마스카라 전용 섹션
+      'BRAND_HEADER': { name: '브랜드 헤더', description: '브랜드 로고 및 아이덴티티' },
+      'HERO_MASCARA': { name: '히어로 배너', description: '메인 제품샷과 핵심 카피' },
+      'TEXT_BANNER_1': { name: '텍스트 배너', description: '카피/슬로건 강조' },
+      'VARIANT_LINEUP': { name: '제품 라인업', description: '제품 타입 배리에이션' },
+      'EYE_BEFORE_AFTER': { name: '아이 비포/애프터', description: '모델 아이 클로즈업 전후 비교' },
+      'KEY_MESSAGE_1': { name: '핵심 메시지', description: '주요 메시지 강조' },
+      'WAND_CLOSEUP': { name: '브러시 클로즈업', description: '브러시/완드 디테일' },
+      'MODEL_BEAUTY_SHOT': { name: '모델 뷰티샷', description: '모델 정면/측면 샷' },
+      'BENEFIT_HIGHLIGHT_1': { name: '효능 하이라이트', description: '성분/효능 강조' },
+      'CURL_EFFECT_VISUAL': { name: '컬링 효과', description: '래쉬 컬링 효과 비주얼' },
+      'TEXTURE_FORMULA': { name: '텍스처/포뮬러', description: '제형 클로즈업' },
+      'DIVIDER_VISUAL_1': { name: '구분 비주얼', description: '섹션 구분 이미지' },
+      'LASH_DETAIL_MACRO': { name: '래쉬 디테일', description: '속눈썹 극대화 클로즈업' },
+      'WATERPROOF_TEST': { name: '지속력 테스트', description: '워터프루프 테스트 비주얼' },
+      'KEY_MESSAGE_2': { name: '핵심 메시지 2', description: '추가 핵심 메시지' },
+      'MODEL_ANGLE_GRID': { name: '모델 앵글 그리드', description: '다양한 앵글 쇼케이스' },
+      'TEXT_BANNER_2': { name: '텍스트 배너 2', description: '클로징 카피' },
+      'COMPETITOR_COMPARE': { name: '비교 우위', description: '타 제품 비교' },
+      'FULL_LINEUP': { name: '전체 라인업', description: '전체 제품 라인업' },
+      'CTA_CLOSING': { name: '클로징 CTA', description: '구매 유도 배너' },
+      // 립 전용 섹션
+      'HERO_LIP': { name: '립 히어로', description: '립 제품 메인 비주얼' },
+      'COLOR_SWATCHES': { name: '컬러 스와치', description: '컬러 라인업 표시' },
+      'LIP_CLOSEUP': { name: '립 클로즈업', description: '입술 클로즈업 샷' },
+      // 스킨케어 전용 섹션
+      'HERO_SPLASH': { name: '스플래시 비주얼', description: '수분감/질감 강조' },
+      'INGREDIENT_FOCUS': { name: '성분 포커스', description: '핵심 성분 강조' },
+      'EFFICACY_VISUAL': { name: '효능 비주얼', description: '제품 효능 시각화' },
+      // 공통
+      'MAIN': { name: '메인 썸네일', description: '제품 대표 이미지' },
+      'STEP_GUIDE': { name: '사용 가이드', description: '단계별 사용 방법' },
+      'REVIEW_SHOWCASE': { name: '리뷰 쇼케이스', description: '고객 후기 및 평점' },
     };
-  });
+
+    // 미리보기용 섹션 (처음 8개만)
+    const previewSections = advancedSections.slice(0, 8);
+    plannedSections = previewSections.map(type => {
+      const sectionInfo = extendedDescriptions[type] || { name: type, description: `${subCategoryLabel} 전용 섹션` };
+      return {
+        type,
+        name: sectionInfo.name,
+        description: sectionInfo.description,
+      };
+    });
+
+    console.log(`[PlanningConsultant] ★ Using advanced prompt system for ${subCategory}: ${fullSectionCount} sections total, ${previewSections.length} in preview`);
+  } else {
+    // 기존 방식: BEAUTY_SPECIALIST_DATA 사용
+    const recommendedSections = specialistData.recommendedSections;
+    fullSectionCount = recommendedSections.length;
+    plannedSections = recommendedSections.map(type => {
+      const sectionInfo = SECTION_DESCRIPTIONS[type] || { name: type, description: '' };
+      return {
+        type,
+        name: sectionInfo.name,
+        description: sectionInfo.description,
+      };
+    });
+  }
 
   // 추천 스타일
   const primaryStyle = STYLE_THEMES[recommendedStyles[0] as keyof typeof STYLE_THEMES];
@@ -155,8 +224,13 @@ export async function planningConsultantAgent(
     return `• **${style.name}** - ${style.description}`;
   }).join('\n');
 
-  const previewContent = `${specialistData.emoji} **${collectedData.productName || '제품'}** 상세페이지 기획이에요!\n\n` +
-    `## 📋 추천 섹션 구성\n${sectionsPreview}\n\n` +
+  // 전체 섹션 수가 미리보기보다 많으면 추가 정보 표시
+  const additionalSectionsNote = fullSectionCount > plannedSections.length
+    ? `\n_...외 ${fullSectionCount - plannedSections.length}개 섹션이 더 있어요!_\n`
+    : '';
+
+  const previewContent = `${specialistData.emoji} **${collectedData.productName || '제품'}** ${subCategoryLabel} 상세페이지 기획이에요!\n\n` +
+    `## 📋 섹션 구성 (총 ${fullSectionCount}개 섹션)\n${sectionsPreview}${additionalSectionsNote}\n` +
     `## 🎨 추천 스타일\n${styleOptions}\n\n` +
     `## 🎯 톤앤매너\n${toneAndManner}\n\n` +
     `## 💡 카피 팁\n${specialistData.tipsForCopy.map(t => `• ${t}`).join('\n')}\n\n` +
@@ -169,6 +243,7 @@ export async function planningConsultantAgent(
     agentType: 'PLANNER',
     metadata: {
       uiType: 'confirmation',
+      askingField: 'planAction',  // ★ 플랜 액션 선택 필드 추가
       planPreview: {
         sections: plannedSections,
         theme: primaryStyle.name,
