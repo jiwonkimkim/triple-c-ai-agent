@@ -241,11 +241,11 @@ export async function coordinatorAgent(
     // === 옵션 선택 ===
     case 'SELECT_OPTION':
       // 선택된 옵션 처리는 messages/route.ts에서 처리 후
-      // 여기서는 다음 단계로 라우팅
-      if (collectedData.category === 'BEAUTY' && collectedData.subCategory) {
+      // 여기서는 다음 단계로 라우팅 → SUGGESTER가 다음 질문 결정
+      if (collectedData.category && collectedData.subCategory) {
         return {
-          currentAgent: 'INTAKE',
-          nextAction: { type: 'continue', targetAgent: 'INTAKE' as AgentType },
+          currentAgent: 'SUGGESTER',
+          nextAction: { type: 'continue', targetAgent: 'SUGGESTER' as AgentType },
         };
       }
       break;
