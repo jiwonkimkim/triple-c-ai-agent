@@ -2001,42 +2001,17 @@ async function generateOverlayTextForSection(
   // ★★★ 모듈 레벨 mapToBaseSectionType 사용 (중복 제거)
   const normalizedSection = mapToBaseSectionType(sectionType);
 
-  // ★★★ 텍스트 배경 섹션용 특별 레이아웃 (올리브영 스타일)
-  // 섹션별 폴백 레이아웃 가이드 (texts 배열 형식)
-  const sectionLayouts: Record<string, { large: { x: number; y: number; fontSize: number }; medium: { x: number; y: number; fontSize: number }; small: { x: number; y: number; fontSize: number } }> = {
-    MAIN: {
-      large: { x: 8, y: 8, fontSize: 32 },
-      medium: { x: 8, y: 18, fontSize: 18 },
-      small: { x: 8, y: 28, fontSize: 14 },
-    },
-    HERO: {
-      large: { x: 50, y: 8, fontSize: 28 },
-      medium: { x: 50, y: 18, fontSize: 16 },
-      small: { x: 50, y: 85, fontSize: 14 },
-    },
-    FEATURES: {
-      large: { x: 50, y: 12, fontSize: 24 },
-      medium: { x: 50, y: 5, fontSize: 14 },
-      small: { x: 50, y: 88, fontSize: 12 },
-    },
-    SOCIAL_PROOF: {
-      large: { x: 50, y: 78, fontSize: 48 },
-      medium: { x: 50, y: 62, fontSize: 20 },
-      small: { x: 50, y: 55, fontSize: 14 },
-    },
-    HOW_TO_USE: {
-      large: { x: 50, y: 12, fontSize: 20 },
-      medium: { x: 50, y: 5, fontSize: 14 },
-      small: { x: 50, y: 85, fontSize: 12 },
-    },
-    FAQ: {
-      large: { x: 50, y: 10, fontSize: 18 },
-      medium: { x: 50, y: 22, fontSize: 14 },
-      small: { x: 50, y: 50, fontSize: 14 },
-    },
+  // 섹션별 기본 폴백 위치 (AI 응답 실패 시에만 사용)
+  const fallbackPositions: Record<string, { x: number; y: number; fontSize: number }[]> = {
+    MAIN: [{ x: 8, y: 12, fontSize: 28 }],
+    HERO: [{ x: 50, y: 12, fontSize: 24 }],
+    FEATURES: [{ x: 50, y: 12, fontSize: 24 }],
+    SOCIAL_PROOF: [{ x: 50, y: 65, fontSize: 20 }],
+    HOW_TO_USE: [{ x: 50, y: 12, fontSize: 18 }],
+    FAQ: [{ x: 50, y: 15, fontSize: 18 }],
   };
 
-  const layout = sectionLayouts[normalizedSection] || sectionLayouts.FEATURES;
+  const fallback = fallbackPositions[normalizedSection] || fallbackPositions.FEATURES;
 
   // ★★★ 공통 프롬프트 빌더 사용 (overlay-prompts.ts)
   // 이렇게 하면 초기 생성과 재생성이 항상 동일한 프롬프트를 사용합니다
@@ -2093,7 +2068,7 @@ async function generateOverlayTextForSection(
       console.log(`[Overlay] Generated ${parsed.texts.length} texts (free form) for ${sectionType}`);
     } else {
       // 빈 응답인 경우 폴백
-      normalizedOverlay = createDefaultOverlay(normalizedSection, productName, keyFeatures, layout);
+      normalizedOverlay = createDefaultOverlay(normalizedSection, productName, keyFeatures, fallback);
       console.log(`[Overlay] Using fallback overlay for ${sectionType}`);
     }
 
@@ -2106,7 +2081,7 @@ async function generateOverlayTextForSection(
 
     // 폴백: 기본 오버레이 텍스트 생성
     return {
-      overlayText: createDefaultOverlay(normalizedSection, productName, keyFeatures, layout),
+      overlayText: createDefaultOverlay(normalizedSection, productName, keyFeatures, fallback),
       prompt,
     };
   }
@@ -2232,25 +2207,23 @@ function createDefaultOverlayForSection(
 
 /**
  * 기본 오버레이 텍스트 생성 (폴백용 - texts 배열 형식)
+ * - 자유로운 텍스트 배열 형식으로 반환
  */
 function createDefaultOverlay(
   sectionType: string,
   productName: string,
   keyFeatures: string[],
-  layout: {
-    large: { x: number; y: number; fontSize: number };
-    medium: { x: number; y: number; fontSize: number };
-    small: { x: number; y: number; fontSize: number };
-  }
+  fallbackPositions: { x: number; y: number; fontSize: number }[]
 ): OverlayTextContent {
   const texts: OverlayTextItem[] = [];
+  const basePosition = fallbackPositions[0] || { x: 50, y: 12, fontSize: 24 };
 
   // 메인 텍스트
   texts.push({
     text: keyFeatures[0] || productName,
-    x: layout.large.x,
-    y: layout.large.y,
-    fontSize: layout.large.fontSize,
+    x: basePosition.x,
+    y: basePosition.y,
+    fontSize: basePosition.fontSize,
     fontWeight: 'bold',
     color: '#333333',
     textAlign: 'center',
@@ -2260,9 +2233,9 @@ function createDefaultOverlay(
   if (keyFeatures.length > 1) {
     texts.push({
       text: keyFeatures[1],
-      x: layout.medium.x,
-      y: layout.medium.y,
-      fontSize: layout.medium.fontSize,
+      x: basePosition.x,
+      y: basePosition.y + 8,
+      fontSize: Math.round(basePosition.fontSize * 0.8),
       fontWeight: 'normal',
       color: '#666666',
       textAlign: 'center',
