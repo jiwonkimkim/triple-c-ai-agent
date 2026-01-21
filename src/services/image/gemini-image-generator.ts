@@ -253,15 +253,14 @@ function buildCreativeOverlayGuide(aspectRatio?: string): string {
   const isTall = height > width;  // 3:4, 9:16 등 세로형
 
   return `
-[★ CREATIVE OVERLAY TEXT DESIGN - 키치하고 트렌디한 상세페이지 스타일 ★]
-You are a trendy Korean e-commerce detail page designer.
-Design CREATIVE, PLAYFUL, and BOLD typography that matches the generated image!
+[★ CREATIVE OVERLAY TEXT DESIGN - 상세페이지 스타일 텍스트 오버레이 ★]
+생성된 이미지와 사용된 프롬프트 상황에 맞게 자유롭게 이미지 위에 얹을 상세페이지 스타일 텍스트 디자인만 반환하세요.
 
 ★★★ DESIGN FREEDOM ★★★
-- Look at the image you generated and design text that COMPLEMENTS it
-- Be creative with placement - not everything needs to be centered!
-- Use unexpected positions, dynamic layouts, asymmetric designs
-- Mix different sizes dramatically for visual impact
+- 생성된 이미지의 구도, 색감, 분위기를 분석하고 어울리는 텍스트 배치
+- 이미지 생성에 사용된 프롬프트(제품 정보, 섹션 타입, 특징)를 참고하여 카피 작성
+- 창의적인 위치, 다이나믹한 레이아웃, 비대칭 디자인 자유롭게 사용
+- 텍스트 개수, 크기, 위치를 상황에 맞게 자유롭게 결정
 - 키치하고 감각적인 한국 상세페이지 스타일!
 
 ★★★ COORDINATE SYSTEM: PERCENTAGE (0-100) ★★★
