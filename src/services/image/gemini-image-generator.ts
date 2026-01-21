@@ -76,138 +76,232 @@ function buildSharedSectionPrompt(sectionType: SectionType, params: SectionPromp
   const { productName, ingredientObjects, moodSelection, audienceStyle, featureHighlight, isI2I } = params;
 
   const i2iPrefix = isI2I
-    ? '\nUSE THE PROVIDED PRODUCT IMAGE as reference - include this exact product in the new composition. (제공된 제품 이미지를 참조하여 새로운 구성에 포함)\n'
+    ? `
+USE THE PROVIDED PRODUCT IMAGE as reference - include this exact product in the new composition.
+(제공된 제품 이미지를 참조하여 새로운 구성에 포함)
+`
     : '';
 
   // ★ 주요 섹션 타입만 정의, 나머지는 CUSTOM 폴백 사용
   const prompts: Partial<Record<SectionType, string>> = {
-    MAIN: `Create a KOREAN E-COMMERCE DETAIL PAGE THUMBNAIL for "${productName}". (한국 이커머스 상세페이지 썸네일 생성)
+    MAIN: `Create a KOREAN E-COMMERCE DETAIL PAGE THUMBNAIL for "${productName}".
+(한국 이커머스 상세페이지 썸네일 생성)
 ${i2iPrefix}
-[KOREAN DETAIL PAGE STYLE (한국 상세페이지 스타일)]
-- Premium beauty product thumbnail style (프리미엄 뷰티 제품 썸네일 스타일)
-- Clean, bright, aspirational aesthetic that Korean consumers love (한국 소비자가 좋아하는 깨끗하고 밝은 미학)
-- Magazine editorial meets e-commerce quality (매거진 에디토리얼 + 이커머스 퀄리티)
-- Soft gradient background complementing product colors (제품 컬러를 보완하는 부드러운 그라데이션 배경)
+[KOREAN DETAIL PAGE STYLE]
+(한국 상세페이지 스타일)
+- Premium beauty product thumbnail style
+  (프리미엄 뷰티 제품 썸네일 스타일)
+- Clean, bright, aspirational aesthetic that Korean consumers love
+  (한국 소비자가 좋아하는 깨끗하고 밝은 미학)
+- Magazine editorial meets e-commerce quality
+  (매거진 에디토리얼 + 이커머스 퀄리티)
+- Soft gradient background complementing product colors
+  (제품 컬러를 보완하는 부드러운 그라데이션 배경)
 
-[CREATIVE COMPOSITION (크리에이티브 구성)]
-Design a visually striking thumbnail featuring ${isI2I ? 'the provided product' : productName}. (시각적으로 눈에 띄는 썸네일 디자인)
-- Product as HERO 50-60% of frame, sharp focus, eye-catching (제품이 주인공 50-60%, 선명한 초점)
-- Product placement: CENTER or slightly UPPER-CENTER (제품 배치: 중앙 또는 약간 위쪽 중앙)
-- Decorative objects 15-20%: ${ingredientObjects.join(', ')} (장식 오브젝트 15-20%)
-- Atmospheric elements 10-15%: ${moodSelection.join(', ')} (분위기 요소 10-15%)
-- Create depth with layered composition: foreground → product → background (레이어 구성으로 깊이감 생성)
-- Leave CLEAN SPACE at top 20% for text overlay (상단 20%는 텍스트 오버레이를 위해 비워두기)
+[CREATIVE COMPOSITION]
+(크리에이티브 구성)
+Design a visually striking thumbnail featuring ${isI2I ? 'the provided product' : productName}.
+(시각적으로 눈에 띄는 썸네일 디자인)
+- Product as HERO 50-60% of frame, sharp focus, eye-catching
+  (제품이 주인공 50-60%, 선명한 초점)
+- Product placement: CENTER or slightly UPPER-CENTER
+  (제품 배치: 중앙 또는 약간 위쪽 중앙)
+- Decorative objects 15-20%: ${ingredientObjects.join(', ')}
+  (장식 오브젝트 15-20%)
+- Atmospheric elements 10-15%: ${moodSelection.join(', ')}
+  (분위기 요소 10-15%)
+- Create depth with layered composition: foreground → product → background
+  (레이어 구성으로 깊이감 생성)
+- Leave CLEAN SPACE at top 20% for text overlay
+  (상단 20%는 텍스트 오버레이를 위해 비워두기)
 
-[STYLING DIRECTION (스타일링 방향)]
-Target aesthetic (타겟 미학): ${audienceStyle}
+[STYLING DIRECTION]
+(스타일링 방향)
+Target aesthetic: ${audienceStyle}
+(타겟 미학)
 ${featureHighlight}
-Korean beauty trend (한국 뷰티 트렌드): glow, transparency, premium (글로우, 투명감, 프리미엄)
+Korean beauty trend: glow, transparency, premium
+(한국 뷰티 트렌드: 글로우, 투명감, 프리미엄)
 
-[TECHNICAL REQUIREMENTS (기술 요구사항)]
-- Soft, diffused studio lighting with gentle rim light (부드러운 확산 스튜디오 조명과 림 라이트)
-- Shallow depth of field, soft bokeh background (얕은 피사계 심도, 부드러운 보케 배경)
-- Rich, vibrant colors with professional color grading (풍부하고 생동감 있는 컬러와 전문 컬러 그레이딩)
-- Premium commercial photography that triggers purchase desire (구매 욕구를 자극하는 프리미엄 상업 사진)
-- 8K resolution, photorealistic, no text in image (8K 해상도, 포토리얼리스틱, 이미지 내 텍스트 없음)`,
+[TECHNICAL REQUIREMENTS]
+(기술 요구사항)
+- Soft, diffused studio lighting with gentle rim light
+  (부드러운 확산 스튜디오 조명과 림 라이트)
+- Shallow depth of field, soft bokeh background
+  (얕은 피사계 심도, 부드러운 보케 배경)
+- Rich, vibrant colors with professional color grading
+  (풍부하고 생동감 있는 컬러와 전문 컬러 그레이딩)
+- Premium commercial photography that triggers purchase desire
+  (구매 욕구를 자극하는 프리미엄 상업 사진)
+- 8K resolution, photorealistic, no text in image
+  (8K 해상도, 포토리얼리스틱, 이미지 내 텍스트 없음)`,
 
-    HERO: `Create KOREAN E-COMMERCE HERO BANNER IMAGE for ${productName}. (한국 이커머스 히어로 배너 이미지 생성)
+    HERO: `Create KOREAN E-COMMERCE HERO BANNER IMAGE for ${productName}.
+(한국 이커머스 히어로 배너 이미지 생성)
 ${i2iPrefix}
-[SCENARIO (시나리오)]
-- First impression image at the top of detail page (상세페이지 최상단 첫인상 이미지)
-- Product stands out with space for brand slogan (제품이 돋보이면서 브랜드 슬로건 공간 필요)
-- Premium and dramatic atmosphere (프리미엄하고 드라마틱한 분위기)
+[SCENARIO]
+(시나리오)
+- First impression image at the top of detail page
+  (상세페이지 최상단 첫인상 이미지)
+- Product stands out with space for brand slogan
+  (제품이 돋보이면서 브랜드 슬로건 공간 필요)
+- Premium and dramatic atmosphere
+  (프리미엄하고 드라마틱한 분위기)
 
-[COMPOSITION (구성)]
-- WIDE FORMAT 16:9 ratio - horizontal banner (와이드 포맷 16:9 비율 - 가로 배너)
-- Product featured prominently but with ample text space (제품이 돋보이되 충분한 텍스트 공간)
-- Dramatic lighting, cinematic feel (드라마틱 조명, 시네마틱 느낌)
-- Background: gradient or lifestyle scene (배경: 그라데이션 또는 라이프스타일 씬)
-- Decorative elements (장식 요소): ${ingredientObjects.join(', ')}
+[COMPOSITION]
+(구성)
+- WIDE FORMAT 16:9 ratio - horizontal banner
+  (와이드 포맷 16:9 비율 - 가로 배너)
+- Product featured prominently but with ample text space
+  (제품이 돋보이되 충분한 텍스트 공간)
+- Dramatic lighting, cinematic feel
+  (드라마틱 조명, 시네마틱 느낌)
+- Background: gradient or lifestyle scene
+  (배경: 그라데이션 또는 라이프스타일 씬)
+- Decorative elements: ${ingredientObjects.join(', ')}
+  (장식 요소)
 
-[STYLE (스타일)]
+[STYLE]
+(스타일)
 ${audienceStyle}
-Korean luxury beauty aesthetic (한국 럭셔리 뷰티 미학)
-8K resolution, no text in image (8K 해상도, 이미지 내 텍스트 없음)`,
+Korean luxury beauty aesthetic
+(한국 럭셔리 뷰티 미학)
+8K resolution, no text in image
+(8K 해상도, 이미지 내 텍스트 없음)`,
 
-    FEATURES: `Create KOREAN E-COMMERCE FEATURES SECTION IMAGE for ${productName}. (한국 이커머스 특징 섹션 이미지 생성)
+    FEATURES: `Create KOREAN E-COMMERCE FEATURES SECTION IMAGE for ${productName}.
+(한국 이커머스 특징 섹션 이미지 생성)
 ${i2iPrefix}
-[SCENARIO (시나리오)]
-- Visualize key ingredients or functions of the product (제품의 핵심 성분이나 기능을 시각화)
-- Clean and informative composition (깔끔하고 정보 전달력 있는 구성)
+[SCENARIO]
+(시나리오)
+- Visualize key ingredients or functions of the product
+  (제품의 핵심 성분이나 기능을 시각화)
+- Clean and informative composition
+  (깔끔하고 정보 전달력 있는 구성)
 
-[COMPOSITION (구성)]
-- Clean, organized layout (깔끔하고 정돈된 레이아웃)
-- Product with ingredient/feature visualization (제품과 성분/특징 시각화)
-- Supporting elements (보조 요소): ${ingredientObjects.join(', ')}
-- Professional, informative aesthetic (전문적이고 정보적인 미학)
+[COMPOSITION]
+(구성)
+- Clean, organized layout
+  (깔끔하고 정돈된 레이아웃)
+- Product with ingredient/feature visualization
+  (제품과 성분/특징 시각화)
+- Supporting elements: ${ingredientObjects.join(', ')}
+  (보조 요소)
+- Professional, informative aesthetic
+  (전문적이고 정보적인 미학)
 
-[STYLE (스타일)]
-${audienceStyle}
-${featureHighlight}
-8K resolution, no text in image (8K 해상도, 이미지 내 텍스트 없음)`,
-
-    SOCIAL_PROOF: `Create KOREAN E-COMMERCE SOCIAL PROOF IMAGE for ${productName}. (한국 이커머스 소셜 프루프 이미지 생성)
-${i2iPrefix}
-[SCENARIO (시나리오)]
-- Warm and natural atmosphere that inspires trust (신뢰감을 주는 따뜻하고 자연스러운 분위기)
-- Real use environment or beauty lifestyle (실제 사용 환경이나 뷰티 라이프스타일)
-
-[COMPOSITION (구성)]
-- Lifestyle setting: bathroom, vanity, skincare routine (라이프스타일 세팅: 욕실, 화장대, 스킨케어 루틴)
-- Warm, inviting atmosphere (따뜻하고 초대하는 분위기)
-- Product in natural use context (자연스러운 사용 맥락의 제품)
-- Soft, approachable lighting (부드럽고 친근한 조명)
-
-[STYLE (스타일)]
-${audienceStyle}
-Authentic, relatable aesthetic (진정성 있고 공감가는 미학)
-8K resolution, no text in image (8K 해상도, 이미지 내 텍스트 없음)`,
-
-    HOW_TO_USE: `Create KOREAN E-COMMERCE HOW-TO-USE IMAGE for ${productName}. (한국 이커머스 사용법 이미지 생성)
-${i2iPrefix}
-[SCENARIO (시나리오)]
-- Clean image showing product usage steps (제품 사용 단계를 보여주는 깔끔한 이미지)
-- Educational yet attractive composition (교육적이면서 매력적인 구성)
-
-[COMPOSITION (구성)]
-- Step-by-step visual guide concept (단계별 비주얼 가이드 컨셉)
-- Clean, instructional layout (깔끔하고 교육적인 레이아웃)
-- Product application moment (제품 적용 순간)
-- Hands or skin texture optional (손이나 피부 텍스처 선택사항)
-
-[STYLE (스타일)]
-${audienceStyle}
-Educational yet beautiful (교육적이면서 아름다운)
-8K resolution, no text in image (8K 해상도, 이미지 내 텍스트 없음)`,
-
-    FAQ: `Create KOREAN E-COMMERCE FAQ SECTION IMAGE for ${productName}. (한국 이커머스 FAQ 섹션 이미지 생성)
-${i2iPrefix}
-[SCENARIO (시나리오)]
-- Friendly and helpful feeling (친근하고 도움이 되는 느낌)
-- Clean background image (깔끔한 배경 이미지)
-
-[COMPOSITION (구성)]
-- Simple, clean background (심플하고 깔끔한 배경)
-- Subtle product placement (은은한 제품 배치)
-- Soft, reassuring atmosphere (부드럽고 안심되는 분위기)
-- Professional yet approachable (전문적이지만 친근한)
-
-[STYLE (스타일)]
-${audienceStyle}
-Helpful, trustworthy aesthetic (도움이 되고 신뢰감 있는 미학)
-8K resolution, no text in image (8K 해상도, 이미지 내 텍스트 없음)`,
-
-    CUSTOM: `Create KOREAN E-COMMERCE IMAGE for ${productName}. (한국 이커머스 이미지 생성)
-${i2iPrefix}
-[COMPOSITION (구성)]
-- Premium Korean beauty aesthetic (프리미엄 한국 뷰티 미학)
-- Product featured beautifully (제품이 아름답게 피처링)
-- Decorative elements (장식 요소): ${ingredientObjects.join(', ')}
-
-[STYLE (스타일)]
+[STYLE]
+(스타일)
 ${audienceStyle}
 ${featureHighlight}
-8K resolution, no text in image (8K 해상도, 이미지 내 텍스트 없음)`,
+8K resolution, no text in image
+(8K 해상도, 이미지 내 텍스트 없음)`,
+
+    SOCIAL_PROOF: `Create KOREAN E-COMMERCE SOCIAL PROOF IMAGE for ${productName}.
+(한국 이커머스 소셜 프루프 이미지 생성)
+${i2iPrefix}
+[SCENARIO]
+(시나리오)
+- Warm and natural atmosphere that inspires trust
+  (신뢰감을 주는 따뜻하고 자연스러운 분위기)
+- Real use environment or beauty lifestyle
+  (실제 사용 환경이나 뷰티 라이프스타일)
+
+[COMPOSITION]
+(구성)
+- Lifestyle setting: bathroom, vanity, skincare routine
+  (라이프스타일 세팅: 욕실, 화장대, 스킨케어 루틴)
+- Warm, inviting atmosphere
+  (따뜻하고 초대하는 분위기)
+- Product in natural use context
+  (자연스러운 사용 맥락의 제품)
+- Soft, approachable lighting
+  (부드럽고 친근한 조명)
+
+[STYLE]
+(스타일)
+${audienceStyle}
+Authentic, relatable aesthetic
+(진정성 있고 공감가는 미학)
+8K resolution, no text in image
+(8K 해상도, 이미지 내 텍스트 없음)`,
+
+    HOW_TO_USE: `Create KOREAN E-COMMERCE HOW-TO-USE IMAGE for ${productName}.
+(한국 이커머스 사용법 이미지 생성)
+${i2iPrefix}
+[SCENARIO]
+(시나리오)
+- Clean image showing product usage steps
+  (제품 사용 단계를 보여주는 깔끔한 이미지)
+- Educational yet attractive composition
+  (교육적이면서 매력적인 구성)
+
+[COMPOSITION]
+(구성)
+- Step-by-step visual guide concept
+  (단계별 비주얼 가이드 컨셉)
+- Clean, instructional layout
+  (깔끔하고 교육적인 레이아웃)
+- Product application moment
+  (제품 적용 순간)
+- Hands or skin texture optional
+  (손이나 피부 텍스처 선택사항)
+
+[STYLE]
+(스타일)
+${audienceStyle}
+Educational yet beautiful
+(교육적이면서 아름다운)
+8K resolution, no text in image
+(8K 해상도, 이미지 내 텍스트 없음)`,
+
+    FAQ: `Create KOREAN E-COMMERCE FAQ SECTION IMAGE for ${productName}.
+(한국 이커머스 FAQ 섹션 이미지 생성)
+${i2iPrefix}
+[SCENARIO]
+(시나리오)
+- Friendly and helpful feeling
+  (친근하고 도움이 되는 느낌)
+- Clean background image
+  (깔끔한 배경 이미지)
+
+[COMPOSITION]
+(구성)
+- Simple, clean background
+  (심플하고 깔끔한 배경)
+- Subtle product placement
+  (은은한 제품 배치)
+- Soft, reassuring atmosphere
+  (부드럽고 안심되는 분위기)
+- Professional yet approachable
+  (전문적이지만 친근한)
+
+[STYLE]
+(스타일)
+${audienceStyle}
+Helpful, trustworthy aesthetic
+(도움이 되고 신뢰감 있는 미학)
+8K resolution, no text in image
+(8K 해상도, 이미지 내 텍스트 없음)`,
+
+    CUSTOM: `Create KOREAN E-COMMERCE IMAGE for ${productName}.
+(한국 이커머스 이미지 생성)
+${i2iPrefix}
+[COMPOSITION]
+(구성)
+- Premium Korean beauty aesthetic
+  (프리미엄 한국 뷰티 미학)
+- Product featured beautifully
+  (제품이 아름답게 피처링)
+- Decorative elements: ${ingredientObjects.join(', ')}
+  (장식 요소)
+
+[STYLE]
+(스타일)
+${audienceStyle}
+${featureHighlight}
+8K resolution, no text in image
+(8K 해상도, 이미지 내 텍스트 없음)`,
   };
 
   // CUSTOM은 항상 정의되어 있으므로 non-null assertion 사용
@@ -222,24 +316,40 @@ ${featureHighlight}
  * Flash 모델용 이미지 내 텍스트 생성 금지 강화 프롬프트
  */
 const NO_TEXT_IN_IMAGE_REINFORCEMENT = `
-[⚠️⚠️⚠️ CRITICAL - ABSOLUTELY NO TEXT IN IMAGE (절대 이미지 안에 텍스트 금지) ⚠️⚠️⚠️]
-★★★ THIS IS THE MOST IMPORTANT RULE (이것이 가장 중요한 규칙입니다) ★★★
+[⚠️⚠️⚠️ CRITICAL - ABSOLUTELY NO TEXT IN IMAGE ⚠️⚠️⚠️]
+(절대 이미지 안에 텍스트 금지)
 
-1. DO NOT generate ANY text, letters, words, numbers, or typography INSIDE the image (이미지 내부에 텍스트, 글자, 단어, 숫자, 타이포그래피 생성 금지)
-2. DO NOT render Korean, English, Chinese, or ANY language text in the image (한글, 영어, 중국어 등 어떤 언어 텍스트도 이미지에 렌더링 금지)
-3. The image must be 100% PURELY VISUAL: only product, background, props, lighting, effects (이미지는 100% 순수 비주얼: 제품, 배경, 소품, 조명, 효과만)
-4. NEVER attempt to write "24H", "95%", "글로시", "촉촉한", or ANY text directly in the image (이미지에 직접 텍스트 쓰기 시도 금지)
-5. Korean text especially MUST NOT appear in images - it will look broken and distorted! (특히 한글은 이미지에 절대 안됨 - 깨져서 보임!)
+★★★ THIS IS THE MOST IMPORTANT RULE ★★★
+(이것이 가장 중요한 규칙입니다)
 
-★ WHERE TEXT GOES (텍스트가 가는 곳):
-- All text content → overlay JSON (모든 텍스트 내용 → 오버레이 JSON)
-- The frontend renders text ON TOP of your clean image using HTML/CSS (프론트엔드가 HTML/CSS로 깨끗한 이미지 위에 텍스트 렌더링)
-- Your job: generate a beautiful TEXT-FREE background image only (당신의 역할: 텍스트 없는 아름다운 배경 이미지만 생성)
+1. DO NOT generate ANY text, letters, words, numbers, or typography INSIDE the image
+   (이미지 내부에 텍스트, 글자, 단어, 숫자, 타이포그래피 생성 금지)
+2. DO NOT render Korean, English, Chinese, or ANY language text in the image
+   (한글, 영어, 중국어 등 어떤 언어 텍스트도 이미지에 렌더링 금지)
+3. The image must be 100% PURELY VISUAL: only product, background, props, lighting, effects
+   (이미지는 100% 순수 비주얼: 제품, 배경, 소품, 조명, 효과만)
+4. NEVER attempt to write "24H", "95%", "글로시", "촉촉한", or ANY text directly in the image
+   (이미지에 직접 텍스트 쓰기 시도 금지)
+5. Korean text especially MUST NOT appear in images - it will look broken and distorted!
+   (특히 한글은 이미지에 절대 안됨 - 깨져서 보임!)
 
-★ VIOLATION = FAILED IMAGE (위반 = 실패한 이미지):
-- If ANY text/letters/numbers/Korean characters appear in the generated image, it is REJECTED (텍스트/글자/숫자/한글이 이미지에 나타나면 거부됨)
-- This includes: product labels with text, stats, titles, Korean words, watermarks, ANY text at all (포함: 텍스트가 있는 제품 라벨, 통계, 제목, 한글, 워터마크, 모든 텍스트)
-- Generate ONLY: product visuals, backgrounds, lighting effects, decorative elements - NO TEXT (생성: 제품 비주얼, 배경, 조명 효과, 장식 요소만 - 텍스트 없음)
+★ WHERE TEXT GOES:
+(텍스트가 가는 곳)
+- All text content → overlay JSON
+  (모든 텍스트 내용 → 오버레이 JSON)
+- The frontend renders text ON TOP of your clean image using HTML/CSS
+  (프론트엔드가 HTML/CSS로 깨끗한 이미지 위에 텍스트 렌더링)
+- Your job: generate a beautiful TEXT-FREE background image only
+  (당신의 역할: 텍스트 없는 아름다운 배경 이미지만 생성)
+
+★ VIOLATION = FAILED IMAGE:
+(위반 = 실패한 이미지)
+- If ANY text/letters/numbers/Korean characters appear in the generated image, it is REJECTED
+  (텍스트/글자/숫자/한글이 이미지에 나타나면 거부됨)
+- This includes: product labels with text, stats, titles, Korean words, watermarks, ANY text at all
+  (포함: 텍스트가 있는 제품 라벨, 통계, 제목, 한글, 워터마크, 모든 텍스트)
+- Generate ONLY: product visuals, backgrounds, lighting effects, decorative elements - NO TEXT
+  (생성: 제품 비주얼, 배경, 조명 효과, 장식 요소만 - 텍스트 없음)
 `;
 
 /**
@@ -264,34 +374,58 @@ Return only detail-page style text design to be placed on top of the image, free
 Design CREATIVE, PLAYFUL, and BOLD typography that matches the generated image!
 (생성될 이미지에 어울리는 창의적이고, 키치하고, 대담한 타이포그래피를 디자인하세요!)
 
-★★★ DESIGN FREEDOM (디자인 자유도) ★★★
-- Look at the image and design text that COMPLEMENTS it (이미지를 보고 어울리는 텍스트를 디자인)
-- Be creative with placement - not everything needs to be centered! (창의적인 배치 - 모든 것이 중앙 정렬일 필요 없음!)
-- Use unexpected positions, dynamic layouts, asymmetric designs (예상치 못한 위치, 다이나믹한 레이아웃, 비대칭 디자인)
-- Mix different sizes dramatically for visual impact (시각적 임팩트를 위해 다양한 크기를 과감하게 믹스)
+★★★ DESIGN FREEDOM ★★★
+(디자인 자유도)
+- Look at the image and design text that COMPLEMENTS it
+  (이미지를 보고 어울리는 텍스트를 디자인)
+- Be creative with placement - not everything needs to be centered!
+  (창의적인 배치 - 모든 것이 중앙 정렬일 필요 없음!)
+- Use unexpected positions, dynamic layouts, asymmetric designs
+  (예상치 못한 위치, 다이나믹한 레이아웃, 비대칭 디자인)
+- Mix different sizes dramatically for visual impact
+  (시각적 임팩트를 위해 다양한 크기를 과감하게 믹스)
 
-★★★ COORDINATE SYSTEM: PERCENTAGE 0-100 (좌표 시스템: 퍼센트 0-100) ★★★
-Image aspect ratio (이미지 비율): ${aspectRatio || '3:4'} (${width}x${height}px)
-${isWide ? '⚠️ WIDE FORMAT: Horizontal banner - spread text across width (가로형: 텍스트를 너비에 걸쳐 배치)' : ''}
-${isTall ? '⚠️ TALL FORMAT: Vertical layout - stack text vertically (세로형: 텍스트를 세로로 쌓기)' : ''}
+★★★ COORDINATE SYSTEM: PERCENTAGE 0-100 ★★★
+(좌표 시스템: 퍼센트 0-100)
+Image aspect ratio: ${aspectRatio || '3:4'} (${width}x${height}px)
+(이미지 비율)
+${isWide ? `⚠️ WIDE FORMAT: Horizontal banner - spread text across width
+  (가로형: 텍스트를 너비에 걸쳐 배치)` : ''}
+${isTall ? `⚠️ TALL FORMAT: Vertical layout - stack text vertically
+  (세로형: 텍스트를 세로로 쌓기)` : ''}
 
-- x: 0-100 (0=left, 50=center, 100=right) - PERCENTAGE! (0=왼쪽, 50=중앙, 100=오른쪽 - 퍼센트!)
-- y: 0-100 (0=top, 50=middle, 100=bottom) - PERCENTAGE! (0=상단, 50=중앙, 100=하단 - 퍼센트!)
-- fontSize: 12-72px - be bold with sizes! (크기를 과감하게!)
-- Place texts where they look BEST with the image (이미지에 가장 잘 어울리는 위치에 배치)
+- x: 0-100 (0=left, 50=center, 100=right) - PERCENTAGE!
+  (0=왼쪽, 50=중앙, 100=오른쪽 - 퍼센트!)
+- y: 0-100 (0=top, 50=middle, 100=bottom) - PERCENTAGE!
+  (0=상단, 50=중앙, 100=하단 - 퍼센트!)
+- fontSize: 12-72px - be bold with sizes!
+  (크기를 과감하게!)
+- Place texts where they look BEST with the image
+  (이미지에 가장 잘 어울리는 위치에 배치)
 
-★★★ COLOR & STYLE INSPIRATION (컬러 & 스타일 영감) ★★★
-- Vibrant (비비드): #FF6B6B, #4ECDC4, #FFE66D, #FF8C42
-- Elegant (엘레강스): #2C3E50, #E74C3C, #1ABC9C, #9B59B6
-- Luxurious (럭셔리): #C9B037, #BF9270, #2E4057, #8B4513
-- Pastel (파스텔): #FFB3BA, #BAFFC9, #BAE1FF, #FFFFBA
-- Match colors to the image mood! (이미지 무드에 맞는 컬러 매칭!)
+★★★ COLOR & STYLE INSPIRATION ★★★
+(컬러 & 스타일 영감)
+- Vibrant: #FF6B6B, #4ECDC4, #FFE66D, #FF8C42
+  (비비드)
+- Elegant: #2C3E50, #E74C3C, #1ABC9C, #9B59B6
+  (엘레강스)
+- Luxurious: #C9B037, #BF9270, #2E4057, #8B4513
+  (럭셔리)
+- Pastel: #FFB3BA, #BAFFC9, #BAE1FF, #FFFFBA
+  (파스텔)
+- Match colors to the image mood!
+  (이미지 무드에 맞는 컬러 매칭!)
 
-CRITICAL RULES (중요 규칙):
-- fontSize: INTEGER 12-72 (정수 12-72)
-- x, y: INTEGER 0-100 PERCENTAGE, NOT pixels! (정수 0-100 퍼센트, 픽셀 아님!)
-- Do NOT overlap texts - maintain 10+ gap (텍스트 겹침 금지 - 10% 이상 간격 유지)
-- Make it look like professional Korean detail page design! (전문적인 한국 상세페이지 디자인처럼!)
+CRITICAL RULES:
+(중요 규칙)
+- fontSize: INTEGER 12-72
+  (정수 12-72)
+- x, y: INTEGER 0-100 PERCENTAGE, NOT pixels!
+  (정수 0-100 퍼센트, 픽셀 아님!)
+- Do NOT overlap texts - maintain 10+ gap
+  (텍스트 겹침 금지 - 10% 이상 간격 유지)
+- Make it look like professional Korean detail page design!
+  (전문적인 한국 상세페이지 디자인처럼!)
 `;
 }
 
@@ -335,14 +469,22 @@ function buildOverlayTextRequest(overlayTextPrompt: string, isFlashModel: boolea
 
   return `
 
-[★★★ OUTPUT REQUIREMENTS (출력 요구사항) ★★★]
-1. GENERATE IMAGE FIRST (REQUIRED) - This is the primary output (이미지 먼저 생성 (필수) - 이것이 주요 출력)
-2. THEN return overlay text JSON for placing text ON TOP of the generated image (그 다음 생성된 이미지 위에 배치할 오버레이 텍스트 JSON 반환)
+[★★★ OUTPUT REQUIREMENTS ★★★]
+(출력 요구사항)
 
-[OVERLAY TEXT = Text to be placed ON TOP of the generated image (오버레이 텍스트 = 생성된 이미지 위에 배치할 텍스트)]
-- NOT text inside the image (이미지 안에 들어가는 텍스트가 아님)
-- This is typography metadata: content, position, style for frontend rendering (프론트엔드 렌더링을 위한 타이포그래피 메타데이터: 내용, 위치, 스타일)
-- The overlay will be rendered as HTML/CSS on top of your clean image (오버레이는 깨끗한 이미지 위에 HTML/CSS로 렌더링됨)
+1. GENERATE IMAGE FIRST (REQUIRED) - This is the primary output
+   (이미지 먼저 생성 (필수) - 이것이 주요 출력)
+2. THEN return overlay text JSON for placing text ON TOP of the generated image
+   (그 다음 생성된 이미지 위에 배치할 오버레이 텍스트 JSON 반환)
+
+[OVERLAY TEXT = Text to be placed ON TOP of the generated image]
+(오버레이 텍스트 = 생성된 이미지 위에 배치할 텍스트)
+- NOT text inside the image
+  (이미지 안에 들어가는 텍스트가 아님)
+- This is typography metadata: content, position, style for frontend rendering
+  (프론트엔드 렌더링을 위한 타이포그래피 메타데이터: 내용, 위치, 스타일)
+- The overlay will be rendered as HTML/CSS on top of your clean image
+  (오버레이는 깨끗한 이미지 위에 HTML/CSS로 렌더링됨)
 ${noTextReinforcement}
 ${creativeGuide}
 ${overlayTextPrompt}
