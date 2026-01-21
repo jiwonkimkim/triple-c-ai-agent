@@ -395,8 +395,6 @@ export function EditorSection({
             {section.blocks.map((block, index) => (
               <div key={block.id}>
                 <div
-                  draggable={!isMain}
-                  onDragStart={(e) => !isMain && handleDragStart(e, index)}
                   onDragOver={(e) => !isMain && handleDragOver(e, index)}
                   onDragLeave={!isMain ? handleDragLeave : undefined}
                   onDrop={(e) => !isMain && handleDrop(e, index)}
@@ -408,10 +406,13 @@ export function EditorSection({
                   )}
                 >
                   {/* Block controls - MAIN 섹션은 드래그 핸들 숨김 */}
+                  {/* ★★★ 드래그 핸들에서만 드래그 시작 (블록 전체 draggable 제거) ★★★ */}
                   {!isMain && (
                     <div className="absolute -left-10 top-1/2 -translate-y-1/2 flex flex-col gap-1 opacity-0 group-hover/block:opacity-100 transition-opacity">
                       <button
                         type="button"
+                        draggable={true}
+                        onDragStart={(e) => handleDragStart(e, index)}
                         className="p-1 hover:bg-muted rounded cursor-grab"
                         title="드래그하여 순서 변경"
                       >
