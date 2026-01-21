@@ -254,6 +254,8 @@ function buildCreativeOverlayGuide(aspectRatio?: string): string {
 
   return `
 [★ CREATIVE OVERLAY TEXT DESIGN - 키치하고 트렌디한 상세페이지 스타일 ★]
+생성될 이미지와 사용된 프롬프트 상황에 맞게 자유롭게 이미지 위에 얹을 상세페이지 스타일 텍스트 디자인만 반환하세요.
+
 You are a trendy Korean e-commerce detail page designer.
 Design CREATIVE, PLAYFUL, and BOLD typography that matches the generated image!
 
