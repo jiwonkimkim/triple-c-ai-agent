@@ -676,19 +676,22 @@ export async function generateImageWithGemini(
     console.log(`[Gemini T2I] AspectRatio: ${aspectRatio || 'free'} (via imageConfig)`);
     console.log(`[Gemini T2I] Prompt length: ${prompt.length} chars`);
 
+    // ★ Pro 모델은 1K 해상도 명시
+    const isProModel = model.includes('pro');
+    const imageConfig = {
+      ...(aspectRatio && { aspectRatio: aspectRatio }),
+      ...(isProModel && { imageSize: "1K" }),
+    };
+
     let response;
     try {
-      // ★★★ T2I: responseModalities로 이미지 생성 강제 + imageConfig로 비율 설정 ★★★
+      // ★★★ T2I: responseModalities로 이미지 생성 강제 + imageConfig로 비율/해상도 설정 ★★★
       response = await client.models.generateContent({
         model: model,
         contents: [prompt],
         config: {
           responseModalities: ['Image', 'Text'],  // ★ 이미지 생성 강제
-          ...(aspectRatio && {
-            imageConfig: {
-              aspectRatio: aspectRatio,
-            },
-          }),
+          ...(Object.keys(imageConfig).length > 0 && { imageConfig }),
         },
       });
     } catch (apiError: unknown) {
@@ -1507,11 +1510,13 @@ ${prompt}
     console.log(`[Gemini I2I] AspectRatio: ${aspectRatio || 'free'}`);
     console.log(`[Gemini I2I] Prompt preview: ${enhancedPrompt.substring(0, 200)}...`);
 
-    // image_config 설정 (aspectRatio가 지정된 경우만)
-    const imageConfig = aspectRatio ? {
-      aspectRatio: aspectRatio,  // "1:1", "3:4", "16:9" 등
-      // imageSize: "2K",  // Pro 모델에서 지원 시 활성화
-    } : undefined;
+    // image_config 설정
+    // ★ Pro 모델은 1K/2K/4K 선택 가능, Flash는 고정 해상도
+    const isProModel = model.includes('pro');
+    const imageConfig = {
+      ...(aspectRatio && { aspectRatio: aspectRatio }),  // "1:1", "3:4", "16:9" 등
+      ...(isProModel && { imageSize: "1K" }),  // Pro 모델: 1K 해상도 명시 (896x1200 등)
+    };
 
     const response = await client.models.generateContent({
       model: model,
@@ -1534,7 +1539,7 @@ ${prompt}
       ],
       config: {
         responseModalities: ['TEXT', 'IMAGE'],  // 텍스트+이미지 동시 응답
-        ...(imageConfig && { imageConfig }),
+        ...(Object.keys(imageConfig).length > 0 && { imageConfig }),
       },
     });
 
