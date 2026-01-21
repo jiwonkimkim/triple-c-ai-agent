@@ -76,138 +76,138 @@ function buildSharedSectionPrompt(sectionType: SectionType, params: SectionPromp
   const { productName, ingredientObjects, moodSelection, audienceStyle, featureHighlight, isI2I } = params;
 
   const i2iPrefix = isI2I
-    ? '\nUSE THE PROVIDED PRODUCT IMAGE as reference - include this exact product in the new composition.\n'
+    ? '\nUSE THE PROVIDED PRODUCT IMAGE as reference - include this exact product in the new composition. (제공된 제품 이미지를 참조하여 새로운 구성에 포함)\n'
     : '';
 
   // ★ 주요 섹션 타입만 정의, 나머지는 CUSTOM 폴백 사용
   const prompts: Partial<Record<SectionType, string>> = {
-    MAIN: `Create a KOREAN E-COMMERCE DETAIL PAGE THUMBNAIL for "${productName}".
+    MAIN: `Create a KOREAN E-COMMERCE DETAIL PAGE THUMBNAIL for "${productName}". (한국 이커머스 상세페이지 썸네일 생성)
 ${i2iPrefix}
-[KOREAN DETAIL PAGE STYLE - 올리브영/쿠팡 스타일]
-- Premium beauty product thumbnail style (한국 뷰티 상세페이지)
-- Clean, bright, aspirational aesthetic that Korean consumers love
-- Magazine editorial meets e-commerce quality
-- Soft gradient background complementing product colors
+[KOREAN DETAIL PAGE STYLE (한국 상세페이지 스타일)]
+- Premium beauty product thumbnail style (프리미엄 뷰티 제품 썸네일 스타일)
+- Clean, bright, aspirational aesthetic that Korean consumers love (한국 소비자가 좋아하는 깨끗하고 밝은 미학)
+- Magazine editorial meets e-commerce quality (매거진 에디토리얼 + 이커머스 퀄리티)
+- Soft gradient background complementing product colors (제품 컬러를 보완하는 부드러운 그라데이션 배경)
 
-[CREATIVE COMPOSITION]
-Design a visually striking thumbnail featuring ${isI2I ? 'the provided product' : productName}.
-- Product as HERO (50-60% of frame), sharp focus, eye-catching
-- Product placement: CENTER or slightly UPPER-CENTER
-- Decorative objects (15-20%): ${ingredientObjects.join(', ')}
-- Atmospheric elements (10-15%): ${moodSelection.join(', ')}
-- Create depth with layered composition (foreground → product → background)
-- Leave CLEAN SPACE at top (20%) for text overlay (slogan area)
+[CREATIVE COMPOSITION (크리에이티브 구성)]
+Design a visually striking thumbnail featuring ${isI2I ? 'the provided product' : productName}. (시각적으로 눈에 띄는 썸네일 디자인)
+- Product as HERO 50-60% of frame, sharp focus, eye-catching (제품이 주인공 50-60%, 선명한 초점)
+- Product placement: CENTER or slightly UPPER-CENTER (제품 배치: 중앙 또는 약간 위쪽 중앙)
+- Decorative objects 15-20%: ${ingredientObjects.join(', ')} (장식 오브젝트 15-20%)
+- Atmospheric elements 10-15%: ${moodSelection.join(', ')} (분위기 요소 10-15%)
+- Create depth with layered composition: foreground → product → background (레이어 구성으로 깊이감 생성)
+- Leave CLEAN SPACE at top 20% for text overlay (상단 20%는 텍스트 오버레이를 위해 비워두기)
 
-[STYLING DIRECTION]
-Target aesthetic: ${audienceStyle}
+[STYLING DIRECTION (스타일링 방향)]
+Target aesthetic (타겟 미학): ${audienceStyle}
 ${featureHighlight}
-Korean beauty trend: 글로우, 투명감, 프리미엄
+Korean beauty trend (한국 뷰티 트렌드): glow, transparency, premium (글로우, 투명감, 프리미엄)
 
-[TECHNICAL REQUIREMENTS]
-- Soft, diffused studio lighting with gentle rim light
-- Shallow depth of field, soft bokeh background
-- Rich, vibrant colors with professional color grading
-- Premium commercial photography that triggers purchase desire
-- 8K resolution, photorealistic, no text in image`,
+[TECHNICAL REQUIREMENTS (기술 요구사항)]
+- Soft, diffused studio lighting with gentle rim light (부드러운 확산 스튜디오 조명과 림 라이트)
+- Shallow depth of field, soft bokeh background (얕은 피사계 심도, 부드러운 보케 배경)
+- Rich, vibrant colors with professional color grading (풍부하고 생동감 있는 컬러와 전문 컬러 그레이딩)
+- Premium commercial photography that triggers purchase desire (구매 욕구를 자극하는 프리미엄 상업 사진)
+- 8K resolution, photorealistic, no text in image (8K 해상도, 포토리얼리스틱, 이미지 내 텍스트 없음)`,
 
-    HERO: `Create KOREAN E-COMMERCE HERO BANNER IMAGE for ${productName}.
+    HERO: `Create KOREAN E-COMMERCE HERO BANNER IMAGE for ${productName}. (한국 이커머스 히어로 배너 이미지 생성)
 ${i2iPrefix}
-[SCENARIO: 상세페이지 최상단 히어로 배너]
-- 고객이 처음 보는 강렬한 첫인상 이미지
-- 제품이 돋보이면서 브랜드 슬로건이 들어갈 공간 필요
-- 프리미엄하고 드라마틱한 분위기
+[SCENARIO (시나리오)]
+- First impression image at the top of detail page (상세페이지 최상단 첫인상 이미지)
+- Product stands out with space for brand slogan (제품이 돋보이면서 브랜드 슬로건 공간 필요)
+- Premium and dramatic atmosphere (프리미엄하고 드라마틱한 분위기)
 
-[COMPOSITION]
-- WIDE FORMAT (16:9 ratio) - horizontal banner
-- Product featured prominently but with ample text space
-- Dramatic lighting, cinematic feel
-- Background: gradient or lifestyle scene
-- Decorative elements: ${ingredientObjects.join(', ')}
+[COMPOSITION (구성)]
+- WIDE FORMAT 16:9 ratio - horizontal banner (와이드 포맷 16:9 비율 - 가로 배너)
+- Product featured prominently but with ample text space (제품이 돋보이되 충분한 텍스트 공간)
+- Dramatic lighting, cinematic feel (드라마틱 조명, 시네마틱 느낌)
+- Background: gradient or lifestyle scene (배경: 그라데이션 또는 라이프스타일 씬)
+- Decorative elements (장식 요소): ${ingredientObjects.join(', ')}
 
-[STYLE]
+[STYLE (스타일)]
 ${audienceStyle}
-Korean luxury beauty aesthetic
-8K resolution, no text in image`,
+Korean luxury beauty aesthetic (한국 럭셔리 뷰티 미학)
+8K resolution, no text in image (8K 해상도, 이미지 내 텍스트 없음)`,
 
-    FEATURES: `Create KOREAN E-COMMERCE FEATURES SECTION IMAGE for ${productName}.
+    FEATURES: `Create KOREAN E-COMMERCE FEATURES SECTION IMAGE for ${productName}. (한국 이커머스 특징 섹션 이미지 생성)
 ${i2iPrefix}
-[SCENARIO: 제품 특징/성분 강조 섹션]
-- 제품의 핵심 성분이나 기능을 시각화
-- 깔끔하고 정보 전달력 있는 구성
+[SCENARIO (시나리오)]
+- Visualize key ingredients or functions of the product (제품의 핵심 성분이나 기능을 시각화)
+- Clean and informative composition (깔끔하고 정보 전달력 있는 구성)
 
-[COMPOSITION]
-- Clean, organized layout
-- Product with ingredient/feature visualization
-- Supporting elements: ${ingredientObjects.join(', ')}
-- Professional, informative aesthetic
+[COMPOSITION (구성)]
+- Clean, organized layout (깔끔하고 정돈된 레이아웃)
+- Product with ingredient/feature visualization (제품과 성분/특징 시각화)
+- Supporting elements (보조 요소): ${ingredientObjects.join(', ')}
+- Professional, informative aesthetic (전문적이고 정보적인 미학)
 
-[STYLE]
-${audienceStyle}
-${featureHighlight}
-8K resolution, no text in image`,
-
-    SOCIAL_PROOF: `Create KOREAN E-COMMERCE SOCIAL PROOF IMAGE for ${productName}.
-${i2iPrefix}
-[SCENARIO: 리뷰/후기 섹션 배경]
-- 신뢰감을 주는 따뜻하고 자연스러운 분위기
-- 실제 사용 환경이나 뷰티 라이프스타일
-
-[COMPOSITION]
-- Lifestyle setting (bathroom, vanity, skincare routine)
-- Warm, inviting atmosphere
-- Product in natural use context
-- Soft, approachable lighting
-
-[STYLE]
-${audienceStyle}
-Authentic, relatable aesthetic
-8K resolution, no text in image`,
-
-    HOW_TO_USE: `Create KOREAN E-COMMERCE HOW-TO-USE IMAGE for ${productName}.
-${i2iPrefix}
-[SCENARIO: 사용 방법 안내 섹션]
-- 제품 사용 단계를 보여주는 깔끔한 이미지
-- 교육적이면서 매력적인 구성
-
-[COMPOSITION]
-- Step-by-step visual guide concept
-- Clean, instructional layout
-- Product application moment
-- Hands or skin texture (optional)
-
-[STYLE]
-${audienceStyle}
-Educational yet beautiful
-8K resolution, no text in image`,
-
-    FAQ: `Create KOREAN E-COMMERCE FAQ SECTION IMAGE for ${productName}.
-${i2iPrefix}
-[SCENARIO: 자주 묻는 질문 섹션 배경]
-- 친근하고 도움이 되는 느낌
-- 깔끔한 배경 이미지
-
-[COMPOSITION]
-- Simple, clean background
-- Subtle product placement
-- Soft, reassuring atmosphere
-- Professional yet approachable
-
-[STYLE]
-${audienceStyle}
-Helpful, trustworthy aesthetic
-8K resolution, no text in image`,
-
-    CUSTOM: `Create KOREAN E-COMMERCE IMAGE for ${productName}.
-${i2iPrefix}
-[COMPOSITION]
-- Premium Korean beauty aesthetic
-- Product featured beautifully
-- Decorative elements: ${ingredientObjects.join(', ')}
-
-[STYLE]
+[STYLE (스타일)]
 ${audienceStyle}
 ${featureHighlight}
-8K resolution, no text in image`,
+8K resolution, no text in image (8K 해상도, 이미지 내 텍스트 없음)`,
+
+    SOCIAL_PROOF: `Create KOREAN E-COMMERCE SOCIAL PROOF IMAGE for ${productName}. (한국 이커머스 소셜 프루프 이미지 생성)
+${i2iPrefix}
+[SCENARIO (시나리오)]
+- Warm and natural atmosphere that inspires trust (신뢰감을 주는 따뜻하고 자연스러운 분위기)
+- Real use environment or beauty lifestyle (실제 사용 환경이나 뷰티 라이프스타일)
+
+[COMPOSITION (구성)]
+- Lifestyle setting: bathroom, vanity, skincare routine (라이프스타일 세팅: 욕실, 화장대, 스킨케어 루틴)
+- Warm, inviting atmosphere (따뜻하고 초대하는 분위기)
+- Product in natural use context (자연스러운 사용 맥락의 제품)
+- Soft, approachable lighting (부드럽고 친근한 조명)
+
+[STYLE (스타일)]
+${audienceStyle}
+Authentic, relatable aesthetic (진정성 있고 공감가는 미학)
+8K resolution, no text in image (8K 해상도, 이미지 내 텍스트 없음)`,
+
+    HOW_TO_USE: `Create KOREAN E-COMMERCE HOW-TO-USE IMAGE for ${productName}. (한국 이커머스 사용법 이미지 생성)
+${i2iPrefix}
+[SCENARIO (시나리오)]
+- Clean image showing product usage steps (제품 사용 단계를 보여주는 깔끔한 이미지)
+- Educational yet attractive composition (교육적이면서 매력적인 구성)
+
+[COMPOSITION (구성)]
+- Step-by-step visual guide concept (단계별 비주얼 가이드 컨셉)
+- Clean, instructional layout (깔끔하고 교육적인 레이아웃)
+- Product application moment (제품 적용 순간)
+- Hands or skin texture optional (손이나 피부 텍스처 선택사항)
+
+[STYLE (스타일)]
+${audienceStyle}
+Educational yet beautiful (교육적이면서 아름다운)
+8K resolution, no text in image (8K 해상도, 이미지 내 텍스트 없음)`,
+
+    FAQ: `Create KOREAN E-COMMERCE FAQ SECTION IMAGE for ${productName}. (한국 이커머스 FAQ 섹션 이미지 생성)
+${i2iPrefix}
+[SCENARIO (시나리오)]
+- Friendly and helpful feeling (친근하고 도움이 되는 느낌)
+- Clean background image (깔끔한 배경 이미지)
+
+[COMPOSITION (구성)]
+- Simple, clean background (심플하고 깔끔한 배경)
+- Subtle product placement (은은한 제품 배치)
+- Soft, reassuring atmosphere (부드럽고 안심되는 분위기)
+- Professional yet approachable (전문적이지만 친근한)
+
+[STYLE (스타일)]
+${audienceStyle}
+Helpful, trustworthy aesthetic (도움이 되고 신뢰감 있는 미학)
+8K resolution, no text in image (8K 해상도, 이미지 내 텍스트 없음)`,
+
+    CUSTOM: `Create KOREAN E-COMMERCE IMAGE for ${productName}. (한국 이커머스 이미지 생성)
+${i2iPrefix}
+[COMPOSITION (구성)]
+- Premium Korean beauty aesthetic (프리미엄 한국 뷰티 미학)
+- Product featured beautifully (제품이 아름답게 피처링)
+- Decorative elements (장식 요소): ${ingredientObjects.join(', ')}
+
+[STYLE (스타일)]
+${audienceStyle}
+${featureHighlight}
+8K resolution, no text in image (8K 해상도, 이미지 내 텍스트 없음)`,
   };
 
   // CUSTOM은 항상 정의되어 있으므로 non-null assertion 사용
@@ -335,19 +335,20 @@ function buildOverlayTextRequest(overlayTextPrompt: string, isFlashModel: boolea
 
   return `
 
-[★★★ OUTPUT REQUIREMENTS ★★★]
-1. GENERATE IMAGE FIRST (REQUIRED) - This is the primary output
-2. THEN return overlay text JSON (for placing text ON TOP of the generated image)
+[★★★ OUTPUT REQUIREMENTS (출력 요구사항) ★★★]
+1. GENERATE IMAGE FIRST (REQUIRED) - This is the primary output (이미지 먼저 생성 (필수) - 이것이 주요 출력)
+2. THEN return overlay text JSON for placing text ON TOP of the generated image (그 다음 생성된 이미지 위에 배치할 오버레이 텍스트 JSON 반환)
 
-[OVERLAY TEXT = Text to be placed ON TOP of the generated image]
-- NOT text inside the image
-- This is typography metadata (content, position, style) for frontend rendering
-- The overlay will be rendered as HTML/CSS on top of your generated image
+[OVERLAY TEXT = Text to be placed ON TOP of the generated image (오버레이 텍스트 = 생성된 이미지 위에 배치할 텍스트)]
+- NOT text inside the image (이미지 안에 들어가는 텍스트가 아님)
+- This is typography metadata: content, position, style for frontend rendering (프론트엔드 렌더링을 위한 타이포그래피 메타데이터: 내용, 위치, 스타일)
+- The overlay will be rendered as HTML/CSS on top of your clean image (오버레이는 깨끗한 이미지 위에 HTML/CSS로 렌더링됨)
 ${noTextReinforcement}
 ${creativeGuide}
 ${overlayTextPrompt}
 
-CRITICAL: You MUST generate an image. The overlay JSON is additional metadata for text positioning.`;
+CRITICAL: You MUST generate an image. The overlay JSON is additional metadata for text positioning.
+(중요: 반드시 이미지를 생성해야 합니다. 오버레이 JSON은 텍스트 배치를 위한 추가 메타데이터입니다.)`;
 }
 
 /**
