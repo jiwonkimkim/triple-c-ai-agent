@@ -385,8 +385,8 @@ Design CREATIVE, PLAYFUL, and BOLD typography that matches the generated image!
 - Mix different sizes dramatically for visual impact
   (시각적 임팩트를 위해 다양한 크기를 과감하게 믹스)
 
-★★★ COORDINATE SYSTEM: PERCENTAGE 0-100 ★★★
-(좌표 시스템: 퍼센트 0-100)
+★★★ COORDINATE SYSTEM: PERCENTAGE 0.0-100.0 (DECIMAL ALLOWED) ★★★
+(좌표 시스템: 퍼센트 0.0-100.0, 소수점 허용)
 Image aspect ratio: ${aspectRatio || '3:4'} (${width}x${height}px)
 (이미지 비율)
 ${isWide ? `⚠️ WIDE FORMAT: Horizontal banner - spread text across width
@@ -394,10 +394,12 @@ ${isWide ? `⚠️ WIDE FORMAT: Horizontal banner - spread text across width
 ${isTall ? `⚠️ TALL FORMAT: Vertical layout - stack text vertically
   (세로형: 텍스트를 세로로 쌓기)` : ''}
 
-- x: 0-100 (0=left, 50=center, 100=right) - PERCENTAGE!
-  (0=왼쪽, 50=중앙, 100=오른쪽 - 퍼센트!)
-- y: 0-100 (0=top, 50=middle, 100=bottom) - PERCENTAGE!
-  (0=상단, 50=중앙, 100=하단 - 퍼센트!)
+- x: 0.0-100.0 (0=left, 50=center, 100=right) - PERCENTAGE with DECIMALS!
+  (0=왼쪽, 50=중앙, 100=오른쪽 - 소수점 포함 퍼센트!)
+  Examples: 12.5, 33.3, 66.7, 87.5
+- y: 0.0-100.0 (0=top, 50=middle, 100=bottom) - PERCENTAGE with DECIMALS!
+  (0=상단, 50=중앙, 100=하단 - 소수점 포함 퍼센트!)
+  Examples: 8.5, 25.0, 45.5, 92.3
 - fontSize: 12-72px - be bold with sizes!
   (크기를 과감하게!)
 - Place texts where they look BEST with the image
@@ -420,10 +422,12 @@ CRITICAL RULES:
 (중요 규칙)
 - fontSize: INTEGER 12-72
   (정수 12-72)
-- x, y: INTEGER 0-100 PERCENTAGE, NOT pixels!
-  (정수 0-100 퍼센트, 픽셀 아님!)
-- Do NOT overlap texts - maintain 10+ gap
-  (텍스트 겹침 금지 - 10% 이상 간격 유지)
+- x, y: DECIMAL 0.0-100.0 PERCENTAGE (e.g., 33.5, 66.7), NOT pixels!
+  (소수점 포함 0.0-100.0 퍼센트, 픽셀 아님!)
+- Use precise decimal values for accurate positioning
+  (정확한 위치를 위해 소수점 값 사용)
+- Do NOT overlap texts - maintain 8%+ gap
+  (텍스트 겹침 금지 - 8% 이상 간격 유지)
 - Make it look like professional Korean detail page design!
   (전문적인 한국 상세페이지 디자인처럼!)
 `;
