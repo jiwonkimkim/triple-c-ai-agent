@@ -802,8 +802,9 @@ ${sectionSpecificGuide}
 ## ★ 실제 상세페이지 텍스트 예시
 ${examplesJson}
 
-## 색상 팔레트 (자유롭게 선택)
-사용 가능한 색상: ${colorPalette.join(', ')}
+## 색상 (Color)
+이미지에 어울리는 자유로운 텍스트 색상으로 디자인하세요.
+Design with free text colors that match the image.
 
 ## 절대 금지
 - 이모지 사용 금지 (😊, ✨, 💕 등)
