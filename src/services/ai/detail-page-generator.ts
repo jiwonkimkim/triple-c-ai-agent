@@ -653,7 +653,11 @@ export async function generateDetailPage(
                           updatedPrompts[i] = {
                             ...updatedPrompts[i],
                             imagePrompt: result.image.revisedPrompt,
-                            promptComponents: result.image.promptComponents,
+                            // ★ 오케스트레이션 promptComponents + 이미지 생성 promptComponents 병합 (분리 표시용)
+                            promptComponents: {
+                              ...updatedPrompts[i].promptComponents,  // categoryPrompt, subCategory 등
+                              ...result.image.promptComponents,       // sectionBasePrompt, overlayTextPrompt 등
+                            },
                             overlayText: result.overlayText,  // ★ 오버레이 텍스트도 저장
                             overlayPrompt: result.overlayPrompt,
                           };
@@ -797,7 +801,11 @@ export async function generateDetailPage(
                             updatedPrompts[i] = {
                               ...updatedPrompts[i],
                               imagePrompt: result.image.revisedPrompt,
-                              promptComponents: result.image.promptComponents,
+                              // ★ 오케스트레이션 promptComponents + 이미지 생성 promptComponents 병합 (분리 표시용)
+                              promptComponents: {
+                                ...updatedPrompts[i].promptComponents,  // categoryPrompt, subCategory 등
+                                ...result.image.promptComponents,       // sectionBasePrompt, overlayTextPrompt 등
+                              },
                               overlayText: result.overlayText,  // ★ 오버레이 텍스트도 저장
                               overlayPrompt: result.overlayPrompt,
                             };
