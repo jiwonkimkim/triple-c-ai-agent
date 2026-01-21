@@ -738,17 +738,7 @@ export function DetailPageEditor({
       return false;
     };
 
-    // ★★★ 텍스트 길이에 따른 width 자동 계산 ★★★
-    const calculateTextWidth = (text: string, fontSize: number): number => {
-      if (!text) return 20;
-      // 한글/영문 혼합 고려: 평균 0.7 비율 (한글 1.0, 영문 0.5)
-      const avgCharWidth = fontSize * 0.7;
-      const estimatedWidth = text.length * avgCharWidth;
-      // 캔버스 너비 1000px 기준으로 퍼센트 변환
-      const widthPercent = Math.ceil((estimatedWidth / 1000) * 100);
-      // 최소 15%, 최대 90%로 제한
-      return Math.min(90, Math.max(15, widthPercent));
-    };
+    // ★★★ 텍스트 박스 너비는 자동 (undefined) ★★★
 
     // ★★★ 새 형식: texts 배열이 있으면 우선 사용 (AI 자유 디자인)
     if (apiOverlay.texts && Array.isArray(apiOverlay.texts) && apiOverlay.texts.length > 0) {
@@ -772,7 +762,7 @@ export function DetailPageEditor({
             textAlign: (item.textAlign as 'left' | 'center' | 'right') ?? 'center',
             opacity: 100,
             rotation: 0,
-            width: calculateTextWidth(textContent, fontSize),  // ★★★ 텍스트 길이 기반 자동 너비 ★★★
+            width: undefined,  // ★★★ 자동 너비 ★★★
           },
           zIndex: zIndex++,
         });
@@ -806,7 +796,7 @@ export function DetailPageEditor({
           textAlign: (isString ? defaultStyle.align : (item.textAlign || defaultStyle.align)) as 'left' | 'center' | 'right',
           opacity: 100,
           rotation: 0,
-          width: calculateTextWidth(textContent, fontSize),  // ★★★ 텍스트 길이 기반 자동 너비 ★★★
+          width: undefined,  // ★★★ 자동 너비 ★★★
         },
         zIndex: zIndex++,
       };
@@ -846,7 +836,7 @@ export function DetailPageEditor({
             textAlign: 'center',
             opacity: 100,
             rotation: 0,
-            width: calculateTextWidth(statContent, statFontSize),  // ★★★ 텍스트 길이 기반 자동 너비 ★★★
+            width: undefined,  // ★★★ 자동 너비 ★★★
           },
           zIndex: zIndex++,
         });

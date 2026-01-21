@@ -451,17 +451,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           return value;
         };
 
-        // ★★★ 텍스트 길이에 따른 width 자동 계산 ★★★
-        const calculateTextWidth = (text: string, fontSize: number): number | undefined => {
-          if (!text) return undefined;
-          // 한글/영문 혼합 고려: 평균 0.7 비율 (한글 1.0, 영문 0.5)
-          const avgCharWidth = fontSize * 0.7;
-          const estimatedWidth = text.length * avgCharWidth;
-          // 캔버스 너비 1000px 기준으로 퍼센트 변환
-          const widthPercent = Math.ceil((estimatedWidth / 1000) * 100);
-          // 최소 10%, 최대 90%로 제한
-          return Math.min(90, Math.max(10, widthPercent));
-        };
+        // ★★★ 텍스트 박스 너비는 자동 (undefined) ★★★
 
         // ★ texts 배열 형식만 사용 (AI 자유 디자인)
         if (aiOverlayText?.texts && Array.isArray(aiOverlayText.texts) && aiOverlayText.texts.length > 0) {
@@ -484,7 +474,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 textAlign: (item.textAlign as 'left' | 'center' | 'right') ?? 'center',
                 opacity: 100,
                 rotation: 0,
-                width: calculateTextWidth(textContent, fontSize),  // ★★★ 텍스트 길이 기반 자동 너비 ★★★
+                width: undefined,  // ★★★ 자동 너비 ★★★
               },
               zIndex: zIndex++,
             });
@@ -509,7 +499,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 textAlign: textPosition.headline.align,
                 opacity: 100,
                 rotation: 0,
-                width: calculateTextWidth(section.title, titleFontSize),  // ★★★ 텍스트 길이 기반 자동 너비 ★★★
+                width: undefined,  // ★★★ 자동 너비 ★★★
               },
               zIndex: zIndex++,
             });
@@ -539,7 +529,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                   textAlign: textPosition.body.align,
                   opacity: 100,
                   rotation: 0,
-                  width: calculateTextWidth(bodyText, subFontSize),  // ★★★ 텍스트 길이 기반 자동 너비 ★★★
+                  width: undefined,  // ★★★ 자동 너비 ★★★
                 },
                 zIndex: zIndex++,
               });
@@ -562,7 +552,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                   textAlign: textPosition.body.align,
                   opacity: 100,
                   rotation: 0,
-                  width: calculateTextWidth('a'.repeat(maxLineLength), bodyFontSize),  // ★★★ 가장 긴 줄 기준 자동 너비 ★★★
+                  width: undefined,  // ★★★ 자동 너비 ★★★
                 },
                 zIndex: zIndex++,
               });
