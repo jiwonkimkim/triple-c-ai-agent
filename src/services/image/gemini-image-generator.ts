@@ -8,24 +8,44 @@ import { buildOverlayTextPrompt, BlockOverlayOptions } from '@/services/ai/promp
 // ============================================
 
 /**
- * ★★★ 비율별 실제 해상도 매핑 (Gemini 3 Pro Image 1K 기준) ★★★
- * 오버레이 텍스트 좌표 계산에 사용
+ * ★★★ 모델별 비율별 실제 해상도 매핑 ★★★
+ * 참조: https://ai.google.dev/gemini-api/docs/image-generation
+ * 오버레이 텍스트 좌표 계산 및 fontSize 기준에 사용
  */
-const ASPECT_RATIO_RESOLUTIONS: Record<string, { width: number; height: number }> = {
+
+// Gemini 2.5 Flash Image (nanobanana) 해상도
+const FLASH_RESOLUTIONS: Record<string, { width: number; height: number }> = {
+  '1:1': { width: 1024, height: 1024 },
+  '2:3': { width: 832, height: 1248 },
+  '3:2': { width: 1248, height: 832 },
+  '3:4': { width: 864, height: 1184 },
+  '4:3': { width: 1184, height: 864 },
+  '4:5': { width: 896, height: 1152 },
+  '5:4': { width: 1152, height: 896 },
+  '9:16': { width: 768, height: 1344 },
+  '16:9': { width: 1344, height: 768 },
+  '21:9': { width: 1536, height: 672 },
+};
+
+// Gemini 3 Pro Image Preview (nanobanana-pro) 해상도 (1K 기준)
+const PRO_RESOLUTIONS: Record<string, { width: number; height: number }> = {
   '1:1': { width: 1024, height: 1024 },
   '2:3': { width: 848, height: 1264 },
+  '3:2': { width: 1264, height: 848 },
   '3:4': { width: 896, height: 1200 },
   '4:3': { width: 1200, height: 896 },
   '4:5': { width: 928, height: 1152 },
   '5:4': { width: 1152, height: 928 },
-  '16:9': { width: 1376, height: 768 },
   '9:16': { width: 768, height: 1376 },
+  '16:9': { width: 1376, height: 768 },
   '21:9': { width: 1584, height: 672 },
-  '3:2': { width: 1264, height: 848 },
 };
 
+// 기본값은 Flash 해상도 사용 (호환성)
+const ASPECT_RATIO_RESOLUTIONS = FLASH_RESOLUTIONS;
+
 // 기본 해상도 (비율이 지정되지 않은 경우 - 3:4 상세페이지 기본)
-const DEFAULT_RESOLUTION = { width: 896, height: 1200 };
+const DEFAULT_RESOLUTION = { width: 864, height: 1184 };
 
 /**
  * 비율에 해당하는 실제 해상도 반환
@@ -385,23 +405,32 @@ Design CREATIVE, PLAYFUL, and BOLD typography that matches the generated image!
 - Mix different sizes dramatically for visual impact
   (시각적 임팩트를 위해 다양한 크기를 과감하게 믹스)
 
-★★★ COORDINATE SYSTEM: PERCENTAGE 0.0-100.0 (DECIMAL ALLOWED) ★★★
-(좌표 시스템: 퍼센트 0.0-100.0, 소수점 허용)
-Image aspect ratio: ${aspectRatio || '3:4'} (${width}x${height}px)
+★★★ CANVAS SIZE & COORDINATE SYSTEM ★★★
+(캔버스 크기 & 좌표 시스템)
+
+📐 OUTPUT IMAGE SIZE: ${width} x ${height} pixels
+(출력 이미지 크기: ${width} x ${height} 픽셀)
+Image aspect ratio: ${aspectRatio || '3:4'}
 (이미지 비율)
 ${isWide ? `⚠️ WIDE FORMAT: Horizontal banner - spread text across width
   (가로형: 텍스트를 너비에 걸쳐 배치)` : ''}
 ${isTall ? `⚠️ TALL FORMAT: Vertical layout - stack text vertically
   (세로형: 텍스트를 세로로 쌓기)` : ''}
 
-- x: 0.0-100.0 (0=left, 50=center, 100=right) - PERCENTAGE with DECIMALS!
-  (0=왼쪽, 50=중앙, 100=오른쪽 - 소수점 포함 퍼센트!)
+📍 POSITION (x, y): PERCENTAGE 0.0-100.0 with DECIMALS
+(위치: 퍼센트 0.0-100.0, 소수점 허용)
+- x: 0.0-100.0 (0=left, 50=center, 100=right)
   Examples: 12.5, 33.3, 66.7, 87.5
-- y: 0.0-100.0 (0=top, 50=middle, 100=bottom) - PERCENTAGE with DECIMALS!
-  (0=상단, 50=중앙, 100=하단 - 소수점 포함 퍼센트!)
+- y: 0.0-100.0 (0=top, 50=middle, 100=bottom)
   Examples: 8.5, 25.0, 45.5, 92.3
-- fontSize: 12-72px - be bold with sizes!
-  (크기를 과감하게!)
+
+🔤 FONT SIZE: Pixels for ${width}px wide canvas
+(폰트 크기: ${width}px 너비 캔버스 기준 픽셀값)
+- fontSize 24 = 24px on ${width}px canvas (약 ${Math.round(24/width*100*10)/10}% of width)
+- fontSize 48 = 48px on ${width}px canvas (약 ${Math.round(48/width*100*10)/10}% of width)
+- Be BOLD with sizes! Headlines: 36-72px, Body: 14-24px
+  (과감하게! 헤드라인: 36-72px, 본문: 14-24px)
+
 - Place texts where they look BEST with the image
   (이미지에 가장 잘 어울리는 위치에 배치)
 

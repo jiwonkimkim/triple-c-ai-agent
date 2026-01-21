@@ -144,8 +144,9 @@ const defaultStylesByType: Record<OverlayText['type'], Partial<OverlayTextStyle>
 
 const generateId = () => `overlay-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-// 기준 캔버스 너비 (데스크톱 기준 896px)
-const BASE_CANVAS_WIDTH = 896;
+// 기준 캔버스 너비 (Flash 모델 3:4 기준 864px, Pro 모델은 896px)
+// ★ 실제 이미지 해상도에 맞춰 스케일링
+const BASE_CANVAS_WIDTH = 864;
 
 export function ImageOverlayBlockRenderer({
   block,
