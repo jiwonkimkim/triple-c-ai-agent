@@ -738,19 +738,33 @@ export function DetailPageEditor({
       return false;
     };
 
+    // ★★★ 텍스트 길이에 따른 width 자동 계산 ★★★
+    const calculateTextWidth = (text: string, fontSize: number): number => {
+      if (!text) return 20;
+      // 한글/영문 혼합 고려: 평균 0.7 비율 (한글 1.0, 영문 0.5)
+      const avgCharWidth = fontSize * 0.7;
+      const estimatedWidth = text.length * avgCharWidth;
+      // 캔버스 너비 1000px 기준으로 퍼센트 변환
+      const widthPercent = Math.ceil((estimatedWidth / 1000) * 100);
+      // 최소 15%, 최대 90%로 제한
+      return Math.min(90, Math.max(15, widthPercent));
+    };
+
     // ★★★ 새 형식: texts 배열이 있으면 우선 사용 (AI 자유 디자인)
     if (apiOverlay.texts && Array.isArray(apiOverlay.texts) && apiOverlay.texts.length > 0) {
       console.log(`[convertApiOverlay] ★ Using texts array format (${apiOverlay.texts.length} items)`);
       apiOverlay.texts.forEach((item, idx) => {
         const textColor = item.color ?? '#333333';
+        const fontSize = item.fontSize ?? 24;
+        const textContent = item.text || '';
         result.push({
           id: `${sectionId}-text-${idx}-${Date.now()}`,
           type: idx === 0 ? 'headline' : 'body',  // 첫 번째는 headline, 나머지는 body
-          content: item.text || '',
+          content: textContent,
           style: {
             x: item.x ?? 50,
             y: item.y ?? (30 + idx * 15),
-            fontSize: item.fontSize ?? 24,
+            fontSize,
             fontWeight: (item.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'medium',
             fontFamily: item.fontFamily ?? 'Pretendard, sans-serif',
             color: textColor,
@@ -758,7 +772,7 @@ export function DetailPageEditor({
             textAlign: (item.textAlign as 'left' | 'center' | 'right') ?? 'center',
             opacity: 100,
             rotation: 0,
-            width: 80,
+            width: calculateTextWidth(textContent, fontSize),  // ★★★ 텍스트 길이 기반 자동 너비 ★★★
           },
           zIndex: zIndex++,
         });
@@ -775,14 +789,16 @@ export function DetailPageEditor({
       if (!item) return null;
       const isString = typeof item === 'string';
       const itemColor = isString ? '#333333' : item.color;
+      const textContent = isString ? item : item.text;
+      const fontSize = isString ? defaultStyle.fontSize : item.fontSize;
       return {
         id: `${sectionId}-${type}-${Date.now()}`,
         type,
-        content: isString ? item : item.text,
+        content: textContent,
         style: {
           x: isString ? defaultStyle.x : item.x,
           y: isString ? defaultStyle.y : item.y,
-          fontSize: isString ? defaultStyle.fontSize : item.fontSize,
+          fontSize,
           fontWeight: (isString ? 'medium' : item.fontWeight) as 'normal' | 'medium' | 'semibold' | 'bold',
           fontFamily: isString ? 'Pretendard, sans-serif' : (item.fontFamily || 'Pretendard, sans-serif'),
           color: itemColor,
@@ -790,7 +806,7 @@ export function DetailPageEditor({
           textAlign: (isString ? defaultStyle.align : (item.textAlign || defaultStyle.align)) as 'left' | 'center' | 'right',
           opacity: 100,
           rotation: 0,
-          width: type === 'headline' || type === 'subheadline' ? 80 : undefined,
+          width: calculateTextWidth(textContent, fontSize),  // ★★★ 텍스트 길이 기반 자동 너비 ★★★
         },
         zIndex: zIndex++,
       };
@@ -813,14 +829,16 @@ export function DetailPageEditor({
       apiOverlay.statistics.forEach((stat, idx) => {
         const isString = typeof stat === 'string';
         const statColor = isString ? '#ffffff' : stat.color;
+        const statContent = isString ? stat : stat.text;
+        const statFontSize = isString ? 48 : stat.fontSize;
         result.push({
           id: `${sectionId}-stat-${idx}-${Date.now()}`,
           type: 'statistic',
-          content: isString ? stat : stat.text,
+          content: statContent,
           style: {
             x: isString ? 50 : stat.x,
             y: isString ? 50 + (idx * 12) : stat.y,
-            fontSize: isString ? 48 : stat.fontSize,
+            fontSize: statFontSize,
             fontWeight: (isString ? 'bold' : stat.fontWeight) as 'normal' | 'medium' | 'semibold' | 'bold',
             fontFamily: isString ? 'Montserrat, sans-serif' : (stat.fontFamily || 'Montserrat, sans-serif'),
             color: statColor,
@@ -828,6 +846,7 @@ export function DetailPageEditor({
             textAlign: 'center',
             opacity: 100,
             rotation: 0,
+            width: calculateTextWidth(statContent, statFontSize),  // ★★★ 텍스트 길이 기반 자동 너비 ★★★
           },
           zIndex: zIndex++,
         });

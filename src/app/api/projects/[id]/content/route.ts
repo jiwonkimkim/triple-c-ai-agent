@@ -451,18 +451,32 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           return value;
         };
 
+        // ★★★ 텍스트 길이에 따른 width 자동 계산 ★★★
+        const calculateTextWidth = (text: string, fontSize: number): number | undefined => {
+          if (!text) return undefined;
+          // 한글/영문 혼합 고려: 평균 0.7 비율 (한글 1.0, 영문 0.5)
+          const avgCharWidth = fontSize * 0.7;
+          const estimatedWidth = text.length * avgCharWidth;
+          // 캔버스 너비 1000px 기준으로 퍼센트 변환
+          const widthPercent = Math.ceil((estimatedWidth / 1000) * 100);
+          // 최소 10%, 최대 90%로 제한
+          return Math.min(90, Math.max(10, widthPercent));
+        };
+
         // ★ texts 배열 형식만 사용 (AI 자유 디자인)
         if (aiOverlayText?.texts && Array.isArray(aiOverlayText.texts) && aiOverlayText.texts.length > 0) {
           aiOverlayText.texts.forEach((item, idx) => {
             const textColor = item.color ?? '#333333';
+            const fontSize = item.fontSize ?? 24;
+            const textContent = item.text || '';
             overlayTexts.push({
               id: `${section.id}-text-${idx}`,
               type: idx === 0 ? 'headline' : 'body',  // 첫 번째는 headline, 나머지는 body
-              content: item.text || '',
+              content: textContent,
               style: {
                 x: convertToPercent(item.x, 50),
                 y: convertToPercent(item.y, 30 + idx * 15),
-                fontSize: item.fontSize ?? 24,
+                fontSize,
                 fontWeight: (item.fontWeight as 'normal' | 'medium' | 'semibold' | 'bold') ?? 'medium',
                 fontFamily: item.fontFamily ?? 'Pretendard, sans-serif',
                 color: textColor,
@@ -470,7 +484,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 textAlign: (item.textAlign as 'left' | 'center' | 'right') ?? 'center',
                 opacity: 100,
                 rotation: 0,
-                // width 없음 - 텍스트 길이에 맞게 자동 조절
+                width: calculateTextWidth(textContent, fontSize),  // ★★★ 텍스트 길이 기반 자동 너비 ★★★
               },
               zIndex: zIndex++,
             });
@@ -479,6 +493,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           // 폴백: 기존 방식 (section.title, section.body 사용)
           // Add title as headline
           if (section.title) {
+            const titleFontSize = isMain ? 32 : 28;
             overlayTexts.push({
               id: `${section.id}-title`,
               type: 'headline',
@@ -486,7 +501,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
               style: {
                 x: textPosition.headline.x,
                 y: textPosition.headline.y,
-                fontSize: isMain ? 32 : 28,
+                fontSize: titleFontSize,
                 fontWeight: 'bold',
                 fontFamily: 'Pretendard, sans-serif',
                 color: '#ffffff',
@@ -494,7 +509,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 textAlign: textPosition.headline.align,
                 opacity: 100,
                 rotation: 0,
-                // width 없음 - 텍스트 길이에 맞게 자동 조절
+                width: calculateTextWidth(section.title, titleFontSize),  // ★★★ 텍스트 길이 기반 자동 너비 ★★★
               },
               zIndex: zIndex++,
             });
@@ -508,6 +523,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             const bodyLines = bodyText.split('\n').filter(line => line.trim());
 
             if (bodyLines.length === 1 && bodyLines[0].length < 50) {
+              const subFontSize = isMain ? 18 : 16;
               overlayTexts.push({
                 id: `${section.id}-body`,
                 type: 'subheadline',
@@ -515,7 +531,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 style: {
                   x: textPosition.body.x,
                   y: textPosition.body.y,
-                  fontSize: isMain ? 18 : 16,
+                  fontSize: subFontSize,
                   fontWeight: 'medium',
                   fontFamily: 'Pretendard, sans-serif',
                   color: '#ffffff',
@@ -523,11 +539,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                   textAlign: textPosition.body.align,
                   opacity: 100,
                   rotation: 0,
-                  // width 없음 - 텍스트 길이에 맞게 자동 조절
+                  width: calculateTextWidth(bodyText, subFontSize),  // ★★★ 텍스트 길이 기반 자동 너비 ★★★
                 },
                 zIndex: zIndex++,
               });
             } else {
+              const bodyFontSize = 14;
+              // 여러 줄 텍스트는 가장 긴 줄 기준으로 width 계산
+              const maxLineLength = Math.max(...bodyLines.map(line => line.length));
               overlayTexts.push({
                 id: `${section.id}-body`,
                 type: 'body',
@@ -535,7 +554,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 style: {
                   x: textPosition.body.x,
                   y: isMain ? 40 : 85,
-                  fontSize: 14,
+                  fontSize: bodyFontSize,
                   fontWeight: 'normal',
                   fontFamily: 'Pretendard, sans-serif',
                   color: '#ffffff',
@@ -543,7 +562,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                   textAlign: textPosition.body.align,
                   opacity: 100,
                   rotation: 0,
-                  // width 없음 - 텍스트 길이에 맞게 자동 조절
+                  width: calculateTextWidth('a'.repeat(maxLineLength), bodyFontSize),  // ★★★ 가장 긴 줄 기준 자동 너비 ★★★
                 },
                 zIndex: zIndex++,
               });
