@@ -136,8 +136,8 @@ Korean beauty trend: glow, transparency, premium
 - 8K resolution, photorealistic, no text in image
   (8K 해상도, 포토리얼리스틱, 이미지 내 텍스트 없음)`,
 
-    HERO: `Create KOREAN E-COMMERCE HERO BANNER IMAGE for ${productName}.
-(한국 이커머스 히어로 배너 이미지 생성)
+    HERO: `Create KOREAN E-COMMERCE main banner image for ${productName}.
+(한국 이커머스 메인 배너 이미지 생성)
 ${i2iPrefix}
 [SCENARIO]
 (시나리오)
@@ -169,8 +169,8 @@ Korean luxury beauty aesthetic
 8K resolution, no text in image
 (8K 해상도, 이미지 내 텍스트 없음)`,
 
-    FEATURES: `Create KOREAN E-COMMERCE FEATURES SECTION IMAGE for ${productName}.
-(한국 이커머스 특징 섹션 이미지 생성)
+    FEATURES: `Create KOREAN E-COMMERCE product benefits and ingredients section image for ${productName}.
+(한국 이커머스 제품 특징 및 성분 섹션 이미지 생성)
 ${i2iPrefix}
 [SCENARIO]
 (시나리오)
@@ -226,8 +226,8 @@ Authentic, relatable aesthetic
 8K resolution, no text in image
 (8K 해상도, 이미지 내 텍스트 없음)`,
 
-    HOW_TO_USE: `Create KOREAN E-COMMERCE HOW-TO-USE IMAGE for ${productName}.
-(한국 이커머스 사용법 이미지 생성)
+    HOW_TO_USE: `Create KOREAN E-COMMERCE usage guide section image for ${productName}.
+(한국 이커머스 사용법 가이드 섹션 이미지 생성)
 ${i2iPrefix}
 [SCENARIO]
 (시나리오)
@@ -255,8 +255,8 @@ Educational yet beautiful
 8K resolution, no text in image
 (8K 해상도, 이미지 내 텍스트 없음)`,
 
-    FAQ: `Create KOREAN E-COMMERCE FAQ SECTION IMAGE for ${productName}.
-(한국 이커머스 FAQ 섹션 이미지 생성)
+    FAQ: `Create KOREAN E-COMMERCE questions and answers background image for ${productName}.
+(한국 이커머스 질문 답변 배경 이미지 생성)
 ${i2iPrefix}
 [SCENARIO]
 (시나리오)

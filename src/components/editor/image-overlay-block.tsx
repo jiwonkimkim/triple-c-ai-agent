@@ -370,14 +370,38 @@ export function ImageOverlayBlockRenderer({
     const minY = Math.min(selectionBox.startY, selectionBox.endY);
     const maxY = Math.max(selectionBox.startY, selectionBox.endY);
 
-    // 선택 박스 안에 있는 텍스트 찾기
+    // 선택 박스 안에 있는 텍스트 찾기 (텍스트 박스와 선택 박스가 겹치면 선택)
     const selectedIds = new Set<string>();
     block.overlayTexts.forEach((text) => {
       if (!text.isFolder && !isLayerHidden(text.id)) {
         const textX = text.style.x;
         const textY = text.style.y;
-        // 텍스트 중심점이 선택 박스 안에 있으면 선택
-        if (textX >= minX && textX <= maxX && textY >= minY && textY <= maxY) {
+        // 텍스트 박스 크기 추정 (width가 있으면 사용, 없으면 기본값)
+        const textWidth = text.style.width || 20; // 기본 너비 20%
+        const textHeight = 5; // 텍스트 높이 추정 (fontSize 기반으로 약 5%)
+
+        // 텍스트 정렬에 따른 실제 경계 계산
+        let textLeft: number, textRight: number;
+        if (text.style.textAlign === 'left') {
+          textLeft = textX;
+          textRight = textX + textWidth;
+        } else if (text.style.textAlign === 'right') {
+          textLeft = textX - textWidth;
+          textRight = textX;
+        } else {
+          // center (기본값)
+          textLeft = textX - textWidth / 2;
+          textRight = textX + textWidth / 2;
+        }
+        const textTop = textY - textHeight / 2;
+        const textBottom = textY + textHeight / 2;
+
+        // 두 박스가 겹치는지 확인 (교차 검사)
+        const isOverlapping =
+          textLeft <= maxX && textRight >= minX &&
+          textTop <= maxY && textBottom >= minY;
+
+        if (isOverlapping) {
           selectedIds.add(text.id);
         }
       }
