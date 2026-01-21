@@ -138,12 +138,11 @@ export {
   distributeStatisticsToBlocks,
   buildCompleteBlockOptions,
   getBlockEmphasisPoint,
-  // ★ 기존 상수 (카테고리별 감각 키워드, 레이아웃 가이드 등)
+  // ★ 기존 상수 (카테고리별 감각 키워드 등)
   SENSORY_KEYWORDS,
   NUMBERING_PATTERNS,
   GENERATION_EXPRESSIONS,
   COLOR_CHART_PATTERNS,
-  SECTION_LAYOUT_GUIDE,
   SECTION_TEXT_EXAMPLES,
   CATEGORY_TEXT_STYLE,
   getCategoryKey,
