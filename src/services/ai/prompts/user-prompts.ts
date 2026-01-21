@@ -7,10 +7,112 @@ import type { GenerateDetailPageInput, BrandContext } from './types';
 import { COPY_LENGTH_CONFIG, getCategoryPattern } from './category-patterns';
 
 // ============================================
+// 서브카테고리별 특화 카피 가이드 (뷰티)
+// ============================================
+
+const SUBCATEGORY_COPY_GUIDES: Record<string, string> = {
+  lip: `## 카테고리 특화 가이드: 립 메이크업
+
+**강조 포인트**:
+- 발색력과 지속력 (예: 선명한 발색, 12시간 유지)
+- 텍스처 표현 (벨벳, 글로시, 매트, 무스 등)
+- 컬러 라인업 (호수별 특징, MLBB 컬러 등)
+- 보습력과 밀착력 (촉촉한 사용감, 각질 부각 없는)
+
+**효과적인 표현**:
+- "선명한 발색", "고급스러운 광택", "입술에 스며드는 컬러"
+- "무너짐 없는 지속력", "촉촉한 착색"
+- "데일리부터 특별한 날까지", "어떤 피부톤에도 어울리는"
+
+**섹션별 키워드**:
+- HERO: 발색, 텍스처, 럭셔리
+- FEATURES: 성분, 보습, 지속력
+- SOCIAL_PROOF: 누적 판매, 컬러 인기순위`,
+
+  skincare: `## 카테고리 특화 가이드: 스킨케어
+
+**강조 포인트**:
+- 핵심 성분과 함량 (예: 히알루론산 5%, 나이아신아마이드 10%)
+- 흡수력과 지속시간 (예: 빠른 흡수, 72시간 보습)
+- 피부 타입 적합성 (민감성, 지성, 건성 등)
+- 임상/피부과 테스트 결과
+
+**효과적인 표현**:
+- "깊은 보습", "촉촉함 유지", "피부결 개선"
+- "저자극 포뮬러", "피부 장벽 강화"
+- "맑고 투명한 피부톤", "탄력 케어"
+
+**섹션별 키워드**:
+- HERO: 수분, 광채, 건강한 피부
+- FEATURES: 성분, 함량, 피부과학
+- SOCIAL_PROOF: 임상테스트, 피부과 검증`,
+
+  suncare: `## 카테고리 특화 가이드: 선케어
+
+**강조 포인트**:
+- SPF/PA 지수 (SPF50+ PA++++)
+- 백탁/끈적임 여부 (무백탁, 산뜻한 마무리)
+- 지속력과 내수성 (워터프루프, 땀/피지에 강한)
+- 피부 부담감 (가벼운 사용감, 저자극)
+
+**효과적인 표현**:
+- "강력한 자외선 차단", "투명하게 발리는"
+- "산뜻한 마무리", "메이크업 베이스로도 완벽"
+- "민감한 피부도 안심", "데일리 선케어"
+
+**섹션별 키워드**:
+- HERO: 자외선 차단, 투명한 피부
+- FEATURES: SPF/PA, 무기/유기 자차, 블루라이트 차단
+- HOW_TO_USE: 2시간마다 덧바름, 적정량`,
+
+  mascara: `## 카테고리 특화 가이드: 마스카라
+
+**강조 포인트**:
+- 볼륨/컬링/롱래쉬 효과
+- 지속력과 번짐 방지 (스머지프루프, 워터프루프)
+- 브러시 형태와 사용감
+- 클렌징 용이성
+
+**효과적인 표현**:
+- "극강 볼륨", "올리면 내려오지 않는 컬링"
+- "속눈썹 한 올 한 올 선명하게", "뭉침 없는 세퍼레이팅"
+- "판다눈 걱정 없는", "미온수 클렌징"
+
+**섹션별 키워드**:
+- HERO: 속눈썹, 눈매, 드라마틱
+- FEATURES: 브러시 형태, 포뮬러, 섬유
+- SOCIAL_PROOF: 지속력 테스트, 번짐 테스트`,
+
+  maskpack: `## 카테고리 특화 가이드: 마스크팩
+
+**강조 포인트**:
+- 시트 소재와 밀착력 (텐셀, 순면, 바이오셀룰로오스)
+- 에센스 함량과 성분 (앰플 30ml 함유 등)
+- 사용 시간과 효과 지속
+- 피부 고민별 라인업
+
+**효과적인 표현**:
+- "에센스 팩 한 통을 얼굴에", "촘촘한 밀착"
+- "피부에 꽉 차는 수분감", "다음날까지 지속되는 촉촉함"
+- "주 2-3회 스페셜 케어", "피부 컨디션 끌어올리는"
+
+**섹션별 키워드**:
+- HERO: 집중 케어, 스페셜 케어, 에센스
+- FEATURES: 시트 소재, 에센스 함량, 성분
+- HOW_TO_USE: 사용 시간, 밀착 팁, 잔여 에센스 활용`,
+};
+
+// ============================================
 // 카테고리별 특화 카피 가이드
 // ============================================
 
-function buildCategorySpecificCopyGuide(category: string): string {
+function buildCategorySpecificCopyGuide(category: string, subCategory?: string): string {
+  // ★ 서브카테고리가 있으면 해당 가이드 우선 반환
+  if (subCategory && SUBCATEGORY_COPY_GUIDES[subCategory]) {
+    console.log(`[UserPrompt] Using subcategory copy guide: ${subCategory}`);
+    return SUBCATEGORY_COPY_GUIDES[subCategory];
+  }
+
   const lowerCategory = category.toLowerCase();
 
   // 스킨케어 카테고리
@@ -171,8 +273,8 @@ export function buildUserPrompt(input: GenerateDetailPageInput): string {
     ? buildBrandContextPrompt(input.brandContext)
     : '';
 
-  // 카테고리별 특화 가이드
-  const categorySpecificGuide = buildCategorySpecificCopyGuide(input.category);
+  // 카테고리별 특화 가이드 (★ subCategory 우선 적용)
+  const categorySpecificGuide = buildCategorySpecificCopyGuide(input.category, input.subCategory);
 
   return `[필수 규칙] 이모지, 특수문자, 기호 사용 절대 금지. 순수 한글/영문 텍스트만 사용하세요.
 

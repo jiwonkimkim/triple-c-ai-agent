@@ -47,6 +47,7 @@ export interface GenerateDetailPageInput {
   productImages: string[];
   productName: string;
   category: string;
+  subCategory?: string;  // ★ 뷰티 서브카테고리 (lip, skincare, suncare, mascara, maskpack 등)
   keyFeatures: string[];
   targetAudience: string;
   copyLength: 'short' | 'medium' | 'long';
