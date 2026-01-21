@@ -99,12 +99,15 @@ export interface SectionImagePrompt {
     orchestrationPrompt?: string;      // 오케스트레이션 AI가 생성한 시나리오
     categoryTemplatePrompt?: string;   // (deprecated) 섹션별 카테고리 템플릿
     i2iSystemPrompt?: string;          // I2I 시스템 프롬프트 (재배치 규칙)
-    // [2] 오버레이 텍스트 관련 프롬프트
+    // [2] 카테고리별 프롬프트 (뷰티 서브카테고리)
+    categoryPrompt?: string;           // 카테고리별 고도화 프롬프트 (스킨케어/립/선케어 등)
+    subCategory?: string;              // 서브카테고리명 (skincare, lip, suncare 등)
+    // [3] 오버레이 텍스트 관련 프롬프트
     overlayTextPrompt?: string;        // 섹션별 오버레이 텍스트 프롬프트
     overlayGuidePrompt?: string;       // 오버레이 디자인 가이드 (공통)
-    // [3] 공통 프롬프트 (Flash 모델 전용)
+    // [4] 공통 프롬프트 (Flash 모델 전용)
     noTextReinforcement?: string;      // Flash 모델용 텍스트 금지 강화
-    // [4] 레거시 (이전 호환성)
+    // [5] 레거시 (이전 호환성)
     fixedPrompt?: string;              // 고정 프롬프트 (제품일관성, 품질, no-text, 네거티브)
     dynamicPrompt?: string;            // 동적 프롬프트 (테마, 섹션템플릿, 텍스트시각화 등)
   };
@@ -1046,8 +1049,12 @@ export async function generateSectionImagePromptFromText(
         position,
         imagePrompt: finalPrompt,
         compositionGuide,
-        // ★★★ 고정/동적 프롬프트 분리 반환 (DEV 모드용)
+        // ★★★ 프롬프트 구성요소 분리 반환 (DEV 모드용) ★★★
         promptComponents: {
+          // [1] 카테고리별 프롬프트
+          categoryPrompt: advancedPrompt,           // 카테고리별 고도화 프롬프트
+          subCategory,                              // 서브카테고리명
+          // [2] 레거시 (이전 호환성)
           fixedPrompt: fixedPromptParts.join('\n\n'),
           dynamicPrompt: dynamicPromptParts.join('\n\n'),
         },

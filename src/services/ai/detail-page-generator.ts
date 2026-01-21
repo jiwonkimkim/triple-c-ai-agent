@@ -155,12 +155,15 @@ export interface DevPromptInfo {
     orchestrationPrompt?: string;      // 오케스트레이션 AI가 생성한 시나리오 프롬프트
     categoryTemplatePrompt?: string;   // (deprecated) 섹션 타입별 카테고리 템플릿 - sectionBasePrompt 사용
     i2iSystemPrompt?: string;          // I2I 시스템 프롬프트 (제품 재배치 규칙 등)
-    // ★★★ [2] 오버레이 텍스트 관련 프롬프트 ★★★
+    // ★★★ [2] 카테고리별 프롬프트 (뷰티 서브카테고리) ★★★
+    categoryPrompt?: string;           // 카테고리별 고도화 프롬프트 (스킨케어/립/선케어 등)
+    subCategory?: string;              // 서브카테고리명 (skincare, lip, suncare 등)
+    // ★★★ [3] 오버레이 텍스트 관련 프롬프트 ★★★
     overlayTextPrompt?: string;        // 섹션별 오버레이 텍스트 프롬프트 (buildOverlayTextPrompt)
     overlayGuidePrompt?: string;       // 오버레이 디자인 가이드 (buildCreativeOverlayGuide - 공통)
-    // ★★★ [3] 공통 프롬프트 (Flash 모델 전용) ★★★
+    // ★★★ [4] 공통 프롬프트 (Flash 모델 전용) ★★★
     noTextReinforcement?: string;      // Flash 모델용 텍스트 금지 강화 프롬프트
-    // ★★★ [4] 레거시 (이전 호환성) ★★★
+    // ★★★ [5] 레거시 (이전 호환성) ★★★
     fixedPrompt?: string;              // 고정 프롬프트 (제품일관성, 품질, no-text, 네거티브)
     dynamicPrompt?: string;            // 동적 프롬프트 (테마, 섹션템플릿, 텍스트시각화 등)
     // ★ 최종 결합된 프롬프트
@@ -872,12 +875,15 @@ export async function generateDetailPage(
             orchestrationPrompt: components?.orchestrationPrompt,       // 오케스트레이션 AI 생성 시나리오
             categoryTemplatePrompt: components?.categoryTemplatePrompt, // (deprecated) 카테고리 템플릿
             i2iSystemPrompt: components?.i2iSystemPrompt,               // I2I 시스템 프롬프트
-            // ★★★ [2] 오버레이 텍스트 관련 프롬프트 ★★★
+            // ★★★ [2] 카테고리별 프롬프트 (뷰티 서브카테고리) ★★★
+            categoryPrompt: components?.categoryPrompt,                 // 카테고리별 고도화 프롬프트
+            subCategory: components?.subCategory,                       // 서브카테고리명
+            // ★★★ [3] 오버레이 텍스트 관련 프롬프트 ★★★
             overlayTextPrompt: components?.overlayTextPrompt,           // 섹션별 오버레이 텍스트 프롬프트
             overlayGuidePrompt: components?.overlayGuidePrompt,         // 오버레이 디자인 가이드 (공통)
-            // ★★★ [3] 공통 프롬프트 (Flash 모델 전용) ★★★
+            // ★★★ [4] 공통 프롬프트 (Flash 모델 전용) ★★★
             noTextReinforcement: components?.noTextReinforcement,       // Flash 모델용 텍스트 금지 강화
-            // ★★★ [4] 레거시 (이전 호환성) ★★★
+            // ★★★ [5] 레거시 (이전 호환성) ★★★
             fixedPrompt: components?.fixedPrompt,
             dynamicPrompt: components?.dynamicPrompt,
             // 최종 결합된 프롬프트

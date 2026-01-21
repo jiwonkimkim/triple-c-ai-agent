@@ -600,13 +600,16 @@ export interface GeminiGeneratedImage {
     orchestrationPrompt?: string;      // 오케스트레이션 AI가 생성한 시나리오
     categoryTemplatePrompt?: string;   // (deprecated) 섹션별 카테고리 템플릿 - sectionBasePrompt 사용
     i2iSystemPrompt?: string;          // I2I 시스템 프롬프트 (제품 재배치 규칙)
-    // [2] 오버레이 텍스트 관련 프롬프트
+    // [2] 카테고리별 프롬프트 (뷰티 서브카테고리)
+    categoryPrompt?: string;           // 카테고리별 고도화 프롬프트 (스킨케어/립/선케어 등)
+    subCategory?: string;              // 서브카테고리명 (skincare, lip, suncare 등)
+    // [3] 오버레이 텍스트 관련 프롬프트
     overlayTextPrompt?: string;        // 섹션별 오버레이 텍스트 프롬프트 (buildOverlayTextPrompt)
     overlayGuidePrompt?: string;       // 오버레이 디자인 가이드 (buildCreativeOverlayGuide - 공통)
     overlayOutputRequirements?: string; // 오버레이 출력 요구사항 (buildOverlayTextRequest - 공통)
-    // [3] 공통 프롬프트 (Flash 모델 전용)
+    // [4] 공통 프롬프트 (Flash 모델 전용)
     noTextReinforcement?: string;      // Flash 모델용 텍스트 금지 강화 프롬프트 (NO_TEXT_IN_IMAGE_REINFORCEMENT)
-    // [4] 레거시 (이전 호환성)
+    // [5] 레거시 (이전 호환성)
     fixedPrompt?: string;              // 고정 프롬프트 (제품일관성, 품질, no-text, 네거티브)
     dynamicPrompt?: string;            // 동적 프롬프트 (테마, 섹션템플릿, 오케스트레이션 등)
   };
