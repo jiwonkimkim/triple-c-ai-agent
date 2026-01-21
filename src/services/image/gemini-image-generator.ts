@@ -1119,7 +1119,7 @@ ${imagePrompt}`;
       orchestrationPrompt: (mappedSectionType !== 'MAIN' && imagePrompt) ? imagePrompt : undefined,  // 오케스트레이션 AI 생성 시나리오
       // [2] 오버레이 텍스트 관련 프롬프트
       overlayTextPrompt,                                      // 섹션별 오버레이 텍스트 프롬프트
-      overlayGuidePrompt: buildCreativeOverlayGuide(aspectRatio),  // 오버레이 디자인 가이드 (공통)
+      overlayGuidePrompt: buildCreativeOverlayGuide(aspectRatio, model),  // 오버레이 디자인 가이드 (모델별 해상도 포함)
       // [3] 공통 프롬프트 (Flash 모델 전용)
       noTextReinforcement: isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : undefined,  // Flash 모델용 텍스트 금지 강화
       // [4] ★★★ DEV 모드 표시용 (fixedPrompt/dynamicPrompt 매핑)
@@ -1704,7 +1704,7 @@ export async function generateSectionImageFromProduct(
       revisedPrompt: textBgFinalPrompt,
       promptComponents: {
         overlayTextPrompt: textBgOverlayPrompt,
-        overlayGuidePrompt: buildCreativeOverlayGuide('16:9'),
+        overlayGuidePrompt: buildCreativeOverlayGuide('16:9', model),  // 모델별 해상도 포함
         noTextReinforcement: isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : undefined,
         fixedPrompt: `[TEXT BACKGROUND - ${sectionType}]\n${colorPrompt}\n\n--negative ${negativePrompt}`,
         dynamicPrompt: `[Direct color prompt - no product, no buildSharedSectionPrompt]`,
@@ -1826,7 +1826,7 @@ ${overlayTextRequest}`;
       i2iSystemPrompt: orchestrationContext || undefined,     // I2I 시스템 프롬프트 (제품 재배치 규칙)
       // [2] 오버레이 텍스트 관련 프롬프트
       overlayTextPrompt,                                      // 섹션별 오버레이 텍스트 프롬프트
-      overlayGuidePrompt: buildCreativeOverlayGuide(aspectRatio),  // 오버레이 디자인 가이드 (공통)
+      overlayGuidePrompt: buildCreativeOverlayGuide(aspectRatio, model),  // 오버레이 디자인 가이드 (모델별 해상도 포함)
       // [3] 공통 프롬프트 (Flash 모델 전용)
       noTextReinforcement: isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : undefined,  // Flash 모델용 텍스트 금지 강화
       // [4] 레거시 (이전 호환성)
@@ -1989,7 +1989,7 @@ export async function generateSectionImageWithOverlay(
           // 텍스트 배경 섹션은 sectionBasePrompt 없음 (제품 관련 내용 방지)
           // orchestrationPrompt도 없음 (색상 프롬프트만 사용)
           overlayTextPrompt: textBgOverlayPrompt,
-          overlayGuidePrompt: buildCreativeOverlayGuide('16:9'),
+          overlayGuidePrompt: buildCreativeOverlayGuide('16:9', model),  // 모델별 해상도 포함
           noTextReinforcement: isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : undefined,
           // 텍스트 배경 전용 프롬프트 (DEV 모드 표시용)
           fixedPrompt: `[TEXT BACKGROUND - ${sectionType}]\n${colorPrompt}\n\n--negative ${negativePrompt}`,
