@@ -299,8 +299,8 @@ ${messages.slice(-5).map(m => `[${m.role}]: ${m.content}`).join('\n')}
         }
       }
       else if (updatedMissingFields.length === 0) {
-        // 질문이 없고 모든 필수 정보 수집 완료 → Planner로
-        nextAction = { type: 'continue' as const, targetAgent: 'PLANNER' as AgentType };
+        // 질문이 없고 모든 필수 정보 수집 완료 → SUGGESTER로 (브랜드, 이미지 모델 선택)
+        nextAction = { type: 'continue' as const, targetAgent: 'SUGGESTER' as AgentType };
       } else {
         // 사용자 입력 대기
         nextAction = { type: 'await_input' as const };
