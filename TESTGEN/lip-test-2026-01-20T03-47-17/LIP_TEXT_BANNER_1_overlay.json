@@ -1,0 +1,97 @@
+{
+  "section": "TEXT_BANNER_1",
+  "overlayText": {
+    "texts": [
+      {
+        "text": "FEATURES",
+        "x": 10,
+        "y": 10,
+        "fontSize": 28,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "Point 01",
+        "x": 20,
+        "y": 80,
+        "fontSize": 20,
+        "fontWeight": "bold",
+        "color": "#4a90d9",
+        "textAlign": "center"
+      },
+      {
+        "text": "Glacé Glow",
+        "x": 20,
+        "y": 85,
+        "fontSize": 24,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "center"
+      },
+      {
+        "text": "막모 영롱한 광채",
+        "x": 20,
+        "y": 90,
+        "fontSize": 16,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "center"
+      },
+      {
+        "text": "Point 02",
+        "x": 50,
+        "y": 80,
+        "fontSize": 20,
+        "fontWeight": "bold",
+        "color": "#4a90d9",
+        "textAlign": "center"
+      },
+      {
+        "text": "Vivid Pigment",
+        "x": 50,
+        "y": 85,
+        "fontSize": 24,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "center"
+      },
+      {
+        "text": "한 번에 선명한 고발색",
+        "x": 50,
+        "y": 90,
+        "fontSize": 16,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "center"
+      },
+      {
+        "text": "Point 03",
+        "x": 80,
+        "y": 80,
+        "fontSize": 20,
+        "fontWeight": "bold",
+        "color": "#4a90d9",
+        "textAlign": "center"
+      },
+      {
+        "text": "12H Long-Stay",
+        "x": 80,
+        "y": 85,
+        "fontSize": 24,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "center"
+      },
+      {
+        "text": "+XX% 촉촉함 도출 확호",
+        "x": 80,
+        "y": 90,
+        "fontSize": 16,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "center"
+      }
+    ]
+  }
+}

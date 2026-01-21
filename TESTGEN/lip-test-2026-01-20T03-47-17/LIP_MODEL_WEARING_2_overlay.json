@@ -1,0 +1,79 @@
+{
+  "section": "MODEL_WEARING_2",
+  "overlayText": {
+    "texts": [
+      {
+        "text": "FEATURES",
+        "x": 15,
+        "y": 10,
+        "fontSize": 32,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "#글로시피니쉬 #고발색 #촉촉수분",
+        "x": 15,
+        "y": 17,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "1. Glacé Glow",
+        "x": 25,
+        "y": 68,
+        "fontSize": 22,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "맑고 영롱한 광채가 차오르는",
+        "x": 25,
+        "y": 72,
+        "fontSize": 16,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "2. Vibrant Pop",
+        "x": 75,
+        "y": 76,
+        "fontSize": 22,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "right"
+      },
+      {
+        "text": "바리는 듯이 생생한 컬러감",
+        "x": 75,
+        "y": 80,
+        "fontSize": 16,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "right"
+      },
+      {
+        "text": "3. 12H Hydration",
+        "x": 50,
+        "y": 88,
+        "fontSize": 22,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "center"
+      },
+      {
+        "text": "칙촉한 촉촉함의 편안함",
+        "x": 50,
+        "y": 92,
+        "fontSize": 16,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "center"
+      }
+    ]
+  }
+}

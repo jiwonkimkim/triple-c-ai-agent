@@ -404,8 +404,8 @@ export async function generateDetailPage(
   input: GenerateDetailPageInput,
   options?: { includeDevPrompts?: boolean }
 ): Promise<DetailPageGenerationResult> {
-  const isDev = process.env.NODE_ENV === 'development';
-  const includeDevPrompts = options?.includeDevPrompts ?? isDev;
+  // ★★★ 항상 devPrompts 포함 (프롬프트 뷰어에서 확인 가능)
+  const includeDevPrompts = options?.includeDevPrompts ?? true;
 
   // 개발자 프롬프트 정보 수집을 위한 변수
   let devPrompts: DevPromptInfo | undefined;

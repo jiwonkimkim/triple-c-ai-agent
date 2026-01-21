@@ -1,0 +1,106 @@
+{
+  "section": "TEXT_BANNER_1",
+  "overlayText": {
+    "texts": [
+      {
+        "text": "FEATURES",
+        "x": 15,
+        "y": 15,
+        "fontSize": 28,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "POINT 01",
+        "x": 15,
+        "y": 30,
+        "fontSize": 18,
+        "fontWeight": "medium",
+        "color": "#4a90d9",
+        "textAlign": "left"
+      },
+      {
+        "text": "Glacé Glow Finish",
+        "x": 15,
+        "y": 35,
+        "fontSize": 24,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "맑고 영롱한 광채가 입술 위에",
+        "x": 15,
+        "y": 40,
+        "fontSize": 16,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "수분 코팅된 듯 촉촉하게 빛나다",
+        "x": 15,
+        "y": 42.5,
+        "fontSize": 16,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "#글로우틴트 #수분광택 #영롱발색",
+        "x": 15,
+        "y": 49,
+        "fontSize": 14,
+        "fontWeight": "normal",
+        "color": "#888888",
+        "textAlign": "left"
+      },
+      {
+        "text": "POINT 02",
+        "x": 85,
+        "y": 60,
+        "fontSize": 18,
+        "fontWeight": "medium",
+        "color": "#4a90d9",
+        "textAlign": "right"
+      },
+      {
+        "text": "Vivid Color Bloom",
+        "x": 85,
+        "y": 65,
+        "fontSize": 24,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "right"
+      },
+      {
+        "text": "한 번의 터치로 선명하게 피어나는",
+        "x": 85,
+        "y": 70,
+        "fontSize": 16,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "right"
+      },
+      {
+        "text": "생생한 컬러감, 원래 내 입술처럼",
+        "x": 85,
+        "y": 72.5,
+        "fontSize": 16,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "right"
+      },
+      {
+        "text": "#고발색틴트 #생기컬러 #내추럴블룸",
+        "x": 85,
+        "y": 79,
+        "fontSize": 14,
+        "fontWeight": "normal",
+        "color": "#888888",
+        "textAlign": "right"
+      }
+    ]
+  }
+}

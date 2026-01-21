@@ -1,0 +1,151 @@
+{
+  "section": "KEY_MESSAGE_1",
+  "overlayText": {
+    "texts": [
+      {
+        "text": "ROM&ND DEWYFUL WATER TINT",
+        "x": 50,
+        "y": 18,
+        "fontSize": 20,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "center"
+      },
+      {
+        "text": "FEATURES",
+        "x": 50,
+        "y": 23,
+        "fontSize": 18,
+        "fontWeight": "medium",
+        "color": "#4a90d9",
+        "textAlign": "center"
+      },
+      {
+        "text": "G",
+        "x": 25,
+        "y": 38,
+        "fontSize": 48,
+        "fontWeight": "bold",
+        "color": "#d3d3d3",
+        "textAlign": "center"
+      },
+      {
+        "text": "POINT 01",
+        "x": 25,
+        "y": 48,
+        "fontSize": 16,
+        "fontWeight": "medium",
+        "color": "#333333",
+        "textAlign": "center"
+      },
+      {
+        "text": "GLOSSY FINISH",
+        "x": 25,
+        "y": 52,
+        "fontSize": 18,
+        "fontWeight": "bold",
+        "color": "#4a90d9",
+        "textAlign": "center"
+      },
+      {
+        "text": "맑고 투명한 광택",
+        "x": 25,
+        "y": 58,
+        "fontSize": 14,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "center"
+      },
+      {
+        "text": "#맑모 투명한 광택",
+        "x": 25,
+        "y": 62,
+        "fontSize": 12,
+        "fontWeight": "normal",
+        "color": "#888888",
+        "textAlign": "center"
+      },
+      {
+        "text": "#유리알광택 #촉촉",
+        "x": 25,
+        "y": 64,
+        "fontSize": 12,
+        "fontWeight": "normal",
+        "color": "#888888",
+        "textAlign": "center"
+      },
+      {
+        "text": "C",
+        "x": 75,
+        "y": 38,
+        "fontSize": 48,
+        "fontWeight": "bold",
+        "color": "#d3d3d3",
+        "textAlign": "center"
+      },
+      {
+        "text": "POINT 02",
+        "x": 75,
+        "y": 48,
+        "fontSize": 16,
+        "fontWeight": "medium",
+        "color": "#333333",
+        "textAlign": "center"
+      },
+      {
+        "text": "COLOR PAYOFF",
+        "x": 75,
+        "y": 52,
+        "fontSize": 18,
+        "fontWeight": "bold",
+        "color": "#4a90d9",
+        "textAlign": "center"
+      },
+      {
+        "text": "생생한 고발색",
+        "x": 75,
+        "y": 58,
+        "fontSize": 14,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "center"
+      },
+      {
+        "text": "#쨍한컬러",
+        "x": 75,
+        "y": 62,
+        "fontSize": 12,
+        "fontWeight": "normal",
+        "color": "#888888",
+        "textAlign": "center"
+      },
+      {
+        "text": "#선명한컬러 #지속력",
+        "x": 75,
+        "y": 64,
+        "fontSize": 12,
+        "fontWeight": "normal",
+        "color": "#888888",
+        "textAlign": "center"
+      },
+      {
+        "text": "12시간 도송되는 수분 밀착",
+        "x": 50,
+        "y": 85,
+        "fontSize": 16,
+        "fontWeight": "medium",
+        "color": "#666666",
+        "textAlign": "center"
+      },
+      {
+        "text": "+30% 촉촉함 강화",
+        "x": 50,
+        "y": 88,
+        "fontSize": 16,
+        "fontWeight": "medium",
+        "color": "#4a90d9",
+        "textAlign": "center"
+      }
+    ]
+  }
+}

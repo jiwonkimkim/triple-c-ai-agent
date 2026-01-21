@@ -146,11 +146,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 개발 모드에서 프롬프트 포함 여부 (NEXT_PUBLIC_DEV_MODE도 체크)
-    const devModeEnv = process.env.NEXT_PUBLIC_DEV_MODE?.toLowerCase();
-    const isDev = process.env.NODE_ENV === 'development' || devModeEnv === 'true' || devModeEnv === '1';
-    const includeDevPrompts = isDev && (body.includeDevPrompts ?? true);
-    console.log('[DevPrompts] isDev:', isDev, 'NODE_ENV:', process.env.NODE_ENV, 'DEV_MODE:', devModeEnv);
+    // ★★★ 항상 devPrompts 저장 (프롬프트 뷰어에서 확인 가능)
+    // 프로덕션에서도 프롬프트 정보가 DB에 저장되어 디버깅/분석 가능
+    const includeDevPrompts = true;
+    console.log('[DevPrompts] Always saving devPrompts for prompt viewer');
 
     // Generate detail page versions with optional image generation
     // - generateImages: false (기본) = 사용자 업로드 제품 이미지 직접 사용

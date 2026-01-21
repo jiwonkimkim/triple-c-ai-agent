@@ -1,0 +1,151 @@
+{
+  "section": "MULTI_COLOR_GRID",
+  "overlayText": {
+    "texts": [
+      {
+        "text": "FEATURES",
+        "x": 10,
+        "y": 10,
+        "fontSize": 28,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "글로시 피니쉬",
+        "x": 10,
+        "y": 28,
+        "fontSize": 18,
+        "fontWeight": "medium",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "고발색",
+        "x": 10,
+        "y": 32,
+        "fontSize": 18,
+        "fontWeight": "medium",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "#탱글 #영롱 #촉촉",
+        "x": 10,
+        "y": 36,
+        "fontSize": 14,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "Point 01",
+        "x": 75,
+        "y": 28,
+        "fontSize": 18,
+        "fontWeight": "bold",
+        "color": "#4a90d9",
+        "textAlign": "left"
+      },
+      {
+        "text": "맑고 투명한 광택",
+        "x": 75,
+        "y": 32,
+        "fontSize": 16,
+        "fontWeight": "medium",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "유리알처럼 빛나는",
+        "x": 75,
+        "y": 34,
+        "fontSize": 14,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "멤버를 띄어주는",
+        "x": 75,
+        "y": 36,
+        "fontSize": 14,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "Point 02",
+        "x": 10,
+        "y": 60,
+        "fontSize": 18,
+        "fontWeight": "bold",
+        "color": "#4a90d9",
+        "textAlign": "left"
+      },
+      {
+        "text": "선벽한 컬러",
+        "x": 10,
+        "y": 64,
+        "fontSize": 16,
+        "fontWeight": "medium",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "기링을",
+        "x": 10,
+        "y": 66,
+        "fontSize": 14,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "#탱글 #영롱 #촉촉",
+        "x": 10,
+        "y": 70,
+        "fontSize": 14,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "Point 03",
+        "x": 75,
+        "y": 60,
+        "fontSize": 18,
+        "fontWeight": "bold",
+        "color": "#4a90d9",
+        "textAlign": "left"
+      },
+      {
+        "text": "촉촉한 수분감",
+        "x": 75,
+        "y": 64,
+        "fontSize": 16,
+        "fontWeight": "medium",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "건조함 일시 편안하게",
+        "x": 75,
+        "y": 66,
+        "fontSize": 14,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "12시간 쫀촉력",
+        "x": 75,
+        "y": 75,
+        "fontSize": 16,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      }
+    ]
+  }
+}

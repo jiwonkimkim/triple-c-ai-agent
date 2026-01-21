@@ -1,0 +1,52 @@
+{
+  "section": "MAIN",
+  "overlayText": {
+    "texts": [
+      {
+        "text": "롬앤",
+        "x": 50,
+        "y": 12,
+        "fontSize": 26,
+        "fontWeight": "medium",
+        "color": "#333333",
+        "textAlign": "center"
+      },
+      {
+        "text": "DEW-FUL WATER TINT",
+        "x": 50,
+        "y": 18,
+        "fontSize": 38,
+        "fontWeight": "bold",
+        "color": "#4a90d9",
+        "textAlign": "center"
+      },
+      {
+        "text": "NEW 듀이풀 워터 틴트",
+        "x": 50,
+        "y": 24,
+        "fontSize": 30,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "center"
+      },
+      {
+        "text": "💧 맑은 코로에 12색상 중",
+        "x": 50,
+        "y": 88,
+        "fontSize": 18,
+        "fontWeight": "medium",
+        "color": "#666666",
+        "textAlign": "center"
+      },
+      {
+        "text": "차오르는 수분광택",
+        "x": 50,
+        "y": 92,
+        "fontSize": 20,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "center"
+      }
+    ]
+  }
+}

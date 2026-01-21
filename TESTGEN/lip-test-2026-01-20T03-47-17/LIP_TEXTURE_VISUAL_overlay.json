@@ -1,0 +1,61 @@
+{
+  "section": "TEXTURE_VISUAL",
+  "overlayText": {
+    "texts": [
+      {
+        "text": "FEATURES",
+        "x": 20,
+        "y": 20,
+        "fontSize": 32,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "1. Glacé Glow",
+        "x": 35,
+        "y": 40,
+        "fontSize": 24,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "맑고 영롱한 광택",
+        "x": 35,
+        "y": 45,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "2. High-Chroma",
+        "x": 35,
+        "y": 55,
+        "fontSize": 24,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "선명한 고발색",
+        "x": 35,
+        "y": 60,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "#탱글 #영글 #영롱 #지속력",
+        "x": 20,
+        "y": 75,
+        "fontSize": 18,
+        "fontWeight": "medium",
+        "color": "#4a90d9",
+        "textAlign": "left"
+      }
+    ]
+  }
+}

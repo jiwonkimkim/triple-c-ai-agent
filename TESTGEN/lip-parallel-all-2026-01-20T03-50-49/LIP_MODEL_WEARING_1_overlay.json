@@ -1,0 +1,79 @@
+{
+  "section": "MODEL_WEARING_1",
+  "overlayText": {
+    "texts": [
+      {
+        "text": "FEATURES",
+        "x": 10,
+        "y": 10,
+        "fontSize": 24,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "Point 01",
+        "x": 20,
+        "y": 60,
+        "fontSize": 20,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "Glacé Glow",
+        "x": 20,
+        "y": 65,
+        "fontSize": 22,
+        "fontWeight": "bold",
+        "color": "#4a90d9",
+        "textAlign": "left"
+      },
+      {
+        "text": "맑고 영롱한 광채",
+        "x": 20,
+        "y": 69,
+        "fontSize": 16,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "Point 02",
+        "x": 20,
+        "y": 77,
+        "fontSize": 20,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "Vivid Pigment",
+        "x": 20,
+        "y": 82,
+        "fontSize": 22,
+        "fontWeight": "bold",
+        "color": "#4a90d9",
+        "textAlign": "left"
+      },
+      {
+        "text": "생생한 고발색",
+        "x": 20,
+        "y": 86,
+        "fontSize": 16,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "#탱글 #영롱 #촉촉 #12시간",
+        "x": 20,
+        "y": 92,
+        "fontSize": 14,
+        "fontWeight": "medium",
+        "color": "#888888",
+        "textAlign": "left"
+      }
+    ]
+  }
+}

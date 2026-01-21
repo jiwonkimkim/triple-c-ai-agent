@@ -1,0 +1,88 @@
+{
+  "section": "KEY_MESSAGE_2",
+  "overlayText": {
+    "texts": [
+      {
+        "text": "FEATURES",
+        "x": 15,
+        "y": 10,
+        "fontSize": 24,
+        "fontWeight": "bold",
+        "color": "#4a90d9",
+        "textAlign": "left"
+      },
+      {
+        "text": "Point 01 Glacé Glow",
+        "x": 15,
+        "y": 30,
+        "fontSize": 22,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "맑고 영롱한 광택이 차오르는\n수분빛 글로시 피니쉬",
+        "x": 15,
+        "y": 35,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "Point 02 Color Impact",
+        "x": 15,
+        "y": 50,
+        "fontSize": 22,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "바르는 순간 생생하게 물드는\n압도적인 고발색",
+        "x": 15,
+        "y": 55,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "Point 02 Color Impact",
+        "x": 15,
+        "y": 70,
+        "fontSize": 22,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "바르는 순간 생생하게 물드는\n압도적인 고발색",
+        "x": 15,
+        "y": 75,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "#탱글 #영롱 #촉한 #지속력",
+        "x": 80,
+        "y": 88,
+        "fontSize": 16,
+        "fontWeight": "medium",
+        "color": "#888888",
+        "textAlign": "right"
+      },
+      {
+        "text": "12사한 지속되는 수분 코팅",
+        "x": 80,
+        "y": 92,
+        "fontSize": 16,
+        "fontWeight": "normal",
+        "color": "#888888",
+        "textAlign": "right"
+      }
+    ]
+  }
+}

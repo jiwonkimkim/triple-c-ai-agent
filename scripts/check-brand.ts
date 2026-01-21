@@ -39,6 +39,25 @@ async function checkProject() {
       console.log('Tone and Manner:', (project.brandProfile.toneAndManner || '').substring(0, 300));
       console.log('Image Keywords:', project.brandProfile.imageKeywords);
       console.log('Style Guide:', JSON.stringify(project.brandProfile.styleGuide, null, 2));
+
+      // ★★★ RAG Context (Brand Document Chunks) 확인
+      console.log('');
+      console.log('=== RAG Context (Brand Document Chunks) ===');
+      const chunks = await prisma.brandDocumentChunk.findMany({
+        where: { brandProfileId: project.brandProfile.id },
+        take: 10,
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (chunks.length > 0) {
+        console.log(`Found ${chunks.length} chunks:`);
+        chunks.forEach((chunk, idx) => {
+          console.log(`\n--- Chunk ${idx + 1} ---`);
+          console.log(chunk.content.substring(0, 500) + (chunk.content.length > 500 ? '...' : ''));
+        });
+      } else {
+        console.log('No RAG chunks found for this brand!');
+      }
     } else {
       console.log('No brand profile connected!');
     }

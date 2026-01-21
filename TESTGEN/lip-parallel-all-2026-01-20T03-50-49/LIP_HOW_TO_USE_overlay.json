@@ -1,0 +1,106 @@
+{
+  "section": "HOW_TO_USE",
+  "overlayText": {
+    "texts": [
+      {
+        "text": "HOW TO USE",
+        "x": 50,
+        "y": 18,
+        "fontSize": 28,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "center"
+      },
+      {
+        "text": "유리알 광택, 생생한 컬러를 위한 완벽 사용법",
+        "x": 50,
+        "y": 24,
+        "fontSize": 16,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "center"
+      },
+      {
+        "text": "STEP 1",
+        "x": 19,
+        "y": 72,
+        "fontSize": 20,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "center"
+      },
+      {
+        "text": "입술 그라데이션 가볍게 터치",
+        "x": 19,
+        "y": 77,
+        "fontSize": 15,
+        "fontWeight": "normal",
+        "color": "#888888",
+        "textAlign": "center"
+      },
+      {
+        "text": "STEP 2",
+        "x": 50,
+        "y": 72,
+        "fontSize": 20,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "center"
+      },
+      {
+        "text": "입술 전체에 균일하게 블렌딩",
+        "x": 50,
+        "y": 77,
+        "fontSize": 15,
+        "fontWeight": "normal",
+        "color": "#888888",
+        "textAlign": "center"
+      },
+      {
+        "text": "STEP 3",
+        "x": 81,
+        "y": 72,
+        "fontSize": 20,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "center"
+      },
+      {
+        "text": "덧바를수록 선명한 광택감",
+        "x": 81,
+        "y": 77,
+        "fontSize": 15,
+        "fontWeight": "normal",
+        "color": "#888888",
+        "textAlign": "center"
+      },
+      {
+        "text": "1",
+        "x": 10.5,
+        "y": 38,
+        "fontSize": 38,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "center"
+      },
+      {
+        "text": "2",
+        "x": 41.5,
+        "y": 38,
+        "fontSize": 38,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "center"
+      },
+      {
+        "text": "3",
+        "x": 72.5,
+        "y": 38,
+        "fontSize": 38,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "center"
+      }
+    ]
+  }
+}

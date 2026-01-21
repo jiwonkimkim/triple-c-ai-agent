@@ -1,0 +1,25 @@
+{
+  "section": "BRAND_HEADER",
+  "overlayText": {
+    "texts": [
+      {
+        "text": "유리알 광택,\n차오리는 촉촉함.",
+        "x": 30,
+        "y": 65,
+        "fontSize": 32,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "#롬앤 #듀이풀워터틴트 #글로우시틴트",
+        "x": 30,
+        "y": 80,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      }
+    ]
+  }
+}

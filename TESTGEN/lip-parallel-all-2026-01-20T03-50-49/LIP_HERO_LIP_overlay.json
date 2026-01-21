@@ -1,0 +1,43 @@
+{
+  "section": "HERO_LIP",
+  "overlayText": {
+    "texts": [
+      {
+        "text": "DEWYFUL WATER TINT",
+        "x": 50,
+        "y": 12,
+        "fontSize": 26,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "center"
+      },
+      {
+        "text": "이슬처럼 맑게 차오르는 물빛 광채",
+        "x": 50,
+        "y": 20,
+        "fontSize": 36,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "center"
+      },
+      {
+        "text": "덧바를수록 선명해지는 고발색 수분 코팅",
+        "x": 50,
+        "y": 28,
+        "fontSize": 22,
+        "fontWeight": "medium",
+        "color": "#666666",
+        "textAlign": "center"
+      },
+      {
+        "text": "#물빛광채 #고발색틴트 #수분코팅",
+        "x": 50,
+        "y": 88,
+        "fontSize": 16,
+        "fontWeight": "normal",
+        "color": "#888888",
+        "textAlign": "center"
+      }
+    ]
+  }
+}

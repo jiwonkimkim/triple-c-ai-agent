@@ -1,0 +1,79 @@
+{
+  "section": "MODEL_LIP_CLOSEUP_1",
+  "overlayText": {
+    "texts": [
+      {
+        "text": "FEATURES",
+        "x": 85,
+        "y": 5,
+        "fontSize": 28,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "right"
+      },
+      {
+        "text": "Point 01",
+        "x": 75,
+        "y": 20,
+        "fontSize": 22,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "Glacé Glow Finish",
+        "x": 75,
+        "y": 25,
+        "fontSize": 24,
+        "fontWeight": "bold",
+        "color": "#4a90d9",
+        "textAlign": "left"
+      },
+      {
+        "text": "맑고 영롱한 광채",
+        "x": 75,
+        "y": 30,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "Point 02",
+        "x": 75,
+        "y": 45,
+        "fontSize": 22,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "Rich Color Payoff",
+        "x": 75,
+        "y": 50,
+        "fontSize": 24,
+        "fontWeight": "bold",
+        "color": "#4a90d9",
+        "textAlign": "left"
+      },
+      {
+        "text": "덧바를수록 선명한 고발색",
+        "x": 75,
+        "y": 55,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "#탱글 #영롱 #고발색",
+        "x": 75,
+        "y": 60,
+        "fontSize": 16,
+        "fontWeight": "medium",
+        "color": "#888888",
+        "textAlign": "left"
+      }
+    ]
+  }
+}

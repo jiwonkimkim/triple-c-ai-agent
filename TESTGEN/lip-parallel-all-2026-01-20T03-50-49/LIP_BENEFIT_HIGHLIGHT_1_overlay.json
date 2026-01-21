@@ -1,0 +1,61 @@
+{
+  "section": "BENEFIT_HIGHLIGHT_1",
+  "overlayText": {
+    "texts": [
+      {
+        "text": "FEATURES",
+        "x": 15,
+        "y": 15,
+        "fontSize": 28,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "1. DEWY GLOW",
+        "x": 15,
+        "y": 28,
+        "fontSize": 20,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "맑고 영롱한 수분 광채",
+        "x": 15,
+        "y": 34,
+        "fontSize": 16,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "2. VIVID COLOR",
+        "x": 15,
+        "y": 42,
+        "fontSize": 20,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "선명하게 빛나는 고발색",
+        "x": 15,
+        "y": 48,
+        "fontSize": 16,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "#탱글촉촉 #워터광채 #12시간지속",
+        "x": 15,
+        "y": 85,
+        "fontSize": 14,
+        "fontWeight": "medium",
+        "color": "#888888",
+        "textAlign": "left"
+      }
+    ]
+  }
+}

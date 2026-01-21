@@ -1,0 +1,52 @@
+{
+  "section": "COLOR_SWATCHES",
+  "overlayText": {
+    "texts": [
+      {
+        "text": "FEATURES",
+        "x": 15,
+        "y": 15,
+        "fontSize": 40,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "Point 01 Glacé Glow",
+        "x": 20,
+        "y": 45,
+        "fontSize": 28,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "맑고 영롱한 광채",
+        "x": 20,
+        "y": 55,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "Point 02 High Vivid",
+        "x": 20,
+        "y": 68,
+        "fontSize": 28,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "선명한 고발색",
+        "x": 20,
+        "y": 78,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      }
+    ]
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "section": "BRAND_HEADER",
+  "overlayText": {
+    "texts": [
+      {
+        "text": "DEWY. FULL. WATER.",
+        "x": 10,
+        "y": 12,
+        "fontSize": 32,
+        "fontWeight": "bold",
+        "color": "#4a90d9",
+        "textAlign": "left"
+      },
+      {
+        "text": "롬앤 듀이풀 워터 틴트",
+        "x": 10,
+        "y": 20,
+        "fontSize": 28,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "유리알 광택, 차오리는 촉촉함",
+        "x": 10,
+        "y": 28,
+        "fontSize": 20,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "#글로틴트 #고발색 #촉촉광 #12한지속",
+        "x": 10,
+        "y": 35,
+        "fontSize": 16,
+        "fontWeight": "normal",
+        "color": "#888888",
+        "textAlign": "left"
+      }
+    ]
+  }
+}

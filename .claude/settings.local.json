@@ -68,7 +68,15 @@
       "Bash(python3:*)",
       "Bash(export DATABASE_URL:*)",
       "Bash(npx prisma db execute:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(git revert:*)",
+      "Bash(gh run list:*)",
+      "Bash(npm run lint)",
+      "Bash(git merge-base:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(npm run lint:*)",
+      "Bash(dir:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []

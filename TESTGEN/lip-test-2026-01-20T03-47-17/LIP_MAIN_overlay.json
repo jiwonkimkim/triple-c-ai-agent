@@ -1,0 +1,43 @@
+{
+  "section": "MAIN",
+  "overlayText": {
+    "texts": [
+      {
+        "text": "롬앤",
+        "x": 50,
+        "y": 10,
+        "fontSize": 28,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "center"
+      },
+      {
+        "text": "DEWY-FUL WATER TINT",
+        "x": 50,
+        "y": 16,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "center"
+      },
+      {
+        "text": "NEW 듀이풀 워터 틴트",
+        "x": 50,
+        "y": 25,
+        "fontSize": 36,
+        "fontWeight": "bold",
+        "color": "#2a52be",
+        "textAlign": "center"
+      },
+      {
+        "text": "차오르는 듀력 광채, 12사선 글로우랩 중속",
+        "x": 50,
+        "y": 32,
+        "fontSize": 20,
+        "fontWeight": "normal",
+        "color": "#333333",
+        "textAlign": "center"
+      }
+    ]
+  }
+}

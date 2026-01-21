@@ -1,0 +1,52 @@
+{
+  "section": "COLOR_SWATCHES",
+  "overlayText": {
+    "texts": [
+      {
+        "text": "FEATURES",
+        "x": 25,
+        "y": 20,
+        "fontSize": 28,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "1. Glacé Glow",
+        "x": 25,
+        "y": 35,
+        "fontSize": 22,
+        "fontWeight": "medium",
+        "color": "#4a90d9",
+        "textAlign": "left"
+      },
+      {
+        "text": "맑고 영롱한 유리알 광채",
+        "x": 25,
+        "y": 42,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "2. Vibrant Pigment",
+        "x": 25,
+        "y": 55,
+        "fontSize": 22,
+        "fontWeight": "medium",
+        "color": "#4a90d9",
+        "textAlign": "left"
+      },
+      {
+        "text": "덧바를수록 선명한 고발색",
+        "x": 25,
+        "y": 62,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      }
+    ]
+  }
+}

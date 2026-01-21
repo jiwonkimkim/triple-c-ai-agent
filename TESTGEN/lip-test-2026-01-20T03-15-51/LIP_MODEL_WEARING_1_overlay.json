@@ -1,0 +1,160 @@
+{
+  "section": "MODEL_WEARING_1",
+  "overlayText": {
+    "texts": [
+      {
+        "text": "FEATURES",
+        "x": 10,
+        "y": 10,
+        "fontSize": 38,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "Point 01",
+        "x": 10,
+        "y": 30,
+        "fontSize": 24,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "맑고 영롱한 광택,",
+        "x": 10,
+        "y": 35,
+        "fontSize": 18,
+        "fontWeight": "medium",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "늘 맑고 촉촉하게",
+        "x": 10,
+        "y": 38,
+        "fontSize": 18,
+        "fontWeight": "medium",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "Point 02",
+        "x": 10,
+        "y": 70,
+        "fontSize": 24,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "Glacé Glow",
+        "x": 10,
+        "y": 74,
+        "fontSize": 20,
+        "fontWeight": "medium",
+        "color": "#4a90d9",
+        "textAlign": "left"
+      },
+      {
+        "text": "Pure Pigment",
+        "x": 10,
+        "y": 77,
+        "fontSize": 20,
+        "fontWeight": "medium",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "바르는 즉시 소라나는",
+        "x": 10,
+        "y": 81,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "고발색 컬러",
+        "x": 10,
+        "y": 84,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "Point 03",
+        "x": 75,
+        "y": 70,
+        "fontSize": 24,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "Longwear Hydration",
+        "x": 75,
+        "y": 74,
+        "fontSize": 20,
+        "fontWeight": "medium",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "고발색 컬러",
+        "x": 75,
+        "y": 77,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "12시간 촉촉한 수분 존중력",
+        "x": 75,
+        "y": 80,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "Point 04",
+        "x": 75,
+        "y": 30,
+        "fontSize": 24,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "Glacé Glow",
+        "x": 75,
+        "y": 34,
+        "fontSize": 20,
+        "fontWeight": "medium",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "투명한 물광",
+        "x": 75,
+        "y": 37,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "촉촉하게",
+        "x": 75,
+        "y": 40,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      }
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+[CRITICAL - PRODUCT CONSISTENCY: The exact same "롬앤 듀이풀 워터 틴트" must appear identically in all images], [VISUAL THEME: Maintain consistent warm beige and cream color palette throughout all images. Use soft natural daylight with warm undertones. Keep backgrounds clean with subtle warm gradients. All images should feel cohesive and connected as part of a single product detail page.] [BACKGROUND: soft warm beige to cream gradient], [★★★ ADVANCED LIP PROMPT ★★★], [CRITICAL: NO TEXT IN IMAGE - Generate pure visual imagery only. Do not include any text, letters, words, numbers, labels, or typography in the image.], [PRODUCT REFERENCE: Product: 롬앤 듀이풀 워터 틴트], [SUBCATEGORY STYLE: crystal clear tube, doe-foot applicator, glossy liquid texture, glass-like shine], [FINISH: high-shine glass-like finish, light reflecting surface, wet look aesthetic, mirror-like gloss], [FEATURE VISUAL: light reflection, glass skin lips, wet look, luminous shine], [BLOCK VARIATION: 3-step application guide with numbered circles], Step-by-step lip product application guide visualization, 3-step process with numbered circular badges, Step 1 visual: Apply from center of lips, Step 2 visual: Spread to corners evenly, Step 3 visual: Optional layering for intensity, elegant hand holding applicator demonstration, clean instructional diagram style, soft pink background with minimal iconography, Korean beauty tutorial aesthetic, clear application motion visualization, CRITICAL: NO TEXT - numbered circles and demonstration only, Korean K-beauty lip cosmetic aesthetic, feminine elegant, 글로시 피니쉬, 고발색, 촉촉한 수분감, 12시간 지속력, professional e-commerce detail page photography, high-end lip cosmetic advertising, 8K resolution, feminine elegant mood, soft pink lighting, clean visual without any text overlay --negative text, letters, words, numbers, typography, Korean text, English text, Chinese text, Japanese text, any characters, logo text, brand name text, labels, captions, titles, subtitles, color codes, shade names, watermark, signatures, hand-written text, printed text, floating text, overlay text, embedded text, low quality, blurry, noisy, amateur, cartoon, anime, illustration, distorted product, wrong proportions, unrealistic lips, chapped lips, dry texture, unflattering angle, 8K resolution, photorealistic, professional commercial photography, high-end advertising quality, absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only, --negative low quality, blurry, pixelated, grainy, noisy, artifacts, jpeg artifacts, compression artifacts, low resolution, out of focus, motion blur, overexposed, underexposed, oversaturated, washed out, cartoon, anime, illustration, sketch, drawing, painting, watercolor, 3d render, cgi, unrealistic, surreal, abstract, vintage filter, heavy filter, instagram filter, text, typography, letters, words, watermark, logo, signature, label, stamp, badge, sticker, price tag, barcode, qr code, cluttered, busy background, distracting elements, multiple products fighting for attention, awkward cropping, cut off product, partial product, tilted horizon, dutch angle, extreme close-up, fish eye, distorted
+
+[★ SECTION-SPECIFIC BACKGROUND - 베이지 내추럴 PALETTE]
+BACKGROUND FOR THIS SECTION: pure clean white background
+BACKGROUND HEX: #FFFFFF
+
+[COHESIVE COLOR PALETTE: 베이지 내추럴]
+Harmonious beige-to-white color palette creating a natural, calming aesthetic. Backgrounds flow smoothly between warm beige and clean white tones.
+
+Available background colors in this palette:
+1. warm oatmeal beige background (#F5F0E8)
+2. soft cream linen background (#EDE6DB)
+3. clean ivory white background (#FAF7F2)
+4. pure clean white background (#FFFFFF)
+5. subtle sand beige background (#F8F4EF)
+
+Overall mood: natural, calm, soothing, organic, clean, minimal
+
+CRITICAL: Use DIFFERENT background colors from this palette for each section to create visual variety while maintaining cohesive harmony. Do NOT use the same background for all sections.
+
+
+CRITICAL INSTRUCTION FOR DIVERSE BACKGROUNDS:
+- This section MUST use: pure clean white background
+- DO NOT use the same background as other sections
+- Each section in this detail page has a DIFFERENT background color from the 베이지 내추럴 palette
+- Maintain visual HARMONY while ensuring VARIETY between sections
+- The overall mood should be: natural, calm, soothing, organic, clean, minimal

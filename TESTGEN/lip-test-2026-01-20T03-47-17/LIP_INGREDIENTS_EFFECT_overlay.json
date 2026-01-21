@@ -1,0 +1,52 @@
+{
+  "section": "INGREDIENTS_EFFECT",
+  "overlayText": {
+    "texts": [
+      {
+        "text": "FEATURES",
+        "x": 10,
+        "y": 5,
+        "fontSize": 24,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "1. Glacé Glow",
+        "x": 20,
+        "y": 58,
+        "fontSize": 22,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "맑고 영롱한 광채",
+        "x": 20,
+        "y": 64,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "2. True Color Pop",
+        "x": 80,
+        "y": 58,
+        "fontSize": 22,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "right"
+      },
+      {
+        "text": "선명한 고발색",
+        "x": 80,
+        "y": 64,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "right"
+      }
+    ]
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "section": "HERO_LIP",
+  "overlayText": {
+    "texts": [
+      {
+        "text": "DEWYFUL WATER TINT",
+        "x": 10,
+        "y": 10,
+        "fontSize": 28,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "맑게 차오르는 투명 광택",
+        "x": 10,
+        "y": 20,
+        "fontSize": 38,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "text": "#유리알광택 #촉촉한수분 #고발색",
+        "x": 10,
+        "y": 30,
+        "fontSize": 18,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "textAlign": "left"
+      },
+      {
+        "text": "GLOSSY FINISH",
+        "x": 90,
+        "y": 70,
+        "fontSize": 24,
+        "fontWeight": "bold",
+        "color": "#4a90d9",
+        "textAlign": "right"
+      },
+      {
+        "text": "오랜 시간 지속되는",
+        "x": 90,
+        "y": 75,
+        "fontSize": 16,
+        "fontWeight": "normal",
+        "color": "#888888",
+        "textAlign": "right"
+      },
+      {
+        "text": "12시간 수분 지속력",
+        "x": 90,
+        "y": 80,
+        "fontSize": 20,
+        "fontWeight": "bold",
+        "color": "#333333",
+        "textAlign": "right"
+      }
+    ]
+  }
+}
