@@ -442,32 +442,10 @@ ${isTall ? `⚠️ TALL FORMAT: Vertical layout - stack text vertically
 
 🔤 FONT SIZE: Pixels for ${width} x ${height} canvas
 (폰트 크기: ${width} x ${height} 캔버스 기준 픽셀값)
-${isWide ? `
-★ WIDE BANNER (${width}x${height}) FONT SIZES:
-  (가로 배너 폰트 크기)
-  - Main headline: 48-64px (배너 메인 헤드라인)
-  - Sub headline: 28-36px (서브 헤드라인)
-  - Body text: 18-24px (본문)
-  - Small text: 14-16px (작은 텍스트)
-` : isTall ? `
-★ TALL PRODUCT (${width}x${height}) FONT SIZES:
-  (세로형 제품 이미지 폰트 크기)
-  - Main headline: 42-56px (메인 헤드라인)
-  - Sub headline: 24-32px (서브 헤드라인)
-  - Body text: 16-22px (본문)
-  - Small text: 12-14px (작은 텍스트)
-` : `
-★ SQUARE (${width}x${height}) FONT SIZES:
-  (정사각형 폰트 크기)
-  - Main headline: 48-72px (메인 헤드라인)
-  - Sub headline: 28-40px (서브 헤드라인)
-  - Body text: 18-24px (본문)
-  - Small text: 14-16px (작은 텍스트)
-`}
-- fontSize 24 = 24px on ${width}px canvas (약 ${Math.round(24/width*100*10)/10}% of width)
-- fontSize 48 = 48px on ${width}px canvas (약 ${Math.round(48/width*100*10)/10}% of width)
-- Be BOLD with sizes based on the resolution above!
-  (위 해상도에 맞게 과감하게!)
+- Design text sizes freely based on the canvas resolution above
+  (위 캔버스 해상도를 기준으로 자유롭게 텍스트 크기 디자인)
+- fontSize value = actual pixel size on the generated image
+  (fontSize 값 = 생성된 이미지의 실제 픽셀 크기)
 
 - Place texts where they look BEST with the image
   (이미지에 가장 잘 어울리는 위치에 배치)
