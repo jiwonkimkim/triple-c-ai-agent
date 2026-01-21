@@ -253,41 +253,45 @@ function buildCreativeOverlayGuide(aspectRatio?: string): string {
   const isTall = height > width;  // 3:4, 9:16 등 세로형
 
   return `
-[★ CREATIVE OVERLAY TEXT DESIGN - 키치하고 트렌디한 상세페이지 스타일 ★]
-생성될 이미지와 사용된 프롬프트 상황에 맞게 자유롭게 이미지 위에 얹을 상세페이지 스타일 텍스트 디자인만 반환하세요.
+[★ CREATIVE OVERLAY TEXT DESIGN ★]
+
+Return only detail-page style text design to be placed on top of the image, freely based on the image to be generated and the prompt context.
+(생성될 이미지와 사용된 프롬프트 상황에 맞게 자유롭게 이미지 위에 얹을 상세페이지 스타일 텍스트 디자인만 반환하세요.)
 
 You are a trendy Korean e-commerce detail page designer.
+(당신은 트렌디한 한국 이커머스 상세페이지 디자이너입니다.)
+
 Design CREATIVE, PLAYFUL, and BOLD typography that matches the generated image!
+(생성될 이미지에 어울리는 창의적이고, 키치하고, 대담한 타이포그래피를 디자인하세요!)
 
-★★★ DESIGN FREEDOM ★★★
-- Look at the image you generated and design text that COMPLEMENTS it
-- Be creative with placement - not everything needs to be centered!
-- Use unexpected positions, dynamic layouts, asymmetric designs
-- Mix different sizes dramatically for visual impact
-- 키치하고 감각적인 한국 상세페이지 스타일!
+★★★ DESIGN FREEDOM (디자인 자유도) ★★★
+- Look at the image and design text that COMPLEMENTS it (이미지를 보고 어울리는 텍스트를 디자인)
+- Be creative with placement - not everything needs to be centered! (창의적인 배치 - 모든 것이 중앙 정렬일 필요 없음!)
+- Use unexpected positions, dynamic layouts, asymmetric designs (예상치 못한 위치, 다이나믹한 레이아웃, 비대칭 디자인)
+- Mix different sizes dramatically for visual impact (시각적 임팩트를 위해 다양한 크기를 과감하게 믹스)
 
-★★★ COORDINATE SYSTEM: PERCENTAGE (0-100) ★★★
-Image aspect ratio: ${aspectRatio || '3:4'} (${width}x${height}px)
-${isWide ? '⚠️ WIDE FORMAT (16:9 etc): Horizontal banner - spread text across width, use smaller fontSize' : ''}
-${isTall ? '⚠️ TALL FORMAT (3:4 etc): Vertical layout - stack text vertically, use y-axis spacing' : ''}
+★★★ COORDINATE SYSTEM: PERCENTAGE 0-100 (좌표 시스템: 퍼센트 0-100) ★★★
+Image aspect ratio (이미지 비율): ${aspectRatio || '3:4'} (${width}x${height}px)
+${isWide ? '⚠️ WIDE FORMAT: Horizontal banner - spread text across width (가로형: 텍스트를 너비에 걸쳐 배치)' : ''}
+${isTall ? '⚠️ TALL FORMAT: Vertical layout - stack text vertically (세로형: 텍스트를 세로로 쌓기)' : ''}
 
-- x: 0-100 (0=left edge, 50=center, 100=right edge) - PERCENTAGE!
-- y: 0-100 (0=top edge, 50=middle, 100=bottom edge) - PERCENTAGE!
-- fontSize: 12-72px (be bold with sizes!)
-- Place texts where they look BEST with the image
+- x: 0-100 (0=left, 50=center, 100=right) - PERCENTAGE! (0=왼쪽, 50=중앙, 100=오른쪽 - 퍼센트!)
+- y: 0-100 (0=top, 50=middle, 100=bottom) - PERCENTAGE! (0=상단, 50=중앙, 100=하단 - 퍼센트!)
+- fontSize: 12-72px - be bold with sizes! (크기를 과감하게!)
+- Place texts where they look BEST with the image (이미지에 가장 잘 어울리는 위치에 배치)
 
-★★★ COLOR & STYLE INSPIRATION ★★★
-- Vibrant: #FF6B6B, #4ECDC4, #FFE66D, #FF8C42
-- Elegant: #2C3E50, #E74C3C, #1ABC9C, #9B59B6
-- Luxurious: #C9B037, #BF9270, #2E4057, #8B4513
-- Pastel: #FFB3BA, #BAFFC9, #BAE1FF, #FFFFBA
-- Match colors to the image mood!
+★★★ COLOR & STYLE INSPIRATION (컬러 & 스타일 영감) ★★★
+- Vibrant (비비드): #FF6B6B, #4ECDC4, #FFE66D, #FF8C42
+- Elegant (엘레강스): #2C3E50, #E74C3C, #1ABC9C, #9B59B6
+- Luxurious (럭셔리): #C9B037, #BF9270, #2E4057, #8B4513
+- Pastel (파스텔): #FFB3BA, #BAFFC9, #BAE1FF, #FFFFBA
+- Match colors to the image mood! (이미지 무드에 맞는 컬러 매칭!)
 
-CRITICAL RULES:
-- fontSize: INTEGER 12-72
-- x, y: INTEGER 0-100 (PERCENTAGE, NOT pixels!)
-- Do NOT overlap texts (maintain 10+ percentage gap)
-- Make it look like professional Korean detail page design!
+CRITICAL RULES (중요 규칙):
+- fontSize: INTEGER 12-72 (정수 12-72)
+- x, y: INTEGER 0-100 PERCENTAGE, NOT pixels! (정수 0-100 퍼센트, 픽셀 아님!)
+- Do NOT overlap texts - maintain 10+ gap (텍스트 겹침 금지 - 10% 이상 간격 유지)
+- Make it look like professional Korean detail page design! (전문적인 한국 상세페이지 디자인처럼!)
 `;
 }
 
