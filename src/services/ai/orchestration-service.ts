@@ -92,12 +92,19 @@ export interface SectionImagePrompt {
   imageIndex?: number;        // 다중 이미지일 때 인덱스 (0부터 시작)
   totalImagesInSection?: number; // 해당 섹션의 총 이미지 수
   variationHint?: string;     // 이미지 변형 힌트 (예: "shade #21", "step 1")
-  // ★ 개발자 모드: 개별 프롬프트 구성요소 (UI에서 분리 표시)
+  // ★★★ 개발자 모드: 개별 프롬프트 구성요소 (UI에서 분류별 표시) ★★★
   promptComponents?: {
+    // [1] 섹션별 프롬프트
+    sectionBasePrompt?: string;        // 섹션별 기본 프롬프트 (buildSharedSectionPrompt)
     orchestrationPrompt?: string;      // 오케스트레이션 AI가 생성한 시나리오
-    categoryTemplatePrompt?: string;   // 섹션별 카테고리 템플릿
+    categoryTemplatePrompt?: string;   // (deprecated) 섹션별 카테고리 템플릿
     i2iSystemPrompt?: string;          // I2I 시스템 프롬프트 (재배치 규칙)
-    // ★★★ 고정/동적 프롬프트 분리 (NEW!)
+    // [2] 오버레이 텍스트 관련 프롬프트
+    overlayTextPrompt?: string;        // 섹션별 오버레이 텍스트 프롬프트
+    overlayGuidePrompt?: string;       // 오버레이 디자인 가이드 (공통)
+    // [3] 공통 프롬프트 (Flash 모델 전용)
+    noTextReinforcement?: string;      // Flash 모델용 텍스트 금지 강화
+    // [4] 레거시 (이전 호환성)
     fixedPrompt?: string;              // 고정 프롬프트 (제품일관성, 품질, no-text, 네거티브)
     dynamicPrompt?: string;            // 동적 프롬프트 (테마, 섹션템플릿, 텍스트시각화 등)
   };

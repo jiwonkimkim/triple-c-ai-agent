@@ -41,14 +41,20 @@ export interface DevPromptInfo {
   };
   sectionImagePrompts: Array<{
     sectionType: string;
-    // ★ 개별 프롬프트 구성요소
+    // ★★★ [1] 섹션별 프롬프트 ★★★
+    sectionBasePrompt?: string;        // 섹션별 기본 프롬프트 (buildSharedSectionPrompt - MAIN, HERO, FEATURES 등)
     orchestrationPrompt?: string;      // 오케스트레이션 AI가 생성한 시나리오 프롬프트
-    categoryTemplatePrompt?: string;   // 섹션 타입별 카테고리 템플릿 프롬프트
+    categoryTemplatePrompt?: string;   // (deprecated) 섹션 타입별 카테고리 템플릿 - sectionBasePrompt 사용
     i2iSystemPrompt?: string;          // I2I 시스템 프롬프트 (제품 재배치 규칙 등)
-    // ★★★ 고정/동적 프롬프트 분리 (NEW!)
+    // ★★★ [2] 오버레이 텍스트 관련 프롬프트 ★★★
+    overlayTextPrompt?: string;        // 섹션별 오버레이 텍스트 프롬프트 (buildOverlayTextPrompt)
+    overlayGuidePrompt?: string;       // 오버레이 디자인 가이드 (buildCreativeOverlayGuide - 공통)
+    // ★★★ [3] 공통 프롬프트 (Flash 모델 전용) ★★★
+    noTextReinforcement?: string;      // Flash 모델용 텍스트 금지 강화 프롬프트
+    // ★★★ [4] 레거시 (이전 호환성) ★★★
     fixedPrompt?: string;              // 고정 프롬프트 (제품일관성, 품질, no-text, 네거티브)
     dynamicPrompt?: string;            // 동적 프롬프트 (테마, 섹션템플릿, 텍스트시각화 등)
-    // ★ 최종 결합된 프롬프트 (이전 호환성)
+    // ★ 최종 결합된 프롬프트
     imagePrompt: string;               // 최종 사용된 전체 프롬프트
     // 생성된 이미지 URL
     generatedImageUrl?: string;
@@ -282,46 +288,46 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                           </div>
                           <ScrollArea className="h-[400px] rounded-lg border-2 border-purple-200 bg-purple-50 dark:bg-purple-950/20 p-4">
                             <div className="space-y-4">
-                              {/* ★ 고정 프롬프트 (모든 섹션 공통) */}
-                              {section.fixedPrompt && (
+                              {/* ★★★ [1] 섹션별 프롬프트 ★★★ */}
+                              {section.sectionBasePrompt && (
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between">
-                                    <Badge variant="outline" className="text-xs bg-slate-100 text-slate-700 border-slate-300 px-2 py-1">
-                                      🔒 고정 (공통)
+                                    <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-300 px-2 py-1">
+                                      📋 섹션 기본 프롬프트
                                     </Badge>
-                                    <CopyButton text={section.fixedPrompt} />
+                                    <CopyButton text={section.sectionBasePrompt} />
                                   </div>
-                                  <div className="rounded-lg border bg-slate-50 dark:bg-slate-950/30 p-3 max-h-[120px] overflow-y-auto">
-                                    <pre className="text-[11px] whitespace-pre-wrap font-mono text-slate-700 dark:text-slate-300 leading-relaxed">
-                                      {section.fixedPrompt}
+                                  <div className="rounded-lg border bg-blue-50 dark:bg-blue-950/30 p-3 max-h-[120px] overflow-y-auto">
+                                    <pre className="text-[11px] whitespace-pre-wrap font-mono text-blue-900 dark:text-blue-200 leading-relaxed">
+                                      {section.sectionBasePrompt}
                                     </pre>
                                   </div>
                                 </div>
                               )}
 
-                              {/* ★ 동적 프롬프트 (섹션/카테고리별 변경) */}
-                              {section.dynamicPrompt && (
+                              {/* 오케스트레이션 AI 생성 시나리오 */}
+                              {section.orchestrationPrompt && (
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between">
-                                    <Badge variant="outline" className="text-xs bg-amber-100 text-amber-700 border-amber-300 px-2 py-1">
-                                      🔄 동적 (섹션별)
+                                    <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700 border-purple-300 px-2 py-1">
+                                      🎭 오케스트레이션 시나리오
                                     </Badge>
-                                    <CopyButton text={section.dynamicPrompt} />
+                                    <CopyButton text={section.orchestrationPrompt} />
                                   </div>
-                                  <div className="rounded-lg border bg-amber-50 dark:bg-amber-950/30 p-3 max-h-[180px] overflow-y-auto">
-                                    <pre className="text-[11px] whitespace-pre-wrap font-mono text-amber-900 dark:text-amber-200 leading-relaxed">
-                                      {section.dynamicPrompt}
+                                  <div className="rounded-lg border bg-purple-50 dark:bg-purple-950/30 p-3 max-h-[120px] overflow-y-auto">
+                                    <pre className="text-[11px] whitespace-pre-wrap font-mono text-purple-900 dark:text-purple-200 leading-relaxed">
+                                      {section.orchestrationPrompt}
                                     </pre>
                                   </div>
                                 </div>
                               )}
 
-                              {/* I2I 시스템 프롬프트 (있으면 표시) */}
+                              {/* I2I 시스템 프롬프트 (제품 재배치 규칙) */}
                               {section.i2iSystemPrompt && (
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between">
                                     <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300 px-2 py-1">
-                                      🖼️ I2I 시스템
+                                      🖼️ I2I 시스템 프롬프트
                                     </Badge>
                                     <CopyButton text={section.i2iSystemPrompt} />
                                   </div>
@@ -333,22 +339,105 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                                 </div>
                               )}
 
-                              {/* 프롬프트 구성요소가 없는 경우 - imagePrompt 표시 */}
-                              {!section.fixedPrompt && !section.dynamicPrompt && !section.i2iSystemPrompt && section.imagePrompt && (
+                              {/* ★★★ [2] 오버레이 텍스트 관련 프롬프트 ★★★ */}
+                              {section.overlayTextPrompt && (
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between">
-                                    <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-300 px-2 py-1">
-                                      📝 이미지 생성 프롬프트
+                                    <Badge variant="outline" className="text-xs bg-amber-100 text-amber-700 border-amber-300 px-2 py-1">
+                                      ✏️ 오버레이 텍스트 프롬프트
+                                    </Badge>
+                                    <CopyButton text={section.overlayTextPrompt} />
+                                  </div>
+                                  <div className="rounded-lg border bg-amber-50 dark:bg-amber-950/30 p-3 max-h-[100px] overflow-y-auto">
+                                    <pre className="text-[11px] whitespace-pre-wrap font-mono text-amber-900 dark:text-amber-200 leading-relaxed">
+                                      {section.overlayTextPrompt}
+                                    </pre>
+                                  </div>
+                                </div>
+                              )}
+
+                              {section.overlayGuidePrompt && (
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <Badge variant="outline" className="text-xs bg-orange-100 text-orange-700 border-orange-300 px-2 py-1">
+                                      🎨 오버레이 디자인 가이드 (공통)
+                                    </Badge>
+                                    <CopyButton text={section.overlayGuidePrompt} />
+                                  </div>
+                                  <div className="rounded-lg border bg-orange-50 dark:bg-orange-950/30 p-3 max-h-[100px] overflow-y-auto">
+                                    <pre className="text-[11px] whitespace-pre-wrap font-mono text-orange-900 dark:text-orange-200 leading-relaxed">
+                                      {section.overlayGuidePrompt}
+                                    </pre>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* ★★★ [3] 공통 프롬프트 (Flash 모델 전용) ★★★ */}
+                              {section.noTextReinforcement && (
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <Badge variant="outline" className="text-xs bg-red-100 text-red-700 border-red-300 px-2 py-1">
+                                      ⚠️ 텍스트 금지 강화 (Flash 전용)
+                                    </Badge>
+                                    <CopyButton text={section.noTextReinforcement} />
+                                  </div>
+                                  <div className="rounded-lg border bg-red-50 dark:bg-red-950/30 p-3 max-h-[100px] overflow-y-auto">
+                                    <pre className="text-[11px] whitespace-pre-wrap font-mono text-red-900 dark:text-red-200 leading-relaxed">
+                                      {section.noTextReinforcement}
+                                    </pre>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* ★★★ [4] 레거시 프롬프트 (이전 호환성) ★★★ */}
+                              {section.fixedPrompt && (
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <Badge variant="outline" className="text-xs bg-slate-100 text-slate-700 border-slate-300 px-2 py-1">
+                                      🔒 고정 프롬프트 (레거시)
+                                    </Badge>
+                                    <CopyButton text={section.fixedPrompt} />
+                                  </div>
+                                  <div className="rounded-lg border bg-slate-50 dark:bg-slate-950/30 p-3 max-h-[100px] overflow-y-auto">
+                                    <pre className="text-[11px] whitespace-pre-wrap font-mono text-slate-700 dark:text-slate-300 leading-relaxed">
+                                      {section.fixedPrompt}
+                                    </pre>
+                                  </div>
+                                </div>
+                              )}
+
+                              {section.dynamicPrompt && (
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <Badge variant="outline" className="text-xs bg-slate-100 text-slate-700 border-slate-300 px-2 py-1">
+                                      🔄 동적 프롬프트 (레거시)
+                                    </Badge>
+                                    <CopyButton text={section.dynamicPrompt} />
+                                  </div>
+                                  <div className="rounded-lg border bg-slate-50 dark:bg-slate-950/30 p-3 max-h-[100px] overflow-y-auto">
+                                    <pre className="text-[11px] whitespace-pre-wrap font-mono text-slate-700 dark:text-slate-300 leading-relaxed">
+                                      {section.dynamicPrompt}
+                                    </pre>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* 프롬프트 구성요소가 전혀 없는 경우 - imagePrompt 표시 */}
+                              {!section.sectionBasePrompt && !section.orchestrationPrompt && !section.overlayTextPrompt && !section.noTextReinforcement && !section.fixedPrompt && !section.dynamicPrompt && !section.i2iSystemPrompt && section.imagePrompt && (
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <Badge variant="outline" className="text-xs bg-gray-100 text-gray-700 border-gray-300 px-2 py-1">
+                                      📝 이미지 생성 프롬프트 (분리 전)
                                     </Badge>
                                     <CopyButton text={section.imagePrompt} />
                                   </div>
-                                  <div className="rounded-lg border bg-blue-50 dark:bg-blue-950/30 p-3 max-h-[350px] overflow-y-auto">
-                                    <pre className="text-[11px] whitespace-pre-wrap font-mono text-blue-900 dark:text-blue-200 leading-relaxed">
+                                  <div className="rounded-lg border bg-gray-50 dark:bg-gray-950/30 p-3 max-h-[350px] overflow-y-auto">
+                                    <pre className="text-[11px] whitespace-pre-wrap font-mono text-gray-900 dark:text-gray-200 leading-relaxed">
                                       {section.imagePrompt}
                                     </pre>
                                   </div>
                                   <p className="text-[10px] text-muted-foreground italic">
-                                    * 이 섹션은 개별 프롬프트 구성요소 저장 기능 추가 전에 생성되었습니다.
+                                    * 이 섹션은 프롬프트 분리 기능 추가 전에 생성되었습니다.
                                   </p>
                                 </div>
                               )}

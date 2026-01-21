@@ -593,12 +593,20 @@ export interface GeminiGeneratedImage {
   revisedPrompt?: string;
   // ★ 이미지 모델이 함께 리턴한 오버레이 텍스트
   overlayText?: OverlayTextContent;
-  // ★ 개발자 모드용 개별 프롬프트 구성요소
+  // ★★★ 개발자 모드용 개별 프롬프트 구성요소 (분류별) ★★★
   promptComponents?: {
+    // [1] 섹션별 프롬프트
+    sectionBasePrompt?: string;        // 섹션별 기본 프롬프트 (buildSharedSectionPrompt - MAIN, HERO, FEATURES 등)
     orchestrationPrompt?: string;      // 오케스트레이션 AI가 생성한 시나리오
-    categoryTemplatePrompt?: string;   // 섹션별 카테고리 템플릿
-    i2iSystemPrompt?: string;          // I2I 시스템 프롬프트 (재배치 규칙)
-    // ★★★ 고정/동적 프롬프트 분리 (NEW!)
+    categoryTemplatePrompt?: string;   // (deprecated) 섹션별 카테고리 템플릿 - sectionBasePrompt 사용
+    i2iSystemPrompt?: string;          // I2I 시스템 프롬프트 (제품 재배치 규칙)
+    // [2] 오버레이 텍스트 관련 프롬프트
+    overlayTextPrompt?: string;        // 섹션별 오버레이 텍스트 프롬프트 (buildOverlayTextPrompt)
+    overlayGuidePrompt?: string;       // 오버레이 디자인 가이드 (buildCreativeOverlayGuide - 공통)
+    overlayOutputRequirements?: string; // 오버레이 출력 요구사항 (buildOverlayTextRequest - 공통)
+    // [3] 공통 프롬프트 (Flash 모델 전용)
+    noTextReinforcement?: string;      // Flash 모델용 텍스트 금지 강화 프롬프트 (NO_TEXT_IN_IMAGE_REINFORCEMENT)
+    // [4] 레거시 (이전 호환성)
     fixedPrompt?: string;              // 고정 프롬프트 (제품일관성, 품질, no-text, 네거티브)
     dynamicPrompt?: string;            // 동적 프롬프트 (테마, 섹션템플릿, 오케스트레이션 등)
   };
@@ -1018,6 +1026,18 @@ ${imagePrompt}`;
 
   console.log(`[Gemini T2I] Generating ${sectionType} (→${mappedSectionType}) with aspectRatio: ${aspectRatio || '3:4'}, with overlay text request`);
 
+  // ★★★ 프롬프트 구성요소 분리 (개발자 모드용) ★★★
+  // 섹션 기본 프롬프트 (buildSharedSectionPrompt 결과)
+  const sectionBasePrompt = buildSharedSectionPrompt(mappedSectionType, {
+    productName,
+    category,
+    ingredientObjects,
+    moodSelection: moodSelection.selected,
+    audienceStyle,
+    featureHighlight,
+    isI2I: false,
+  });
+
   const images = await generateImageWithGemini({
     prompt: finalPrompt,  // ★ 오버레이 텍스트 요청 포함된 프롬프트
     model,
@@ -1028,10 +1048,21 @@ ${imagePrompt}`;
     throw new Error(`No image generated for ${sectionType}`);
   }
 
-  // 최종 사용된 프롬프트를 revisedPrompt로 반환
+  // 최종 사용된 프롬프트를 revisedPrompt로 반환 + 개별 프롬프트 구성요소 포함
   return {
     ...images[0],
     revisedPrompt: finalPrompt,
+    // ★★★ 개발자 모드용: 개별 프롬프트 구성요소 (UI에서 분리 표시) ★★★
+    promptComponents: {
+      // [1] 섹션별 프롬프트
+      sectionBasePrompt,                                      // 섹션별 기본 프롬프트 (MAIN, HERO, FEATURES 등)
+      orchestrationPrompt: (mappedSectionType !== 'MAIN' && imagePrompt) ? imagePrompt : undefined,  // 오케스트레이션 AI 생성 시나리오
+      // [2] 오버레이 텍스트 관련 프롬프트
+      overlayTextPrompt,                                      // 섹션별 오버레이 텍스트 프롬프트
+      overlayGuidePrompt: buildCreativeOverlayGuide(aspectRatio),  // 오버레이 디자인 가이드 (공통)
+      // [3] 공통 프롬프트 (Flash 모델 전용)
+      noTextReinforcement: isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : undefined,  // Flash 모델용 텍스트 금지 강화
+    },
   };
 }
 
@@ -1696,12 +1727,19 @@ ${overlayTextRequest}`;
   return {
     ...images[0],
     revisedPrompt: fullPrompt,
-    // ★ 개발자 모드용: 개별 프롬프트 구성요소 (UI에서 분리 표시)
+    // ★★★ 개발자 모드용: 개별 프롬프트 구성요소 (UI에서 분리 표시) ★★★
     promptComponents: {
       ...images[0].promptComponents,
+      // [1] 섹션별 프롬프트
+      sectionBasePrompt: basePrompt,                          // 섹션별 기본 프롬프트 (MAIN, HERO, FEATURES 등)
       orchestrationPrompt: scenarioPrompt || undefined,       // 오케스트레이션 AI 생성 시나리오
-      categoryTemplatePrompt: basePrompt,                     // 섹션별 카테고리 템플릿
-      // ★★★ 고정/동적 프롬프트 분리 (NEW!)
+      i2iSystemPrompt: orchestrationContext || undefined,     // I2I 시스템 프롬프트 (제품 재배치 규칙)
+      // [2] 오버레이 텍스트 관련 프롬프트
+      overlayTextPrompt,                                      // 섹션별 오버레이 텍스트 프롬프트
+      overlayGuidePrompt: buildCreativeOverlayGuide(aspectRatio),  // 오버레이 디자인 가이드 (공통)
+      // [3] 공통 프롬프트 (Flash 모델 전용)
+      noTextReinforcement: isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : undefined,  // Flash 모델용 텍스트 금지 강화
+      // [4] 레거시 (이전 호환성)
       fixedPrompt: fixedPromptParts.join('\n\n'),
       dynamicPrompt: dynamicPromptParts.join('\n\n'),
     },
