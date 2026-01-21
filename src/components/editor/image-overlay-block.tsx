@@ -331,13 +331,17 @@ export function ImageOverlayBlockRenderer({
   // ★★★ 캔버스에서 드래그 선택 박스 시작 ★★★
   const handleSelectionStart = useCallback((e: React.MouseEvent) => {
     // 텍스트 요소 클릭이면 무시
-    if ((e.target as HTMLElement).closest('[data-overlay-text]')) return;
+    if ((e.target as HTMLElement).closest('[data-overlay-text]')) {
+      console.log('[Selection] Clicked on text element, ignoring');
+      return;
+    }
 
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
 
+    console.log(`[Selection] ★ Selection START at (${x.toFixed(1)}, ${y.toFixed(1)})`);
     setIsSelectionDragging(true);
     setSelectionBox({ startX: x, startY: y, endX: x, endY: y });
     // 선택 해제
@@ -358,6 +362,7 @@ export function ImageOverlayBlockRenderer({
 
   // ★★★ 드래그 선택 박스 종료 - 박스 안의 텍스트 선택 ★★★
   const handleSelectionEnd = useCallback(() => {
+    console.log(`[Selection] ★ Selection END - isSelectionDragging: ${isSelectionDragging}, selectionBox: ${JSON.stringify(selectionBox)}`);
     if (!isSelectionDragging || !selectionBox) {
       setIsSelectionDragging(false);
       setSelectionBox(null);
@@ -372,13 +377,18 @@ export function ImageOverlayBlockRenderer({
 
     // 선택 박스 안에 있는 텍스트 찾기 (텍스트 박스와 선택 박스가 겹치면 선택)
     const selectedIds = new Set<string>();
+    console.log(`[Selection] Selection box: (${minX.toFixed(1)}, ${minY.toFixed(1)}) - (${maxX.toFixed(1)}, ${maxY.toFixed(1)})`);
+
     block.overlayTexts.forEach((text) => {
       if (!text.isFolder && !isLayerHidden(text.id)) {
         const textX = text.style.x;
         const textY = text.style.y;
         // 텍스트 박스 크기 추정 (width가 있으면 사용, 없으면 기본값)
-        const textWidth = text.style.width || 20; // 기본 너비 20%
-        const textHeight = 5; // 텍스트 높이 추정 (fontSize 기반으로 약 5%)
+        const textWidth = text.style.width || 30; // 기본 너비 30%
+        // 텍스트 높이: fontSize 기반으로 넉넉하게 설정 (선택 용이성 위해)
+        const fontSize = text.style.fontSize || 24;
+        // fontSize 24px → 약 8%, fontSize 48px → 약 12% (최소 6%, 최대 15%)
+        const textHeight = Math.min(15, Math.max(6, fontSize * 0.3));
 
         // 텍스트 정렬에 따른 실제 경계 계산
         let textLeft: number, textRight: number;
@@ -400,6 +410,8 @@ export function ImageOverlayBlockRenderer({
         const isOverlapping =
           textLeft <= maxX && textRight >= minX &&
           textTop <= maxY && textBottom >= minY;
+
+        console.log(`[Selection] Text "${text.content?.slice(0, 10)}": bounds (${textLeft.toFixed(1)}, ${textTop.toFixed(1)}) - (${textRight.toFixed(1)}, ${textBottom.toFixed(1)}), overlap: ${isOverlapping}`);
 
         if (isOverlapping) {
           selectedIds.add(text.id);

@@ -183,9 +183,9 @@ export const TEXT_STYLE_GUIDE = {
       letterSpacing: 'wide',    // 자간 넓게 (0.1em~0.2em)
       textTransform: 'uppercase',
     },
-    headline: {
-      korean: 'sans-serif',     // 한글 헤드라인은 산세리프 (고딕)
-      english: 'serif',         // 영문 헤드라인은 세리프 가능
+    primary: {
+      korean: 'sans-serif',     // 한글 메인 텍스트는 산세리프 (고딕)
+      english: 'serif',         // 영문 메인 텍스트는 세리프 가능
       fontWeight: 'bold',       // 700
     },
     sectionTitle: {
@@ -206,8 +206,8 @@ export const TEXT_STYLE_GUIDE = {
 
   // 밝은 배경 (핑크, 베이지, 화이트) 색상 팔레트
   lightBackground: {
-    headline: '#333333',        // 진한 회색/검정
-    subheadline: '#666666',     // 중간 회색
+    primary: '#333333',         // 진한 회색/검정 (메인 텍스트)
+    secondary: '#666666',       // 중간 회색 (보조 텍스트)
     body: '#888888',            // 밝은 회색
     sectionTitle: '#d4a5a5',    // 로즈골드/핑크 (포인트)
     statistics: '#333333',      // 숫자는 진한색
@@ -217,8 +217,8 @@ export const TEXT_STYLE_GUIDE = {
 
   // 어두운 배경 (네이비, 블랙) 색상 팔레트
   darkBackground: {
-    headline: '#ffffff',        // 흰색
-    subheadline: '#e0e0e0',     // 밝은 회색
+    primary: '#ffffff',         // 흰색 (메인 텍스트)
+    secondary: '#e0e0e0',       // 밝은 회색 (보조 텍스트)
     body: '#cccccc',            // 중간 밝기
     sectionTitle: '#ffffff',    // 흰색
     statistics: '#ffffff',      // 숫자는 흰색
@@ -230,9 +230,9 @@ export const TEXT_STYLE_GUIDE = {
   fontSize: {
     brand: { min: 12, max: 16, typical: 14 },           // 브랜드명
     productLine: { min: 24, max: 36, typical: 28 },     // 제품라인명 (가장 큼)
-    headline: { min: 20, max: 28, typical: 24 },        // 한글 헤드라인
+    primary: { min: 20, max: 28, typical: 24 },         // 메인 텍스트
     sectionTitle: { min: 12, max: 16, typical: 14 },    // 영문 섹션타이틀
-    subheadline: { min: 14, max: 20, typical: 16 },     // 서브헤드라인
+    secondary: { min: 14, max: 20, typical: 16 },       // 보조 텍스트
     body: { min: 12, max: 16, typical: 14 },            // 본문
     statistics: { min: 28, max: 48, typical: 36 },      // 통계 숫자
     statisticsLabel: { min: 10, max: 14, typical: 12 }, // 통계 라벨
@@ -259,13 +259,13 @@ export const TEXT_STYLE_GUIDE = {
     // SOCIAL_PROOF 섹션 패턴
     socialProof: {
       sectionTitle: { y: 55, align: 'center' },
-      headline: { y: 62, align: 'center' },
+      primary: { y: 62, align: 'center' },
       statistics: { y: 75, align: 'center' },  // 가로 배열 또는 방사형
     },
     // TEXTURE 섹션 패턴
     texture: {
       sectionTitle: { y: 15, align: 'center' },
-      headline: { y: 25, align: 'center' },
+      primary: { y: 25, align: 'center' },
       body: { y: 35, align: 'center' },
     },
   },
@@ -313,131 +313,111 @@ export function getColorSchemeForBackground(backgroundType: BackgroundType) {
 }
 
 // ============================================
-// 섹션별 실제 오버레이 텍스트 예시 (OCR 분석 기반)
+// 섹션별 실제 오버레이 텍스트 예시 (자유로운 texts 배열 형식)
 // ============================================
 
 const SECTION_TEXT_EXAMPLES: Record<string, {
   pattern: string;
   examples: {
-    headline: string;
-    subheadline: string;
-    body?: string;
-    statistics?: string[];
-    hashtags?: string;
-    points?: string[];       // 넘버링 포인트
-    colorNames?: string[];   // 컬러명 (메이크업)
+    texts: {
+      text: string;
+      x: number;
+      y: number;
+      fontSize: number;
+      fontWeight: 'normal' | 'bold';
+      textAlign: 'left' | 'center' | 'right';
+    }[];
   }[];
 }> = {
   MAIN: {
     pattern: '브랜드명 → 제품라인명 → 기술명/한글명 → 태그라인',
     examples: [
       {
-        headline: '{브랜드명}',
-        subheadline: '{제품라인 영문}',
-        body: 'NEW {제품명 한글}',
-        statistics: ['{브랜드 슬로건}'],
-      },
-      {
-        headline: '{브랜드명}',
-        subheadline: '{기술명 영문}',
-        body: '{X}세대 {제품명}',  // 세대 표현 패턴
-        statistics: ['진화된 {핵심 효능}'],
+        texts: [
+          { text: '{브랜드명}', x: 50, y: 8, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+          { text: '{제품라인 영문}', x: 50, y: 18, fontSize: 32, fontWeight: 'bold', textAlign: 'center' },
+          { text: 'NEW {제품명 한글}', x: 50, y: 28, fontSize: 20, fontWeight: 'normal', textAlign: 'center' },
+          { text: '{브랜드 슬로건}', x: 50, y: 88, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+        ],
       },
     ],
   },
   FEATURES: {
-    pattern: '설명문 → 해시태그 → 영문섹션명 → 숫자+효과 / Point 넘버링',
+    pattern: '설명문 → 해시태그 → 영문 성분명/효능명 → 숫자+효과',
     examples: [
       {
-        headline: '{제품의 핵심 효능을 설명하는 한 문장}',
-        subheadline: '',
-        hashtags: '#{핵심키워드1} #{핵심키워드2} #{핵심키워드3}',
-        body: '{영문 섹션 타이틀}',
-        statistics: ['{XX}% {효능 설명}', '{XX}시간 {지속 효과}'],
+        texts: [
+          { text: '{핵심 효능 한 문장}', x: 50, y: 10, fontSize: 18, fontWeight: 'normal', textAlign: 'center' },
+          { text: '#{키워드1} #{키워드2} #{키워드3}', x: 50, y: 18, fontSize: 12, fontWeight: 'normal', textAlign: 'center' },
+          { text: 'HYALURONIC ACID', x: 50, y: 55, fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
+          { text: '48H 보습 지속', x: 50, y: 65, fontSize: 16, fontWeight: 'normal', textAlign: 'center' },
+        ],
       },
       {
-        // Point 넘버링 패턴 (메이크업/스킨케어 공통)
-        headline: 'Point 01',
-        subheadline: '{첫 번째 핵심 특징}',
-        body: '{특징 상세 설명}',
-        points: ['Point 01 {특징1}', 'Point 02 {특징2}', 'Point 03 {특징3}'],
-      },
-      {
-        // 영문 넘버링 패턴
-        headline: '1. {영문 특징명}',
-        subheadline: '{한글 설명}',
-        body: '{감각적 표현 + 효과}',
-        points: ['1. {특징1}', '2. {특징2}', '3. {특징3}'],
+        texts: [
+          { text: 'Point 01', x: 50, y: 12, fontSize: 14, fontWeight: 'bold', textAlign: 'center' },
+          { text: '{첫 번째 핵심 특징}', x: 50, y: 22, fontSize: 22, fontWeight: 'bold', textAlign: 'center' },
+          { text: '{특징 상세 설명}', x: 50, y: 32, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+        ],
       },
     ],
   },
   SOCIAL_PROOF: {
-    pattern: '영문섹션명 → 한글헤드라인 → 통계숫자들 → 설명',
+    pattern: '영문 타이틀 → 한글 설명 → 통계 숫자들',
     examples: [
       {
-        headline: 'BENEFIT',
-        subheadline: '{핵심 효과 한 문장}',
-        statistics: ['{XX}%', '{XX}H', '{X.X}배'],
-        body: '{효과1} | {효과2} | {효과3}',
-      },
-      {
-        headline: 'CLINICAL TEST',
-        subheadline: '{X}주 테스트 완료',  // 테스트 기간 패턴
-        statistics: ['{XX}%', '+{XX}%', '{X.X}배'],
-        body: '{지표1} | {지표2} | {지표3}',
+        texts: [
+          { text: 'CLINICAL TEST', x: 50, y: 55, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+          { text: '{핵심 효과 한 문장}', x: 50, y: 65, fontSize: 20, fontWeight: 'bold', textAlign: 'center' },
+          { text: '98%', x: 25, y: 78, fontSize: 36, fontWeight: 'bold', textAlign: 'center' },
+          { text: '만족도', x: 25, y: 88, fontSize: 12, fontWeight: 'normal', textAlign: 'center' },
+          { text: '24H', x: 50, y: 78, fontSize: 36, fontWeight: 'bold', textAlign: 'center' },
+          { text: '지속력', x: 50, y: 88, fontSize: 12, fontWeight: 'normal', textAlign: 'center' },
+          { text: '2.5배', x: 75, y: 78, fontSize: 36, fontWeight: 'bold', textAlign: 'center' },
+          { text: '흡수력', x: 75, y: 88, fontSize: 12, fontWeight: 'normal', textAlign: 'center' },
+        ],
       },
     ],
   },
   HOW_TO_USE: {
-    pattern: '영문타이틀 → 한글설명 → 단계별 안내 / {X} STEP',
+    pattern: '영문타이틀 → 단계별 안내',
     examples: [
       {
-        headline: 'HOW TO USE',
-        subheadline: '{사용법 요약}',
-        body: 'STEP 1 → STEP 2 → STEP 3',
-        statistics: ['{단계1}', '{단계2}', '{단계3}'],
+        texts: [
+          { text: '3 STEP', x: 50, y: 12, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+          { text: '{간단한 사용법 요약}', x: 50, y: 22, fontSize: 18, fontWeight: 'bold', textAlign: 'center' },
+        ],
       },
       {
-        // {X} STEP 패턴
-        headline: '{X} STEP',
-        subheadline: '{간단한 사용법}',
-        body: '',
-        points: ['Step 1 {동작1}', 'Step 2 {동작2}', 'Step 3 {동작3}'],
+        texts: [
+          { text: 'STEP 1', x: 50, y: 15, fontSize: 16, fontWeight: 'bold', textAlign: 'center' },
+          { text: '{동작 설명}', x: 50, y: 25, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+        ],
       },
     ],
   },
-  // 2차 고도화: 추가 섹션들
   PRODUCT_LINEUP: {
     pattern: '섹션타이틀 → 라인업명 → 컬러/제품 목록',
     examples: [
       {
-        headline: 'Color Chart',
-        subheadline: '{라인업명}',
-        body: '{컬러 특징 설명}',
-        colorNames: ['{영문} {한글}', '{영문} {한글}', '{영문} {한글}'],
-      },
-      {
-        headline: 'SHADES',
-        subheadline: '{쉐이드 컬렉션명}',
-        body: 'Find your perfect shade',
-        colorNames: ['01 {컬러명}', '02 {컬러명}', '03 {컬러명}'],
+        texts: [
+          { text: 'Color Chart', x: 50, y: 10, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+          { text: '{라인업명}', x: 50, y: 20, fontSize: 22, fontWeight: 'bold', textAlign: 'center' },
+          { text: 'PINK FLAKE 핑크 플레이크', x: 50, y: 75, fontSize: 12, fontWeight: 'normal', textAlign: 'center' },
+        ],
       },
     ],
   },
   INGREDIENT: {
-    pattern: '섹션타이틀 → 핵심 성분명 → 함량/효능 → 설명',
+    pattern: '섹션타이틀 → 핵심 성분명 → 함량/효능',
     examples: [
       {
-        headline: 'KEY INGREDIENT',
-        subheadline: '{핵심 성분명}',
-        statistics: ['{XX}%', '{XXXX}ppm', '{X}배'],
-        body: '{성분 효능 설명}',
-      },
-      {
-        headline: 'FORMULA',
-        subheadline: '{기술/성분 영문명}',
-        statistics: ['{함량}'],
-        body: '{성분이 주는 효과}',
+        texts: [
+          { text: 'KEY INGREDIENT', x: 50, y: 12, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+          { text: '{핵심 성분명}', x: 50, y: 25, fontSize: 28, fontWeight: 'bold', textAlign: 'center' },
+          { text: '95%', x: 50, y: 40, fontSize: 36, fontWeight: 'bold', textAlign: 'center' },
+          { text: '{성분 효능 설명}', x: 50, y: 52, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+        ],
       },
     ],
   },
@@ -445,25 +425,22 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     pattern: '섹션타이틀 → 텍스처명 → 감각 표현',
     examples: [
       {
-        headline: 'TEXTURE',
-        subheadline: '{텍스처 특징}',
-        body: '{감촉} + {발림성} + {마무리감}',
-      },
-      {
-        headline: 'DESIGN',  // 디자인 섹션도 같은 레이아웃
-        subheadline: '{디자인 특징}',
-        body: '{외형} + {소재} + {사용감}',
+        texts: [
+          { text: 'TEXTURE', x: 50, y: 15, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+          { text: '{텍스처 특징}', x: 50, y: 28, fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
+          { text: '{감촉} · {발림성} · {마무리감}', x: 50, y: 40, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+        ],
       },
     ],
   },
   CTA: {
-    pattern: '구매 유도 문구 → 혜택 → 버튼',
+    pattern: '구매 유도 문구 → 혜택',
     examples: [
       {
-        headline: '{구매 유도 핵심 문구}',
-        subheadline: '{한정 혜택/이벤트}',
-        body: '{추가 정보}',
-        statistics: ['{할인율}', '{증정품}'],
+        texts: [
+          { text: '{구매 유도 핵심 문구}', x: 50, y: 40, fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
+          { text: '{한정 혜택/이벤트}', x: 50, y: 55, fontSize: 16, fontWeight: 'normal', textAlign: 'center' },
+        ],
       },
     ],
   },
@@ -614,67 +591,39 @@ export function generateRealisticStatistics(
 }
 
 /**
- * 이미지 분석 결과를 기반으로 텍스트 색상을 결정합니다.
- * @param backgroundBrightness 배경 밝기
- * @param categoryKey 카테고리 키
+ * 이미지 분석 결과를 기반으로 텍스트 색상 팔레트를 제공합니다.
+ * 모델이 자유롭게 선택할 수 있도록 여러 색상 옵션 제공
  */
-export function getTextColorsFromImageAnalysis(
+export function getTextColorPalette(
   backgroundBrightness: 'light' | 'dark' | 'mixed',
   categoryKey: string
-): {
-  headline: string;
-  subheadline: string;
-  body: string;
-  accent: string;
-} {
+): string[] {
   const categoryStyle = CATEGORY_TEXT_STYLE[categoryKey] || CATEGORY_TEXT_STYLE.skincare;
 
   if (backgroundBrightness === 'dark') {
-    return {
-      headline: '#ffffff',
-      subheadline: '#e0e0e0',
-      body: '#cccccc',
-      accent: categoryStyle.colorScheme.accent,
-    };
+    return ['#ffffff', '#e0e0e0', '#cccccc', categoryStyle.colorScheme.accent];
   }
 
-  // light or mixed
-  return {
-    headline: '#333333',
-    subheadline: '#666666',
-    body: '#888888',
-    accent: categoryStyle.colorScheme.accent,
-  };
+  return ['#333333', '#666666', '#888888', categoryStyle.colorScheme.accent];
 }
 
 /**
  * 제품 위치에 따른 텍스트 안전 영역을 결정합니다.
- * @param productPosition 제품 위치
+ * 텍스트를 배치하기 좋은 영역 힌트 제공 (모델이 자유롭게 활용)
  */
-export function getTextSafeAreaFromProductPosition(
+export function getTextSafeArea(
   productPosition: 'left' | 'center' | 'right' | 'scattered'
-): {
-  headlinePosition: { x: number; align: 'left' | 'center' | 'right' };
-  bodyPosition: { x: number; align: 'left' | 'center' | 'right' };
-} {
+): string {
   switch (productPosition) {
     case 'left':
-      return {
-        headlinePosition: { x: 70, align: 'right' },
-        bodyPosition: { x: 70, align: 'right' },
-      };
+      return '오른쪽 영역(x: 60-90%)이 텍스트 배치에 적합';
     case 'right':
-      return {
-        headlinePosition: { x: 30, align: 'left' },
-        bodyPosition: { x: 30, align: 'left' },
-      };
+      return '왼쪽 영역(x: 10-40%)이 텍스트 배치에 적합';
     case 'center':
+      return '상단(y: 5-25%) 또는 하단(y: 75-95%) 영역이 텍스트 배치에 적합';
     case 'scattered':
     default:
-      return {
-        headlinePosition: { x: 50, align: 'center' },
-        bodyPosition: { x: 50, align: 'center' },
-      };
+      return '여백을 찾아 자유롭게 배치';
   }
 }
 
@@ -701,13 +650,13 @@ export function buildOverlayTextPrompt(
 
   // ★ 이미지 분석 기반 스타일 결정
   const imageAnalysis = blockOptions?.imageAnalysis;
-  const textColors = imageAnalysis?.backgroundBrightness
-    ? getTextColorsFromImageAnalysis(imageAnalysis.backgroundBrightness, categoryKey)
-    : { headline: '#333333', subheadline: '#666666', body: '#888888', accent: categoryStyle.colorScheme.accent };
+  const colorPalette = imageAnalysis?.backgroundBrightness
+    ? getTextColorPalette(imageAnalysis.backgroundBrightness, categoryKey)
+    : ['#333333', '#666666', '#888888', categoryStyle.colorScheme.accent];
 
-  const textPosition = imageAnalysis?.productPosition
-    ? getTextSafeAreaFromProductPosition(imageAnalysis.productPosition)
-    : { headlinePosition: { x: 50, align: 'center' as const }, bodyPosition: { x: 50, align: 'center' as const } };
+  const textSafeArea = imageAnalysis?.productPosition
+    ? getTextSafeArea(imageAnalysis.productPosition)
+    : '자유롭게 배치';
 
   // 블록별 컨텍스트 생성
   const blockContext = blockOptions?.variationHint
@@ -727,13 +676,11 @@ ${section === 'SOCIAL_PROOF' ? `- 해당 증거 유형에 맞는 텍스트 (예:
   // ★ 이미지 분석 컨텍스트 (이미지가 분석된 경우)
   const imageAnalysisContext = imageAnalysis
     ? `
-## ★★★ 이미지 분석 기반 스타일 (자동 결정됨)
+## ★★★ 이미지 분석 기반 힌트
 - 배경 밝기: ${imageAnalysis.backgroundBrightness || 'light'}
 - 주요 배경색: ${imageAnalysis.dominantColor || '#ffffff'}
 - 제품 위치: ${imageAnalysis.productPosition || 'center'}
-- 추천 헤드라인 색상: ${textColors.headline}
-- 추천 본문 색상: ${textColors.body}
-- 텍스트 배치: x=${textPosition.headlinePosition.x}%, align=${textPosition.headlinePosition.align}
+- 텍스트 배치 힌트: ${textSafeArea}
 `
     : '';
 
@@ -745,37 +692,29 @@ ${section === 'SOCIAL_PROOF' ? `- 해당 증거 유형에 맞는 텍스트 (예:
   // 섹션별 특화 가이드
   const sectionSpecificGuide = getSectionSpecificGuide(section, categoryKey);
 
-  return `## ★★★ 역할 정의 (Role Specification)
+  return `## ★★★ 역할: 타이포그래피 디자이너
 
-### 1인칭 - 카피라이터 (작성자)
-당신은 한국 올리브영/화해 상세페이지 전문 카피라이터입니다.
-"나는 이 제품의 핵심 가치를 전달하는 텍스트를 작성한다."
-- 제품의 장점을 가장 효과적으로 전달하는 문구를 고민합니다
-- 타겟 고객의 니즈를 파악하고 공감하는 메시지를 만듭니다
-- 브랜드 톤앤매너에 맞는 표현을 선택합니다
+당신은 한국 올리브영/화해 상세페이지 전문 카피라이터이자 타이포그래피 디자이너입니다.
+이미지에 어울리는 텍스트를 **자유롭게** 디자인하세요.
 
-### 2인칭 - 상세페이지/텍스트 (매체)
-당신이 작성하는 텍스트는 상세페이지의 일부입니다.
-"너(텍스트)는 고객에게 직접 말을 건네는 역할을 한다."
-- 이미지의 분위기와 여백에 따라 자유롭게 디자인됨
-- 창의적인 레이아웃으로 시선을 사로잡음
+### 디자인 철학
+- 정해진 틀 없이 창의적으로 텍스트 배치
 - 한 줄일 수도, 여러 조각이 흩어질 수도 있음
-- 정해진 틀 없이 이미지에 녹아드는 타이포그래피
-
-### 3인칭 - 오버레이 텍스트 (결과물)
-생성되는 오버레이 텍스트는 이미지 위에 배치됩니다.
-"그것(오버레이 텍스트)은 이미지와 조화를 이루며 메시지를 전달한다."
-- 배경 이미지의 여백과 컬러에 맞게 배치됨
-- 제품 이미지를 가리지 않는 위치에 존재함
-- 한눈에 읽히는 간결한 문구로 구성됨
+- 이미지의 여백과 분위기에 맞춰 자연스럽게 녹아드는 타이포그래피
+- 제품 이미지를 가리지 않는 위치 선택
 
 ---
 
 ## 핵심 원칙
-1. **실제 상세페이지 스타일**: 올리브영에서 볼 수 있는 전문적인 카피
-2. **짧고 임팩트 있게**: 헤드라인 5-15자, 서브헤드라인 10-25자
+1. **자유로운 레이아웃**: 텍스트 개수, 위치, 크기를 창의적으로 결정
+2. **짧고 임팩트 있게**: 각 텍스트는 5-25자 이내
 3. **숫자로 신뢰감**: 구체적인 수치와 퍼센트 활용
-4. **영문+한글 믹스**: 섹션명은 영문, 설명은 한글
+4. **영문+한글 믹스**: 성분명/효능명은 영문, 설명은 한글
+
+## ⛔ 절대 금지 단어 (섹션 타입명)
+다음 단어들은 절대로 텍스트에 포함하지 마세요:
+- FEATURES, HERO, SOCIAL_PROOF, HOW_TO_USE, FAQ, MAIN
+- 대신 사용: HYALURONIC, VITAMIN C, CLINICAL TEST, PROVEN 등 실제 성분/효능 관련 영문
 
 ## 제품 정보
 - 제품명: ${productName}
@@ -803,19 +742,8 @@ ${sectionSpecificGuide}
 ## ★ 실제 상세페이지 텍스트 예시
 ${examplesJson}
 
-## ★★★ 창의적 텍스트 디자인 (핵심!)
-
-당신은 타이포그래피 디자이너입니다. 이미지에 어울리는 텍스트를 **창의적으로** 디자인하세요.
-- 텍스트의 개수, 위치, 크기를 자유롭게 결정
-- 이미지의 여백과 분위기를 읽고 텍스트를 배치
-- 대담한 한 줄도 좋고, 여러 조각이 흩어진 레이아웃도 좋음
-- 상세페이지 디자인의 창의성을 보여주세요
-
-## 색상 참고
-- 주요 텍스트: "${textColors.headline}"
-- 보조 텍스트: "${textColors.subheadline}"
-- 설명 텍스트: "${textColors.body}"
-- 강조색: "${textColors.accent}"
+## 색상 팔레트 (자유롭게 선택)
+사용 가능한 색상: ${colorPalette.join(', ')}
 
 ## 절대 금지
 - 이모지 사용 금지 (😊, ✨, 💕 등)
@@ -829,65 +757,40 @@ ${examplesJson}
 {
   "texts": [
     {
-      "text": "첫 번째 텍스트 (가장 중요한 메시지)",
+      "text": "텍스트 내용",
       "x": 50,
       "y": 15,
-      "fontSize": 32,
+      "fontSize": 24,
       "fontWeight": "bold",
-      "color": "${textColors.headline}",
-      "textAlign": "center"
-    },
-    {
-      "text": "두 번째 텍스트 (필요하면 추가)",
-      "x": 50,
-      "y": 25,
-      "fontSize": 18,
-      "fontWeight": "normal",
-      "color": "${textColors.subheadline}",
+      "color": "#333333",
       "textAlign": "center"
     }
   ]
 }
 
-## ★★★ 텍스트 배치 가이드 (0-100% 좌표계!) ★★★
+## 텍스트 배치 가이드 (0-100% 좌표계)
 
-### 위치 (x, y) - 0-100% 퍼센트 좌표계
-- x: 0-100 (가로 위치, %)
-  - 0-20: 왼쪽 영역
-  - 40-60: 중앙 영역 (가장 일반적, 50 = 정중앙)
-  - 80-100: 오른쪽 영역
-- y: 0-100 (세로 위치, %)
-  - 5-15: 상단 (브랜드명, 섹션 타이틀)
-  - 15-35: 상단-중앙 (헤드라인)
-  - 40-60: 중앙 (핵심 메시지, 통계)
-  - 65-85: 하단-중앙 (본문, 설명)
-  - 88-95: 하단 (CTA, 태그라인)
+### 위치 (x, y)
+- x: 0-100 (가로 위치, 50 = 정중앙)
+- y: 0-100 (세로 위치, 0 = 상단, 100 = 하단)
 
-### 글씨 크기 (fontSize) - 정확한 픽셀값 사용!
-- 브랜드명/섹션명: 12-16px (작고 절제된)
-- 헤드라인: 24-36px (눈에 띄는 핵심 메시지)
-- 서브헤드라인: 16-22px (보조 설명)
-- 본문: 12-16px (상세 설명)
-- 통계 숫자: 32-48px (강조되는 수치)
-- CTA/버튼: 14-18px (행동 유도)
+### 글씨 크기 (fontSize)
+- 작은 텍스트: 12-16px
+- 중간 텍스트: 18-24px
+- 큰 텍스트: 28-36px
+- 강조 숫자: 36-48px
 
 ### 글씨 굵기 (fontWeight)
-- "normal": 일반 설명, 본문
-- "medium": 서브헤드라인, 중요 정보
-- "bold": 헤드라인, 통계 숫자, 강조
+- "normal" / "bold"
 
 ### 정렬 (textAlign)
-- "center": 대부분의 상세페이지 텍스트 (기본)
-- "left": 스텝별 설명, 목록형 콘텐츠
-- "right": 특수한 디자인 의도
+- "left" / "center" / "right"
 
-## 중요: 정확도 체크리스트 (0-100% 좌표계)
-✅ fontSize는 반드시 12-48 범위의 정수값 사용
-✅ x는 0-100 범위의 정수값 사용 (50 = 중앙) - 퍼센트!
-✅ y는 0-100 범위의 정수값 사용 (0 = 상단, 100 = 하단) - 퍼센트!
-✅ 텍스트가 겹치지 않도록 y값을 최소 8% 이상 간격 유지
-✅ 제품 이미지가 있는 중앙(y: 30-70%) 영역은 텍스트 최소화
-✅ 섹션별 권장 레이아웃을 기준으로 ±10% 이내에서 조정
+## 체크리스트
+✅ fontSize: 12-48 정수값
+✅ x, y: 0-100 정수값
+✅ 텍스트 간 y값 최소 8% 간격
+✅ 제품 중앙(y: 30-70%) 영역 피하기
 
 - JSON만 반환 (설명 없이)`;
 }
@@ -1016,11 +919,10 @@ export function generateBlockVariationHint(
 
 /**
  * 블록별 스타일 변형 생성
- * 블록 순서에 따라 레이아웃, 폰트 크기, 색상 강도 등 미세 조정
+ * 블록 순서에 따라 폰트 크기, 색상 강도 등 미세 조정
  */
 export interface BlockStyleVariation {
-  fontSize: { headline: number; subheadline: number; body: number };
-  position: { headlineY: number; subheadlineY: number };
+  fontSize: { large: number; medium: number; small: number };
   emphasis: 'high' | 'medium' | 'low';
   colorIntensity: number; // 0.0 ~ 1.0
 }
@@ -1035,25 +937,25 @@ export function getBlockStyleVariation(
   const emphasisIndex = Math.min(blockIndex, emphasisLevels.length - 1);
   const emphasis = emphasisLevels[emphasisIndex];
 
-  // 섹션별 기본 스타일
-  const baseStyles: Record<SectionType, { headline: number; subheadline: number; body: number }> = {
-    MAIN: { headline: 28, subheadline: 20, body: 14 },
-    HERO: { headline: 24, subheadline: 18, body: 14 },
-    FEATURES: { headline: 20, subheadline: 16, body: 12 },
-    SOCIAL_PROOF: { headline: 18, subheadline: 36, body: 12 },
-    HOW_TO_USE: { headline: 14, subheadline: 20, body: 12 },
-    PRODUCT_LINEUP: { headline: 16, subheadline: 14, body: 11 },
-    FAQ: { headline: 16, subheadline: 14, body: 12 },
-    TEXTURE: { headline: 18, subheadline: 22, body: 14 },
-    INGREDIENT: { headline: 14, subheadline: 28, body: 12 },
-    MODEL_SHOT: { headline: 16, subheadline: 14, body: 12 },
-    SKIN_RESULT: { headline: 18, subheadline: 16, body: 14 },
-    MATERIAL: { headline: 16, subheadline: 20, body: 12 },
-    LIFESTYLE: { headline: 18, subheadline: 16, body: 12 },
-    SPECS: { headline: 14, subheadline: 12, body: 11 },
-    INFO_TABLE: { headline: 14, subheadline: 12, body: 11 },
-    CTA: { headline: 20, subheadline: 16, body: 14 },
-    CUSTOM: { headline: 18, subheadline: 16, body: 12 },
+  // 섹션별 기본 스타일 (large, medium, small)
+  const baseStyles: Record<SectionType, { large: number; medium: number; small: number }> = {
+    MAIN: { large: 28, medium: 20, small: 14 },
+    HERO: { large: 24, medium: 18, small: 14 },
+    FEATURES: { large: 20, medium: 16, small: 12 },
+    SOCIAL_PROOF: { large: 36, medium: 18, small: 12 },
+    HOW_TO_USE: { large: 20, medium: 14, small: 12 },
+    PRODUCT_LINEUP: { large: 16, medium: 14, small: 11 },
+    FAQ: { large: 16, medium: 14, small: 12 },
+    TEXTURE: { large: 22, medium: 18, small: 14 },
+    INGREDIENT: { large: 28, medium: 14, small: 12 },
+    MODEL_SHOT: { large: 16, medium: 14, small: 12 },
+    SKIN_RESULT: { large: 18, medium: 16, small: 14 },
+    MATERIAL: { large: 20, medium: 16, small: 12 },
+    LIFESTYLE: { large: 18, medium: 16, small: 12 },
+    SPECS: { large: 14, medium: 12, small: 11 },
+    INFO_TABLE: { large: 14, medium: 12, small: 11 },
+    CTA: { large: 20, medium: 16, small: 14 },
+    CUSTOM: { large: 18, medium: 16, small: 12 },
   };
 
   const baseFontSize = baseStyles[section] || baseStyles.FEATURES;
@@ -1063,13 +965,9 @@ export function getBlockStyleVariation(
 
   return {
     fontSize: {
-      headline: Math.max(baseFontSize.headline - sizeReduction, 12),
-      subheadline: Math.max(baseFontSize.subheadline - sizeReduction, 11),
-      body: Math.max(baseFontSize.body - sizeReduction / 2, 10),
-    },
-    position: {
-      headlineY: 5 + (blockIndex * 2), // 블록마다 약간 아래로
-      subheadlineY: 15 + (blockIndex * 2),
+      large: Math.max(baseFontSize.large - sizeReduction, 12),
+      medium: Math.max(baseFontSize.medium - sizeReduction, 11),
+      small: Math.max(baseFontSize.small - sizeReduction / 2, 10),
     },
     emphasis,
     colorIntensity: 1.0 - (blockIndex * 0.1), // 첫 블록 100%, 이후 점점 감소
@@ -1137,29 +1035,29 @@ export function getBlockEmphasisPoint(
   section: SectionType,
   blockIndex: number,
   categoryKey: string
-): { emphasisType: 'statistic' | 'headline' | 'visual' | 'action'; value?: string } {
+): { emphasisType: 'statistic' | 'text' | 'visual' | 'action'; value?: string } {
   // OCR 분석 결과: 섹션별 강조 패턴
-  const emphasisPatterns: Record<SectionType, ('statistic' | 'headline' | 'visual' | 'action')[]> = {
-    MAIN: ['headline', 'visual', 'headline'],
-    HERO: ['headline', 'statistic', 'visual'],
-    FEATURES: ['statistic', 'headline', 'statistic'],
+  const emphasisPatterns: Record<SectionType, ('statistic' | 'text' | 'visual' | 'action')[]> = {
+    MAIN: ['text', 'visual', 'text'],
+    HERO: ['text', 'statistic', 'visual'],
+    FEATURES: ['statistic', 'text', 'statistic'],
     SOCIAL_PROOF: ['statistic', 'statistic', 'statistic'],
     HOW_TO_USE: ['action', 'action', 'action', 'action'],
     PRODUCT_LINEUP: ['visual', 'visual', 'visual'],
-    FAQ: ['headline', 'headline', 'headline'],
-    TEXTURE: ['visual', 'headline', 'visual'],
-    INGREDIENT: ['statistic', 'headline', 'statistic'],
+    FAQ: ['text', 'text', 'text'],
+    TEXTURE: ['visual', 'text', 'visual'],
+    INGREDIENT: ['statistic', 'text', 'statistic'],
     MODEL_SHOT: ['visual', 'visual', 'visual'],
     SKIN_RESULT: ['statistic', 'visual', 'statistic'],
-    MATERIAL: ['headline', 'visual', 'headline'],
-    LIFESTYLE: ['visual', 'headline', 'visual'],
+    MATERIAL: ['text', 'visual', 'text'],
+    LIFESTYLE: ['visual', 'text', 'visual'],
     SPECS: ['statistic', 'statistic', 'statistic'],
-    INFO_TABLE: ['headline', 'headline', 'headline'],
-    CTA: ['action', 'headline', 'action'],
-    CUSTOM: ['headline', 'visual', 'headline'],
+    INFO_TABLE: ['text', 'text', 'text'],
+    CTA: ['action', 'text', 'action'],
+    CUSTOM: ['text', 'visual', 'text'],
   };
 
-  const patterns = emphasisPatterns[section] || ['headline', 'headline', 'headline'];
+  const patterns = emphasisPatterns[section] || ['text', 'text', 'text'];
   const emphasisType = patterns[blockIndex % patterns.length];
 
   // 통계 강조인 경우 샘플 값 생성
@@ -1191,8 +1089,8 @@ export {
 // 함수들은 위에서 export function으로 이미 export됨:
 // - getCategoryKey
 // - generateRealisticStatistics
-// - getTextColorsFromImageAnalysis
-// - getTextSafeAreaFromProductPosition
+// - getTextColorPalette
+// - getTextSafeArea
 // - generateBlockVariationHint
 // - getBlockStyleVariation
 // - distributeStatisticsToBlocks

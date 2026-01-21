@@ -709,14 +709,10 @@ export async function generateImageWithGemini(
             }
             const parsed = JSON.parse(jsonStr) as OverlayTextContent & { texts?: OverlayTextItem[] };
 
-            // texts 배열이 있으면 그대로 사용
+            // texts 배열 형식만 지원
             if (parsed.texts && Array.isArray(parsed.texts)) {
               extractedOverlayText = { texts: parsed.texts };
               console.log(`[Gemini] ★ Overlay text extracted from image model: ${parsed.texts.length} texts`);
-            } else if (parsed.headline || parsed.subheadline) {
-              // 기존 형식도 지원
-              extractedOverlayText = parsed;
-              console.log(`[Gemini] ★ Overlay text extracted from image model (legacy format)`);
             }
           } catch {
             // JSON 파싱 실패 시 무시 (일반 텍스트일 수 있음)
@@ -1546,13 +1542,10 @@ ${prompt}
             const parsed = JSON.parse(jsonStr) as OverlayTextContent & { texts?: OverlayTextItem[] };
 
             // texts 배열이 있으면 그대로 사용
+            // texts 배열 형식만 지원
             if (parsed.texts && Array.isArray(parsed.texts)) {
               extractedOverlayText = { texts: parsed.texts };
               console.log(`[Gemini I2I] ★ Overlay text extracted from image model: ${parsed.texts.length} texts`);
-            } else if (parsed.headline || parsed.subheadline) {
-              // 기존 형식도 지원
-              extractedOverlayText = parsed;
-              console.log(`[Gemini I2I] ★ Overlay text extracted from image model (legacy format)`);
             }
           } catch {
             // JSON 파싱 실패 시 무시 (일반 텍스트일 수 있음)
@@ -2009,67 +2002,41 @@ async function generateOverlayTextForSection(
   const normalizedSection = mapToBaseSectionType(sectionType);
 
   // ★★★ 텍스트 배경 섹션용 특별 레이아웃 (올리브영 스타일)
-  const textBannerLayout = {
-    // 상단 작은 서브텍스트 (브랜드명/섹션명)
-    headline: { x: 50, y: 15, fontSize: 14, align: 'center' as const },
-    // 중앙 대형 메인 헤드라인 (★ 핵심!)
-    subheadline: { x: 50, y: 45, fontSize: 48, align: 'center' as const },
-    // 하단 보조 메시지
-    body: { x: 50, y: 70, fontSize: 18, align: 'center' as const },
-    // 통계 (필요시)
-    statistics: { x: 50, y: 85, fontSize: 32 },
-  };
-
-  // 섹션별 레이아웃 가이드
-  const sectionLayouts: Record<string, {
-    headline: { x: number; y: number; fontSize: number; align: 'left' | 'center' | 'right' };
-    subheadline: { x: number; y: number; fontSize: number; align: 'left' | 'center' | 'right' };
-    body: { x: number; y: number; fontSize: number; align: 'left' | 'center' | 'right' };
-    statistics: { x: number; y: number; fontSize: number };
-  }> = {
+  // 섹션별 폴백 레이아웃 가이드 (texts 배열 형식)
+  const sectionLayouts: Record<string, { large: { x: number; y: number; fontSize: number }; medium: { x: number; y: number; fontSize: number }; small: { x: number; y: number; fontSize: number } }> = {
     MAIN: {
-      headline: { x: 8, y: 8, fontSize: 32, align: 'left' },
-      subheadline: { x: 8, y: 18, fontSize: 18, align: 'left' },
-      body: { x: 8, y: 28, fontSize: 14, align: 'left' },
-      statistics: { x: 8, y: 85, fontSize: 24 },
+      large: { x: 8, y: 8, fontSize: 32 },
+      medium: { x: 8, y: 18, fontSize: 18 },
+      small: { x: 8, y: 28, fontSize: 14 },
     },
     HERO: {
-      headline: { x: 50, y: 8, fontSize: 28, align: 'center' },
-      subheadline: { x: 50, y: 18, fontSize: 16, align: 'center' },
-      body: { x: 50, y: 85, fontSize: 14, align: 'center' },
-      statistics: { x: 50, y: 50, fontSize: 48 },
+      large: { x: 50, y: 8, fontSize: 28 },
+      medium: { x: 50, y: 18, fontSize: 16 },
+      small: { x: 50, y: 85, fontSize: 14 },
     },
     FEATURES: {
-      headline: { x: 50, y: 5, fontSize: 14, align: 'center' },
-      subheadline: { x: 50, y: 12, fontSize: 24, align: 'center' },
-      body: { x: 50, y: 88, fontSize: 12, align: 'center' },
-      statistics: { x: 50, y: 55, fontSize: 36 },
+      large: { x: 50, y: 12, fontSize: 24 },
+      medium: { x: 50, y: 5, fontSize: 14 },
+      small: { x: 50, y: 88, fontSize: 12 },
     },
     SOCIAL_PROOF: {
-      headline: { x: 50, y: 55, fontSize: 14, align: 'center' },
-      subheadline: { x: 50, y: 62, fontSize: 20, align: 'center' },
-      body: { x: 50, y: 88, fontSize: 12, align: 'center' },
-      statistics: { x: 50, y: 78, fontSize: 48 },
+      large: { x: 50, y: 78, fontSize: 48 },
+      medium: { x: 50, y: 62, fontSize: 20 },
+      small: { x: 50, y: 55, fontSize: 14 },
     },
     HOW_TO_USE: {
-      headline: { x: 50, y: 5, fontSize: 14, align: 'center' },
-      subheadline: { x: 50, y: 12, fontSize: 20, align: 'center' },
-      body: { x: 50, y: 85, fontSize: 12, align: 'center' },
-      statistics: { x: 50, y: 50, fontSize: 32 },
+      large: { x: 50, y: 12, fontSize: 20 },
+      medium: { x: 50, y: 5, fontSize: 14 },
+      small: { x: 50, y: 85, fontSize: 12 },
     },
     FAQ: {
-      headline: { x: 50, y: 10, fontSize: 18, align: 'center' },
-      subheadline: { x: 50, y: 22, fontSize: 14, align: 'center' },
-      body: { x: 50, y: 50, fontSize: 14, align: 'center' },
-      statistics: { x: 50, y: 80, fontSize: 24 },
+      large: { x: 50, y: 10, fontSize: 18 },
+      medium: { x: 50, y: 22, fontSize: 14 },
+      small: { x: 50, y: 50, fontSize: 14 },
     },
   };
 
-  // ★ 텍스트 배경 섹션이면 특별 레이아웃, 아니면 일반 레이아웃
-  // (기존 형식 폴백용으로 유지)
-  const layout = isTextBackgroundSection
-    ? textBannerLayout
-    : (sectionLayouts[normalizedSection] || sectionLayouts.FEATURES);
+  const layout = sectionLayouts[normalizedSection] || sectionLayouts.FEATURES;
 
   // ★★★ 공통 프롬프트 빌더 사용 (overlay-prompts.ts)
   // 이렇게 하면 초기 생성과 재생성이 항상 동일한 프롬프트를 사용합니다
@@ -2125,15 +2092,9 @@ async function generateOverlayTextForSection(
       };
       console.log(`[Overlay] Generated ${parsed.texts.length} texts (free form) for ${sectionType}`);
     } else {
-      // 기존 형식: headline/subheadline/body 구조
-      normalizedOverlay = {
-        headline: normalizeOverlayItem(parsed.headline, layout.headline),
-        subheadline: normalizeOverlayItem(parsed.subheadline, layout.subheadline),
-        body: normalizeOverlayItem(parsed.body, layout.body),
-        statistics: normalizeStatistics(parsed.statistics, layout.statistics),
-        cta: normalizeOverlayItem(parsed.cta, { x: 50, y: 90, fontSize: 16, align: 'center' }),
-      };
-      console.log(`[Overlay] Generated overlay text (legacy format) for ${sectionType}`);
+      // 빈 응답인 경우 폴백
+      normalizedOverlay = createDefaultOverlay(normalizedSection, productName, keyFeatures, layout);
+      console.log(`[Overlay] Using fallback overlay for ${sectionType}`);
     }
 
     return {
@@ -2270,46 +2231,43 @@ function createDefaultOverlayForSection(
 }
 
 /**
- * 기본 오버레이 텍스트 생성 (폴백용 - 레거시)
+ * 기본 오버레이 텍스트 생성 (폴백용 - texts 배열 형식)
  */
 function createDefaultOverlay(
   sectionType: string,
   productName: string,
   keyFeatures: string[],
   layout: {
-    headline: { x: number; y: number; fontSize: number; align: 'left' | 'center' | 'right' };
-    subheadline: { x: number; y: number; fontSize: number; align: 'left' | 'center' | 'right' };
-    body: { x: number; y: number; fontSize: number; align: 'left' | 'center' | 'right' };
-    statistics: { x: number; y: number; fontSize: number };
+    large: { x: number; y: number; fontSize: number };
+    medium: { x: number; y: number; fontSize: number };
+    small: { x: number; y: number; fontSize: number };
   }
 ): OverlayTextContent {
-  const sectionHeadlines: Record<string, string> = {
-    MAIN: productName.slice(0, 15),
-    HERO: productName,
-    FEATURES: keyFeatures[0] || productName,
-    SOCIAL_PROOF: productName,
-    HOW_TO_USE: productName,
-    FAQ: productName,
-  };
+  const texts: OverlayTextItem[] = [];
 
-  return {
-    headline: {
-      text: sectionHeadlines[sectionType] || 'SECTION',
-      x: layout.headline.x,
-      y: layout.headline.y,
-      fontSize: layout.headline.fontSize,
-      fontWeight: 'bold',
-      color: '#333333',
-      textAlign: layout.headline.align,
-    },
-    subheadline: {
-      text: keyFeatures[0]?.slice(0, 30) || productName,
-      x: layout.subheadline.x,
-      y: layout.subheadline.y,
-      fontSize: layout.subheadline.fontSize,
-      fontWeight: 'medium',
+  // 메인 텍스트
+  texts.push({
+    text: keyFeatures[0] || productName,
+    x: layout.large.x,
+    y: layout.large.y,
+    fontSize: layout.large.fontSize,
+    fontWeight: 'bold',
+    color: '#333333',
+    textAlign: 'center',
+  });
+
+  // 보조 텍스트 (두 번째 특징이 있으면 추가)
+  if (keyFeatures.length > 1) {
+    texts.push({
+      text: keyFeatures[1],
+      x: layout.medium.x,
+      y: layout.medium.y,
+      fontSize: layout.medium.fontSize,
+      fontWeight: 'normal',
       color: '#666666',
-      textAlign: layout.subheadline.align,
-    },
-  };
+      textAlign: 'center',
+    });
+  }
+
+  return { texts };
 }

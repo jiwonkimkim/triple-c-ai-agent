@@ -130,8 +130,8 @@ export {
   CATEGORY_STATISTICS_PATTERNS,
   // ★ 이미지 분석 기반 헬퍼 함수
   generateRealisticStatistics,
-  getTextColorsFromImageAnalysis,
-  getTextSafeAreaFromProductPosition,
+  getTextColorPalette,
+  getTextSafeArea,
   // ★★★ 블록별 변형 로직 (3차 고도화)
   generateBlockVariationHint,
   getBlockStyleVariation,

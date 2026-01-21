@@ -1307,12 +1307,7 @@ JSON 형식으로 응답:
     {"position": "top-left", "size": "medium", "brightness": "light"},
     {"position": "bottom-center", "size": "large", "brightness": "dark"}
   ],
-  "recommendedTextColors": {
-    "headline": "#333333",
-    "subheadline": "#666666",
-    "body": "#888888",
-    "cta": "#d4a5a5"
-  },
+  "colorPalette": ["#333333", "#666666", "#888888", "#d4a5a5"],
   "productPosition": "center",
   "mood": "premium"
 }`;
@@ -1358,12 +1353,7 @@ JSON 형식으로 응답:
         { position: 'top-center', size: 'medium', brightness: 'light' },
         { position: 'bottom-center', size: 'medium', brightness: 'light' }
       ],
-      recommendedTextColors: {
-        headline: '#333333',
-        subheadline: '#666666',
-        body: '#888888',
-        cta: '#d4a5a5'
-      },
+      colorPalette: ['#333333', '#666666', '#888888', '#d4a5a5'],
       productPosition: 'center',
       mood: 'premium'
     };
@@ -1407,7 +1397,9 @@ export async function generateOverlayTextWithAnalysis(
   const headlinePos = positionToCoords(primarySafeZone?.position || 'top-center');
   const subheadlinePos = positionToCoords(secondarySafeZone?.position || primarySafeZone?.position || 'top-center');
 
-  const prompt = `당신은 한국 이커머스 상세페이지 카피라이터입니다.
+  const colorPalette = imageAnalysis.colorPalette || ['#333333', '#666666', '#888888'];
+
+  const prompt = `당신은 한국 이커머스 상세페이지 타이포그래피 디자이너입니다.
 
 ## 제품 정보
 - 제품명: ${productName}
@@ -1416,61 +1408,40 @@ export async function generateOverlayTextWithAnalysis(
 - 타겟 고객: ${targetAudience}
 - 섹션 타입: ${sectionType}
 
-## 이미지 분석 결과 (스타일 적용 필수!)
+## 이미지 분석 결과
 - 배경 밝기: ${imageAnalysis.backgroundBrightness}
 - 배경색: ${imageAnalysis.dominantColor}
 - 분위기: ${imageAnalysis.mood}
-- 텍스트 추천 색상:
-  - 헤드라인: ${imageAnalysis.recommendedTextColors.headline}
-  - 서브헤드: ${imageAnalysis.recommendedTextColors.subheadline}
-  - 본문: ${imageAnalysis.recommendedTextColors.body}
-  - CTA: ${imageAnalysis.recommendedTextColors.cta}
+- 사용 가능한 색상: ${colorPalette.join(', ')}
 - 안전 영역: ${imageAnalysis.safeZones.map(z => z.position).join(', ')}
 
 ## 작성 규칙
-1. 텍스트 색상은 반드시 위 분석 결과의 추천 색상 사용
-2. 텍스트 위치는 안전 영역 내에 배치
+1. 자유로운 텍스트 배열 형식 사용
+2. 텍스트 개수, 위치, 크기를 창의적으로 결정
 3. 한국 이커머스 상세페이지 스타일 (올리브영 참조)
 
 JSON 형식으로 응답:
 {
-  "headline": {
-    "text": "헤드라인 텍스트 (5-10자)",
-    "x": ${headlinePos.x},
-    "y": ${headlinePos.y},
-    "fontSize": 48,
-    "fontWeight": "bold",
-    "color": "${imageAnalysis.recommendedTextColors.headline}",
-    "textAlign": "center"
-  },
-  "subheadline": {
-    "text": "서브헤드 (10-20자)",
-    "x": ${subheadlinePos.x},
-    "y": ${subheadlinePos.y + 8},
-    "fontSize": 24,
-    "fontWeight": "medium",
-    "color": "${imageAnalysis.recommendedTextColors.subheadline}",
-    "textAlign": "center"
-  },
-  "statistics": [
+  "texts": [
     {
-      "text": "92%",
-      "x": 50,
-      "y": 70,
-      "fontSize": 56,
+      "text": "메인 텍스트",
+      "x": ${headlinePos.x},
+      "y": ${headlinePos.y},
+      "fontSize": 32,
       "fontWeight": "bold",
-      "color": "${imageAnalysis.recommendedTextColors.headline}"
+      "color": "${colorPalette[0]}",
+      "textAlign": "center"
+    },
+    {
+      "text": "보조 텍스트 (필요시)",
+      "x": ${subheadlinePos.x},
+      "y": ${subheadlinePos.y + 10},
+      "fontSize": 18,
+      "fontWeight": "normal",
+      "color": "${colorPalette[1] || colorPalette[0]}",
+      "textAlign": "center"
     }
-  ],
-  "cta": {
-    "text": "CTA 문구 (5-10자)",
-    "x": 50,
-    "y": 90,
-    "fontSize": 20,
-    "fontWeight": "semibold",
-    "color": "${imageAnalysis.recommendedTextColors.cta}",
-    "textAlign": "center"
-  }
+  ]
 }`;
 
   try {

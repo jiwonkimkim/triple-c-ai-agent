@@ -123,9 +123,9 @@ export const SECTION_LAYOUT_RECOMMENDATIONS: Partial<Record<SectionType, LayoutS
 export const TEXT_SAFE_ZONES: Record<SafeZonePosition, TextSafeZone> = {
   'top-full': {
     position: 'top-full',
-    description: '상단 전체 영역 (헤드라인용)',
-    clearanceInstruction: 'keep the top 30% of the image completely clear with solid or gradient background, no product elements in upper area, space reserved for large headline text',
-    recommendedContent: ['headline', 'subheadline'],
+    description: '상단 전체 영역',
+    clearanceInstruction: 'keep the top 30% of the image completely clear with solid or gradient background, no product elements in upper area, space reserved for large text',
+    recommendedSize: ['large', 'medium'],
     textAlign: 'center',
   },
 
@@ -133,7 +133,7 @@ export const TEXT_SAFE_ZONES: Record<SafeZonePosition, TextSafeZone> = {
     position: 'top-left',
     description: '좌상단 영역',
     clearanceInstruction: 'keep the upper-left quadrant clear with minimal visual elements, soft background suitable for left-aligned text overlay',
-    recommendedContent: ['headline', 'subheadline', 'body'],
+    recommendedSize: ['large', 'medium', 'small'],
     textAlign: 'left',
   },
 
@@ -141,31 +141,31 @@ export const TEXT_SAFE_ZONES: Record<SafeZonePosition, TextSafeZone> = {
     position: 'top-right',
     description: '우상단 영역',
     clearanceInstruction: 'keep the upper-right quadrant clear with minimal visual elements, soft background suitable for right-aligned text overlay',
-    recommendedContent: ['headline', 'statistics'],
+    recommendedSize: ['large', 'medium'],
     textAlign: 'right',
   },
 
   'center-left': {
     position: 'center-left',
     description: '좌측 중앙 영역',
-    clearanceInstruction: 'keep the left 40% of frame clear from center, product positioned on right side, left area has clean background for body text',
-    recommendedContent: ['headline', 'subheadline', 'body', 'statistics'],
+    clearanceInstruction: 'keep the left 40% of frame clear from center, product positioned on right side, left area has clean background for text',
+    recommendedSize: ['large', 'medium', 'small'],
     textAlign: 'left',
   },
 
   'center-right': {
     position: 'center-right',
     description: '우측 중앙 영역',
-    clearanceInstruction: 'keep the right 40% of frame clear from center, product positioned on left side, right area has clean background for body text',
-    recommendedContent: ['headline', 'subheadline', 'body', 'statistics'],
+    clearanceInstruction: 'keep the right 40% of frame clear from center, product positioned on left side, right area has clean background for text',
+    recommendedSize: ['large', 'medium', 'small'],
     textAlign: 'right',
   },
 
   'bottom-full': {
     position: 'bottom-full',
-    description: '하단 전체 영역 (CTA용)',
-    clearanceInstruction: 'keep the bottom 25% of image clear with solid or gradient background fading from product area, space reserved for call-to-action text and buttons',
-    recommendedContent: ['cta', 'subheadline'],
+    description: '하단 전체 영역',
+    clearanceInstruction: 'keep the bottom 25% of image clear with solid or gradient background fading from product area, space reserved for action text',
+    recommendedSize: ['medium', 'small'],
     textAlign: 'center',
   },
 
@@ -173,15 +173,15 @@ export const TEXT_SAFE_ZONES: Record<SafeZonePosition, TextSafeZone> = {
     position: 'bottom-left',
     description: '좌하단 영역',
     clearanceInstruction: 'keep the lower-left area clear, suitable for product details or small text blocks',
-    recommendedContent: ['body', 'statistics', 'cta'],
+    recommendedSize: ['small', 'medium'],
     textAlign: 'left',
   },
 
   'bottom-right': {
     position: 'bottom-right',
     description: '우하단 영역',
-    clearanceInstruction: 'keep the lower-right area clear, suitable for brand elements or call-to-action',
-    recommendedContent: ['cta', 'statistics'],
+    clearanceInstruction: 'keep the lower-right area clear, suitable for brand elements or action text',
+    recommendedSize: ['small', 'medium'],
     textAlign: 'right',
   },
 
@@ -189,7 +189,7 @@ export const TEXT_SAFE_ZONES: Record<SafeZonePosition, TextSafeZone> = {
     position: 'overlay-center',
     description: '중앙 오버레이 (제품 위 또는 배경에)',
     clearanceInstruction: 'ensure center of image has sufficient contrast for overlaid text, product can be present but background should support text readability',
-    recommendedContent: ['headline', 'statistics'],
+    recommendedSize: ['large', 'medium'],
     textAlign: 'center',
   },
 };

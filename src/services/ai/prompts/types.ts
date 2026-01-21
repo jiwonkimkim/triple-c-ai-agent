@@ -100,18 +100,6 @@ export interface OverlayStatisticItem {
 export interface OverlayTextContent {
   /** ★ 자유 형식 텍스트 배열 (AI가 자유롭게 디자인) */
   texts?: OverlayTextItem[];
-
-  // === 하위 호환성을 위한 기존 필드 ===
-  /** 대제목 (5-10자) - 위치와 스타일 포함 */
-  headline?: OverlayTextItem | string;  // 하위 호환성을 위해 string도 허용
-  /** 부제목 (10-20자) */
-  subheadline?: OverlayTextItem | string;
-  /** 본문 (20-50자) */
-  body?: OverlayTextItem | string;
-  /** 수치/통계 (예: "92%", "3.5배") */
-  statistics?: OverlayStatisticItem[] | string[];
-  /** 행동 유도 문구 (5-10자) */
-  cta?: OverlayTextItem | string;
   /** ★ 브랜드 폰트 (크롤링에서 추출, 전체 텍스트에 적용) */
   brandFont?: string;
   /** ★ 브랜드 로고 URL (크롤링에서 추출, 오버레이에 표시 가능) */
@@ -154,13 +142,8 @@ export interface ImageAnalysisResult {
     brightness: 'light' | 'dark';
   }[];
 
-  /** 추천 텍스트 색상 (밝은 배경 → 어두운 텍스트, 어두운 배경 → 밝은 텍스트) */
-  recommendedTextColors: {
-    headline: string;      // hex color
-    subheadline: string;
-    body: string;
-    cta: string;
-  };
+  /** 추천 텍스트 색상 팔레트 (밝은 배경 → 어두운 텍스트, 어두운 배경 → 밝은 텍스트) */
+  colorPalette: string[];  // hex colors 배열
 
   /** 제품 위치 (텍스트 배치 피하기 위함) */
   productPosition: 'left' | 'center' | 'right' | 'scattered';
@@ -383,8 +366,8 @@ export interface TextSafeZone {
   description: string;
   /** 이미지 생성 시 해당 영역 비워두기 지시 (영문) */
   clearanceInstruction: string;
-  /** 권장 텍스트 타입 */
-  recommendedContent: ('headline' | 'subheadline' | 'body' | 'statistics' | 'cta')[];
+  /** 권장 텍스트 크기 */
+  recommendedSize: ('large' | 'medium' | 'small')[];
   /** 권장 텍스트 정렬 */
   textAlign: 'left' | 'center' | 'right';
 }
