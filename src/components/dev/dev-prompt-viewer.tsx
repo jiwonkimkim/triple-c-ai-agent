@@ -456,18 +456,34 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                           </ScrollArea>
                         </div>
 
-                        {/* 오른쪽: 최종 결합 프롬프트 */}
+                        {/* 오른쪽: 최종 결합 프롬프트 (오버레이 프롬프트 제외) */}
                         <div className="space-y-3">
-                          <div className="flex items-center gap-2">
-                            <Code className="h-5 w-5 text-blue-600" />
-                            <span className="text-sm font-semibold text-blue-600">최종 결합 프롬프트</span>
-                            <CopyButton text={section.imagePrompt} />
-                          </div>
-                          <ScrollArea className="h-[400px] rounded-lg border-2 border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 p-4">
-                            <pre className="text-[11px] whitespace-pre-wrap font-mono leading-relaxed">
-                              {section.imagePrompt}
-                            </pre>
-                          </ScrollArea>
+                          {(() => {
+                            // 오버레이 관련 프롬프트를 제외한 이미지 생성 프롬프트만 결합
+                            const imageOnlyPrompt = [
+                              section.sectionBasePrompt,
+                              section.orchestrationPrompt,
+                              section.i2iSystemPrompt,
+                              section.categoryPrompt,
+                              section.noTextReinforcement,
+                            ].filter(Boolean).join('\n\n') || section.imagePrompt;
+
+                            return (
+                              <>
+                                <div className="flex items-center gap-2">
+                                  <Code className="h-5 w-5 text-blue-600" />
+                                  <span className="text-sm font-semibold text-blue-600">최종 결합 프롬프트</span>
+                                  <span className="text-[10px] text-muted-foreground">(오버레이 제외)</span>
+                                  <CopyButton text={imageOnlyPrompt} />
+                                </div>
+                                <ScrollArea className="h-[400px] rounded-lg border-2 border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 p-4">
+                                  <pre className="text-[11px] whitespace-pre-wrap font-mono leading-relaxed">
+                                    {imageOnlyPrompt}
+                                  </pre>
+                                </ScrollArea>
+                              </>
+                            );
+                          })()}
                         </div>
                       </div>
                     </div>
