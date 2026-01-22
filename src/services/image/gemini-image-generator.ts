@@ -451,15 +451,6 @@ ${isTall ? `⚠️ TALL FORMAT: Vertical layout - stack text vertically
   (이미지에 가장 잘 어울리는 위치에 배치)
 
 ★★★ COLOR & STYLE INSPIRATION ★★★
-(컬러 & 스타일 영감)
-- Vibrant: #FF6B6B, #4ECDC4, #FFE66D, #FF8C42
-  (비비드)
-- Elegant: #2C3E50, #E74C3C, #1ABC9C, #9B59B6
-  (엘레강스)
-- Luxurious: #C9B037, #BF9270, #2E4057, #8B4513
-  (럭셔리)
-- Pastel: #FFB3BA, #BAFFC9, #BAE1FF, #FFFFBA
-  (파스텔)
 - Match colors to the image mood!
   (이미지 무드에 맞는 컬러 매칭!)
 
