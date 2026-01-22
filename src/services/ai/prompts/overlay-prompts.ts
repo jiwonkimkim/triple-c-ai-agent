@@ -570,8 +570,8 @@ ${section === 'SOCIAL_PROOF' ? `- 해당 증거 유형에 맞는 텍스트 (예:
 **Design text that harmonizes with the image — freely.**
 이미지에 어울리는 텍스트를 **자유롭게** 디자인하세요.
 
-**Free Layout**: Creatively decide the number, position, and size of text elements.
-**자유로운 레이아웃**: 텍스트 개수, 위치, 크기를 창의적으로 결정하세요.
+**Free Layout**: Creatively decide the number, position, size, and color of text elements.
+**자유로운 레이아웃**: 텍스트 개수, 위치, 크기, 색상을 창의적으로 결정하세요.
 
 **Typography that naturally blends with the image's whitespace and mood.**
 이미지의 여백과 분위기에 맞춰 자연스럽게 녹아드는 타이포그래피를 구현하세요.
