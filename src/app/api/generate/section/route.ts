@@ -12,6 +12,11 @@ import {
 import { generateSectionImage } from '@/services/image/section-image-service';
 // ★★★ 공통 프롬프트 빌드 모듈 (초기 생성과 동일한 프로세스 보장)
 import { buildSectionPrompt } from '@/services/ai/section-prompt-builder';
+// ★★★ 공통 devPrompts 빌더 (초기 생성/재생성 동일 프로세스)
+import {
+  buildSectionImagePromptData,
+  buildOverlayTextPromptData,
+} from '@/services/ai/dev-prompts-builder';
 import type { BrandContext } from '@/services/ai/prompts';
 import type { BeautySubCategory } from '@/services/ai/prompts/beauty-subcategory';
 
@@ -228,28 +233,16 @@ export async function POST(request: NextRequest) {
           };
         } | null;
 
-        // 새 섹션 프롬프트 데이터 (★★★ 모든 프롬프트 구성요소 저장!)
-        const promptComponents = result.imageResult?.promptComponents;
-        const newSectionPrompt = {
+        // ★★★ 공통 모듈로 섹션 프롬프트 데이터 생성 (초기 생성과 동일한 프로세스!)
+        const newSectionPrompt = buildSectionImagePromptData({
           sectionType: validatedData.sectionType,
-          // ★★★ [1] 섹션별 프롬프트 ★★★
-          sectionBasePrompt: promptComponents?.sectionBasePrompt,
-          orchestrationPrompt: promptComponents?.orchestrationPrompt,
-          i2iSystemPrompt: promptComponents?.i2iSystemPrompt,
-          // ★★★ [2] 카테고리별 프롬프트 (뷰티 서브카테고리) ★★★
-          categoryPrompt: promptComponents?.categoryPrompt,
-          subCategory: project.subCategory,
-          // ★★★ [3] 오버레이 텍스트 관련 프롬프트 ★★★
-          overlayTextPrompt: promptComponents?.overlayTextPrompt,
-          overlayGuidePrompt: promptComponents?.overlayGuidePrompt,
-          // ★★★ [4] 공통 프롬프트 (Flash 모델 전용) ★★★
-          noTextReinforcement: promptComponents?.noTextReinforcement,
-          // ★★★ 최종 결합 프롬프트 (실제 사용된 전체 프롬프트) ★★★
-          imagePrompt: result.imageResult?.revisedPrompt || `${validatedData.sectionType} section image`,
-          generatedImageUrl: result.imageUrl,
-          overlayText: enhancedOverlayText,  // ★ 브랜드 폰트/로고 포함
+          blockIndex: validatedData.sectionIndex,
+          subCategory: project.subCategory || undefined,
+          imageResult: result.imageResult,
+          imageUrl: result.imageUrl,
+          overlayText: enhancedOverlayText,
           overlayPrompt: result.overlayPrompt,
-        };
+        });
 
         // 기존 devPrompts 가져오거나 새로 생성
         const existingDevPrompts = existingContent?.devPrompts || {
@@ -280,13 +273,13 @@ export async function POST(request: NextRequest) {
           ];
         }
 
-        // ★★★ overlayTextPrompts 배열도 업데이트 (오버레이 텍스트 탭용)
-        const newOverlayTextPrompt = {
-          sectionType: validatedData.sectionType,
-          blockIndex: validatedData.sectionIndex,
-          overlayPrompt: result.overlayPrompt || '',
-          generatedOverlay: enhancedOverlayText,
-        };
+        // ★★★ 공통 모듈로 오버레이 텍스트 프롬프트 데이터 생성 (초기 생성과 동일한 프로세스!)
+        const newOverlayTextPrompt = buildOverlayTextPromptData(
+          validatedData.sectionType,
+          validatedData.sectionIndex,
+          result.overlayPrompt || '',
+          enhancedOverlayText
+        );
 
         const existingOverlayIndex = (existingDevPrompts.overlayTextPrompts || []).findIndex(
           (p: { sectionType: string }) => p.sectionType === validatedData.sectionType

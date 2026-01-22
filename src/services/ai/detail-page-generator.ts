@@ -32,6 +32,8 @@ import {
 import type { BeautySubCategory } from './prompts';
 // ★★★ 공유 재시도 유틸리티 (section/route.ts와 동일한 로직)
 import { withRetry } from '@/lib/utils';
+// ★★★ 공통 devPrompts 빌더 (초기 생성/재생성 동일 프로세스)
+import { updateSectionImagePromptData } from './dev-prompts-builder';
 
 // Groq client (OpenAI-compatible API)
 const groq = new OpenAI({
@@ -587,21 +589,16 @@ export async function generateDetailPage(
                           console.log(`[AI I2I] ${sectionType} overlay text generated:`, JSON.stringify(result.overlayText).substring(0, 150));
                         }
 
-                        // ★ 최종 사용된 프롬프트로 업데이트 (revisedPrompt + promptComponents + overlayText)
+                        // ★★★ 공통 모듈로 프롬프트 업데이트 (section/route.ts와 동일한 프로세스!)
                         if (result.image.revisedPrompt && updatedPrompts[i]) {
                           console.log(`[AI DEBUG] ★ Updating prompt for ${sectionType}[${i}]:`);
                           console.log(`[AI DEBUG]   revisedPrompt: ${result.image.revisedPrompt.substring(0, 150)}...`);
-                          updatedPrompts[i] = {
-                            ...updatedPrompts[i],
-                            imagePrompt: result.image.revisedPrompt,
-                            // ★ 오케스트레이션 promptComponents + 이미지 생성 promptComponents 병합 (분리 표시용)
-                            promptComponents: {
-                              ...updatedPrompts[i].promptComponents,  // categoryPrompt, subCategory 등
-                              ...result.image.promptComponents,       // sectionBasePrompt, overlayTextPrompt 등
-                            },
-                            overlayText: result.overlayText,  // ★ 오버레이 텍스트도 저장
-                            overlayPrompt: result.overlayPrompt,
-                          };
+                          updatedPrompts[i] = updateSectionImagePromptData(
+                            updatedPrompts[i],
+                            result.image,
+                            result.overlayText,
+                            result.overlayPrompt
+                          );
                         } else {
                           console.log(`[AI DEBUG] ⚠️ No revisedPrompt for ${sectionType}[${i}]`);
                         }
@@ -737,19 +734,14 @@ export async function generateDetailPage(
                             console.log(`[AI T2I] ${sectionType} overlay text generated:`, JSON.stringify(result.overlayText).substring(0, 150));
                           }
 
-                          // ★ 최종 사용된 프롬프트로 업데이트 (revisedPrompt + promptComponents + overlayText)
+                          // ★★★ 공통 모듈로 프롬프트 업데이트 (section/route.ts와 동일한 프로세스!)
                           if (result.image.revisedPrompt && updatedPrompts[i]) {
-                            updatedPrompts[i] = {
-                              ...updatedPrompts[i],
-                              imagePrompt: result.image.revisedPrompt,
-                              // ★ 오케스트레이션 promptComponents + 이미지 생성 promptComponents 병합 (분리 표시용)
-                              promptComponents: {
-                                ...updatedPrompts[i].promptComponents,  // categoryPrompt, subCategory 등
-                                ...result.image.promptComponents,       // sectionBasePrompt, overlayTextPrompt 등
-                              },
-                              overlayText: result.overlayText,  // ★ 오버레이 텍스트도 저장
-                              overlayPrompt: result.overlayPrompt,
-                            };
+                            updatedPrompts[i] = updateSectionImagePromptData(
+                              updatedPrompts[i],
+                              result.image,
+                              result.overlayText,
+                              result.overlayPrompt
+                            );
                           }
 
                           console.log(`[AI T2I] ${sectionType} image ${i + 1} generated successfully`);
