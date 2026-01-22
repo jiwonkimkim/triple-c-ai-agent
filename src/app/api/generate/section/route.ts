@@ -244,12 +244,8 @@ export async function POST(request: NextRequest) {
           overlayGuidePrompt: promptComponents?.overlayGuidePrompt,
           // ★★★ [4] 공통 프롬프트 (Flash 모델 전용) ★★★
           noTextReinforcement: promptComponents?.noTextReinforcement,
-          // ★★★ 최종 결합 프롬프트 ★★★
-          imagePrompt: [
-            promptComponents?.sectionBasePrompt,
-            promptComponents?.orchestrationPrompt,
-            promptComponents?.i2iSystemPrompt,
-          ].filter(Boolean).join('\n\n---\n\n') || `${validatedData.sectionType} section image`,
+          // ★★★ 최종 결합 프롬프트 (실제 사용된 전체 프롬프트) ★★★
+          imagePrompt: result.imageResult?.revisedPrompt || `${validatedData.sectionType} section image`,
           generatedImageUrl: result.imageUrl,
           overlayText: enhancedOverlayText,  // ★ 브랜드 폰트/로고 포함
           overlayPrompt: result.overlayPrompt,
