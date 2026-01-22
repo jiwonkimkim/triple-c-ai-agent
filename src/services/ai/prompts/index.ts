@@ -123,29 +123,13 @@ export {
 // ============================================
 // 오버레이 텍스트 프롬프트
 // ============================================
-export type { BlockOverlayOptions, BlockStyleVariation } from './overlay-prompts';
+export type { BlockOverlayOptions } from './overlay-prompts';
 export {
   buildOverlayTextPrompt,
-  // ★ OCR 데이터 기반 통계 패턴 (클렌징/스킨케어/메이크업/선케어)
   CATEGORY_STATISTICS_PATTERNS,
-  // ★ 이미지 분석 기반 헬퍼 함수
-  generateRealisticStatistics,
-  getTextColorPalette,
-  getTextSafeArea,
-  // ★★★ 블록별 변형 로직 (3차 고도화)
-  generateBlockVariationHint,
-  getBlockStyleVariation,
-  distributeStatisticsToBlocks,
-  buildCompleteBlockOptions,
-  getBlockEmphasisPoint,
-  // ★ 기존 상수 (카테고리별 감각 키워드 등)
   SENSORY_KEYWORDS,
-  NUMBERING_PATTERNS,
-  GENERATION_EXPRESSIONS,
-  COLOR_CHART_PATTERNS,
   SECTION_TEXT_EXAMPLES,
   CATEGORY_TEXT_STYLE,
-  getCategoryKey,
 } from './overlay-prompts';
 
 // ============================================

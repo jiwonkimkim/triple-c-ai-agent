@@ -60,49 +60,6 @@ const SENSORY_KEYWORDS: Record<string, {
 };
 
 // ============================================
-// 넘버링/포인트 패턴 (피처 강조용)
-// ============================================
-
-const NUMBERING_PATTERNS = {
-  point: ['Point 01', 'Point 02', 'Point 03'],
-  number: ['01', '02', '03', '04'],
-  step: ['STEP 1', 'STEP 2', 'STEP 3', 'STEP 4'],
-  english: ['1. {Feature}', '2. {Feature}', '3. {Feature}'],
-  korean: ['{기능} 01', '{기능} 02', '{기능} 03'],
-};
-
-// ============================================
-// 세대/진화/NEW 표현 패턴
-// ============================================
-
-const GENERATION_EXPRESSIONS = {
-  new: ['NEW', 'NEW ARRIVAL', '신제품', '새로운'],
-  generation: ['{X}세대', '진화된', '업그레이드된', '새로워진'],
-  version: ['Ver.{X}', 'v{X}', '리뉴얼'],
-  improved: ['더 강력해진', '더 촉촉해진', '더 오래가는', '더 선명해진'],
-};
-
-// ============================================
-// 컬러차트 패턴 (메이크업용)
-// ============================================
-
-const COLOR_CHART_PATTERNS = {
-  format: '{영문명} {한글명}',  // "PINK FLAKE 핑크 플레이크"
-  lipColors: [
-    { en: 'PINK FLAKE', ko: '핑크 플레이크' },
-    { en: 'SUNLIT CORAL', ko: '선릿 코랄' },
-    { en: 'ROSY NUDE', ko: '로지 누드' },
-    { en: 'BERRY BLOOM', ko: '베리 블룸' },
-  ],
-  eyeColors: [
-    { en: 'CHAMPAGNE', ko: '샴페인' },
-    { en: 'ROSE GOLD', ko: '로즈 골드' },
-    { en: 'MINK BROWN', ko: '밍크 브라운' },
-  ],
-  sectionHeaders: ['Color Chart', 'COLORS', 'SHADES', '컬러 라인업'],
-};
-
-// ============================================
 // ★ 카테고리별 실제 통계 패턴 (OCR 데이터 분석 기반)
 // ============================================
 
@@ -172,148 +129,7 @@ const CATEGORY_STATISTICS_PATTERNS: Record<string, {
 };
 
 // ============================================
-// ★ 실제 상세페이지 텍스트 스타일 가이드 (이미지 분석 기반)
-// ============================================
-
-export const TEXT_STYLE_GUIDE = {
-  // 폰트 스타일
-  fonts: {
-    brand: {
-      style: 'serif',           // 브랜드명은 세리프체
-      letterSpacing: 'wide',    // 자간 넓게 (0.1em~0.2em)
-      textTransform: 'uppercase',
-    },
-    primary: {
-      korean: 'sans-serif',     // 한글 메인 텍스트는 산세리프 (고딕)
-      english: 'serif',         // 영문 메인 텍스트는 세리프 가능
-      fontWeight: 'bold',       // 700
-    },
-    sectionTitle: {
-      style: 'serif',           // 섹션 타이틀 (BENEFIT, TEXTURE 등)
-      decoration: 'underline',  // 언더라인 장식
-      letterSpacing: 'wide',
-    },
-    body: {
-      style: 'sans-serif',
-      fontWeight: 'normal',     // 400
-      lineHeight: 1.6,
-    },
-    statistics: {
-      style: 'sans-serif',
-      fontWeight: 'bold',       // 숫자는 항상 bold
-    },
-  },
-
-  // 밝은 배경 (핑크, 베이지, 화이트) 색상 팔레트
-  lightBackground: {
-    primary: '#333333',         // 진한 회색/검정 (메인 텍스트)
-    secondary: '#666666',       // 중간 회색 (보조 텍스트)
-    body: '#888888',            // 밝은 회색
-    sectionTitle: '#d4a5a5',    // 로즈골드/핑크 (포인트)
-    statistics: '#333333',      // 숫자는 진한색
-    hashtag: '#d4a5a5',         // 해시태그는 포인트색
-    accent: '#e8b4b8',          // 강조색
-  },
-
-  // 어두운 배경 (네이비, 블랙) 색상 팔레트
-  darkBackground: {
-    primary: '#ffffff',         // 흰색 (메인 텍스트)
-    secondary: '#e0e0e0',       // 밝은 회색 (보조 텍스트)
-    body: '#cccccc',            // 중간 밝기
-    sectionTitle: '#ffffff',    // 흰색
-    statistics: '#ffffff',      // 숫자는 흰색
-    hashtag: '#87ceeb',         // 하늘색 계열 (어두운 배경용)
-    accent: '#4a90d9',          // 블루 강조
-  },
-
-  // 텍스트 크기 비율 (기준: 이미지 높이 대비)
-  fontSize: {
-    brand: { min: 12, max: 16, typical: 14 },           // 브랜드명
-    productLine: { min: 24, max: 36, typical: 28 },     // 제품라인명 (가장 큼)
-    primary: { min: 20, max: 28, typical: 24 },         // 메인 텍스트
-    sectionTitle: { min: 12, max: 16, typical: 14 },    // 영문 섹션타이틀
-    secondary: { min: 14, max: 20, typical: 16 },       // 보조 텍스트
-    body: { min: 12, max: 16, typical: 14 },            // 본문
-    statistics: { min: 28, max: 48, typical: 36 },      // 통계 숫자
-    statisticsLabel: { min: 10, max: 14, typical: 12 }, // 통계 라벨
-    hashtag: { min: 10, max: 14, typical: 12 },         // 해시태그
-    footnote: { min: 8, max: 10, typical: 9 },          // 주석/출처
-  },
-
-  // 위치 패턴 (y 좌표 %, 이미지 상단 기준)
-  position: {
-    // MAIN 섹션 패턴
-    main: {
-      brand: { y: 3, align: 'center' },
-      productLine: { y: 10, align: 'center' },
-      korean: { y: 18, align: 'center' },
-      tagline: { y: 85, align: 'center' },
-    },
-    // FEATURES 섹션 패턴
-    features: {
-      description: { y: 3, align: 'center' },
-      hashtags: { y: 8, align: 'center' },
-      sectionTitle: { y: 55, align: 'center' },
-      statistics: { y: 65, align: 'center' },
-    },
-    // SOCIAL_PROOF 섹션 패턴
-    socialProof: {
-      sectionTitle: { y: 55, align: 'center' },
-      primary: { y: 62, align: 'center' },
-      statistics: { y: 75, align: 'center' },  // 가로 배열 또는 방사형
-    },
-    // TEXTURE 섹션 패턴
-    texture: {
-      sectionTitle: { y: 15, align: 'center' },
-      primary: { y: 25, align: 'center' },
-      body: { y: 35, align: 'center' },
-    },
-  },
-
-  // 특수 스타일 효과
-  effects: {
-    sectionTitleUnderline: true,    // 섹션 타이틀에 언더라인
-    statisticsInCircle: true,       // 통계 숫자를 원형 배지 안에
-    hashtagWithSymbol: true,        // # 기호 포함
-    newBadge: {                     // NEW 배지 스타일
-      background: '#e8b4b8',
-      color: '#ffffff',
-      padding: '2px 8px',
-    },
-  },
-
-  // 통계 배치 패턴
-  statisticsLayout: {
-    horizontal: {                   // 가로 배열 (3개)
-      spacing: 25,                  // % 간격
-      yNumber: 75,
-      yLabel: 83,
-    },
-    radial: {                       // 방사형 배열 (제품 중심)
-      radius: 35,                   // 중심에서 % 거리
-      positions: 8,                 // 최대 8개 위치
-    },
-    vertical: {                     // 세로 배열
-      spacing: 15,
-      x: 50,
-    },
-  },
-};
-
-// ============================================
-// 배경 밝기 감지 헬퍼
-// ============================================
-
-export type BackgroundType = 'light' | 'dark';
-
-export function getColorSchemeForBackground(backgroundType: BackgroundType) {
-  return backgroundType === 'dark'
-    ? TEXT_STYLE_GUIDE.darkBackground
-    : TEXT_STYLE_GUIDE.lightBackground;
-}
-
-// ============================================
-// 섹션별 실제 오버레이 텍스트 예시 (자유로운 texts 배열 형식)
+// 섹션별 실제 오버레이 텍스트 예시 (x, y, fontSize는 AI가 자유롭게 결정)
 // ============================================
 
 const SECTION_TEXT_EXAMPLES: Record<string, {
@@ -321,9 +137,9 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
   examples: {
     texts: {
       text: string;
-      x: number;
-      y: number;
-      fontSize: number;
+      x: string;       // 0.0 - 100.0 사이 실수값
+      y: string;       // 0.0 - 100.0 사이 실수값
+      fontSize: string;  // 정수값
       fontWeight: 'normal' | 'bold';
       textAlign: 'left' | 'center' | 'right';
     }[];
@@ -334,10 +150,10 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: '{브랜드명}', x: 50.0, y: 8.0, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
-          { text: '{제품라인 영문}', x: 50.0, y: 18.0, fontSize: 32, fontWeight: 'bold', textAlign: 'center' },
-          { text: 'NEW {제품명 한글}', x: 50.0, y: 28.0, fontSize: 20, fontWeight: 'normal', textAlign: 'center' },
-          { text: '{브랜드 슬로건}', x: 50.0, y: 88.0, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+          { text: '{브랜드명}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
+          { text: '{제품라인 영문}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
+          { text: 'NEW {제품명 한글}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
+          { text: '{브랜드 슬로건}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
         ],
       },
     ],
@@ -347,17 +163,17 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: '{핵심 효능 한 문장}', x: 50.0, y: 10.0, fontSize: 18, fontWeight: 'normal', textAlign: 'center' },
-          { text: '#{키워드1} #{키워드2} #{키워드3}', x: 50.0, y: 18.0, fontSize: 12, fontWeight: 'normal', textAlign: 'center' },
-          { text: 'HYALURONIC ACID', x: 50.0, y: 55.0, fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
-          { text: '48H 보습 지속', x: 50.0, y: 65.0, fontSize: 16, fontWeight: 'normal', textAlign: 'center' },
+          { text: '{핵심 효능 한 문장}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
+          { text: '#{키워드1} #{키워드2} #{키워드3}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
+          { text: 'HYALURONIC ACID', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
+          { text: '48H 보습 지속', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
         ],
       },
       {
         texts: [
-          { text: 'Point 01', x: 50.0, y: 12.0, fontSize: 14, fontWeight: 'bold', textAlign: 'center' },
-          { text: '{첫 번째 핵심 특징}', x: 50.0, y: 22.0, fontSize: 22, fontWeight: 'bold', textAlign: 'center' },
-          { text: '{특징 상세 설명}', x: 50.0, y: 32.0, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+          { text: 'Point 01', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
+          { text: '{첫 번째 핵심 특징}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
+          { text: '{특징 상세 설명}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
         ],
       },
     ],
@@ -367,14 +183,14 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: 'CLINICAL TEST', x: 50.0, y: 55.0, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
-          { text: '{핵심 효과 한 문장}', x: 50.0, y: 65.0, fontSize: 20, fontWeight: 'bold', textAlign: 'center' },
-          { text: '98%', x: 25.0, y: 78.0, fontSize: 36, fontWeight: 'bold', textAlign: 'center' },
-          { text: '만족도', x: 25.0, y: 88.0, fontSize: 12, fontWeight: 'normal', textAlign: 'center' },
-          { text: '24H', x: 50.0, y: 78.0, fontSize: 36, fontWeight: 'bold', textAlign: 'center' },
-          { text: '지속력', x: 50.0, y: 88.0, fontSize: 12, fontWeight: 'normal', textAlign: 'center' },
-          { text: '2.5배', x: 75.0, y: 78.0, fontSize: 36, fontWeight: 'bold', textAlign: 'center' },
-          { text: '흡수력', x: 75.0, y: 88.0, fontSize: 12, fontWeight: 'normal', textAlign: 'center' },
+          { text: 'CLINICAL TEST', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
+          { text: '{핵심 효과 한 문장}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
+          { text: '98%', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
+          { text: '만족도', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
+          { text: '24H', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
+          { text: '지속력', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
+          { text: '2.5배', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
+          { text: '흡수력', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
         ],
       },
     ],
@@ -384,14 +200,14 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: '3 STEP', x: 50.0, y: 12.0, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
-          { text: '{간단한 사용법 요약}', x: 50.0, y: 22.0, fontSize: 18, fontWeight: 'bold', textAlign: 'center' },
+          { text: '3 STEP', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
+          { text: '{간단한 사용법 요약}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
         ],
       },
       {
         texts: [
-          { text: 'STEP 1', x: 50.0, y: 15.0, fontSize: 16, fontWeight: 'bold', textAlign: 'center' },
-          { text: '{동작 설명}', x: 50.0, y: 25.0, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+          { text: 'STEP 1', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
+          { text: '{동작 설명}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
         ],
       },
     ],
@@ -401,9 +217,9 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: 'Color Chart', x: 50.0, y: 10.0, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
-          { text: '{라인업명}', x: 50.0, y: 20.0, fontSize: 22, fontWeight: 'bold', textAlign: 'center' },
-          { text: 'PINK FLAKE 핑크 플레이크', x: 50.0, y: 75.0, fontSize: 12, fontWeight: 'normal', textAlign: 'center' },
+          { text: 'Color Chart', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
+          { text: '{라인업명}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
+          { text: 'PINK FLAKE 핑크 플레이크', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
         ],
       },
     ],
@@ -413,10 +229,10 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: 'KEY INGREDIENT', x: 50.0, y: 12.0, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
-          { text: '{핵심 성분명}', x: 50.0, y: 25.0, fontSize: 28, fontWeight: 'bold', textAlign: 'center' },
-          { text: '95%', x: 50.0, y: 40.0, fontSize: 36, fontWeight: 'bold', textAlign: 'center' },
-          { text: '{성분 효능 설명}', x: 50.0, y: 52.0, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+          { text: 'KEY INGREDIENT', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
+          { text: '{핵심 성분명}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
+          { text: '95%', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
+          { text: '{성분 효능 설명}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
         ],
       },
     ],
@@ -426,9 +242,9 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: 'TEXTURE', x: 50.0, y: 15.0, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
-          { text: '{텍스처 특징}', x: 50.0, y: 28.0, fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
-          { text: '{감촉} · {발림성} · {마무리감}', x: 50.0, y: 40.0, fontSize: 14, fontWeight: 'normal', textAlign: 'center' },
+          { text: 'TEXTURE', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
+          { text: '{텍스처 특징}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
+          { text: '{감촉} · {발림성} · {마무리감}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
         ],
       },
     ],
@@ -438,8 +254,8 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: '{구매 유도 핵심 문구}', x: 50.0, y: 40.0, fontSize: 24, fontWeight: 'bold', textAlign: 'center' },
-          { text: '{한정 혜택/이벤트}', x: 50.0, y: 55.0, fontSize: 16, fontWeight: 'normal', textAlign: 'center' },
+          { text: '{구매 유도 핵심 문구}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
+          { text: '{한정 혜택/이벤트}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
         ],
       },
     ],
@@ -989,182 +805,13 @@ export function generateBlockVariationHint(
   }
 }
 
-/**
- * 블록별 스타일 변형 생성
- * 블록 순서에 따라 폰트 크기, 색상 강도 등 미세 조정
- */
-export interface BlockStyleVariation {
-  fontSize: { large: number; medium: number; small: number };
-  emphasis: 'high' | 'medium' | 'low';
-  colorIntensity: number; // 0.0 ~ 1.0
-}
-
-export function getBlockStyleVariation(
-  blockIndex: number,
-  totalBlocks: number,
-  section: SectionType
-): BlockStyleVariation {
-  // 첫 번째 블록은 가장 강조, 이후 블록은 점점 부드러운 스타일
-  const emphasisLevels: ('high' | 'medium' | 'low')[] = ['high', 'medium', 'low'];
-  const emphasisIndex = Math.min(blockIndex, emphasisLevels.length - 1);
-  const emphasis = emphasisLevels[emphasisIndex];
-
-  // 섹션별 기본 스타일 (large, medium, small)
-  const baseStyles: Record<SectionType, { large: number; medium: number; small: number }> = {
-    MAIN: { large: 28, medium: 20, small: 14 },
-    HERO: { large: 24, medium: 18, small: 14 },
-    FEATURES: { large: 20, medium: 16, small: 12 },
-    SOCIAL_PROOF: { large: 36, medium: 18, small: 12 },
-    HOW_TO_USE: { large: 20, medium: 14, small: 12 },
-    PRODUCT_LINEUP: { large: 16, medium: 14, small: 11 },
-    FAQ: { large: 16, medium: 14, small: 12 },
-    TEXTURE: { large: 22, medium: 18, small: 14 },
-    INGREDIENT: { large: 28, medium: 14, small: 12 },
-    MODEL_SHOT: { large: 16, medium: 14, small: 12 },
-    SKIN_RESULT: { large: 18, medium: 16, small: 14 },
-    MATERIAL: { large: 20, medium: 16, small: 12 },
-    LIFESTYLE: { large: 18, medium: 16, small: 12 },
-    SPECS: { large: 14, medium: 12, small: 11 },
-    INFO_TABLE: { large: 14, medium: 12, small: 11 },
-    CTA: { large: 20, medium: 16, small: 14 },
-    CUSTOM: { large: 18, medium: 16, small: 12 },
-  };
-
-  const baseFontSize = baseStyles[section] || baseStyles.FEATURES;
-
-  // 블록 인덱스에 따른 미세 조정 (첫 블록이 가장 크게, 이후 약간씩 감소)
-  const sizeReduction = blockIndex * 2;
-
-  return {
-    fontSize: {
-      large: Math.max(baseFontSize.large - sizeReduction, 12),
-      medium: Math.max(baseFontSize.medium - sizeReduction, 11),
-      small: Math.max(baseFontSize.small - sizeReduction / 2, 10),
-    },
-    emphasis,
-    colorIntensity: 1.0 - (blockIndex * 0.1), // 첫 블록 100%, 이후 점점 감소
-  };
-}
-
-/**
- * 블록별 통계 분배
- * 전체 통계를 블록 수에 맞게 분배하여 각 블록에 고유한 통계 제공
- */
-export function distributeStatisticsToBlocks(
-  categoryKey: string,
-  totalBlocks: number,
-  totalStats: number = 6
-): { value: string; label: string }[][] {
-  // 카테고리별 전체 통계 생성
-  const allStats = generateRealisticStatistics(categoryKey, totalStats);
-
-  // 블록별로 분배 (각 블록에 1-2개씩)
-  const statsPerBlock = Math.max(1, Math.floor(totalStats / totalBlocks));
-  const result: { value: string; label: string }[][] = [];
-
-  for (let i = 0; i < totalBlocks; i++) {
-    const startIdx = i * statsPerBlock;
-    const endIdx = Math.min(startIdx + statsPerBlock, allStats.length);
-    result.push(allStats.slice(startIdx, endIdx));
-  }
-
-  return result;
-}
-
-/**
- * 완전한 블록 오버레이 옵션 생성
- * 블록 인덱스만으로 모든 변형 정보를 자동 생성
- */
-export function buildCompleteBlockOptions(
-  blockIndex: number,
-  totalBlocks: number,
-  section: SectionType,
-  productFeatures?: string[],
-  categoryKey?: string,
-  imageAnalysis?: BlockOverlayOptions['imageAnalysis']
-): BlockOverlayOptions {
-  const variationHint = generateBlockVariationHint(
-    section,
-    blockIndex,
-    totalBlocks,
-    productFeatures,
-    categoryKey
-  );
-
-  return {
-    blockIndex,
-    totalBlocks,
-    variationHint,
-    imageAnalysis,
-  };
-}
-
-/**
- * 블록별 강조 포인트 생성 (OCR 패턴 기반)
- * 섹션과 블록 순서에 따른 강조 요소 결정
- */
-export function getBlockEmphasisPoint(
-  section: SectionType,
-  blockIndex: number,
-  categoryKey: string
-): { emphasisType: 'statistic' | 'text' | 'visual' | 'action'; value?: string } {
-  // OCR 분석 결과: 섹션별 강조 패턴
-  const emphasisPatterns: Record<SectionType, ('statistic' | 'text' | 'visual' | 'action')[]> = {
-    MAIN: ['text', 'visual', 'text'],
-    HERO: ['text', 'statistic', 'visual'],
-    FEATURES: ['statistic', 'text', 'statistic'],
-    SOCIAL_PROOF: ['statistic', 'statistic', 'statistic'],
-    HOW_TO_USE: ['action', 'action', 'action', 'action'],
-    PRODUCT_LINEUP: ['visual', 'visual', 'visual'],
-    FAQ: ['text', 'text', 'text'],
-    TEXTURE: ['visual', 'text', 'visual'],
-    INGREDIENT: ['statistic', 'text', 'statistic'],
-    MODEL_SHOT: ['visual', 'visual', 'visual'],
-    SKIN_RESULT: ['statistic', 'visual', 'statistic'],
-    MATERIAL: ['text', 'visual', 'text'],
-    LIFESTYLE: ['visual', 'text', 'visual'],
-    SPECS: ['statistic', 'statistic', 'statistic'],
-    INFO_TABLE: ['text', 'text', 'text'],
-    CTA: ['action', 'text', 'action'],
-    CUSTOM: ['text', 'visual', 'text'],
-  };
-
-  const patterns = emphasisPatterns[section] || ['text', 'text', 'text'];
-  const emphasisType = patterns[blockIndex % patterns.length];
-
-  // 통계 강조인 경우 샘플 값 생성
-  if (emphasisType === 'statistic') {
-    const stats = generateRealisticStatistics(categoryKey, 1);
-    return { emphasisType, value: stats[0]?.value };
-  }
-
-  return { emphasisType };
-}
-
 // ============================================
 // Export 상수들
-// NOTE: 함수들은 이미 export function으로 선언되어 있으므로
-//       여기서는 상수들만 export합니다
 // ============================================
 
 export {
   SENSORY_KEYWORDS,
-  NUMBERING_PATTERNS,
-  GENERATION_EXPRESSIONS,
-  COLOR_CHART_PATTERNS,
   SECTION_TEXT_EXAMPLES,
   CATEGORY_TEXT_STYLE,
-  // ★ OCR 데이터 기반 통계 패턴 (신규)
   CATEGORY_STATISTICS_PATTERNS,
 };
-
-// 함수들은 위에서 export function으로 이미 export됨:
-// - getCategoryKey
-// - generateRealisticStatistics
-// - getTextColorPalette
-// - getTextSafeArea
-// - generateBlockVariationHint
-// - getBlockStyleVariation
-// - distributeStatisticsToBlocks
-// - buildCompleteBlockOptions
-// - getBlockEmphasisPoint
