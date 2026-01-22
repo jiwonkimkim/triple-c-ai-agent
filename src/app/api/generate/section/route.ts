@@ -244,13 +244,11 @@ export async function POST(request: NextRequest) {
           overlayGuidePrompt: promptComponents?.overlayGuidePrompt,
           // ★★★ [4] 공통 프롬프트 (Flash 모델 전용) ★★★
           noTextReinforcement: promptComponents?.noTextReinforcement,
-          // ★★★ [5] 레거시 (이전 호환성) ★★★
-          fixedPrompt: promptComponents?.fixedPrompt,
-          dynamicPrompt: promptComponents?.dynamicPrompt,
           // ★★★ 최종 결합 프롬프트 ★★★
           imagePrompt: [
-            promptComponents?.fixedPrompt,
-            promptComponents?.dynamicPrompt,
+            promptComponents?.sectionBasePrompt,
+            promptComponents?.orchestrationPrompt,
+            promptComponents?.i2iSystemPrompt,
           ].filter(Boolean).join('\n\n---\n\n') || `${validatedData.sectionType} section image`,
           generatedImageUrl: result.imageUrl,
           overlayText: enhancedOverlayText,  // ★ 브랜드 폰트/로고 포함

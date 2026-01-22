@@ -670,9 +670,6 @@ export interface GeminiGeneratedImage {
     overlayOutputRequirements?: string; // 오버레이 출력 요구사항 (buildOverlayTextRequest - 공통)
     // [4] 공통 프롬프트 (Flash 모델 전용)
     noTextReinforcement?: string;      // Flash 모델용 텍스트 금지 강화 프롬프트 (NO_TEXT_IN_IMAGE_REINFORCEMENT)
-    // [5] 레거시 (이전 호환성)
-    fixedPrompt?: string;              // 고정 프롬프트 (제품일관성, 품질, no-text, 네거티브)
-    dynamicPrompt?: string;            // 동적 프롬프트 (테마, 섹션템플릿, 오케스트레이션 등)
   };
 }
 
@@ -1118,6 +1115,10 @@ ${imagePrompt}`;
     revisedPrompt: finalPrompt,
     // ★★★ 개발자 모드용: 개별 프롬프트 구성요소 (UI에서 분리 표시) ★★★
     promptComponents: {
+      // [0] 메타 정보 (UI 태그 표시용)
+      generationMode: 'T2I',
+      sectionTypeOriginal: sectionType,
+      sectionTypeMapped: mappedSectionType,
       // [1] 섹션별 프롬프트
       sectionBasePrompt,                                      // 섹션별 기본 프롬프트 (MAIN, HERO, FEATURES 등)
       orchestrationPrompt: (mappedSectionType !== 'MAIN' && imagePrompt) ? imagePrompt : undefined,  // 오케스트레이션 AI 생성 시나리오
@@ -1125,15 +1126,7 @@ ${imagePrompt}`;
       overlayTextPrompt,                                      // 섹션별 오버레이 텍스트 프롬프트
       overlayGuidePrompt: buildCreativeOverlayGuide(aspectRatio, model),  // 오버레이 디자인 가이드 (모델별 해상도 포함)
       // [3] 공통 프롬프트 (Flash 모델 전용)
-      noTextReinforcement: isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : undefined,  // Flash 모델용 텍스트 금지 강화
-      // [4] ★★★ DEV 모드 표시용 (fixedPrompt/dynamicPrompt 매핑)
-      // [0] 메타 정보 (UI 태그 표시용)
-      generationMode: 'T2I',
-      sectionTypeOriginal: sectionType,
-      sectionTypeMapped: mappedSectionType,
-      // [5] 레거시 (프롬프트 텍스트 - 태그 없이)
-      fixedPrompt: sectionBasePrompt,
-      dynamicPrompt: (mappedSectionType !== 'MAIN' && imagePrompt) ? imagePrompt : undefined,
+      noTextReinforcement: isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : undefined,
     },
   };
 }
@@ -1713,16 +1706,16 @@ export async function generateSectionImageFromProduct(
       revisedPrompt: textBgFinalPrompt,
       promptComponents: {
         // [0] 메타 정보 (UI 태그 표시용)
-        generationMode: 'I2I',  // I2I 함수 내부지만 TEXT_BACKGROUND는 실제로 T2I처럼 동작
+        generationMode: 'T2I',  // TEXT_BACKGROUND는 T2I 모드
         sectionTypeOriginal: sectionType,
         sectionTypeMapped: 'TEXT_BACKGROUND',
-        // [3] 오버레이 관련
+        // [1] 섹션별 프롬프트 (텍스트 배경은 색상 프롬프트만 사용)
+        sectionBasePrompt: colorPrompt,
+        // [2] 오버레이 관련
         overlayTextPrompt: textBgOverlayPrompt,
         overlayGuidePrompt: buildCreativeOverlayGuide('16:9', model),
+        // [3] 공통 프롬프트 (Flash 모델 전용)
         noTextReinforcement: isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : undefined,
-        // [5] 레거시 (프롬프트 텍스트 - 태그 없이)
-        fixedPrompt: `${colorPrompt}\n\n--negative ${negativePrompt}`,
-        dynamicPrompt: undefined,
       },
     };
   }
@@ -1770,19 +1763,6 @@ ${scenarioPrompt}
   } else {
     console.log(`[Gemini I2I] ★★★ orchestrationContext NOT added. Reason: sectionType=${sectionType} (→${mappedSectionType}), scenarioPrompt=${scenarioPrompt ? 'exists' : 'empty'}`);
   }
-
-  // ★★★ 고정/동적 프롬프트 분리 (DEV 모드 표시용)
-  const fixedPromptParts = [
-    'OUTPUT: High-quality commercial photography, no text on image.',
-  ];
-
-  const dynamicPromptParts = [
-    basePrompt,
-    orchestrationContext,
-    `Product: ${productName}`,
-    `Category: ${category}`,
-    additionalPrompt ? `Additional style: ${additionalPrompt}` : '',
-  ].filter(Boolean);
 
   // ★★★ 공통 오버레이 텍스트 요청 생성 ★★★
   const overlayTextPrompt = buildOverlayTextPrompt(
@@ -1847,10 +1827,7 @@ ${overlayTextRequest}`;
       overlayTextPrompt,                                      // 섹션별 오버레이 텍스트 프롬프트
       overlayGuidePrompt: buildCreativeOverlayGuide(aspectRatio, model),  // 오버레이 디자인 가이드 (모델별 해상도 포함)
       // [3] 공통 프롬프트 (Flash 모델 전용)
-      noTextReinforcement: isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : undefined,  // Flash 모델용 텍스트 금지 강화
-      // [4] 레거시 (이전 호환성 - 태그 없이)
-      fixedPrompt: fixedPromptParts.join('\n\n'),
-      dynamicPrompt: dynamicPromptParts.join('\n\n'),
+      noTextReinforcement: isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : undefined,
     },
   };
 }
@@ -2000,7 +1977,7 @@ export async function generateSectionImageWithOverlay(
         throw new Error(`No image generated for text background section ${sectionType}`);
       }
 
-      // ★★★ promptComponents 설정 (텍스트 배경 전용 - sectionBasePrompt 없음!)
+      // ★★★ promptComponents 설정 (텍스트 배경 전용)
       generatedImage = {
         ...textBgImages[0],
         revisedPrompt: textBgFinalPrompt,
@@ -2009,14 +1986,13 @@ export async function generateSectionImageWithOverlay(
           generationMode: 'T2I',  // 텍스트 배경은 항상 T2I 모드
           sectionTypeOriginal: sectionType,
           sectionTypeMapped: 'TEXT_BACKGROUND',
-          // 텍스트 배경 섹션은 sectionBasePrompt 없음 (제품 관련 내용 방지)
-          // orchestrationPrompt도 없음 (색상 프롬프트만 사용)
+          // [1] 섹션별 프롬프트 (텍스트 배경은 색상 프롬프트만 사용)
+          sectionBasePrompt: colorPrompt,
+          // [2] 오버레이 관련
           overlayTextPrompt: textBgOverlayPrompt,
           overlayGuidePrompt: buildCreativeOverlayGuide('16:9', model),
+          // [3] 공통 프롬프트 (Flash 모델 전용)
           noTextReinforcement: isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : undefined,
-          // [5] 레거시 (프롬프트 텍스트 - 태그 없이)
-          fixedPrompt: `${colorPrompt}\n\n--negative ${negativePrompt}`,
-          dynamicPrompt: undefined,
         },
       };
       usedImagePrompt = textBgFinalPrompt;

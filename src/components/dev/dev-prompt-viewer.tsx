@@ -58,9 +58,6 @@ export interface DevPromptInfo {
     overlayGuidePrompt?: string;       // 오버레이 디자인 가이드 (buildCreativeOverlayGuide - 공통)
     // ★★★ [4] 공통 프롬프트 (Flash 모델 전용) ★★★
     noTextReinforcement?: string;      // Flash 모델용 텍스트 금지 강화 프롬프트
-    // ★★★ [5] 레거시 (이전 호환성) ★★★
-    fixedPrompt?: string;              // 고정 프롬프트 (제품일관성, 품질, no-text, 네거티브)
-    dynamicPrompt?: string;            // 동적 프롬프트 (테마, 섹션템플릿, 텍스트시각화 등)
     // ★ 최종 결합된 프롬프트
     imagePrompt: string;               // 최종 사용된 전체 프롬프트
     // 생성된 이미지 URL
@@ -454,47 +451,8 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                                 </div>
                               )}
 
-                              {/* ★★★ [5] 레거시 프롬프트 (이전 호환성) ★★★ */}
-                              {section.fixedPrompt && (
-                                <div className="space-y-2">
-                                  <div className="flex items-center justify-between">
-                                    <Badge variant="outline" className="text-xs bg-slate-100 text-slate-700 border-slate-300 px-2 py-1">
-                                      🔒 고정 프롬프트
-                                    </Badge>
-                                    <CopyButton text={section.fixedPrompt} />
-                                  </div>
-                                  <p className="text-[10px] text-muted-foreground">
-                                    섹션 기본 프롬프트 (레거시 호환성용 - sectionBasePrompt 참조)
-                                  </p>
-                                  <div className="rounded-lg border bg-slate-50 dark:bg-slate-950/30 p-3 max-h-[100px] overflow-y-auto">
-                                    <pre className="text-[11px] whitespace-pre-wrap font-mono text-slate-700 dark:text-slate-300 leading-relaxed">
-                                      {section.fixedPrompt}
-                                    </pre>
-                                  </div>
-                                </div>
-                              )}
-
-                              {section.dynamicPrompt && (
-                                <div className="space-y-2">
-                                  <div className="flex items-center justify-between">
-                                    <Badge variant="outline" className="text-xs bg-slate-100 text-slate-700 border-slate-300 px-2 py-1">
-                                      🔄 동적 프롬프트
-                                    </Badge>
-                                    <CopyButton text={section.dynamicPrompt} />
-                                  </div>
-                                  <p className="text-[10px] text-muted-foreground">
-                                    오케스트레이션 시나리오 (레거시 호환성용 - orchestrationPrompt 참조)
-                                  </p>
-                                  <div className="rounded-lg border bg-slate-50 dark:bg-slate-950/30 p-3 max-h-[100px] overflow-y-auto">
-                                    <pre className="text-[11px] whitespace-pre-wrap font-mono text-slate-700 dark:text-slate-300 leading-relaxed">
-                                      {section.dynamicPrompt}
-                                    </pre>
-                                  </div>
-                                </div>
-                              )}
-
                               {/* 프롬프트 구성요소가 전혀 없는 경우 - imagePrompt 표시 */}
-                              {!section.sectionBasePrompt && !section.orchestrationPrompt && !section.overlayTextPrompt && !section.noTextReinforcement && !section.fixedPrompt && !section.dynamicPrompt && !section.i2iSystemPrompt && section.imagePrompt && (
+                              {!section.sectionBasePrompt && !section.orchestrationPrompt && !section.overlayTextPrompt && !section.noTextReinforcement && !section.i2iSystemPrompt && section.imagePrompt && (
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between">
                                     <Badge variant="outline" className="text-xs bg-gray-100 text-gray-700 border-gray-300 px-2 py-1">

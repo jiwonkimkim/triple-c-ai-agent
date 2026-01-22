@@ -95,11 +95,9 @@ export default function ProjectDetailPage() {
     sectionType: string;
     imageUrl: string;
     promptComponents?: {
+      sectionBasePrompt?: string;
       orchestrationPrompt?: string;
-      categoryTemplatePrompt?: string;
       i2iSystemPrompt?: string;
-      fixedPrompt?: string;
-      dynamicPrompt?: string;
     };
     // ★★★ API에서 반환한 전체 devPrompts (기존 섹션 + 새 섹션 모두 포함)
     updatedDevPrompts?: {
@@ -121,20 +119,19 @@ export default function ProjectDetailPage() {
     // 폴백: API에서 전체 devPrompts를 못 받았을 때 수동 업데이트
     const currentPrompts = regenerationHook.lastDevPrompts;
 
-    // 최종 결합 프롬프트 생성
+    // 최종 결합 프롬프트 생성 (새 구조 사용)
     const combinedPrompt = [
-      update.promptComponents?.fixedPrompt,
-      update.promptComponents?.dynamicPrompt,
+      update.promptComponents?.sectionBasePrompt,
+      update.promptComponents?.orchestrationPrompt,
+      update.promptComponents?.i2iSystemPrompt,
     ].filter(Boolean).join('\n\n---\n\n');
 
     // 새 섹션 프롬프트 데이터
     const newSectionPrompt = {
       sectionType: update.sectionType,
+      sectionBasePrompt: update.promptComponents?.sectionBasePrompt,
       orchestrationPrompt: update.promptComponents?.orchestrationPrompt,
-      categoryTemplatePrompt: update.promptComponents?.categoryTemplatePrompt,
       i2iSystemPrompt: update.promptComponents?.i2iSystemPrompt,
-      fixedPrompt: update.promptComponents?.fixedPrompt,
-      dynamicPrompt: update.promptComponents?.dynamicPrompt,
       imagePrompt: combinedPrompt || `${update.sectionType} section image`,
       generatedImageUrl: update.imageUrl,
     };

@@ -107,9 +107,6 @@ export interface SectionImagePrompt {
     overlayGuidePrompt?: string;       // 오버레이 디자인 가이드 (공통)
     // [4] 공통 프롬프트 (Flash 모델 전용)
     noTextReinforcement?: string;      // Flash 모델용 텍스트 금지 강화
-    // [5] 레거시 (이전 호환성)
-    fixedPrompt?: string;              // 고정 프롬프트 (제품일관성, 품질, no-text, 네거티브)
-    dynamicPrompt?: string;            // 동적 프롬프트 (테마, 섹션템플릿, 텍스트시각화 등)
   };
 }
 
@@ -981,8 +978,7 @@ export async function generateSectionImagePromptFromText(
       imagePrompt: `${colorPrompt}, absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only --negative ${negativePrompt}`,
       compositionGuide,
       promptComponents: {
-        fixedPrompt: `${colorPrompt}\n\n--negative ${negativePrompt}`,
-        dynamicPrompt: `[TEXT BACKGROUND - ${sectionType}] Direct color prompt (no category system)`,
+        sectionBasePrompt: colorPrompt,
       },
     };
   }
@@ -1054,9 +1050,6 @@ export async function generateSectionImagePromptFromText(
           // [1] 카테고리별 프롬프트
           categoryPrompt: advancedPrompt,           // 카테고리별 고도화 프롬프트
           subCategory,                              // 서브카테고리명
-          // [2] 레거시 (이전 호환성)
-          fixedPrompt: fixedPromptParts.join('\n\n'),
-          dynamicPrompt: dynamicPromptParts.join('\n\n'),
         },
       };
     }
@@ -1169,11 +1162,8 @@ ${indexBasedPrompt}
     position,
     imagePrompt,
     compositionGuide,
-    // ★★★ 고정/동적 프롬프트 분리 반환 (DEV 모드용)
-    promptComponents: {
-      fixedPrompt: fixedPromptParts.join('\n\n'),
-      dynamicPrompt: dynamicPromptParts.join('\n\n'),
-    },
+    // promptComponents는 gemini-image-generator.ts에서 설정
+    promptComponents: {},
   };
 }
 

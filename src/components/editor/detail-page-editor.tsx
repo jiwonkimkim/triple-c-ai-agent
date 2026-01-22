@@ -67,11 +67,9 @@ interface SectionPromptUpdate {
   sectionType: string;
   imageUrl: string;
   promptComponents?: {
+    sectionBasePrompt?: string;
     orchestrationPrompt?: string;
-    categoryTemplatePrompt?: string;
     i2iSystemPrompt?: string;
-    fixedPrompt?: string;
-    dynamicPrompt?: string;
   };
   // ★★★ API에서 반환한 전체 devPrompts (기존 섹션 + 새 섹션 모두 포함)
   updatedDevPrompts?: {

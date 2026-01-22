@@ -107,9 +107,6 @@ export interface DevPromptInfo {
     overlayGuidePrompt?: string;       // 오버레이 디자인 가이드 (buildCreativeOverlayGuide - 공통)
     // ★★★ [4] 공통 프롬프트 (Flash 모델 전용) ★★★
     noTextReinforcement?: string;      // Flash 모델용 텍스트 금지 강화 프롬프트
-    // ★★★ [5] 레거시 (이전 호환성) ★★★
-    fixedPrompt?: string;              // 고정 프롬프트 (제품일관성, 품질, no-text, 네거티브)
-    dynamicPrompt?: string;            // 동적 프롬프트 (테마, 섹션템플릿, 텍스트시각화 등)
     // ★ 최종 결합된 프롬프트
     imagePrompt: string;               // 최종 사용된 전체 프롬프트
     // 생성된 이미지 URL
@@ -835,9 +832,6 @@ export async function generateDetailPage(
             overlayGuidePrompt: components?.overlayGuidePrompt,         // 오버레이 디자인 가이드 (공통)
             // ★★★ [4] 공통 프롬프트 (Flash 모델 전용) ★★★
             noTextReinforcement: components?.noTextReinforcement,       // Flash 모델용 텍스트 금지 강화
-            // ★★★ [5] 레거시 (이전 호환성) ★★★
-            fixedPrompt: components?.fixedPrompt,
-            dynamicPrompt: components?.dynamicPrompt,
             // 최종 결합된 프롬프트
             imagePrompt: prompt.imagePrompt,
             generatedImageUrl: imageUrls[index], // 해당 인덱스의 생성된 이미지 URL
