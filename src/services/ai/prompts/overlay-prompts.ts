@@ -765,16 +765,27 @@ ${section === 'SOCIAL_PROOF' ? `- 해당 증거 유형에 맞는 텍스트 (예:
 
 ---
 
-## 핵심 원칙 (Core Principles)
-1. **실제 상세페이지 스타일**: 올리브영에서 볼 수 있는 전문적인 카피
-2. **짧고 임팩트 있게**: 각 텍스트는 5-25자 이내
-3. **숫자로 신뢰감**: 구체적인 수치와 퍼센트 활용
-4. **영문+한글 믹스**: 성분명/효능명은 영문, 설명은 한글
+## Core Principles
+(핵심 원칙)
 
-## ⛔ 절대 금지 단어 (섹션 타입명)
-다음 단어들은 절대로 텍스트에 포함하지 마세요:
+1. **Authentic detail page style**: Professional copy like Olive Young product pages
+   (실제 상세페이지 스타일: 올리브영에서 볼 수 있는 전문적인 카피)
+2. **Short and impactful**: Each text should be 5-25 characters
+   (짧고 임팩트 있게: 각 텍스트는 5-25자 이내)
+3. **Numbers build trust**: Use specific numbers and percentages
+   (숫자로 신뢰감: 구체적인 수치와 퍼센트 활용)
+4. **English + Korean mix**: Ingredient/benefit names in English, descriptions in Korean
+   (영문+한글 믹스: 성분명/효능명은 영문, 설명은 한글)
+
+## ⛔ Forbidden Words (Section Type Names)
+(절대 금지 단어 - 섹션 타입명)
+
+NEVER use these words in text:
+(다음 단어들은 절대로 텍스트에 포함하지 마세요)
 - FEATURES, HERO, SOCIAL_PROOF, HOW_TO_USE, FAQ, MAIN
-- 대신 사용: HYALURONIC, VITAMIN C, CLINICAL TEST, PROVEN 등 실제 성분/효능 관련 영문
+
+Instead use: HYALURONIC, VITAMIN C, CLINICAL TEST, PROVEN, etc.
+(대신 사용: 실제 성분/효능 관련 영문)
 
 ## 제품 정보
 - 제품명: ${productName}
