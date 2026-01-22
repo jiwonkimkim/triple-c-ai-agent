@@ -531,8 +531,8 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                           <div className="grid grid-cols-[280px_1fr_1fr] gap-4 items-start">
                             {/* 왼쪽: 생성된 이미지 */}
                             <div className="space-y-3">
-                              <div className="flex items-center gap-2">
-                                <ImageIcon className="h-5 w-5 text-green-600" />
+                              <div className="flex items-center gap-2 h-5">
+                                <ImageIcon className="h-5 w-5 text-green-600 shrink-0" />
                                 <span className="text-sm font-semibold text-green-600">생성된 이미지</span>
                               </div>
                               {section.generatedImageUrl ? (
@@ -556,8 +556,8 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
 
                             {/* 중앙: 오버레이 프롬프트 */}
                             <div className="space-y-3">
-                              <div className="flex items-center gap-2">
-                                <Code className="h-5 w-5 text-amber-600" />
+                              <div className="flex items-center gap-2 h-5">
+                                <Code className="h-5 w-5 text-amber-600 shrink-0" />
                                 <span className="text-sm font-semibold text-amber-600">사용된 프롬프트</span>
                               </div>
                               <ScrollArea className="h-[350px] rounded-lg border-2 border-amber-200 bg-amber-50 dark:bg-amber-950/20 p-4">
@@ -601,8 +601,8 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
 
                             {/* 오른쪽: 생성된 JSON 결과 */}
                             <div className="space-y-3">
-                              <div className="flex items-center gap-2">
-                                <FileText className="h-5 w-5 text-green-600" />
+                              <div className="flex items-center gap-2 h-5">
+                                <FileText className="h-5 w-5 text-green-600 shrink-0" />
                                 <span className="text-sm font-semibold text-green-600">생성된 JSON 결과</span>
                                 {generatedJson && <CopyButton text={generatedJson} />}
                               </div>
