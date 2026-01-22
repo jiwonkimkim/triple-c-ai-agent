@@ -156,7 +156,6 @@ export {
   recommendThemeForBrandTone,
   getVisualTheme,
   buildThemePromptExtension,
-  buildFullPageThemePrompt,
   autoSelectTheme,
 } from './visual-theme';
 

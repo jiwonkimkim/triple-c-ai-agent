@@ -409,30 +409,6 @@ export function buildThemePromptExtension(theme: VisualTheme, sectionType: Secti
 }
 
 /**
- * 전체 상세페이지 테마 프롬프트 생성
- */
-export function buildFullPageThemePrompt(theme: VisualTheme): string {
-  return `
-[DETAIL PAGE VISUAL THEME: ${theme.name}]
-${theme.consistencyPrompt}
-
-Color Palette:
-- Primary Background: ${theme.backgroundColors.primary}
-- Secondary Background: ${theme.backgroundColors.secondary}
-- Accent Color: ${theme.backgroundColors.accent}
-- Gradient Style: ${theme.backgroundColors.gradient || 'none'}
-
-Lighting Style: ${theme.lighting.style}
-Light Temperature: ${theme.lighting.temperature}
-Light Intensity: ${theme.lighting.intensity}
-
-Overall Mood: ${theme.moodKeywords.join(', ')}
-
-CRITICAL: All section images must maintain this consistent visual theme to create a cohesive detail page experience.
-`;
-}
-
-/**
  * 카테고리와 브랜드 톤을 기반으로 최적 테마 자동 선택
  */
 export function autoSelectTheme(category: string, brandTone?: string): ThemeStyle {

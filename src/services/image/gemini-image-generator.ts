@@ -471,8 +471,6 @@ CRITICAL RULES:
   (소수점 포함 0.0-100.0 퍼센트, 픽셀 아님!)
 - Use precise decimal values for accurate positioning
   (정확한 위치를 위해 소수점 값 사용)
-- Do NOT overlap texts - maintain 8%+ gap
-  (텍스트 겹침 금지 - 8% 이상 간격 유지)
 - Make it look like professional Korean detail page design!
   (전문적인 한국 상세페이지 디자인처럼!)
 `;
