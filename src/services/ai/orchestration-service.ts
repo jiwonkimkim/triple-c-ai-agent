@@ -757,7 +757,7 @@ function buildFallbackImagePrompt(
   visualTheme?: VisualTheme
 ): string {
   const noTextInstruction = 'absolutely no text, no typography, no letters, no words, no labels, no watermarks, no logos, text-free commercial photography only';
-  const qualityKeywords = '8K resolution, photorealistic, professional commercial photography, high-end advertising quality, sharp focus, premium product visualization';
+  const qualityKeywords = 'photorealistic, professional commercial photography, high-end advertising quality, sharp focus, premium product visualization';
   const styleKeywords = visualKeywords.slice(0, 4).join(', ');
   const brandAddition = brandStyle ? `, brand aesthetic: ${brandStyle}` : '';
 
@@ -970,8 +970,8 @@ export async function generateSectionImagePromptFromText(
     const blockVariant = blockIndex % 2 === 0 ? 'solid' : 'gradient';
 
     const colorPrompt = blockVariant === 'solid'
-      ? `Pure solid ${colorInfo.name} (${colorInfo.primary}) color fill only, completely flat empty background, no objects, no shapes, no textures, no patterns, just clean solid color, 8K resolution`
-      : `Simple horizontal gradient from ${colorInfo.gradient} only, completely flat empty background, no objects, no shapes, no textures, no patterns, just clean gradient, 8K resolution`;
+      ? `Pure solid ${colorInfo.name} (${colorInfo.primary}) color fill only, completely flat empty background, no objects, no shapes, no textures, no patterns, just clean solid color`
+      : `Simple horizontal gradient from ${colorInfo.gradient} only, completely flat empty background, no objects, no shapes, no textures, no patterns, just clean gradient`;
 
     const negativePrompt = 'product, cosmetic, bottle, tube, packaging, container, objects, shapes, decorations, patterns, textures, elements, water droplets, leaves, botanical, sparkles, glow effects, text, letters, words, typography';
 
@@ -1009,7 +1009,7 @@ export async function generateSectionImagePromptFromText(
       // 기본 품질 및 일관성 지시문 (고정)
       const noTextInstruction = 'absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only';
       const productConsistencyPrefix = `[CRITICAL - PRODUCT CONSISTENCY: The exact same "${productName}" must appear identically in all images]`;
-      const qualityKeywords = '8K resolution, photorealistic, professional commercial photography, high-end advertising quality';
+      const qualityKeywords = 'photorealistic, professional commercial photography, high-end advertising quality';
       const negativePrompt = buildNegativePrompt(['quality', 'style', 'content', 'composition'], category);
 
       // 비주얼 테마 지시문 (동적)
@@ -1080,7 +1080,7 @@ export async function generateSectionImagePromptFromText(
   // 2. 기본 지시문
   const noTextInstruction = 'absolutely no text, no typography, no letters, no words, no labels, no watermarks, text-free image only';
   const productConsistencyPrefix = `[CRITICAL - PRODUCT CONSISTENCY: The exact same "${productName}" must appear identically in all images with consistent design, shape, color, texture and packaging]`;
-  const qualityKeywords = '8K resolution, photorealistic, professional commercial photography, high-end advertising quality, sharp focus, premium product visualization';
+  const qualityKeywords = 'photorealistic, professional commercial photography, high-end advertising quality, sharp focus, premium product visualization';
 
   // 3. 비주얼 테마 지시문
   const themePrefix = visualTheme

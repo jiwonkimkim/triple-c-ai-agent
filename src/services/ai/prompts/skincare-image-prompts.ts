@@ -631,7 +631,7 @@ export function buildSkincareImagePrompt(
 ${effectiveBasePrompt}
 ${brandModifier}
 ${additionalModifiers}
-professional e-commerce detail page photography, high-end skincare advertising, 8K resolution, clean visual without any text overlay
+professional e-commerce detail page photography, high-end skincare advertising, clean visual without any text overlay
 `.trim().replace(/\n+/g, ', ').replace(/,\s*,/g, ',');
 
   // 네거티브 프롬프트 - 텍스트 금지 강화

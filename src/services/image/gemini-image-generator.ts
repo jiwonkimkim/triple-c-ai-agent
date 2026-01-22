@@ -167,8 +167,8 @@ Korean beauty trend: glow, transparency, premium
   (풍부하고 생동감 있는 컬러와 전문 컬러 그레이딩)
 - Premium commercial photography that triggers purchase desire
   (구매 욕구를 자극하는 프리미엄 상업 사진)
-- 8K resolution, photorealistic, no text in image
-  (8K 해상도, 포토리얼리스틱, 이미지 내 텍스트 없음)`,
+- Photorealistic, no text in image
+  (포토리얼리스틱, 이미지 내 텍스트 없음)`,
 
     HERO: `Create KOREAN E-COMMERCE main banner image for ${productName}.
 (한국 이커머스 메인 배너 이미지 생성)
@@ -200,8 +200,8 @@ ${i2iPrefix}
 ${audienceStyle}
 Korean luxury beauty aesthetic
 (한국 럭셔리 뷰티 미학)
-8K resolution, no text in image
-(8K 해상도, 이미지 내 텍스트 없음)`,
+No text in image
+(이미지 내 텍스트 없음)`,
 
     FEATURES: `Create KOREAN E-COMMERCE product benefits and ingredients section image for ${productName}.
 (한국 이커머스 제품 특징 및 성분 섹션 이미지 생성)
@@ -228,8 +228,8 @@ ${i2iPrefix}
 (스타일)
 ${audienceStyle}
 ${featureHighlight}
-8K resolution, no text in image
-(8K 해상도, 이미지 내 텍스트 없음)`,
+No text in image
+(이미지 내 텍스트 없음)`,
 
     SOCIAL_PROOF: `Create KOREAN E-COMMERCE SOCIAL PROOF IMAGE for ${productName}.
 (한국 이커머스 소셜 프루프 이미지 생성)
@@ -257,8 +257,8 @@ ${i2iPrefix}
 ${audienceStyle}
 Authentic, relatable aesthetic
 (진정성 있고 공감가는 미학)
-8K resolution, no text in image
-(8K 해상도, 이미지 내 텍스트 없음)`,
+No text in image
+(이미지 내 텍스트 없음)`,
 
     HOW_TO_USE: `Create KOREAN E-COMMERCE usage guide section image for ${productName}.
 (한국 이커머스 사용법 가이드 섹션 이미지 생성)
@@ -286,8 +286,8 @@ ${i2iPrefix}
 ${audienceStyle}
 Educational yet beautiful
 (교육적이면서 아름다운)
-8K resolution, no text in image
-(8K 해상도, 이미지 내 텍스트 없음)`,
+No text in image
+(이미지 내 텍스트 없음)`,
 
     FAQ: `Create KOREAN E-COMMERCE questions and answers background image for ${productName}.
 (한국 이커머스 질문 답변 배경 이미지 생성)
@@ -315,8 +315,8 @@ ${i2iPrefix}
 ${audienceStyle}
 Helpful, trustworthy aesthetic
 (도움이 되고 신뢰감 있는 미학)
-8K resolution, no text in image
-(8K 해상도, 이미지 내 텍스트 없음)`,
+No text in image
+(이미지 내 텍스트 없음)`,
 
     CUSTOM: `Create KOREAN E-COMMERCE IMAGE for ${productName}.
 (한국 이커머스 이미지 생성)
@@ -334,8 +334,8 @@ ${i2iPrefix}
 (스타일)
 ${audienceStyle}
 ${featureHighlight}
-8K resolution, no text in image
-(8K 해상도, 이미지 내 텍스트 없음)`,
+No text in image
+(이미지 내 텍스트 없음)`,
   };
 
   // CUSTOM은 항상 정의되어 있으므로 non-null assertion 사용
@@ -1524,7 +1524,7 @@ ${prompt}
 
 [OUTPUT]
 - Professional Korean e-commerce aesthetic (올리브영/쿠팡 스타일)
-- 8K resolution, absolutely no text/typography/watermarks`;
+- Absolutely no text/typography/watermarks`;
 
     // Gemini에 이미지 + 텍스트 프롬프트 동시 전송 (Google AI 공식 방식)
     console.log(`[Gemini I2I] ★★★ Sending IMAGE-TO-IMAGE request ★★★`);
@@ -1669,7 +1669,7 @@ export async function generateSectionImageFromProduct(
     const colorInfo = categoryColorMap[detectedCategory];
 
     // ★ solid 색상 프롬프트 (orchestration-service와 동일)
-    const colorPrompt = `Pure solid ${colorInfo.name} (${colorInfo.primary}) color fill only, completely flat empty background, no objects, no shapes, no textures, no patterns, just clean solid color, 8K resolution`;
+    const colorPrompt = `Pure solid ${colorInfo.name} (${colorInfo.primary}) color fill only, completely flat empty background, no objects, no shapes, no textures, no patterns, just clean solid color`;
     const negativePrompt = 'product, cosmetic, bottle, tube, packaging, container, objects, shapes, decorations, patterns, textures, elements, water droplets, leaves, botanical, sparkles, glow effects, text, letters, words, typography';
 
     // ★★★ 오버레이 텍스트 요청 생성
@@ -1758,7 +1758,7 @@ ${scenarioPrompt}
 
   // ★★★ 고정/동적 프롬프트 분리 (DEV 모드 표시용)
   const fixedPromptParts = [
-    'OUTPUT: High-quality commercial photography, 8K resolution, no text on image.',
+    'OUTPUT: High-quality commercial photography, no text on image.',
   ];
 
   const dynamicPromptParts = [
@@ -1792,7 +1792,7 @@ Product: ${productName}
 Category: ${category}
 ${additionalPrompt ? `Additional style: ${additionalPrompt}` : ''}
 
-OUTPUT: High-quality commercial photography, 8K resolution, no text on image.
+OUTPUT: High-quality commercial photography, no text on image.
 ${overlayTextRequest}`;
 
   console.log(`[Gemini I2I] Generating ${sectionType} (→${mappedSectionType}) section image, aspectRatio: ${aspectRatio || '3:4'}`);
@@ -1947,8 +1947,8 @@ export async function generateSectionImageWithOverlay(
 
       // ★ orchestration-service.ts와 동일한 프롬프트 포맷
       const colorPrompt = blockVariant === 'solid'
-        ? `Pure solid ${colorInfo.name} (${colorInfo.primary}) color fill only, completely flat empty background, no objects, no shapes, no textures, no patterns, just clean solid color, 8K resolution`
-        : `Simple horizontal gradient from ${colorInfo.gradient} only, completely flat empty background, no objects, no shapes, no textures, no patterns, just clean gradient, 8K resolution`;
+        ? `Pure solid ${colorInfo.name} (${colorInfo.primary}) color fill only, completely flat empty background, no objects, no shapes, no textures, no patterns, just clean solid color`
+        : `Simple horizontal gradient from ${colorInfo.gradient} only, completely flat empty background, no objects, no shapes, no textures, no patterns, just clean gradient`;
 
       // ★ 동일한 negative prompt
       const negativePrompt = 'product, cosmetic, bottle, tube, packaging, container, objects, shapes, decorations, patterns, textures, elements, water droplets, leaves, botanical, sparkles, glow effects, text, letters, words, typography';

@@ -625,7 +625,7 @@ export function buildMascaraImagePrompt(
 ${basePrompt}
 ${brandModifier}
 ${additionalModifiers}
-professional e-commerce detail page photography, high-end mascara advertising, 8K resolution, dramatic confident mood, black and pink accent lighting, clean visual without any text overlay
+professional e-commerce detail page photography, high-end mascara advertising, dramatic confident mood, black and pink accent lighting, clean visual without any text overlay
 `.trim().replace(/\n+/g, ', ').replace(/,\s*,/g, ',');
 
   // 네거티브 프롬프트 - 텍스트 금지 강화

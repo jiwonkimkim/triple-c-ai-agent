@@ -233,6 +233,12 @@ export async function POST(request: NextRequest) {
               imagePrompt: string;
               [key: string]: unknown;
             }>;
+            overlayTextPrompts?: Array<{
+              sectionType: string;
+              blockIndex: number;
+              overlayPrompt: string;
+              generatedOverlay?: unknown;
+            }>;
           };
         } | null;
 
@@ -272,6 +278,7 @@ export async function POST(request: NextRequest) {
             userPrompt: '(이전 생성 시 저장되지 않음)',
           },
           sectionImagePrompts: [],
+          overlayTextPrompts: [],
         };
 
         // 해당 섹션이 이미 있는지 확인

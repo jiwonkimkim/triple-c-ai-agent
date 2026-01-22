@@ -658,7 +658,7 @@ ${colorVariantsInfo ? `[VARIANTS: ${colorVariantsInfo}]` : ''}
 ${basePrompt}
 ${brandModifier}
 ${additionalModifiers}
-professional e-commerce detail page photography, high-end lip cosmetic advertising, 8K resolution, feminine elegant mood, soft pink lighting, clean visual without any text overlay
+professional e-commerce detail page photography, high-end lip cosmetic advertising, feminine elegant mood, soft pink lighting, clean visual without any text overlay
 `.trim().replace(/\n+/g, ', ').replace(/,\s*,/g, ',');
 
   // 네거티브 프롬프트 - 텍스트 금지 강화

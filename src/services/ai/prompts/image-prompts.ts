@@ -120,7 +120,7 @@ export function buildImagePrompt(
   );
 
   // 프롬프트 조합
-  let prompt = `[PRODUCT CONSISTENCY: ${consistencyInstruction}] [LAYOUT: ${layoutPrompt}] [TEXT SPACE: ${textZonePrompt}] ${sectionContent}, ${styleAddition}, professional e-commerce detail page photography, high-end product advertising, 8k resolution`;
+  let prompt = `[PRODUCT CONSISTENCY: ${consistencyInstruction}] [LAYOUT: ${layoutPrompt}] [TEXT SPACE: ${textZonePrompt}] ${sectionContent}, ${styleAddition}, professional e-commerce detail page photography, high-end product advertising`;
 
   // 네거티브 프롬프트 추가 (옵션)
   if (options?.includeNegative !== false) {

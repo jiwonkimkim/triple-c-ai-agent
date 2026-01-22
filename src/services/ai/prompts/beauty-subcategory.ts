@@ -334,7 +334,7 @@ glass skin aesthetic with dewy water droplets,
 soft gradient background in pastel tones,
 product floating on water surface with gentle ripples,
 ${featuresText},
-professional e-commerce thumbnail, 8K quality, clean minimalist composition
+professional e-commerce thumbnail, clean minimalist composition
 `.trim(),
 
     suncare: `
@@ -345,7 +345,7 @@ sun rays and lens flare effects,
 water splash around the product,
 tropical leaves and citrus accents,
 ${featuresText},
-professional suncare advertising, 8K quality, vibrant and fresh mood
+professional suncare advertising, vibrant and fresh mood
 `.trim(),
 
     lip: `
@@ -356,7 +356,7 @@ glossy texture with light reflections,
 rose petals and soft fabric background,
 close-up showing product color and finish,
 ${featuresText},
-professional cosmetics photography, 8K quality, romantic and elegant mood
+professional cosmetics photography, romantic and elegant mood
 `.trim(),
 
     mascara: `
@@ -367,7 +367,7 @@ sleek black packaging with metallic accents,
 dynamic brush stroke effects,
 feather or lash elements floating around,
 ${featuresText},
-professional mascara advertising, 8K quality, sophisticated and powerful mood
+professional mascara advertising, sophisticated and powerful mood
 `.trim(),
 
     maskpack: `
@@ -378,14 +378,14 @@ hydrating essence droplets and bubbles,
 natural ingredients like aloe, honey, or botanical elements,
 soft fabric or sheet texture visible,
 ${featuresText},
-professional skincare photography, 8K quality, refreshing and calming mood
+professional skincare photography, refreshing and calming mood
 `.trim(),
 
     // 미구현 카테고리는 기본 프롬프트
-    cushion: `[CRITICAL: NO TEXT IN IMAGE] Hero product shot of ${productName}, ${brandModifier}professional cosmetics photography, ${featuresText}, 8K quality`,
-    eyeshadow: `[CRITICAL: NO TEXT IN IMAGE] Hero product shot of ${productName}, ${brandModifier}professional cosmetics photography, ${featuresText}, 8K quality`,
-    cleanser: `[CRITICAL: NO TEXT IN IMAGE] Hero product shot of ${productName}, ${brandModifier}professional skincare photography, ${featuresText}, 8K quality`,
-    other_beauty: `[CRITICAL: NO TEXT IN IMAGE] Hero product shot of ${productName}, ${brandModifier}professional beauty photography, ${featuresText}, 8K quality`,
+    cushion: `[CRITICAL: NO TEXT IN IMAGE] Hero product shot of ${productName}, ${brandModifier}professional cosmetics photography, ${featuresText}`,
+    eyeshadow: `[CRITICAL: NO TEXT IN IMAGE] Hero product shot of ${productName}, ${brandModifier}professional cosmetics photography, ${featuresText}`,
+    cleanser: `[CRITICAL: NO TEXT IN IMAGE] Hero product shot of ${productName}, ${brandModifier}professional skincare photography, ${featuresText}`,
+    other_beauty: `[CRITICAL: NO TEXT IN IMAGE] Hero product shot of ${productName}, ${brandModifier}professional beauty photography, ${featuresText}`,
   };
 
   return subcategoryPrompts[subCategory] || subcategoryPrompts.other_beauty;

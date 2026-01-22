@@ -163,7 +163,7 @@ export const SECTION_TEMPLATES: Record<ExtendedSectionType, SectionTemplate> = {
 - Premium cosmetic brand campaign style
 
 [TECHNICAL]
-- 8K resolution, photorealistic
+- Photorealistic
 - Professional commercial photography
 - Absolutely NO text, NO typography, NO letters
 - Text-free image only`,
@@ -1779,7 +1779,7 @@ ONLY result shot. NO mask wearing. NO application. NO text.`,
 - Minimalist with purposeful measurement indicators
 
 [QUALITY]
-- 8K resolution, sharp product details visible
+- Sharp product details visible
 - Even studio lighting, no harsh shadows
 - Clean edges for dimension line overlay
 - No text in image - measurements added as overlay`,
@@ -1824,7 +1824,7 @@ ONLY result shot. NO mask wearing. NO application. NO text.`,
 - Korean skincare detail page style
 
 [QUALITY]
-- 8K, product details crisp and clear
+- product details crisp and clear
 - No text - all specs as overlay`,
         suggestedImageCount: 1,
         overlayTextGuide: `제품 사양:
@@ -1857,7 +1857,7 @@ ONLY result shot. NO mask wearing. NO application. NO text.`,
 - Korean lip product detail page aesthetic
 
 [QUALITY]
-- 8K, applicator details visible
+- applicator details visible
 - No text in image`,
         suggestedImageCount: 1,
         overlayTextGuide: `제품 사양:
@@ -1891,7 +1891,7 @@ ONLY result shot. NO mask wearing. NO application. NO text.`,
 - Korean cushion detail page style
 
 [QUALITY]
-- 8K, compact details crisp
+- compact details crisp
 - No text in image`,
         suggestedImageCount: 1,
         overlayTextGuide: `제품 사양:
@@ -1922,7 +1922,7 @@ ONLY result shot. NO mask wearing. NO application. NO text.`,
 - Material/ingredient as hero element
 
 [QUALITY]
-- 8K, texture and detail clearly visible
+- texture and detail clearly visible
 - No text in image`,
     requiredVisuals: ['ingredient-visual', 'close-up-detail', 'headline-space'],
     optionalVisuals: ['ingredient-source', 'texture-comparison', 'scientific-element'],
@@ -1975,7 +1975,7 @@ ONLY result shot. NO mask wearing. NO application. NO text.`,
 - Professional beauty photography
 
 [QUALITY]
-- 8K photorealistic
+- Photorealistic
 - Skin texture visible
 - No text in image`,
         suggestedImageCount: 4,
@@ -2075,7 +2075,7 @@ ONLY lightweight feel concept. NO coverage. NO longevity. NO text.`,
 - Fresh, desirable, premium
 
 [QUALITY]
-- 8K macro photography
+- Macro photography
 - Ingredient and texture detail sharp
 - No text in image`,
         suggestedImageCount: 4,
@@ -2172,7 +2172,7 @@ ONLY lip care benefit. NO color ingredient. NO texture. NO text.`,
 - Ingredient as premium, effective hero
 
 [QUALITY]
-- 8K, ingredient and texture detail
+- ingredient and texture detail
 - No text in image`,
         suggestedImageCount: 4,
         overlayTextGuide: '각 이미지에 성분명 + 효능: 히알루론산 5중 복합체, 비타민C 10% 고농축, 병풀 추출물 진정 효과 등',
@@ -2267,7 +2267,7 @@ ONLY skin result. NO ingredients. NO texture. NO text.`,
 - Korean suncare detail page style
 
 [QUALITY]
-- 8K, clear detail
+- clear detail
 - No text in image`,
         suggestedImageCount: 3,
         overlayTextGuide: '각 이미지에 특징: SPF50+ PA++++ 자외선 차단, 무백탁 톤업, 워터프루프 등',
@@ -2526,7 +2526,7 @@ ONLY water resistance. NO UV concept. NO texture test. NO text.`,
 - Professional yet approachable
 
 [QUALITY]
-- 8K, clear demonstration visible
+- clear demonstration visible
 - No text burned in image`,
     requiredVisuals: ['product-in-use', 'step-demonstration', 'text-overlay-space'],
     optionalVisuals: ['hands-demonstration', 'application-tool', 'result-preview'],
@@ -2561,7 +2561,7 @@ Skincare STEP-BY-STEP APPLICATION for Korean beauty detail page.
 - Professional beauty photography
 
 [QUALITY]
-- 8K, skin texture and product visible
+- skin texture and product visible
 - No text in image
 
 CRITICAL: ONE step only. NO combining multiple steps. NO text.`,
@@ -2638,7 +2638,7 @@ Foundation/Cushion APPLICATION for Korean beauty detail page.
 - Professional yet relatable
 
 [QUALITY]
-- 8K, makeup application clearly visible
+- makeup application clearly visible
 - No text in image
 
 CRITICAL: ONE step only. NO combining multiple steps. NO text.`,
@@ -2711,7 +2711,7 @@ Lip product APPLICATION for Korean beauty detail page.
 - Clean, feminine background (pink, neutral)
 
 [QUALITY]
-- 8K macro photography
+- Macro photography
 - Lip texture and color clearly visible
 - No text in image
 
@@ -2785,7 +2785,7 @@ Sheet Mask APPLICATION for Korean beauty detail page.
 - Clean, spa-like setting
 
 [QUALITY]
-- 8K, clear demonstration
+- clear demonstration
 - No text in image
 
 CRITICAL: ONE step only. NO combining multiple steps. NO text.`,
@@ -2858,7 +2858,7 @@ Sunscreen APPLICATION for Korean beauty detail page.
 - Korean suncare routine
 
 [QUALITY]
-- 8K, texture and application visible
+- texture and application visible
 - No text in image
 
 CRITICAL: ONE step only. NO combining multiple steps. NO text.`,
@@ -2938,7 +2938,7 @@ ONLY neck/ears step. NO face application. NO text.`,
 - Clean, aesthetic, Instagram-worthy composition
 
 [QUALITY]
-- 8K photorealistic
+- Photorealistic
 - Soft, flattering lighting
 - No text in image`,
     requiredVisuals: ['environmental-context', 'lifestyle-props', 'mood-lighting', 'natural-placement'],
@@ -2980,7 +2980,7 @@ ONLY neck/ears step. NO face application. NO text.`,
 - Aspirational Korean skincare ritual
 
 [QUALITY]
-- 8K, editorial photography style
+- editorial photography style
 - Warm, soft lighting
 - No text in image`,
         suggestedImageCount: 1,
@@ -3010,7 +3010,7 @@ ONLY neck/ears step. NO face application. NO text.`,
 - Stylish Korean woman's lifestyle
 
 [QUALITY]
-- 8K, lifestyle photography
+- lifestyle photography
 - Bright, flattering lighting
 - No text in image`,
         suggestedImageCount: 1,
@@ -3040,7 +3040,7 @@ ONLY neck/ears step. NO face application. NO text.`,
 - Fresh, energetic feeling
 
 [QUALITY]
-- 8K, bright lifestyle photography
+- bright lifestyle photography
 - Sunny, vibrant lighting
 - No text in image`,
         suggestedImageCount: 1,
@@ -3080,7 +3080,7 @@ ONLY neck/ears step. NO face application. NO text.`,
 - Soft, warm color palette
 
 [QUALITY]
-- 8K, clean product photography
+- clean product photography
 - Even, soft lighting
 - No text burned in - space for overlay`,
     requiredVisuals: ['product-placement', 'qa-card-space', 'clean-background', 'organized-layout'],
@@ -3132,7 +3132,7 @@ ONLY neck/ears step. NO face application. NO text.`,
 - Soft, approachable color palette
 
 [QUALITY]
-- 8K, clean composition
+- clean composition
 - Soft, even lighting
 - No text in image`,
         suggestedImageCount: 1,
@@ -3174,7 +3174,7 @@ A. 아침, 저녁 세안 후 2회 사용을 권장합니다.`,
 - Soft, flattering colors
 
 [QUALITY]
-- 8K, beauty photography
+- beauty photography
 - Soft lighting
 - No text in image`,
         suggestedImageCount: 1,
@@ -3209,7 +3209,7 @@ A. 네, 리필 제품을 별도로 구매하실 수 있습니다.`,
 - Korean lip product Q&A style
 
 [QUALITY]
-- 8K, beauty photography
+- beauty photography
 - Soft, flattering lighting
 - No text in image`,
         suggestedImageCount: 1,
@@ -3265,7 +3265,7 @@ A. 밀착력이 좋아 묻어남이 적습니다.`,
 - Customer service contact area
 
 [QUALITY]
-- 8K, clean and professional
+- clean and professional
 - Product clearly identifiable
 - No text in image - all info as overlay
 - Grid-aligned layout for text overlay`,
@@ -3305,7 +3305,7 @@ A. 밀착력이 좋아 묻어남이 적습니다.`,
 - Professional product information aesthetic
 
 [QUALITY]
-- 8K, product clear and identifiable
+- product clear and identifiable
 - No text - overlay ready`,
         suggestedImageCount: 1,
         overlayTextGuide: `[제품 정보]
@@ -3347,7 +3347,7 @@ A. 밀착력이 좋아 묻어남이 적습니다.`,
 - Korean makeup product detail page
 
 [QUALITY]
-- 8K, professional
+- professional
 - No text in image`,
         suggestedImageCount: 1,
         overlayTextGuide: `[제품 정보]
@@ -3397,7 +3397,7 @@ A. 밀착력이 좋아 묻어남이 적습니다.`,
 - Warm yet professional atmosphere
 
 [QUALITY]
-- 8K, hero product photography
+- hero product photography
 - Beautiful, flattering lighting
 - No text in image - space for overlay`,
     requiredVisuals: ['product-hero', 'cta-space', 'brand-message-area', 'trust-elements'],
@@ -3437,7 +3437,7 @@ A. 밀착력이 좋아 묻어남이 적습니다.`,
 - Confident, inviting final impression
 
 [QUALITY]
-- 8K, premium product photography
+- premium product photography
 - Soft, luxurious lighting
 - No text in image`,
         suggestedImageCount: 1,
@@ -3470,7 +3470,7 @@ A. 밀착력이 좋아 묻어남이 적습니다.`,
 - Feminine empowerment
 
 [QUALITY]
-- 8K, glamour product photography
+- glamour product photography
 - Flattering, soft lighting
 - No text in image`,
         suggestedImageCount: 1,
@@ -3502,7 +3502,7 @@ A. 밀착력이 좋아 묻어남이 적습니다.`,
 - Fresh, healthy energy
 
 [QUALITY]
-- 8K, fresh product photography
+- fresh product photography
 - Bright, clean lighting
 - No text in image`,
         suggestedImageCount: 1,

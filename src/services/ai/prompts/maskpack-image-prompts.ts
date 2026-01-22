@@ -716,7 +716,7 @@ ${additionalIngredientsInfo ? `[ADDITIONAL: ${additionalIngredientsInfo}]` : ''}
 ${basePrompt}
 ${brandModifier}
 ${additionalModifiers}
-professional e-commerce detail page photography, high-end sheet mask advertising, 8K resolution, fresh natural spa mood, soft green and white color scheme, clean visual without any text overlay
+professional e-commerce detail page photography, high-end sheet mask advertising, fresh natural spa mood, soft green and white color scheme, clean visual without any text overlay
 `.trim().replace(/\n+/g, ', ').replace(/,\s*,/g, ',');
 
   // 네거티브 프롬프트 - 텍스트 금지 강화
