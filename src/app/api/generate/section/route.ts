@@ -293,10 +293,36 @@ export async function POST(request: NextRequest) {
           ];
         }
 
+        // ★★★ overlayTextPrompts 배열도 업데이트 (오버레이 텍스트 탭용)
+        const newOverlayTextPrompt = {
+          sectionType: validatedData.sectionType,
+          blockIndex: validatedData.sectionIndex,
+          overlayPrompt: result.overlayPrompt || '',
+          generatedOverlay: enhancedOverlayText,
+        };
+
+        const existingOverlayIndex = (existingDevPrompts.overlayTextPrompts || []).findIndex(
+          (p: { sectionType: string }) => p.sectionType === validatedData.sectionType
+        );
+
+        let updatedOverlayTextPrompts;
+        if (existingOverlayIndex >= 0) {
+          updatedOverlayTextPrompts = (existingDevPrompts.overlayTextPrompts || []).map(
+            (p: { sectionType: string }, idx: number) =>
+              idx === existingOverlayIndex ? newOverlayTextPrompt : p
+          );
+        } else {
+          updatedOverlayTextPrompts = [
+            ...(existingDevPrompts.overlayTextPrompts || []),
+            newOverlayTextPrompt,
+          ];
+        }
+
         // ★ 전체 업데이트된 devPrompts 저장
         updatedDevPrompts = {
           ...existingDevPrompts,
           sectionImagePrompts: updatedSectionImagePrompts,
+          overlayTextPrompts: updatedOverlayTextPrompts,
         };
 
         // DB 업데이트 (JSON 타입 호환을 위해 깊은 복사)
