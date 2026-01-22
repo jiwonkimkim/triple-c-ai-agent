@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -676,20 +677,41 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const contentJson = { elements };
 
     // Also create a projectVersion record for history tracking
+    // ★★★ devPrompts 유지를 위해 content도 함께 조회
     const latestProjectVersion = await prisma.projectVersion.findFirst({
       where: { projectId },
       orderBy: { versionNumber: 'desc' },
+      select: { versionNumber: true, content: true },
     });
     const newProjectVersionNumber = (latestProjectVersion?.versionNumber || 0) + 1;
 
-    // Create projectVersion for history
+    // ★★★ 기존 버전의 devPrompts 유지
+    const existingContent = latestProjectVersion?.content as {
+      devPrompts?: unknown;
+      hookMessage?: string;
+    } | null;
+    const preservedDevPrompts = existingContent?.devPrompts;
+    const preservedHookMessage = existingContent?.hookMessage;
+
+    // Create projectVersion for history (devPrompts 유지)
+    // ★★★ 기존 devPrompts와 hookMessage를 포함한 content 구성
+    const newVersionContent: Record<string, unknown> = {
+      sections: elements,
+    };
+    if (preservedHookMessage) {
+      newVersionContent.hookMessage = preservedHookMessage;
+    }
+    if (preservedDevPrompts) {
+      newVersionContent.devPrompts = preservedDevPrompts;
+    }
+
     await prisma.projectVersion.create({
       data: {
         projectId,
         versionNumber: newProjectVersionNumber,
         action: action,
         description: action === 'AUTO_SAVE' ? '자동 저장' : '수동 저장',
-        content: { sections: elements },
+        content: newVersionContent as unknown as Prisma.InputJsonValue,
         createdById: session.user.id,
       },
     });
