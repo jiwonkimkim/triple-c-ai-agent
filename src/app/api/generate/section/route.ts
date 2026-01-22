@@ -218,7 +218,15 @@ export async function POST(request: NextRequest) {
           sections?: unknown[];
           hookMessage?: string;
           devPrompts?: {
-            textGeneration?: { systemPrompt: string; userPrompt: string };
+            textGeneration?: {
+              systemPrompt: string;
+              userPrompt: string;
+              // ★ 생성된 결과 (훅 메시지 포함)
+              generatedResult?: {
+                hookMessage: string;
+                sections: Array<{ type: string; title?: string; body: string; imageUrl?: string }>;
+              };
+            };
             sectionImagePrompts?: Array<{
               sectionType: string;
               imagePrompt: string;
@@ -245,10 +253,16 @@ export async function POST(request: NextRequest) {
         });
 
         // 기존 devPrompts 가져오거나 새로 생성
+        // ★ 기존 content에서 hookMessage를 가져와서 generatedResult에 포함
+        const existingHookMessage = existingContent?.hookMessage || '';
         const existingDevPrompts = existingContent?.devPrompts || {
           textGeneration: {
             systemPrompt: '(이전 생성 시 저장되지 않음)',
             userPrompt: '(이전 생성 시 저장되지 않음)',
+            generatedResult: existingHookMessage ? {
+              hookMessage: existingHookMessage,
+              sections: [],
+            } : undefined,
           },
           sectionImagePrompts: [],
           overlayTextPrompts: [],
