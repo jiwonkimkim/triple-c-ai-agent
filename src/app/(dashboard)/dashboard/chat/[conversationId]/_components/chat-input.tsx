@@ -6,9 +6,15 @@
  */
 
 import { useState, useRef, KeyboardEvent } from 'react';
-import { Send, Paperclip, X, Image as ImageIcon } from 'lucide-react';
+import { Send, Paperclip, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+
+interface AttachmentItem {
+  url: string;
+  preview: string; // 미리보기용 (Base64 또는 URL)
+  isUploading?: boolean;
+}
 
 interface ChatInputProps {
   onSend: (content: string, attachments?: string[]) => void;
@@ -22,14 +28,18 @@ export function ChatInput({
   placeholder = '메시지를 입력하세요...',
 }: ChatInputProps) {
   const [message, setMessage] = useState('');
-  const [attachments, setAttachments] = useState<string[]>([]);
+  const [attachments, setAttachments] = useState<AttachmentItem[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSend = () => {
     if (!message.trim() && attachments.length === 0) return;
+    if (isUploading) return; // 업로드 중이면 전송 불가
 
-    onSend(message, attachments.length > 0 ? attachments : undefined);
+    // URL만 추출하여 전송
+    const urls = attachments.map(a => a.url).filter(url => url && !url.startsWith('data:'));
+    onSend(message, urls.length > 0 ? urls : undefined);
     setMessage('');
     setAttachments([]);
 
@@ -60,18 +70,66 @@ export function ChatInput({
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    // 파일 업로드 처리 (실제 구현에서는 서버에 업로드)
-    for (const file of Array.from(files)) {
-      if (file.type.startsWith('image/')) {
+    // 최대 5개 제한
+    const remainingSlots = 5 - attachments.length;
+    const filesToUpload = Array.from(files).slice(0, remainingSlots);
+
+    if (filesToUpload.length === 0) {
+      alert('이미지는 최대 5장까지 첨부할 수 있습니다.');
+      return;
+    }
+
+    setIsUploading(true);
+
+    for (const file of filesToUpload) {
+      if (!file.type.startsWith('image/')) continue;
+
+      // 먼저 미리보기용 Base64 생성
+      const preview = await new Promise<string>((resolve) => {
         const reader = new FileReader();
-        reader.onload = (event) => {
-          if (event.target?.result) {
-            setAttachments((prev) => [...prev, event.target!.result as string]);
-          }
-        };
+        reader.onload = (event) => resolve(event.target?.result as string);
         reader.readAsDataURL(file);
+      });
+
+      // 임시로 업로딩 상태로 추가
+      const tempId = Date.now().toString();
+      setAttachments((prev) => [...prev, { url: tempId, preview, isUploading: true }]);
+
+      try {
+        // R2에 업로드
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('업로드 실패');
+        }
+
+        const data = await response.json();
+
+        if (data.success && data.url) {
+          // 업로드 성공 - URL로 교체
+          setAttachments((prev) =>
+            prev.map((a) =>
+              a.url === tempId ? { url: data.url, preview: data.url, isUploading: false } : a
+            )
+          );
+        } else {
+          throw new Error(data.error || '업로드 실패');
+        }
+      } catch (error) {
+        console.error('이미지 업로드 실패:', error);
+        // 실패한 항목 제거
+        setAttachments((prev) => prev.filter((a) => a.url !== tempId));
+        alert('이미지 업로드에 실패했습니다.');
       }
     }
+
+    setIsUploading(false);
 
     // 입력 초기화
     if (fileInputRef.current) {
@@ -94,13 +152,19 @@ export function ChatInput({
               className="relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border border-gray-200"
             >
               <img
-                src={attachment}
+                src={attachment.preview}
                 alt={`첨부 ${index + 1}`}
                 className="w-full h-full object-cover"
               />
+              {attachment.isUploading && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                  <Loader2 className="w-4 h-4 text-white animate-spin" />
+                </div>
+              )}
               <button
                 onClick={() => removeAttachment(index)}
-                className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+                disabled={attachment.isUploading}
+                className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors disabled:opacity-50"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -126,9 +190,13 @@ export function ChatInput({
           size="icon"
           className="flex-shrink-0 h-10 w-10 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100"
           onClick={() => fileInputRef.current?.click()}
-          disabled={disabled}
+          disabled={disabled || isUploading || attachments.length >= 5}
         >
-          <Paperclip className="w-5 h-5" />
+          {isUploading ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <Paperclip className="w-5 h-5" />
+          )}
         </Button>
 
         {/* 텍스트 입력 */}
@@ -155,7 +223,7 @@ export function ChatInput({
         <Button
           type="button"
           onClick={handleSend}
-          disabled={disabled || (!message.trim() && attachments.length === 0)}
+          disabled={disabled || isUploading || (!message.trim() && attachments.filter(a => !a.isUploading && a.url).length === 0)}
           className={cn(
             'flex-shrink-0 h-10 w-10 rounded-full p-0',
             'bg-gradient-to-r from-blue-500 to-indigo-500',
