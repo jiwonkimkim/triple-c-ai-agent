@@ -513,88 +513,121 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
               return (
                 <ScrollArea className="h-[70vh]">
                   <div className="space-y-6 pr-4">
-                    {sectionsWithOverlay.map((section, index) => (
-                      <div key={index} className="rounded-lg border-2 p-5 bg-muted/20">
-                        <div className="flex items-center gap-3 mb-4">
-                          <Badge className="text-sm px-3 py-1">{section.sectionType}</Badge>
-                          <span className="text-sm text-muted-foreground">
-                            오버레이 텍스트 프롬프트
-                          </span>
-                        </div>
+                    {sectionsWithOverlay.map((section, index) => {
+                      // overlayTextPrompts에서 해당 섹션의 생성된 JSON 결과 찾기
+                      const overlayResult = prompts.overlayTextPrompts?.find(
+                        o => o.sectionType === section.sectionType
+                      );
+                      const generatedJson = overlayResult?.generatedOverlay
+                        ? JSON.stringify(overlayResult.generatedOverlay, null, 2)
+                        : null;
 
-                        <div className="grid grid-cols-[300px_1fr] gap-6">
-                          {/* 왼쪽: 생성된 이미지 */}
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-2">
-                              <ImageIcon className="h-5 w-5 text-green-600" />
-                              <span className="text-sm font-semibold text-green-600">생성된 이미지</span>
-                            </div>
-                            {section.generatedImageUrl ? (
-                              <div className="relative h-[350px] rounded-lg border-2 overflow-hidden bg-white shadow-sm">
-                                <Image
-                                  src={section.generatedImageUrl}
-                                  alt={`${section.sectionType} 생성 이미지`}
-                                  fill
-                                  className="object-contain"
-                                />
+                      return (
+                        <div key={index} className="rounded-lg border-2 p-5 bg-muted/20">
+                          <div className="flex items-center gap-3 mb-4">
+                            <Badge className="text-sm px-3 py-1">{section.sectionType}</Badge>
+                            <span className="text-sm text-muted-foreground">
+                              오버레이 텍스트 프롬프트
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-[280px_1fr_1fr] gap-4">
+                            {/* 왼쪽: 생성된 이미지 */}
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2">
+                                <ImageIcon className="h-5 w-5 text-green-600" />
+                                <span className="text-sm font-semibold text-green-600">생성된 이미지</span>
                               </div>
-                            ) : (
-                              <div className="h-[350px] rounded-lg border-2 bg-muted/30 flex items-center justify-center">
-                                <div className="text-center">
-                                  <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-                                  <p className="text-sm text-muted-foreground">이미지 없음</p>
+                              {section.generatedImageUrl ? (
+                                <div className="relative h-[350px] rounded-lg border-2 overflow-hidden bg-white shadow-sm">
+                                  <Image
+                                    src={section.generatedImageUrl}
+                                    alt={`${section.sectionType} 생성 이미지`}
+                                    fill
+                                    className="object-contain"
+                                  />
                                 </div>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* 오른쪽: 오버레이 프롬프트만 표시 */}
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-2">
-                              <Code className="h-5 w-5 text-amber-600" />
-                              <span className="text-sm font-semibold text-amber-600">사용된 프롬프트</span>
+                              ) : (
+                                <div className="h-[350px] rounded-lg border-2 bg-muted/30 flex items-center justify-center">
+                                  <div className="text-center">
+                                    <ImageIcon className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+                                    <p className="text-sm text-muted-foreground">이미지 없음</p>
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                            <ScrollArea className="h-[350px] rounded-lg border-2 border-amber-200 bg-amber-50 dark:bg-amber-950/20 p-4">
-                              <div className="space-y-4">
-                                {/* 오버레이 텍스트 프롬프트 */}
-                                {section.overlayTextPrompt && (
-                                  <div className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                      <Badge variant="outline" className="text-xs bg-amber-100 text-amber-700 border-amber-300 px-2 py-1">
-                                        ✏️ 오버레이 텍스트 프롬프트
-                                      </Badge>
-                                      <CopyButton text={section.overlayTextPrompt} />
-                                    </div>
-                                    <div className="rounded-lg border bg-amber-50 dark:bg-amber-950/30 p-3">
-                                      <pre className="text-[11px] whitespace-pre-wrap font-mono text-amber-900 dark:text-amber-200 leading-relaxed">
-                                        {section.overlayTextPrompt}
-                                      </pre>
-                                    </div>
-                                  </div>
-                                )}
 
-                                {/* 오버레이 디자인 가이드 */}
-                                {section.overlayGuidePrompt && (
-                                  <div className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                      <Badge variant="outline" className="text-xs bg-orange-100 text-orange-700 border-orange-300 px-2 py-1">
-                                        🎨 오버레이 디자인 가이드
-                                      </Badge>
-                                      <CopyButton text={section.overlayGuidePrompt} />
-                                    </div>
-                                    <div className="rounded-lg border bg-orange-50 dark:bg-orange-950/30 p-3">
-                                      <pre className="text-[11px] whitespace-pre-wrap font-mono text-orange-900 dark:text-orange-200 leading-relaxed">
-                                        {section.overlayGuidePrompt}
-                                      </pre>
-                                    </div>
-                                  </div>
-                                )}
+                            {/* 중앙: 오버레이 프롬프트 */}
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2">
+                                <Code className="h-5 w-5 text-amber-600" />
+                                <span className="text-sm font-semibold text-amber-600">사용된 프롬프트</span>
                               </div>
-                            </ScrollArea>
+                              <ScrollArea className="h-[350px] rounded-lg border-2 border-amber-200 bg-amber-50 dark:bg-amber-950/20 p-4">
+                                <div className="space-y-4">
+                                  {/* 오버레이 텍스트 프롬프트 */}
+                                  {section.overlayTextPrompt && (
+                                    <div className="space-y-2">
+                                      <div className="flex items-center justify-between">
+                                        <Badge variant="outline" className="text-xs bg-amber-100 text-amber-700 border-amber-300 px-2 py-1">
+                                          ✏️ 오버레이 텍스트 프롬프트
+                                        </Badge>
+                                        <CopyButton text={section.overlayTextPrompt} />
+                                      </div>
+                                      <div className="rounded-lg border bg-amber-50 dark:bg-amber-950/30 p-3">
+                                        <pre className="text-[11px] whitespace-pre-wrap font-mono text-amber-900 dark:text-amber-200 leading-relaxed">
+                                          {section.overlayTextPrompt}
+                                        </pre>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* 오버레이 디자인 가이드 */}
+                                  {section.overlayGuidePrompt && (
+                                    <div className="space-y-2">
+                                      <div className="flex items-center justify-between">
+                                        <Badge variant="outline" className="text-xs bg-orange-100 text-orange-700 border-orange-300 px-2 py-1">
+                                          🎨 오버레이 디자인 가이드
+                                        </Badge>
+                                        <CopyButton text={section.overlayGuidePrompt} />
+                                      </div>
+                                      <div className="rounded-lg border bg-orange-50 dark:bg-orange-950/30 p-3">
+                                        <pre className="text-[11px] whitespace-pre-wrap font-mono text-orange-900 dark:text-orange-200 leading-relaxed">
+                                          {section.overlayGuidePrompt}
+                                        </pre>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </ScrollArea>
+                            </div>
+
+                            {/* 오른쪽: 생성된 JSON 결과 */}
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2">
+                                <FileText className="h-5 w-5 text-green-600" />
+                                <span className="text-sm font-semibold text-green-600">생성된 JSON 결과</span>
+                                {generatedJson && <CopyButton text={generatedJson} />}
+                              </div>
+                              {generatedJson ? (
+                                <ScrollArea className="h-[350px] rounded-lg border-2 border-green-200 bg-green-50 dark:bg-green-950/20 p-4">
+                                  <pre className="text-[11px] whitespace-pre-wrap font-mono text-green-900 dark:text-green-200 leading-relaxed">
+                                    {generatedJson}
+                                  </pre>
+                                </ScrollArea>
+                              ) : (
+                                <div className="h-[350px] rounded-lg border-2 border-dashed border-muted-foreground/30 bg-muted/30 flex items-center justify-center">
+                                  <div className="text-center">
+                                    <FileText className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
+                                    <p className="text-sm text-muted-foreground">JSON 결과 없음</p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </ScrollArea>
               );
