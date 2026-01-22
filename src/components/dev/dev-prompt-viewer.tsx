@@ -529,7 +529,7 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                             </span>
                           </div>
 
-                          <div className="grid grid-cols-[280px_1fr_1fr] gap-4">
+                          <div className="grid grid-cols-[280px_1fr_1fr] gap-4 items-start">
                             {/* 왼쪽: 생성된 이미지 */}
                             <div className="space-y-3">
                               <div className="flex items-center gap-2">
