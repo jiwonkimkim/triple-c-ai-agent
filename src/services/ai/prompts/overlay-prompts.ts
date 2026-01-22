@@ -141,6 +141,7 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
       y: string;       // 0.0 - 100.0 사이 실수값
       fontSize: string;  // 정수값
       fontWeight: 'normal' | 'bold';
+      color: string;   // HEX 색상값 (예: #333333)
       textAlign: 'left' | 'center' | 'right';
     }[];
   }[];
@@ -150,10 +151,10 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: '{브랜드명}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
-          { text: '{제품라인 영문}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
-          { text: 'NEW {제품명 한글}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
-          { text: '{브랜드 슬로건}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
+          { text: '{브랜드명}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', color: 'HEX 색상값', textAlign: 'center' },
+          { text: '{제품라인 영문}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', color: 'HEX 색상값', textAlign: 'center' },
+          { text: 'NEW {제품명 한글}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', color: 'HEX 색상값', textAlign: 'center' },
+          { text: '{브랜드 슬로건}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', color: 'HEX 색상값', textAlign: 'center' },
         ],
       },
     ],
@@ -163,17 +164,17 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: '{핵심 효능 한 문장}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
-          { text: '#{키워드1} #{키워드2} #{키워드3}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
-          { text: 'HYALURONIC ACID', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
-          { text: '48H 보습 지속', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
+          { text: '{핵심 효능 한 문장}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', color: 'HEX 색상값', textAlign: 'center' },
+          { text: '#{키워드1} #{키워드2} #{키워드3}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', color: 'HEX 색상값', textAlign: 'center' },
+          { text: 'HYALURONIC ACID', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', color: 'HEX 색상값', textAlign: 'center' },
+          { text: '48H 보습 지속', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', color: 'HEX 색상값', textAlign: 'center' },
         ],
       },
       {
         texts: [
-          { text: 'Point 01', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
-          { text: '{첫 번째 핵심 특징}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
-          { text: '{특징 상세 설명}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
+          { text: 'Point 01', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', color: 'HEX 색상값', textAlign: 'center' },
+          { text: '{첫 번째 핵심 특징}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', color: 'HEX 색상값', textAlign: 'center' },
+          { text: '{특징 상세 설명}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', color: 'HEX 색상값', textAlign: 'center' },
         ],
       },
     ],
@@ -183,14 +184,14 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: 'CLINICAL TEST', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
-          { text: '{핵심 효과 한 문장}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
-          { text: '98%', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
-          { text: '만족도', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
-          { text: '24H', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
-          { text: '지속력', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
-          { text: '2.5배', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
-          { text: '흡수력', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
+          { text: 'CLINICAL TEST', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', color: 'HEX 색상값', textAlign: 'center' },
+          { text: '{핵심 효과 한 문장}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', color: 'HEX 색상값', textAlign: 'center' },
+          { text: '98%', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', color: 'HEX 색상값', textAlign: 'center' },
+          { text: '만족도', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', color: 'HEX 색상값', textAlign: 'center' },
+          { text: '24H', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', color: 'HEX 색상값', textAlign: 'center' },
+          { text: '지속력', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', color: 'HEX 색상값', textAlign: 'center' },
+          { text: '2.5배', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', color: 'HEX 색상값', textAlign: 'center' },
+          { text: '흡수력', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', color: 'HEX 색상값', textAlign: 'center' },
         ],
       },
     ],
@@ -200,14 +201,14 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: '3 STEP', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
-          { text: '{간단한 사용법 요약}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
+          { text: '3 STEP', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', color: 'HEX 색상값', textAlign: 'center' },
+          { text: '{간단한 사용법 요약}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', color: 'HEX 색상값', textAlign: 'center' },
         ],
       },
       {
         texts: [
-          { text: 'STEP 1', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
-          { text: '{동작 설명}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
+          { text: 'STEP 1', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', color: 'HEX 색상값', textAlign: 'center' },
+          { text: '{동작 설명}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', color: 'HEX 색상값', textAlign: 'center' },
         ],
       },
     ],
@@ -217,9 +218,9 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: 'Color Chart', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
-          { text: '{라인업명}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
-          { text: 'PINK FLAKE 핑크 플레이크', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
+          { text: 'Color Chart', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', color: 'HEX 색상값', textAlign: 'center' },
+          { text: '{라인업명}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', color: 'HEX 색상값', textAlign: 'center' },
+          { text: 'PINK FLAKE 핑크 플레이크', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', color: 'HEX 색상값', textAlign: 'center' },
         ],
       },
     ],
@@ -229,10 +230,10 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: 'KEY INGREDIENT', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
-          { text: '{핵심 성분명}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
-          { text: '95%', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
-          { text: '{성분 효능 설명}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
+          { text: 'KEY INGREDIENT', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', color: 'HEX 색상값', textAlign: 'center' },
+          { text: '{핵심 성분명}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', color: 'HEX 색상값', textAlign: 'center' },
+          { text: '95%', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', color: 'HEX 색상값', textAlign: 'center' },
+          { text: '{성분 효능 설명}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', color: 'HEX 색상값', textAlign: 'center' },
         ],
       },
     ],
@@ -242,9 +243,9 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: 'TEXTURE', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
-          { text: '{텍스처 특징}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
-          { text: '{감촉} · {발림성} · {마무리감}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
+          { text: 'TEXTURE', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', color: 'HEX 색상값', textAlign: 'center' },
+          { text: '{텍스처 특징}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', color: 'HEX 색상값', textAlign: 'center' },
+          { text: '{감촉} · {발림성} · {마무리감}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', color: 'HEX 색상값', textAlign: 'center' },
         ],
       },
     ],
@@ -254,8 +255,8 @@ const SECTION_TEXT_EXAMPLES: Record<string, {
     examples: [
       {
         texts: [
-          { text: '{구매 유도 핵심 문구}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', textAlign: 'center' },
-          { text: '{한정 혜택/이벤트}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', textAlign: 'center' },
+          { text: '{구매 유도 핵심 문구}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'bold', color: 'HEX 색상값', textAlign: 'center' },
+          { text: '{한정 혜택/이벤트}', x: '0.0 - 100.0', y: '0.0 - 100.0', fontSize: '정수값', fontWeight: 'normal', color: 'HEX 색상값', textAlign: 'center' },
         ],
       },
     ],
