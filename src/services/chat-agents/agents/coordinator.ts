@@ -198,6 +198,14 @@ export async function coordinatorAgent(
 
     // === 확인/승인 ===
     case 'CONFIRM':
+      // ★ 이미지 관련 정보가 없으면 먼저 SUGGESTER로 라우팅
+      if (collectedData.productImages === undefined || collectedData.imageModel === undefined) {
+        console.log('[Coordinator] CONFIRM but image info missing, routing to SUGGESTER');
+        return {
+          currentAgent: 'SUGGESTER',
+          nextAction: { type: 'continue', targetAgent: 'SUGGESTER' as AgentType },
+        };
+      }
       // 기획이 완료되었으면 생성으로
       if (collectedData.plannedSections && collectedData.plannedSections.length > 0) {
         return {
@@ -253,6 +261,23 @@ export async function coordinatorAgent(
     // === 정보 제공 / 생성 요청 ===
     case 'PROVIDE_INFO':
     case 'CREATE':
+      // ★ 이미지 관련 입력인지 체크 (기획안이 있는 상태에서)
+      const imageKeywords = ['이미지', '사진', '이미지도', '사진도', '이미지가', '사진이', '이미지 있', '사진 있'];
+      const isImageRelatedInput = imageKeywords.some(k => userContent.includes(k));
+
+      if (isImageRelatedInput) {
+        // 이미지 업로드 대기 상태로 전환
+        console.log('[Coordinator] ★ Image-related input detected, routing to SUGGESTER for image upload');
+        return {
+          currentAgent: 'SUGGESTER',
+          nextAction: { type: 'continue', targetAgent: 'SUGGESTER' as AgentType },
+          collectedData: {
+            ...collectedData,
+            waitingForImageUpload: true,
+          },
+        };
+      }
+
       // 이미 카테고리/서브카테고리가 설정되어 있으면 Intake로 바로 라우팅
       if (collectedData.category && collectedData.subCategory) {
         return {
@@ -375,9 +400,17 @@ export async function coordinatorAgent(
   const missingFields = getMissingFields(collectedData);
   const dataComplete = isDataComplete(collectedData);
 
+  // ★★★ productImages가 undefined면 먼저 이미지 업로드 여부 질문 ★★★
+  if (dataComplete && collectedData.productImages === undefined) {
+    console.log('[Coordinator] ★ productImages not set, routing to SUGGESTER for image upload question');
+    return {
+      currentAgent: 'SUGGESTER',
+      nextAction: { type: 'continue', targetAgent: 'SUGGESTER' as AgentType },
+    };
+  }
+
   // ★★★ imageModel이 없으면 Suggester로 라우팅 (기획 전에 이미지 품질 선택) ★★★
-  // brandProfileId와 productImages도 체크하여 완전한 정보 수집
-  if (dataComplete && !collectedData.imageModel) {
+  if (dataComplete && collectedData.productImages !== undefined && !collectedData.imageModel) {
     console.log('[Coordinator] ★ imageModel not set, routing to SUGGESTER for image quality selection');
     return {
       currentAgent: 'SUGGESTER',
@@ -385,11 +418,20 @@ export async function coordinatorAgent(
     };
   }
 
-  // 기획 완료 후 생성 대기 상태
-  if (dataComplete && collectedData.plannedSections) {
+  // 기획 완료 후 생성 대기 상태 - 이미지 정보가 완료된 경우만
+  if (dataComplete && collectedData.plannedSections && collectedData.imageModel) {
     return {
       currentAgent: 'PLANNER',
       nextAction: { type: 'await_input' },
+    };
+  }
+
+  // 기획 완료됐지만 이미지 정보가 없으면 SUGGESTER로
+  if (dataComplete && collectedData.plannedSections && (collectedData.productImages === undefined || !collectedData.imageModel)) {
+    console.log('[Coordinator] ★ Planning done but image info missing, routing to SUGGESTER');
+    return {
+      currentAgent: 'SUGGESTER',
+      nextAction: { type: 'continue', targetAgent: 'SUGGESTER' as AgentType },
     };
   }
 
