@@ -112,6 +112,7 @@ export interface SectionImagePrompt {
 
 export interface OrchestrationResult {
   hookMessage: string;
+  hookMessagePrompt?: string;  // ★ 훅 메시지 생성에 사용된 프롬프트 (개발자 모드용)
   sections: {
     id: string;
     type: string;
@@ -1571,57 +1572,69 @@ export async function orchestrateDetailPageGeneration(
     console.log('[Orchestration] ★ Skipping visualReference generation (I2I mode uses own templates)');
   }
 
-  // 1. 텍스트 콘텐츠 생성 (훅 메시지 + 섹션 카피)
-  const systemPrompt = buildEnhancedSystemPrompt(input.copyLength, input.brandContext, input.category);
-  const userPrompt = buildEnhancedUserPrompt(input);
+  // 1. ★★★ 훅 메시지만 생성 (섹션 body/title은 생성하지 않음 - 오버레이 텍스트가 대체)
+  // 훅 메시지는 사용자에게 "추천 메시지"로 제시됨
+  const generateHookMessageOnly = async (): Promise<{ message: string; prompt: string }> => {
+    const brandName = input.brandContext?.name || '';
+    const brandTone = input.brandContext?.toneAndManner || '';
+    const brandPrefix = brandName ? `${brandName} ` : '';
 
-  const generateTextContent = async (versionIndex: number) => {
-    const variationPrompt = versionIndex === 1
-      ? '\n\nIMPORTANT: Create a distinctly different version with alternative messaging approach, different tone, or unique angle.'
-      : '';
+    // ★ 훅 메시지 생성 프롬프트 (devPrompts에 저장용)
+    const hookPrompt = `당신은 한국 올리브영/화해 스타일의 상세페이지 카피라이터입니다.
+
+제품 정보:
+- 제품명: ${input.productName}
+- 카테고리: ${input.category}
+- 핵심 특징: ${input.keyFeatures.join(', ')}
+- 타겟 고객: ${input.targetAudience}
+${brandName ? `- 브랜드: ${brandName}` : ''}
+${brandTone ? `- 브랜드 톤: ${brandTone}` : ''}
+
+위 제품에 대해 고객의 시선을 사로잡는 훅 메시지(hook message)를 1개 작성해주세요.
+
+요구사항:
+- 15-30자 내외의 짧고 임팩트 있는 문장
+- 제품의 핵심 가치를 한 문장으로 전달
+- 이모지 사용 금지
+- 과장 표현 ("완전", "대박") 금지
+
+훅 메시지만 반환하세요. 다른 텍스트 없이 훅 메시지 문장만 출력하세요.`;
 
     if (!gemini) {
       // Mock 데이터 반환 (브랜드 컨텍스트 반영)
-      const brandName = input.brandContext?.name || '';
-      const brandTone = input.brandContext?.toneAndManner || '';
-      const brandPrefix = brandName ? `${brandName} ` : '';
-
-      const keyFeatures = input.keyFeatures || ['프리미엄 품질'];
-      return {
-        hookMessage: brandName
-          ? `${brandPrefix}${input.productName} - ${input.targetAudience || '고객'}를 위한 ${brandTone || '완벽한'} 선택`
-          : `${input.productName} - ${input.targetAudience || '고객'}를 위한 완벽한 선택`,
-        sections: [
-          { type: 'MAIN', title: `${brandPrefix}${input.productName}`, body: keyFeatures[0] || '프리미엄 품질' },
-          { type: 'HERO', title: `${brandPrefix}${input.productName} 소개`, body: `${input.targetAudience || '고객'}를 위해 설계된 ${brandPrefix}${input.productName}입니다.${brandTone ? ` ${brandTone}의 철학을 담았습니다.` : ''}` },
-          { type: 'FEATURES', title: '주요 특징', body: keyFeatures.map((f, i) => `${i + 1}. ${f}`).join('\n') },
-          { type: 'SOCIAL_PROOF', title: '고객 후기', body: `"${brandPrefix}${input.productName}을 사용한 후 정말 만족합니다!" - 실제 사용자` },
-          { type: 'HOW_TO_USE', title: '사용 방법', body: `1. ${brandPrefix}${input.productName}을 준비합니다.\n2. 설정을 완료합니다.\n3. 사용을 시작하세요!` },
-          { type: 'FAQ', title: '자주 묻는 질문', body: `Q: ${brandPrefix}${input.productName}의 주요 특징은?\nA: ${keyFeatures[0] || '뛰어난 품질'}입니다.` },
-        ],
-      };
-    }
-
-    const response = await gemini.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: `${systemPrompt}\n\n${userPrompt}${variationPrompt}\n\nCRITICAL: Do NOT use any emojis (😊, ✨, 💕, 🌟, ❤️, etc.). Write plain text only.\n\nReturn only the JSON object, no additional text or markdown.`,
-    });
-
-    const text = response.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-
-    // JSON 파싱
-    let jsonStr = text;
-    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (jsonMatch) {
-      jsonStr = jsonMatch[1];
+      const mockMessage = brandName
+        ? `${brandPrefix}${input.productName} - ${input.targetAudience || '고객'}를 위한 ${brandTone || '완벽한'} 선택`
+        : `${input.productName} - ${input.targetAudience || '고객'}를 위한 완벽한 선택`;
+      return { message: mockMessage, prompt: hookPrompt };
     }
 
     try {
-      return JSON.parse(jsonStr);
-    } catch {
-      console.error('[Orchestration] Failed to parse text content, using fallback');
-      return null;
+      const response = await gemini.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: hookPrompt,
+      });
+
+      const text = response.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+      // 따옴표나 불필요한 문자 제거
+      const message = text.replace(/^["']|["']$/g, '').trim() || `${input.productName} - 최고의 선택`;
+      return { message, prompt: hookPrompt };
+    } catch (error) {
+      console.error('[Orchestration] Failed to generate hook message:', error);
+      const fallbackMessage = brandName
+        ? `${brandPrefix}${input.productName} - ${input.targetAudience || '고객'}를 위한 선택`
+        : `${input.productName} - ${input.targetAudience || '고객'}를 위한 선택`;
+      return { message: fallbackMessage, prompt: hookPrompt };
     }
+  };
+
+  // ★ 기존 generateTextContent는 훅 메시지만 포함하도록 단순화
+  const generateTextContent = async (_versionIndex: number) => {
+    const hookResult = await generateHookMessageOnly();
+    return {
+      hookMessage: hookResult.message,
+      hookMessagePrompt: hookResult.prompt,  // ★ 프롬프트도 반환 (devPrompts용)
+      sections: [], // ★ 섹션 텍스트는 더 이상 생성하지 않음 (오버레이 텍스트가 대체)
+    };
   };
 
   // 2. 텍스트 콘텐츠 생성 (1버전만 - UI에서 버전 선택 기능 없으므로)
@@ -1930,12 +1943,13 @@ CRITICAL INSTRUCTION FOR DIVERSE BACKGROUNDS:
 
   // 4. 결과 조합 (다중 이미지 프롬프트 포함)
   // ★★★ 항상 sectionTypes 기준으로 빌드 (imagePromptsMap 키와 일치 보장!)
-  const buildResult = (textContent: { hookMessage: string; sections: Array<{ type: string; title?: string; body: string }> } | null): OrchestrationResult => {
+  const buildResult = (textContent: { hookMessage: string; hookMessagePrompt?: string; sections: Array<{ type: string; title?: string; body: string }> } | null): OrchestrationResult => {
     const hookMessage = textContent?.hookMessage || `${input.productName} - 최고의 선택`;
 
     // ★★★ sectionTypes 기준으로 순회하여 이미지 프롬프트 키 매칭 보장
     return {
       hookMessage,
+      hookMessagePrompt: textContent?.hookMessagePrompt,  // ★ 훅 메시지 생성 프롬프트 (devPrompts용)
       sections: sectionTypes.map((type, index) => {
         const sectionPrompts = imagePromptsMap.get(type) || [];
         const firstPrompt = sectionPrompts[0];

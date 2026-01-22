@@ -180,60 +180,42 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
 
           <TabsContent value="text" className="mt-4">
             <div className="grid grid-cols-2 gap-4">
-              {/* 왼쪽: 생성된 결과 */}
+              {/* 왼쪽: 생성된 훅 메시지 결과 */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2 mb-2">
                   <FileText className="h-4 w-4 text-green-600" />
-                  <h3 className="text-sm font-semibold text-green-600">생성된 결과</h3>
+                  <h3 className="text-sm font-semibold text-green-600">추천 훅 메시지</h3>
                 </div>
                 {prompts.textGeneration.generatedResult ? (
-                  <ScrollArea className="h-[500px] rounded-md border bg-green-50 dark:bg-green-950/20 p-4">
-                    <div className="space-y-4">
-                      {/* Hook Message */}
-                      <div className="p-3 bg-white dark:bg-gray-900 rounded-lg border">
-                        <Badge className="mb-2 bg-green-600">Hook Message</Badge>
-                        <p className="text-sm font-medium">
-                          {prompts.textGeneration.generatedResult.hookMessage}
-                        </p>
-                      </div>
-                      {/* Sections */}
-                      {prompts.textGeneration.generatedResult.sections.map((section, idx) => (
-                        <div key={idx} className="p-3 bg-white dark:bg-gray-900 rounded-lg border">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Badge variant="outline">{section.type}</Badge>
-                            {section.title && (
-                              <span className="text-xs text-muted-foreground">{section.title}</span>
-                            )}
-                          </div>
-                          <p className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                            {section.body}
-                          </p>
-                        </div>
-                      ))}
+                  <div className="rounded-md border bg-green-50 dark:bg-green-950/20 p-4">
+                    <div className="p-4 bg-white dark:bg-gray-900 rounded-lg border">
+                      <Badge className="mb-3 bg-green-600">Hook Message</Badge>
+                      <p className="text-lg font-medium">
+                        {prompts.textGeneration.generatedResult.hookMessage}
+                      </p>
                     </div>
-                  </ScrollArea>
+                    <p className="mt-3 text-xs text-muted-foreground">
+                      * 이 훅 메시지는 AI가 제품 정보를 기반으로 생성한 추천 문구입니다.
+                    </p>
+                  </div>
                 ) : (
-                  <div className="h-[500px] rounded-md border bg-muted/30 flex items-center justify-center">
-                    <p className="text-sm text-muted-foreground">생성된 결과 없음</p>
+                  <div className="rounded-md border bg-muted/30 p-8 flex items-center justify-center">
+                    <p className="text-sm text-muted-foreground">생성된 훅 메시지 없음</p>
                   </div>
                 )}
               </div>
 
-              {/* 오른쪽: 프롬프트 */}
+              {/* 오른쪽: 훅 메시지 생성 프롬프트 */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2 mb-2">
                   <Code className="h-4 w-4 text-blue-600" />
-                  <h3 className="text-sm font-semibold text-blue-600">사용된 프롬프트</h3>
+                  <h3 className="text-sm font-semibold text-blue-600">훅 메시지 생성 프롬프트</h3>
                 </div>
-                <ScrollArea className="h-[500px]">
+                <ScrollArea className="h-[400px]">
                   <div className="space-y-4 pr-2">
                     <PromptContent
-                      title="System Prompt"
+                      title="훅 메시지 프롬프트"
                       content={prompts.textGeneration.systemPrompt}
-                    />
-                    <PromptContent
-                      title="User Prompt"
-                      content={prompts.textGeneration.userPrompt}
                     />
                   </div>
                 </ScrollArea>
@@ -337,7 +319,7 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between">
                                     <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700 border-purple-300 px-2 py-1">
-                                      🎭 오케스트레이션 시나리오
+                                      🎬 오케스트레이션 시나리오
                                     </Badge>
                                     <CopyButton text={section.orchestrationPrompt} />
                                   </div>

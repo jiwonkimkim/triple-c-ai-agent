@@ -363,10 +363,33 @@ export async function generateDetailPage(
 
     // Mock 모드에서도 프롬프트 정보 포함 (개발자 참고용) - 생성 결과 포함
     if (includeDevPrompts && mockVersions.length > 0) {
+      // ★ 훅 메시지 생성 프롬프트 (Mock용)
+      const brandName = input.brandContext?.name || '';
+      const brandTone = input.brandContext?.toneAndManner || '';
+      const mockHookPrompt = `당신은 한국 올리브영/화해 스타일의 상세페이지 카피라이터입니다.
+
+제품 정보:
+- 제품명: ${input.productName}
+- 카테고리: ${input.category}
+- 핵심 특징: ${input.keyFeatures.join(', ')}
+- 타겟 고객: ${input.targetAudience}
+${brandName ? `- 브랜드: ${brandName}` : ''}
+${brandTone ? `- 브랜드 톤: ${brandTone}` : ''}
+
+위 제품에 대해 고객의 시선을 사로잡는 훅 메시지(hook message)를 1개 작성해주세요.
+
+요구사항:
+- 15-30자 내외의 짧고 임팩트 있는 문장
+- 제품의 핵심 가치를 한 문장으로 전달
+- 이모지 사용 금지
+- 과장 표현 ("완전", "대박") 금지
+
+훅 메시지만 반환하세요. 다른 텍스트 없이 훅 메시지 문장만 출력하세요.`;
+
       devPrompts = {
         textGeneration: {
-          systemPrompt: buildEnhancedSystemPrompt(input.copyLength, input.brandContext, input.category),
-          userPrompt: buildEnhancedUserPrompt(input),
+          systemPrompt: mockHookPrompt,
+          userPrompt: '(훅 메시지 전용 - 단일 프롬프트 사용)',
           generatedResult: {
             hookMessage: mockVersions[0].hookMessage,
             sections: mockVersions[0].sections.map((s) => ({
@@ -841,10 +864,14 @@ export async function generateDetailPage(
         });
       }
 
+      // ★ 훅 메시지 프롬프트 사용 (orchestration에서 반환된 실제 프롬프트)
+      const hookMessagePrompt = orchestrationResults[0]?.hookMessagePrompt || '';
+
       devPrompts = {
         textGeneration: {
-          systemPrompt: buildEnhancedSystemPrompt(input.copyLength, input.brandContext, input.category),
-          userPrompt: buildEnhancedUserPrompt(input),
+          // ★ 훅 메시지만 생성하므로 동일한 프롬프트를 사용
+          systemPrompt: hookMessagePrompt,
+          userPrompt: '(훅 메시지 전용 - 단일 프롬프트 사용)',
           // 생성된 텍스트 결과 포함
           generatedResult: {
             hookMessage: versions[0].hookMessage,
