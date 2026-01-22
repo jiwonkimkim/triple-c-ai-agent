@@ -41,6 +41,10 @@ export interface DevPromptInfo {
   };
   sectionImagePrompts: Array<{
     sectionType: string;
+    // ★★★ [0] 메타 정보 (UI 태그 표시용) ★★★
+    generationMode?: 'T2I' | 'I2I';    // 생성 모드 (Text-to-Image / Image-to-Image)
+    sectionTypeOriginal?: string;      // 원본 섹션 타입 (예: FEATURES_01)
+    sectionTypeMapped?: string;        // 매핑된 섹션 타입 (예: FEATURES)
     // ★★★ [1] 섹션별 프롬프트 ★★★
     sectionBasePrompt?: string;        // 섹션별 기본 프롬프트 (buildSharedSectionPrompt - MAIN, HERO, FEATURES 등)
     orchestrationPrompt?: string;      // 오케스트레이션 AI가 생성한 시나리오 프롬프트
@@ -250,8 +254,28 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                 <div className="space-y-8 pr-4">
                   {prompts.sectionImagePrompts.map((section, index) => (
                     <div key={index} className="rounded-lg border-2 p-5 bg-muted/20">
-                      <div className="flex items-center gap-3 mb-4">
+                      <div className="flex items-center gap-3 mb-4 flex-wrap">
                         <Badge className="text-sm px-3 py-1">{section.sectionType}</Badge>
+                        {/* ★ 생성 모드 태그 (T2I/I2I) */}
+                        {section.generationMode && (
+                          <Badge
+                            variant="outline"
+                            className={`text-xs px-2 py-0.5 ${
+                              section.generationMode === 'T2I'
+                                ? 'bg-blue-100 text-blue-700 border-blue-300'
+                                : 'bg-green-100 text-green-700 border-green-300'
+                            }`}
+                          >
+                            {section.generationMode === 'T2I' ? '🎨 Text-to-Image' : '🖼️ Image-to-Image'}
+                          </Badge>
+                        )}
+                        {/* ★ 섹션 타입 매핑 태그 (원본 → 매핑이 다른 경우만) */}
+                        {section.sectionTypeOriginal && section.sectionTypeMapped &&
+                         section.sectionTypeOriginal !== section.sectionTypeMapped && (
+                          <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                            📍 {section.sectionTypeOriginal} → {section.sectionTypeMapped}
+                          </Badge>
+                        )}
                         <span className="text-sm text-muted-foreground">
                           섹션 이미지 #{index + 1}
                         </span>
@@ -300,6 +324,9 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                                     </Badge>
                                     <CopyButton text={section.sectionBasePrompt} />
                                   </div>
+                                  <p className="text-[10px] text-muted-foreground">
+                                    섹션 타입(MAIN/HERO/FEATURES 등)에 따른 레이아웃, 구도, 스타일 지침
+                                  </p>
                                   <div className="rounded-lg border bg-blue-50 dark:bg-blue-950/30 p-3 max-h-[120px] overflow-y-auto">
                                     <pre className="text-[11px] whitespace-pre-wrap font-mono text-blue-900 dark:text-blue-200 leading-relaxed">
                                       {section.sectionBasePrompt}
@@ -317,6 +344,9 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                                     </Badge>
                                     <CopyButton text={section.orchestrationPrompt} />
                                   </div>
+                                  <p className="text-[10px] text-muted-foreground">
+                                    AI가 생성한 이미지 시나리오 (제품 특징, 분위기, 연출 컨셉)
+                                  </p>
                                   <div className="rounded-lg border bg-purple-50 dark:bg-purple-950/30 p-3 max-h-[120px] overflow-y-auto">
                                     <pre className="text-[11px] whitespace-pre-wrap font-mono text-purple-900 dark:text-purple-200 leading-relaxed">
                                       {section.orchestrationPrompt}
@@ -334,6 +364,9 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                                     </Badge>
                                     <CopyButton text={section.i2iSystemPrompt} />
                                   </div>
+                                  <p className="text-[10px] text-muted-foreground">
+                                    제품 이미지 기반 생성 시 제품 형태 유지 및 재배치 규칙
+                                  </p>
                                   <div className="rounded-lg border bg-green-50 dark:bg-green-950/30 p-3 max-h-[100px] overflow-y-auto">
                                     <pre className="text-[11px] whitespace-pre-wrap font-mono text-green-900 dark:text-green-200 leading-relaxed">
                                       {section.i2iSystemPrompt}
@@ -351,6 +384,9 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                                     </Badge>
                                     <CopyButton text={section.categoryPrompt} />
                                   </div>
+                                  <p className="text-[10px] text-muted-foreground">
+                                    뷰티 서브카테고리(스킨케어/립/선케어 등)별 특화 이미지 스타일
+                                  </p>
                                   <div className="rounded-lg border bg-pink-50 dark:bg-pink-950/30 p-3 max-h-[150px] overflow-y-auto">
                                     <pre className="text-[11px] whitespace-pre-wrap font-mono text-pink-900 dark:text-pink-200 leading-relaxed">
                                       {section.categoryPrompt}
@@ -368,6 +404,9 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                                     </Badge>
                                     <CopyButton text={section.overlayTextPrompt} />
                                   </div>
+                                  <p className="text-[10px] text-muted-foreground">
+                                    이미지 위에 표시할 마케팅 텍스트 생성 지침 (위치, 스타일, 내용)
+                                  </p>
                                   <div className="rounded-lg border bg-amber-50 dark:bg-amber-950/30 p-3 max-h-[100px] overflow-y-auto">
                                     <pre className="text-[11px] whitespace-pre-wrap font-mono text-amber-900 dark:text-amber-200 leading-relaxed">
                                       {section.overlayTextPrompt}
@@ -380,10 +419,13 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between">
                                     <Badge variant="outline" className="text-xs bg-orange-100 text-orange-700 border-orange-300 px-2 py-1">
-                                      🎨 오버레이 디자인 가이드 (공통)
+                                      🎨 오버레이 디자인 가이드
                                     </Badge>
                                     <CopyButton text={section.overlayGuidePrompt} />
                                   </div>
+                                  <p className="text-[10px] text-muted-foreground">
+                                    오버레이 텍스트 디자인 규칙 (폰트 크기, 색상, 배치 가이드)
+                                  </p>
                                   <div className="rounded-lg border bg-orange-50 dark:bg-orange-950/30 p-3 max-h-[100px] overflow-y-auto">
                                     <pre className="text-[11px] whitespace-pre-wrap font-mono text-orange-900 dark:text-orange-200 leading-relaxed">
                                       {section.overlayGuidePrompt}
@@ -392,7 +434,7 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                                 </div>
                               )}
 
-                              {/* ★★★ [3] 공통 프롬프트 (Flash 모델 전용) ★★★ */}
+                              {/* ★★★ [4] 공통 프롬프트 (Flash 모델 전용) ★★★ */}
                               {section.noTextReinforcement && (
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between">
@@ -401,6 +443,9 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                                     </Badge>
                                     <CopyButton text={section.noTextReinforcement} />
                                   </div>
+                                  <p className="text-[10px] text-muted-foreground">
+                                    이미지 내 텍스트 생성 방지 강화 프롬프트 (Flash 모델은 텍스트 생성 경향이 있음)
+                                  </p>
                                   <div className="rounded-lg border bg-red-50 dark:bg-red-950/30 p-3 max-h-[100px] overflow-y-auto">
                                     <pre className="text-[11px] whitespace-pre-wrap font-mono text-red-900 dark:text-red-200 leading-relaxed">
                                       {section.noTextReinforcement}
@@ -409,15 +454,18 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                                 </div>
                               )}
 
-                              {/* ★★★ [4] 레거시 프롬프트 (이전 호환성) ★★★ */}
+                              {/* ★★★ [5] 레거시 프롬프트 (이전 호환성) ★★★ */}
                               {section.fixedPrompt && (
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between">
                                     <Badge variant="outline" className="text-xs bg-slate-100 text-slate-700 border-slate-300 px-2 py-1">
-                                      🔒 고정 프롬프트 (레거시)
+                                      🔒 고정 프롬프트
                                     </Badge>
                                     <CopyButton text={section.fixedPrompt} />
                                   </div>
+                                  <p className="text-[10px] text-muted-foreground">
+                                    섹션 기본 프롬프트 (레거시 호환성용 - sectionBasePrompt 참조)
+                                  </p>
                                   <div className="rounded-lg border bg-slate-50 dark:bg-slate-950/30 p-3 max-h-[100px] overflow-y-auto">
                                     <pre className="text-[11px] whitespace-pre-wrap font-mono text-slate-700 dark:text-slate-300 leading-relaxed">
                                       {section.fixedPrompt}
@@ -430,10 +478,13 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between">
                                     <Badge variant="outline" className="text-xs bg-slate-100 text-slate-700 border-slate-300 px-2 py-1">
-                                      🔄 동적 프롬프트 (레거시)
+                                      🔄 동적 프롬프트
                                     </Badge>
                                     <CopyButton text={section.dynamicPrompt} />
                                   </div>
+                                  <p className="text-[10px] text-muted-foreground">
+                                    오케스트레이션 시나리오 (레거시 호환성용 - orchestrationPrompt 참조)
+                                  </p>
                                   <div className="rounded-lg border bg-slate-50 dark:bg-slate-950/30 p-3 max-h-[100px] overflow-y-auto">
                                     <pre className="text-[11px] whitespace-pre-wrap font-mono text-slate-700 dark:text-slate-300 leading-relaxed">
                                       {section.dynamicPrompt}
