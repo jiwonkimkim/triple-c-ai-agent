@@ -21,13 +21,13 @@ jobs:
         if: github.event_name == 'push' && github.actor != 'joycha3110' && !contains(github.event.head_commit.message, '[auto-deploy]')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ORIGINAL_MSG: ${{ github.event.head_commit.message }}
         run: |
           echo "🚀 Triggering Vercel deploy for ${{ github.actor }}..."
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
-          ORIGINAL_MSG="${{ github.event.head_commit.message }}"
-          # 멀티라인 메시지에서 첫 줄만 추출
+          # 멀티라인 메시지에서 첫 줄만 추출 (환경변수로 안전하게 전달)
           FIRST_LINE=$(echo "$ORIGINAL_MSG" | head -n 1)
           git commit --allow-empty -m "chore: deploy for ${{ github.actor }} [auto-deploy] $FIRST_LINE"
           git push
