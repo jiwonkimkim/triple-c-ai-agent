@@ -236,14 +236,29 @@ export async function POST(request: NextRequest) {
           };
         } | null;
 
-        // 새 섹션 프롬프트 데이터
+        // 새 섹션 프롬프트 데이터 (★★★ 모든 프롬프트 구성요소 저장!)
+        const promptComponents = result.image.promptComponents;
         const newSectionPrompt = {
           sectionType: validatedData.sectionType,
-          fixedPrompt: result.image.promptComponents?.fixedPrompt,
-          dynamicPrompt: result.image.promptComponents?.dynamicPrompt,
+          // ★★★ [1] 섹션별 프롬프트 ★★★
+          sectionBasePrompt: promptComponents?.sectionBasePrompt,
+          orchestrationPrompt: promptComponents?.orchestrationPrompt,
+          i2iSystemPrompt: promptComponents?.i2iSystemPrompt,
+          // ★★★ [2] 카테고리별 프롬프트 (뷰티 서브카테고리) ★★★
+          categoryPrompt: promptComponents?.categoryPrompt,
+          subCategory: project.subCategory,
+          // ★★★ [3] 오버레이 텍스트 관련 프롬프트 ★★★
+          overlayTextPrompt: promptComponents?.overlayTextPrompt,
+          overlayGuidePrompt: promptComponents?.overlayGuidePrompt,
+          // ★★★ [4] 공통 프롬프트 (Flash 모델 전용) ★★★
+          noTextReinforcement: promptComponents?.noTextReinforcement,
+          // ★★★ [5] 레거시 (이전 호환성) ★★★
+          fixedPrompt: promptComponents?.fixedPrompt,
+          dynamicPrompt: promptComponents?.dynamicPrompt,
+          // ★★★ 최종 결합 프롬프트 ★★★
           imagePrompt: [
-            result.image.promptComponents?.fixedPrompt,
-            result.image.promptComponents?.dynamicPrompt,
+            promptComponents?.fixedPrompt,
+            promptComponents?.dynamicPrompt,
           ].filter(Boolean).join('\n\n---\n\n') || `${validatedData.sectionType} section image`,
           generatedImageUrl: uploadResult.url,
           overlayText: enhancedOverlayText,  // ★ 브랜드 폰트/로고 포함
