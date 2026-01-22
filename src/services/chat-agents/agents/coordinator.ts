@@ -248,6 +248,14 @@ export async function coordinatorAgent(
 
     // === 옵션 선택 ===
     case 'SELECT_OPTION':
+      // ★ 이미지 업로드 대기 중이면 바로 SUGGESTER로 라우팅 (이미지 업로드 UI 표시)
+      if (collectedData.waitingForImageUpload === true) {
+        console.log('[Coordinator] SELECT_OPTION with waitingForImageUpload, routing to SUGGESTER');
+        return {
+          currentAgent: 'SUGGESTER',
+          nextAction: { type: 'continue', targetAgent: 'SUGGESTER' as AgentType },
+        };
+      }
       // 선택된 옵션 처리는 messages/route.ts에서 처리 후
       // 여기서는 다음 단계로 라우팅 → SUGGESTER가 다음 질문 결정
       if (collectedData.category && collectedData.subCategory) {

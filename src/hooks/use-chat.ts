@@ -263,7 +263,7 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
         return;
       }
 
-      // 사용자 선택 메시지 추가
+      // 사용자 선택 메시지 추가 (UI 표시용)
       const userMessage: ChatMessage = {
         id: `user_${Date.now()}`,
         role: 'user',
@@ -274,9 +274,9 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
       setMessages((prev) => [...prev, userMessage]);
       setError(null);
 
-      // SSE 스트림 시작
+      // SSE 스트림 시작 - content를 보내지 않아서 백엔드에서 "[선택] {optionId}" 형식으로 저장
+      // 이렇게 하면 인텐트 파서가 SELECT_OPTION으로 인식함
       await startStream(`/api/chat/${conversationId}/messages`, {
-        content: optionLabel,
         selectedOptionId: optionId,
       });
     },

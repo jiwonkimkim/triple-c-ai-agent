@@ -244,9 +244,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
                     askingField,
                     selectedOptionId,
                     selectionUpdate,
-                    subCategoryValue: selectionUpdate.subCategory,
-                    categoryValue: updatedCollectedData.category,
-                    fullCollectedData: JSON.stringify(updatedCollectedData).slice(0, 500),
+                    waitingForImageUpload: selectionUpdate.waitingForImageUpload,
+                    productImages: updatedCollectedData.productImages,
                   });
                 }
               }

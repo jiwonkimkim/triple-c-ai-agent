@@ -237,7 +237,7 @@ export interface ProjectCollectedData {
   // Step 1: 프로젝트 기본 정보
   title?: string;
   description?: string;
-  brandProfileId?: string;
+  brandProfileId?: string | null;  // null: 브랜드 없이 진행 선택함
 
   // Step 2: 제품 정보
   productName?: string;

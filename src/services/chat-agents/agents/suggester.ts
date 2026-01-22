@@ -110,7 +110,7 @@ export async function suggesterAgent(
     message = '상세페이지의 텍스트 분량은 어느 정도가 좋을까요?';
     askingField = 'copyLength';
   }
-  // 4. 브랜드 선택 (brandProfileId가 명시적으로 설정되지 않은 경우)
+  // 4. 브랜드 선택 (brandProfileId가 명시적으로 설정되지 않은 경우 - undefined만 체크, null은 "브랜드 없이 진행" 선택)
   else if (collectedData.brandProfileId === undefined) {
     // 사용자의 브랜드 목록 조회
     try {
@@ -238,7 +238,8 @@ export function processSuggesterSelection(
     case 'copyLength':
       return { copyLength: selectedOption.value as any };
     case 'brandProfileId':
-      return { brandProfileId: selectedOption.value || undefined };
+      // "브랜드 없이 진행" 선택 시 value가 ''이므로 null로 설정 (undefined가 아닌 null)
+      return { brandProfileId: selectedOption.value || null };
     case 'productImageChoice':
       // 이미지 업로드 선택: upload면 대기 상태로, skip이면 빈 배열로 진행
       if (selectedOption.value === 'upload') {
