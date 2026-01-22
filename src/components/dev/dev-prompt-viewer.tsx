@@ -263,8 +263,8 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                       <div className="grid grid-cols-[300px_1fr_1fr] gap-6 items-start">
                         {/* 왼쪽: 생성된 이미지 */}
                         <div className="space-y-3">
-                          <div className="flex items-center gap-2">
-                            <ImageIcon className="h-5 w-5 text-green-600" />
+                          <div className="flex items-center gap-2 h-5">
+                            <ImageIcon className="h-5 w-5 text-green-600 shrink-0" />
                             <span className="text-sm font-semibold text-green-600">생성된 이미지</span>
                           </div>
                           {section.generatedImageUrl ? (
@@ -288,8 +288,8 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
 
                         {/* 중앙: 개별 프롬프트 구성요소 */}
                         <div className="space-y-3">
-                          <div className="flex items-center gap-2">
-                            <Code className="h-5 w-5 text-purple-600" />
+                          <div className="flex items-center gap-2 h-5">
+                            <Code className="h-5 w-5 text-purple-600 shrink-0" />
                             <span className="text-sm font-semibold text-purple-600">프롬프트 구성요소</span>
                           </div>
                           <ScrollArea className="h-[400px] rounded-lg border-2 border-purple-200 bg-purple-50 dark:bg-purple-950/20 p-4">
@@ -470,10 +470,9 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
 
                             return (
                               <>
-                                <div className="flex items-center gap-2">
-                                  <Code className="h-5 w-5 text-blue-600" />
+                                <div className="flex items-center gap-2 h-5">
+                                  <Code className="h-5 w-5 text-blue-600 shrink-0" />
                                   <span className="text-sm font-semibold text-blue-600">최종 결합 프롬프트</span>
-                                  <span className="text-[10px] text-muted-foreground">(오버레이 제외)</span>
                                   <CopyButton text={imageOnlyPrompt} />
                                 </div>
                                 <ScrollArea className="h-[400px] rounded-lg border-2 border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 p-4">
