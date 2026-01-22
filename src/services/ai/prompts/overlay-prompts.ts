@@ -782,9 +782,11 @@ ${section === 'SOCIAL_PROOF' ? `- 해당 증거 유형에 맞는 텍스트 (예:
 - 타겟: ${targetAudience}
 - 핵심 특징: ${keyFeatures.join(', ')}
 
-## 섹션: ${section}
-- 목적: ${sectionGuide.purpose}
-- 텍스트 패턴: ${textExamples.pattern}
+## 이 이미지의 역할
+${sectionGuide.purpose}
+
+## 텍스트 스타일 참고
+${textExamples.pattern}
 ${blockContext}${imageAnalysisContext}
 ## 카테고리 스타일 (${categoryKey})
 - 톤: ${categoryStyle.tone}
