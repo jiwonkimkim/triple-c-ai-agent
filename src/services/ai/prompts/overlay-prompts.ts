@@ -863,45 +863,45 @@ Design with free text colors that match the image.
 function getSectionSpecificGuide(section: SectionType, categoryKey: string): string {
   switch (section) {
     case 'MAIN':
-      return `## ★ MAIN 섹션 특화 가이드
+      return `## ★ 썸네일/대표 이미지 텍스트 가이드
 - NEW / {X}세대 / 진화된 표현 활용 가능
 - 브랜드 아이덴티티를 살리는 영문 라인명
 - 태그라인은 하단에 작게 배치`;
 
     case 'FEATURES':
-      return `## ★ FEATURES 섹션 특화 가이드
+      return `## ★ 제품 특징 텍스트 가이드
 - **넘버링 패턴 활용**: Point 01, Point 02, Point 03 또는 1. 2. 3. 형식
 - **영문 특징명 + 한글 설명** 조합 권장
 - 예: "1. Glacé Glow" + "맑고 영롱한 광채"
 - 해시태그 형식도 가능: #탱글 #영롱 #지속력`;
 
     case 'SOCIAL_PROOF':
-      return `## ★ SOCIAL_PROOF 섹션 특화 가이드
+      return `## ★ 효과 입증/신뢰 텍스트 가이드
 - BENEFIT, CLINICAL TEST, PROVEN RESULT 등 영문 타이틀
 - "{X}주 테스트 완료" 형식의 신뢰성 강조
 - 수치는 크게, 설명은 작게 배치`;
 
     case 'HOW_TO_USE':
-      return `## ★ HOW TO USE 섹션 특화 가이드
+      return `## ★ 사용법 텍스트 가이드
 - "{X} STEP" 형식 권장 (예: 4 STEP)
 - 각 단계는 간결한 동작 설명
 - STEP 1, STEP 2... 또는 Step 1, Step 2... 형식`;
 
     case 'PRODUCT_LINEUP':
-      return `## ★ PRODUCT_LINEUP 섹션 특화 가이드 (${categoryKey === 'makeup' ? '메이크업' : '일반'})
+      return `## ★ 제품 라인업 텍스트 가이드 (${categoryKey === 'makeup' ? '메이크업' : '일반'})
 ${categoryKey === 'makeup' ? `- Color Chart, SHADES 등 영문 타이틀
 - 컬러명: 영문 + 한글 조합 (예: "PINK FLAKE 핑크 플레이크")
 - 컬러 스와치 옆에 컬러명 배치` : `- 제품 라인업 소개
 - 용량/타입별 구분 표시`}`;
 
     case 'INGREDIENT':
-      return `## ★ INGREDIENT 섹션 특화 가이드
+      return `## ★ 성분 소개 텍스트 가이드
 - KEY INGREDIENT, FORMULA 등 영문 타이틀
 - 핵심 성분명은 크게 강조
 - 함량 수치 (XX%, XXXppm 등) 포함`;
 
     case 'TEXTURE':
-      return `## ★ TEXTURE 섹션 특화 가이드
+      return `## ★ 텍스처/질감 텍스트 가이드
 - TEXTURE, DESIGN 등 영문 타이틀
 - 감각적 표현 적극 활용: ${SENSORY_KEYWORDS[categoryKey]?.texture.slice(0, 3).join(', ')}
 - 발림성, 마무리감 설명`;
