@@ -282,8 +282,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
             updatedCollectedData = {
               ...updatedCollectedData,
               productImages: newImages,
+              waitingForImageUpload: false,  // 이미지 업로드 완료
             };
             console.log('[Chat] Product images updated:', newImages.length);
+          }
+
+          // 이미지 없이 메시지만 보낸 경우에도 대기 상태 해제 (스킵 처리)
+          if (updatedCollectedData.waitingForImageUpload && content && !attachments?.length) {
+            // "건너뛰기", "스킵", "없어" 등의 키워드 체크
+            const skipKeywords = ['스킵', '건너뛰', '없어', '없습니다', '넘어가', '다음', 'skip', 'next'];
+            const isSkipRequest = skipKeywords.some(keyword => content.toLowerCase().includes(keyword));
+            if (isSkipRequest) {
+              updatedCollectedData = {
+                ...updatedCollectedData,
+                productImages: [],
+                waitingForImageUpload: false,
+              };
+              console.log('[Chat] Image upload skipped by user');
+            }
           }
 
           // Agent 상태 초기화

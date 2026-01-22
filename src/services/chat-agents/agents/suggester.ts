@@ -143,7 +143,32 @@ export async function suggesterAgent(
       };
     }
   }
-  // 5. 제품 이미지 업로드 여부 (productImages가 명시적으로 설정되지 않은 경우)
+  // 5. 이미지 업로드 대기 중인 경우 - 이미지 업로드 UI 표시
+  else if (collectedData.waitingForImageUpload === true) {
+    uiType = 'image_upload';
+    message = '하단의 클립 버튼을 눌러 제품 이미지를 첨부해주세요. (최대 5장)\n\n이미지를 첨부한 후 전송 버튼을 눌러주세요.';
+    askingField = 'imageUpload';
+
+    // 선택지 메시지 생성
+    const assistantMessage: ChatMessage = {
+      id: generateMessageId(),
+      role: 'assistant',
+      content: message,
+      agentType: 'SUGGESTER',
+      metadata: {
+        uiType,
+        askingField,
+      },
+      createdAt: new Date(),
+    };
+
+    return {
+      messages: [assistantMessage],
+      currentAgent: 'SUGGESTER',
+      nextAction: { type: 'await_input' },
+    };
+  }
+  // 6. 제품 이미지 업로드 여부 (productImages가 명시적으로 설정되지 않은 경우)
   else if (collectedData.productImages === undefined) {
     options = IMAGE_UPLOAD_OPTIONS;
     message = '제품 이미지가 있으신가요? 이미지가 있으면 더 좋은 상세페이지를 만들 수 있어요.';
@@ -215,9 +240,14 @@ export function processSuggesterSelection(
     case 'brandProfileId':
       return { brandProfileId: selectedOption.value || undefined };
     case 'productImageChoice':
-      // 이미지 업로드 선택: upload/skip 모두 빈 배열로 설정하여 다음 단계로 진행
-      // 실제 이미지는 첨부 시 messages/route.ts에서 productImages에 추가됨
-      return { productImages: [] };
+      // 이미지 업로드 선택: upload면 대기 상태로, skip이면 빈 배열로 진행
+      if (selectedOption.value === 'upload') {
+        // 이미지 업로드 대기 상태로 전환
+        return { waitingForImageUpload: true };
+      } else {
+        // 이미지 없이 진행
+        return { productImages: [], waitingForImageUpload: false };
+      }
     case 'imageModel':
       return { imageModel: selectedOption.value as any };
     default:

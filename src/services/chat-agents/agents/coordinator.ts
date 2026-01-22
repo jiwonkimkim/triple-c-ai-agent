@@ -346,6 +346,15 @@ export async function coordinatorAgent(
 
   // 7. 상태 기반 라우팅
 
+  // ★ 이미지 업로드 대기 중인 경우 → Suggester로 라우팅
+  if (collectedData.waitingForImageUpload === true) {
+    console.log('[Coordinator] ★ Waiting for image upload, routing to SUGGESTER');
+    return {
+      currentAgent: 'SUGGESTER',
+      nextAction: { type: 'continue', targetAgent: 'SUGGESTER' as AgentType },
+    };
+  }
+
   // Discovery 요청인지 다시 확인
   // ★ 이미 subCategory가 설정되어 있으면 Intake로 라우팅 (제품 추천)
   if (isDiscoveryRequest(userContent)) {

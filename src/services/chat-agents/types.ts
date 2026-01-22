@@ -251,6 +251,7 @@ export interface ProjectCollectedData {
   productImages?: string[];
   imageModel?: ImageModel;
   generateImages?: boolean;  // true: AI 이미지 생성, false: 업로드 이미지 직접 사용
+  waitingForImageUpload?: boolean;  // 이미지 업로드 대기 중
 
   // URL
   productUrl?: string;

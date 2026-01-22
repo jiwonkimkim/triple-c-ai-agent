@@ -6,7 +6,7 @@
  */
 
 import { cn } from '@/lib/utils';
-import { Bot, User, Loader2 } from 'lucide-react';
+import { Bot, User, Loader2, ImagePlus, Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ChatMessage } from '@/hooks/use-chat';
 import ReactMarkdown from 'react-markdown';
@@ -114,6 +114,27 @@ export function MessageItem({ message, onSelectOption, isDisabled }: MessageItem
                     <span>{section.name}</span>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* 이미지 업로드 안내 UI */}
+          {message.metadata?.uiType === 'image_upload' && (
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <div className="flex flex-col items-center gap-3 py-4">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+                  <ImagePlus className="w-8 h-8 text-blue-500" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-medium text-gray-700">이미지 첨부 대기 중</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    하단의 <Paperclip className="w-3 h-3 inline mx-0.5" /> 버튼을 눌러 이미지를 첨부하세요
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-full">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                  <span className="text-xs text-blue-600">최대 5장까지 첨부 가능</span>
+                </div>
               </div>
             </div>
           )}
