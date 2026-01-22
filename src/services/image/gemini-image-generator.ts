@@ -652,6 +652,10 @@ export interface GeminiGeneratedImage {
   overlayText?: OverlayTextContent;
   // ★★★ 개발자 모드용 개별 프롬프트 구성요소 (분류별) ★★★
   promptComponents?: {
+    // [0] 메타 정보 (UI 태그 표시용)
+    generationMode?: 'T2I' | 'I2I';    // 생성 모드 (Text-to-Image / Image-to-Image)
+    sectionTypeOriginal?: string;      // 원본 섹션 타입 (예: FEATURES_01)
+    sectionTypeMapped?: string;        // 매핑된 섹션 타입 (예: FEATURES)
     // [1] 섹션별 프롬프트
     sectionBasePrompt?: string;        // 섹션별 기본 프롬프트 (buildSharedSectionPrompt - MAIN, HERO, FEATURES 등)
     orchestrationPrompt?: string;      // 오케스트레이션 AI가 생성한 시나리오
@@ -1123,8 +1127,13 @@ ${imagePrompt}`;
       // [3] 공통 프롬프트 (Flash 모델 전용)
       noTextReinforcement: isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : undefined,  // Flash 모델용 텍스트 금지 강화
       // [4] ★★★ DEV 모드 표시용 (fixedPrompt/dynamicPrompt 매핑)
-      fixedPrompt: `[T2I ${sectionType} → ${mappedSectionType}]\n\n${sectionBasePrompt}`,
-      dynamicPrompt: `[Orchestration Context]\n${(mappedSectionType !== 'MAIN' && imagePrompt) ? imagePrompt : '(MAIN 섹션 - 오케스트레이션 없음)'}\n\n[Overlay Text Prompt]\n${overlayTextPrompt}`,
+      // [0] 메타 정보 (UI 태그 표시용)
+      generationMode: 'T2I',
+      sectionTypeOriginal: sectionType,
+      sectionTypeMapped: mappedSectionType,
+      // [5] 레거시 (프롬프트 텍스트 - 태그 없이)
+      fixedPrompt: sectionBasePrompt,
+      dynamicPrompt: (mappedSectionType !== 'MAIN' && imagePrompt) ? imagePrompt : undefined,
     },
   };
 }
@@ -1703,11 +1712,17 @@ export async function generateSectionImageFromProduct(
       ...textBgImages[0],
       revisedPrompt: textBgFinalPrompt,
       promptComponents: {
+        // [0] 메타 정보 (UI 태그 표시용)
+        generationMode: 'I2I',  // I2I 함수 내부지만 TEXT_BACKGROUND는 실제로 T2I처럼 동작
+        sectionTypeOriginal: sectionType,
+        sectionTypeMapped: 'TEXT_BACKGROUND',
+        // [3] 오버레이 관련
         overlayTextPrompt: textBgOverlayPrompt,
-        overlayGuidePrompt: buildCreativeOverlayGuide('16:9', model),  // 모델별 해상도 포함
+        overlayGuidePrompt: buildCreativeOverlayGuide('16:9', model),
         noTextReinforcement: isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : undefined,
-        fixedPrompt: `[TEXT BACKGROUND - ${sectionType}]\n${colorPrompt}\n\n--negative ${negativePrompt}`,
-        dynamicPrompt: `[Direct color prompt - no product, no buildSharedSectionPrompt]`,
+        // [5] 레거시 (프롬프트 텍스트 - 태그 없이)
+        fixedPrompt: `${colorPrompt}\n\n--negative ${negativePrompt}`,
+        dynamicPrompt: undefined,
       },
     };
   }
@@ -1820,6 +1835,10 @@ ${overlayTextRequest}`;
     // ★★★ 개발자 모드용: 개별 프롬프트 구성요소 (UI에서 분리 표시) ★★★
     promptComponents: {
       ...images[0].promptComponents,
+      // [0] 메타 정보 (UI 태그 표시용)
+      generationMode: 'I2I',
+      sectionTypeOriginal: sectionType,
+      sectionTypeMapped: mappedSectionType,
       // [1] 섹션별 프롬프트
       sectionBasePrompt: basePrompt,                          // 섹션별 기본 프롬프트 (MAIN, HERO, FEATURES 등)
       orchestrationPrompt: scenarioPrompt || undefined,       // 오케스트레이션 AI 생성 시나리오
@@ -1829,7 +1848,7 @@ ${overlayTextRequest}`;
       overlayGuidePrompt: buildCreativeOverlayGuide(aspectRatio, model),  // 오버레이 디자인 가이드 (모델별 해상도 포함)
       // [3] 공통 프롬프트 (Flash 모델 전용)
       noTextReinforcement: isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : undefined,  // Flash 모델용 텍스트 금지 강화
-      // [4] 레거시 (이전 호환성)
+      // [4] 레거시 (이전 호환성 - 태그 없이)
       fixedPrompt: fixedPromptParts.join('\n\n'),
       dynamicPrompt: dynamicPromptParts.join('\n\n'),
     },
@@ -1986,14 +2005,18 @@ export async function generateSectionImageWithOverlay(
         ...textBgImages[0],
         revisedPrompt: textBgFinalPrompt,
         promptComponents: {
+          // [0] 메타 정보 (UI 태그 표시용)
+          generationMode: 'T2I',  // 텍스트 배경은 항상 T2I 모드
+          sectionTypeOriginal: sectionType,
+          sectionTypeMapped: 'TEXT_BACKGROUND',
           // 텍스트 배경 섹션은 sectionBasePrompt 없음 (제품 관련 내용 방지)
           // orchestrationPrompt도 없음 (색상 프롬프트만 사용)
           overlayTextPrompt: textBgOverlayPrompt,
-          overlayGuidePrompt: buildCreativeOverlayGuide('16:9', model),  // 모델별 해상도 포함
+          overlayGuidePrompt: buildCreativeOverlayGuide('16:9', model),
           noTextReinforcement: isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : undefined,
-          // 텍스트 배경 전용 프롬프트 (DEV 모드 표시용)
-          fixedPrompt: `[TEXT BACKGROUND - ${sectionType}]\n${colorPrompt}\n\n--negative ${negativePrompt}`,
-          dynamicPrompt: `[Direct color prompt - no product, no buildSharedSectionPrompt]`,
+          // [5] 레거시 (프롬프트 텍스트 - 태그 없이)
+          fixedPrompt: `${colorPrompt}\n\n--negative ${negativePrompt}`,
+          dynamicPrompt: undefined,
         },
       };
       usedImagePrompt = textBgFinalPrompt;
