@@ -2,6 +2,7 @@
  * Chat Messages API - 메시지 전송 (SSE 스트리밍)
  * POST /api/chat/[conversationId]/messages - 메시지 전송 및 Agent 응답
  * GET /api/chat/[conversationId]/messages - 메시지 목록 조회
+ * @updated 2026-01-22
  */
 
 import { NextRequest, NextResponse } from 'next/server';
