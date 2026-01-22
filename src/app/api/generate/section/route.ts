@@ -4,12 +4,12 @@ import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 import { z } from 'zod';
 import {
-  generateSectionImageWithOverlay,
   preprocessProductImage,
   GeminiImageModel,
   DEFAULT_IMAGE_MODEL,
 } from '@/services/image/gemini-image-generator';
-import { uploadGeneratedImage } from '@/services/image/image-upload-service';
+// ★★★ 공유 섹션 이미지 서비스 (초기 생성/전체 재생성/섹션 재생성 모두 동일한 프로세스)
+import { generateSectionImage } from '@/services/image/section-image-service';
 // ★★★ 공통 프롬프트 빌드 모듈 (초기 생성과 동일한 프로세스 보장)
 import { buildSectionPrompt } from '@/services/ai/section-prompt-builder';
 import type { BrandContext } from '@/services/ai/prompts';
@@ -159,46 +159,32 @@ export async function POST(request: NextRequest) {
     console.log(`[Section Regenerate] ★★★ Brand Style Prompt: ${promptResult.brandStylePrompt ? promptResult.brandStylePrompt.substring(0, 150) + '...' : 'EMPTY'}`);
     console.log(`[Section Regenerate] ★★★ Enhanced Scenario Prompt (first 200): ${promptResult.enhancedScenarioPrompt.substring(0, 200)}...`);
 
-    // ★★★ 섹션 이미지 + 오버레이 텍스트 통합 재생성
-    console.log(`[Section Regenerate] Generating ${validatedData.sectionType} image with overlay text...`);
-    const result = await generateSectionImageWithOverlay(
-      cleanProductImage,
-      validatedData.sectionType,
-      project.productName || 'Product',
-      project.category || 'General',
-      project.keyFeatures || [],
-      project.targetAudience || '일반 소비자',
-      {
-        additionalPrompt: promptResult.additionalPrompt,
-        model: imageModel,
-        scenarioPrompt: promptResult.enhancedScenarioPrompt,  // ★★★ 공통 모듈에서 생성된 프롬프트 사용!
-        blockIndex: validatedData.sectionIndex,
-        totalBlocks: 1,
-      }
-    );
+    // ★★★ 공유 섹션 이미지 서비스 사용 (초기 생성/전체 재생성/섹션 재생성 동일 프로세스)
+    // T2I/I2I 모드 감지, 재시도 로직, 이미지 업로드가 모두 서비스 내부에서 처리됨
+    console.log(`[Section Regenerate] Using shared section image service (mode: ${isT2IMode ? 'T2I' : 'I2I'})`);
 
-    if (!result || !result.image) {
-      return NextResponse.json(
-        { success: false, error: '이미지 생성에 실패했습니다.' },
-        { status: 500 }
-      );
-    }
-
-    // 생성된 이미지 업로드
-    console.log('[Section Regenerate] Uploading generated image...');
-    const uploadResult = await uploadGeneratedImage(result.image, {
-      folder: 'sections',
-      projectId: project.id,
+    const result = await generateSectionImage({
+      productImage: cleanProductImage,
+      sectionType: validatedData.sectionType,
+      productName: project.productName || 'Product',
+      category: project.category || 'General',
+      keyFeatures: project.keyFeatures || [],
+      targetAudience: project.targetAudience || '일반 소비자',
+      imageModel,
+      brandImageKeywords: promptResult.additionalPrompt,
+      imagePrompt: promptResult.enhancedScenarioPrompt,
+      blockIndex: validatedData.sectionIndex,
+      totalBlocks: 1,
     });
 
-    if (!uploadResult.url) {
+    if (!result.success || !result.imageUrl) {
       return NextResponse.json(
-        { success: false, error: '이미지 업로드에 실패했습니다.' },
+        { success: false, error: result.error || '이미지 생성에 실패했습니다.' },
         { status: 500 }
       );
     }
 
-    console.log(`[Section Regenerate] Image uploaded successfully: ${uploadResult.url}`);
+    console.log(`[Section Regenerate] Image generated and uploaded: ${result.imageUrl}`);
     console.log(`[Section Regenerate] Overlay text generated:`, JSON.stringify(result.overlayText).substring(0, 200));
 
     // ★★★ 오버레이 텍스트에 브랜드 폰트/로고 정보 추가 (공통 모듈에서 가져온 값 사용)
@@ -243,7 +229,7 @@ export async function POST(request: NextRequest) {
         } | null;
 
         // 새 섹션 프롬프트 데이터 (★★★ 모든 프롬프트 구성요소 저장!)
-        const promptComponents = result.image.promptComponents;
+        const promptComponents = result.imageResult?.promptComponents;
         const newSectionPrompt = {
           sectionType: validatedData.sectionType,
           // ★★★ [1] 섹션별 프롬프트 ★★★
@@ -266,7 +252,7 @@ export async function POST(request: NextRequest) {
             promptComponents?.fixedPrompt,
             promptComponents?.dynamicPrompt,
           ].filter(Boolean).join('\n\n---\n\n') || `${validatedData.sectionType} section image`,
-          generatedImageUrl: uploadResult.url,
+          generatedImageUrl: result.imageUrl,
           overlayText: enhancedOverlayText,  // ★ 브랜드 폰트/로고 포함
           overlayPrompt: result.overlayPrompt,
         };
@@ -359,8 +345,8 @@ export async function POST(request: NextRequest) {
       data: {
         sectionType: validatedData.sectionType,
         sectionIndex: validatedData.sectionIndex,
-        imageUrl: uploadResult.url,
-        promptComponents: result.image.promptComponents,
+        imageUrl: result.imageUrl,
+        promptComponents: result.imageResult?.promptComponents,
         // ★★★ 오버레이 텍스트도 반환 (브랜드 폰트/로고 포함)
         overlayText: enhancedOverlayText,
         overlayPrompt: result.overlayPrompt,

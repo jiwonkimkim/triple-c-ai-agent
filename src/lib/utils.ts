@@ -193,7 +193,7 @@ export function sleep(ms: number): Promise<void> {
 }
 
 /**
- * Retry function with exponential backoff
+ * Retry function with exponential backoff (simple version)
  */
 export async function retry<T>(
   fn: () => Promise<T>,
@@ -213,5 +213,71 @@ export async function retry<T>(
     }
   }
 
+  throw lastError;
+}
+
+/**
+ * 재시도 가능한 에러인지 확인
+ */
+function isRetryableError(errorMsg: string): boolean {
+  return (
+    errorMsg.includes('429') ||
+    errorMsg.includes('rate') ||
+    errorMsg.includes('RATE_LIMIT') ||
+    errorMsg.includes('RESOURCE_EXHAUSTED') ||
+    errorMsg.includes('quota') ||
+    errorMsg.includes('timeout') ||
+    errorMsg.includes('ECONNRESET') ||
+    errorMsg.includes('network') ||
+    errorMsg.includes('500') ||
+    errorMsg.includes('503') ||
+    errorMsg.includes('temporarily') ||
+    errorMsg.includes('overloaded')
+  );
+}
+
+/**
+ * 지수 백오프를 사용한 재시도 래퍼 함수 (에러 타입 확인 포함)
+ * Rate limit, 일시적 오류에만 재시도를 수행합니다.
+ *
+ * @param fn 실행할 비동기 함수
+ * @param maxRetries 최대 재시도 횟수 (기본: 3)
+ * @param baseDelayMs 기본 대기 시간 (기본: 1000ms)
+ * @returns 함수 실행 결과
+ */
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelayMs: number = 1000
+): Promise<T> {
+  let lastError: Error | unknown;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      const errorMsg = error instanceof Error ? error.message : String(error);
+
+      // 마지막 시도였으면 에러 throw
+      if (attempt === maxRetries) {
+        console.error(`[withRetry] All ${maxRetries + 1} attempts failed. Last error: ${errorMsg}`);
+        throw error;
+      }
+
+      // 재시도 불가능한 에러는 바로 throw
+      if (!isRetryableError(errorMsg)) {
+        console.error(`[withRetry] Non-retryable error: ${errorMsg}`);
+        throw error;
+      }
+
+      // 지수 백오프 대기
+      const delayMs = baseDelayMs * Math.pow(2, attempt);
+      console.log(`[withRetry] Attempt ${attempt + 1} failed. Retrying in ${delayMs}ms... Error: ${errorMsg.substring(0, 100)}`);
+      await sleep(delayMs);
+    }
+  }
+
+  // 이 코드에 도달하면 안 되지만 타입 안전성을 위해
   throw lastError;
 }
