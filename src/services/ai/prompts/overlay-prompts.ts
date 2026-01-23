@@ -9,6 +9,20 @@ import type { SectionType } from './types';
 import { getCategoryPattern, SECTION_STORY_GUIDE } from './category-patterns';
 
 // ============================================
+// [대기 프롬프트] 필요 시 다시 활성화
+// ============================================
+// ## ⛔ Forbidden Words (Section Type Names)
+// (절대 금지 단어 - 섹션 타입명)
+//
+// NEVER use these words in text:
+// (다음 단어들은 절대로 텍스트에 포함하지 마세요)
+// - FEATURES, HERO, SOCIAL_PROOF, HOW_TO_USE, FAQ, MAIN
+//
+// Instead use: HYALURONIC, VITAMIN C, CLINICAL TEST, PROVEN, etc.
+// (대신 사용: 실제 성분/효능 관련 영문)
+// ============================================
+
+// ============================================
 // 감각적 표현 키워드 (카테고리별)
 // ============================================
 
@@ -593,16 +607,6 @@ ${section === 'SOCIAL_PROOF' ? `- 해당 증거 유형에 맞는 텍스트 (예:
    (숫자로 신뢰감: 구체적인 수치와 퍼센트 활용)
 4. **English + Korean mix**: Ingredient/benefit names in English, descriptions in Korean
    (영문+한글 믹스: 성분명/효능명은 영문, 설명은 한글)
-
-## ⛔ Forbidden Words (Section Type Names)
-(절대 금지 단어 - 섹션 타입명)
-
-NEVER use these words in text:
-(다음 단어들은 절대로 텍스트에 포함하지 마세요)
-- FEATURES, HERO, SOCIAL_PROOF, HOW_TO_USE, FAQ, MAIN
-
-Instead use: HYALURONIC, VITAMIN C, CLINICAL TEST, PROVEN, etc.
-(대신 사용: 실제 성분/효능 관련 영문)
 
 ## 제품 정보
 - 제품명: ${productName}
