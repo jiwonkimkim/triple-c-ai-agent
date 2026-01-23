@@ -194,8 +194,9 @@ export async function generateSectionImageWithGemini(
   });
 
   // ★ imagePrompt가 있으면 오케스트레이션 컨텍스트로 추가 (MAIN 제외)
+  let orchestrationContext = '';
   if (mappedSectionType !== 'MAIN' && imagePrompt && imagePrompt.trim()) {
-    sectionPrompt = `${sectionPrompt}
+    orchestrationContext = `
 
 [ORCHESTRATION CONTEXT - 상세페이지 전체 메시지]
 ${imagePrompt}`;
@@ -216,7 +217,13 @@ ${imagePrompt}`;
   // ★ 모델별 해상도 적용 (Flash: 864x1184, Pro: 896x1200 등)
   const overlayTextRequest = buildOverlayTextRequest(overlayTextPrompt, isFlashModel, aspectRatio, model);
 
-  const finalPrompt = MISSION_PROMPT + sectionPrompt + overlayTextRequest;
+  // ★★★ Step1/Step2 구조로 최종 프롬프트 조립 ★★★
+  const step1Content = `
+[Step1. 이미지 디자인 - Image Design]
+(텍스트/글씨 없이 상세페이지 이미지를 디자인)
+${sectionPrompt}${orchestrationContext}`;
+
+  const finalPrompt = MISSION_PROMPT + step1Content + overlayTextRequest;
 
   console.log(`[Gemini T2I] Generating ${sectionType} (→${mappedSectionType}) with aspectRatio: ${aspectRatio || '3:4'}, with overlay text request`);
 
@@ -255,7 +262,7 @@ ${imagePrompt}`;
       missionPrompt: MISSION_PROMPT.trim(),
       // [1] 섹션별 프롬프트
       sectionBasePrompt,
-      orchestrationPrompt: (mappedSectionType !== 'MAIN' && imagePrompt) ? imagePrompt : undefined,
+      orchestrationPrompt: orchestrationContext || undefined,
       // [2] 오버레이 텍스트 관련 프롬프트
       overlayTextPrompt,
       overlayGuidePrompt: buildCreativeOverlayGuide(aspectRatio, model),

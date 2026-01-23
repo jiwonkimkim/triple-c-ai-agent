@@ -522,8 +522,8 @@ export function buildOverlayTextRequest(
 
   return `
 
-[★★★ OUTPUT REQUIREMENTS ★★★]
-(출력 요구사항)
+[Step2. 오버레이 텍스트 디자인 - Overlay Text Design]
+(이미지 위에 배치할 카피라이팅 오버레이 텍스트를 디자인하여 JSON으로 반환)
 
 1. GENERATE IMAGE FIRST (REQUIRED) - This is the primary output
    (이미지 먼저 생성 (필수) - 이것이 주요 출력)

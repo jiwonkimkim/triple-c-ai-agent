@@ -465,13 +465,19 @@ ${scenarioPrompt}
   const isFlashModel = model === 'gemini-2.5-flash-image';
   const overlayTextRequest = buildOverlayTextRequest(overlayTextPrompt, isFlashModel, aspectRatio, model);
 
-  const fullPrompt = `${MISSION_PROMPT}${basePrompt}${orchestrationContext}
+  // ★★★ Step1/Step2 구조로 최종 프롬프트 조립 ★★★
+  const step1Content = `
+[Step1. 이미지 디자인 - Image Design]
+(텍스트/글씨 없이 상세페이지 이미지를 디자인)
+${basePrompt}${orchestrationContext}
 
 Product: ${productName}
 Category: ${category}
 ${additionalPrompt ? `Additional style: ${additionalPrompt}` : ''}
 
-OUTPUT: High-quality commercial photography, no text on image.
+OUTPUT: High-quality commercial photography, no text on image.`;
+
+  const fullPrompt = `${MISSION_PROMPT}${step1Content}
 ${overlayTextRequest}`;
 
   console.log(`[Gemini I2I] Generating ${sectionType} (→${mappedSectionType}) section image, aspectRatio: ${aspectRatio || '3:4'}`);
