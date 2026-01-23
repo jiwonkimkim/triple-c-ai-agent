@@ -640,6 +640,7 @@ Design with free text colors that match the image.
 - 이모지 사용 금지 (😊, ✨, 💕 등)
 - "완전", "대박", "꿀템" 등 과장 표현 금지
 - 느낌표(!) 과다 사용 금지
+- HEX 색상값(#FFFFFF, #EDE6DB 등)을 text 내용으로 반환 금지 (color 필드에만 사용)
 
 ## 응답 형식
 자유롭게 배치할 텍스트들을 texts 배열로 반환하세요:
