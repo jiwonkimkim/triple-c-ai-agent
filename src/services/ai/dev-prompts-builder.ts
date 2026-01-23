@@ -25,6 +25,8 @@ export interface SectionImagePromptData {
   generationMode?: 'T2I' | 'I2I';
   sectionTypeOriginal?: string;
   sectionTypeMapped?: string;
+  // ★ 핵심 지침 (미션 프롬프트)
+  missionPrompt?: string;
   // [1] 섹션별 프롬프트
   sectionBasePrompt?: string;
   orchestrationPrompt?: string;
@@ -100,6 +102,8 @@ export function buildSectionImagePromptData(
     generationMode: promptComponents?.generationMode,
     sectionTypeOriginal: promptComponents?.sectionTypeOriginal,
     sectionTypeMapped: promptComponents?.sectionTypeMapped,
+    // ★ 핵심 지침 (미션 프롬프트)
+    missionPrompt: promptComponents?.missionPrompt,
     // ★★★ [1] 섹션별 프롬프트 ★★★
     sectionBasePrompt: promptComponents?.sectionBasePrompt,
     orchestrationPrompt: promptComponents?.orchestrationPrompt,
