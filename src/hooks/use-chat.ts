@@ -140,13 +140,15 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
       setCollectedData(data.collectedData || {});
 
       // 빈 스트리밍 메시지 정리
-      // isStreaming이 true이거나, content가 비어있고 streamedContent만 있는 메시지 제거
+      // isStreaming이 true이거나, content와 attachments 모두 비어있는 메시지 제거
       setMessages((prev) =>
         prev.filter((m) => {
           // 스트리밍 중인 메시지는 제거
           if (m.isStreaming) return false;
-          // content가 비어있는 메시지는 제거 (streamedContent만 있는 경우 포함)
-          if (!m.content || m.content.trim() === '') return false;
+          // content가 비어있어도 attachments가 있으면 유지
+          const hasContent = m.content && m.content.trim() !== '';
+          const hasAttachments = m.attachments && m.attachments.length > 0;
+          if (!hasContent && !hasAttachments) return false;
           return true;
         })
       );
@@ -184,8 +186,12 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
 
         const data = await response.json();
         const loadedMessages = data.messages
-          // 빈 메시지 필터링 (content가 없거나 빈 문자열인 메시지 제외)
-          .filter((msg: any) => msg.content && msg.content.trim() !== '')
+          // 빈 메시지 필터링 (content와 attachments 모두 없는 메시지 제외)
+          .filter((msg: any) => {
+            const hasContent = msg.content && msg.content.trim() !== '';
+            const hasAttachments = msg.attachments && msg.attachments.length > 0;
+            return hasContent || hasAttachments;
+          })
           .map((msg: any) => ({
             ...msg,
             createdAt: new Date(msg.createdAt),
