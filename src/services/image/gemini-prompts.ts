@@ -142,7 +142,10 @@ USE THE PROVIDED PRODUCT IMAGE as reference - include this exact product in the 
 
   // ★ 주요 섹션 타입만 정의, 나머지는 CUSTOM 폴백 사용
   const prompts: Partial<Record<SectionType, string>> = {
-    MAIN: `Create a KOREAN E-COMMERCE DETAIL PAGE THUMBNAIL for "${productName}".
+    MAIN: `[ROLE] Korean E-commerce Detail Page Designer
+(역할: 한국 이커머스 상세페이지 디자이너)
+
+Create a KOREAN E-COMMERCE DETAIL PAGE THUMBNAIL for "${productName}".
 (한국 이커머스 상세페이지 썸네일 생성)
 ${i2iPrefix}
 [KOREAN DETAIL PAGE STYLE]
@@ -194,7 +197,10 @@ Korean beauty trend: glow, transparency, premium
 - Photorealistic, no text in image
   (포토리얼리스틱, 이미지 내 텍스트 없음)`,
 
-    HERO: `Create KOREAN E-COMMERCE main banner image for ${productName}.
+    HERO: `[ROLE] Korean E-commerce Detail Page Designer
+(역할: 한국 이커머스 상세페이지 디자이너)
+
+Create KOREAN E-COMMERCE main banner image for ${productName}.
 (한국 이커머스 메인 배너 이미지 생성)
 ${i2iPrefix}
 [SCENARIO]
@@ -227,7 +233,10 @@ Korean luxury beauty aesthetic
 No text in image
 (이미지 내 텍스트 없음)`,
 
-    FEATURES: `Create KOREAN E-COMMERCE product benefits and ingredients section image for ${productName}.
+    FEATURES: `[ROLE] Korean E-commerce Detail Page Designer
+(역할: 한국 이커머스 상세페이지 디자이너)
+
+Create KOREAN E-COMMERCE product benefits and ingredients section image for ${productName}.
 (한국 이커머스 제품 특징 및 성분 섹션 이미지 생성)
 ${i2iPrefix}
 [SCENARIO]
@@ -255,7 +264,10 @@ ${featureHighlight}
 No text in image
 (이미지 내 텍스트 없음)`,
 
-    SOCIAL_PROOF: `Create KOREAN E-COMMERCE SOCIAL PROOF IMAGE for ${productName}.
+    SOCIAL_PROOF: `[ROLE] Korean E-commerce Detail Page Designer
+(역할: 한국 이커머스 상세페이지 디자이너)
+
+Create KOREAN E-COMMERCE SOCIAL PROOF IMAGE for ${productName}.
 (한국 이커머스 소셜 프루프 이미지 생성)
 ${i2iPrefix}
 [SCENARIO]
@@ -284,7 +296,10 @@ Authentic, relatable aesthetic
 No text in image
 (이미지 내 텍스트 없음)`,
 
-    HOW_TO_USE: `Create KOREAN E-COMMERCE usage guide section image for ${productName}.
+    HOW_TO_USE: `[ROLE] Korean E-commerce Detail Page Designer
+(역할: 한국 이커머스 상세페이지 디자이너)
+
+Create KOREAN E-COMMERCE usage guide section image for ${productName}.
 (한국 이커머스 사용법 가이드 섹션 이미지 생성)
 ${i2iPrefix}
 [SCENARIO]
@@ -313,7 +328,10 @@ Educational yet beautiful
 No text in image
 (이미지 내 텍스트 없음)`,
 
-    FAQ: `Create KOREAN E-COMMERCE questions and answers background image for ${productName}.
+    FAQ: `[ROLE] Korean E-commerce Detail Page Designer
+(역할: 한국 이커머스 상세페이지 디자이너)
+
+Create KOREAN E-COMMERCE questions and answers background image for ${productName}.
 (한국 이커머스 질문 답변 배경 이미지 생성)
 ${i2iPrefix}
 [SCENARIO]
@@ -342,7 +360,10 @@ Helpful, trustworthy aesthetic
 No text in image
 (이미지 내 텍스트 없음)`,
 
-    CUSTOM: `Create KOREAN E-COMMERCE IMAGE for ${productName}.
+    CUSTOM: `[ROLE] Korean E-commerce Detail Page Designer
+(역할: 한국 이커머스 상세페이지 디자이너)
+
+Create KOREAN E-COMMERCE IMAGE for ${productName}.
 (한국 이커머스 이미지 생성)
 ${i2iPrefix}
 [COMPOSITION]
