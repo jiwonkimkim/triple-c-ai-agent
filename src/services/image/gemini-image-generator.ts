@@ -653,6 +653,8 @@ export interface GeminiGeneratedImage {
     generationMode?: 'T2I' | 'I2I';    // 생성 모드 (Text-to-Image / Image-to-Image)
     sectionTypeOriginal?: string;      // 원본 섹션 타입 (예: FEATURES_01)
     sectionTypeMapped?: string;        // 매핑된 섹션 타입 (예: FEATURES)
+    // ★ 핵심 지침 (미션 프롬프트)
+    missionPrompt?: string;            // 이미지 디자인 + 오버레이 JSON 반환 2단계 미션
     // [1] 섹션별 프롬프트
     sectionBasePrompt?: string;        // 섹션별 기본 프롬프트 (buildSharedSectionPrompt - MAIN, HERO, FEATURES 등)
     orchestrationPrompt?: string;      // 오케스트레이션 AI가 생성한 시나리오
