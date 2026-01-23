@@ -48,39 +48,70 @@ export function MessageItem({ message, onSelectOption, isDisabled }: MessageItem
           isUser ? 'items-end' : 'items-start'
         )}
       >
-        <div
-          className={cn(
-            'rounded-2xl px-4 py-2.5',
-            isUser
-              ? 'bg-blue-500 text-white rounded-br-md'
-              : 'bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm rounded-bl-md'
-          )}
-        >
-          {/* 텍스트 내용 (마크다운 렌더링) */}
+        {/* 첨부 이미지 표시 */}
+        {message.attachments && message.attachments.length > 0 && (
           <div className={cn(
-            "text-sm leading-relaxed prose prose-sm max-w-none",
-            isUser ? "prose-invert" : "prose-gray",
-            // 마크다운 스타일 커스텀
-            "[&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0.5",
-            "[&_h1]:text-base [&_h1]:font-bold [&_h1]:mt-2 [&_h1]:mb-1",
-            "[&_h2]:text-sm [&_h2]:font-semibold [&_h2]:mt-2 [&_h2]:mb-1",
-            "[&_h3]:text-sm [&_h3]:font-medium [&_h3]:mt-1 [&_h3]:mb-0.5",
-            "[&_strong]:font-semibold",
-            "[&_ul]:list-disc [&_ul]:pl-4",
-            "[&_ol]:list-decimal [&_ol]:pl-4",
-            "[&_code]:bg-gray-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs",
-            isUser && "[&_code]:bg-blue-400/30"
+            "flex flex-wrap gap-2 mb-2",
+            message.attachments.length === 1 ? "max-w-xs" : "max-w-md"
           )}>
-            {isStreaming ? (
-              // 스트리밍 중에는 마크다운 없이 텍스트만 표시 (깜빡임 방지)
-              <span className="whitespace-pre-wrap">
-                {displayContent}
-                <span className="inline-block w-0.5 h-4 ml-0.5 bg-purple-500 animate-[blink_1s_infinite]" />
-              </span>
-            ) : (
-              <ReactMarkdown>{displayContent}</ReactMarkdown>
-            )}
+            {message.attachments.map((url, idx) => (
+              <div
+                key={idx}
+                className={cn(
+                  "rounded-xl overflow-hidden border border-gray-200 shadow-sm",
+                  message.attachments!.length === 1 ? "w-full" : "w-24 h-24"
+                )}
+              >
+                <img
+                  src={url}
+                  alt={`첨부 이미지 ${idx + 1}`}
+                  className={cn(
+                    "object-cover",
+                    message.attachments!.length === 1 ? "w-full h-auto max-h-64" : "w-full h-full"
+                  )}
+                />
+              </div>
+            ))}
           </div>
+        )}
+
+        {/* 텍스트 콘텐츠가 있거나 메타데이터가 있을 때만 말풍선 표시 */}
+        {(displayContent || message.metadata?.progress || message.metadata?.planPreview || message.metadata?.uiType || !isUser) && (
+          <div
+            className={cn(
+              'rounded-2xl px-4 py-2.5',
+              isUser
+                ? 'bg-blue-500 text-white rounded-br-md'
+                : 'bg-white/80 backdrop-blur-sm border border-gray-100 shadow-sm rounded-bl-md'
+            )}
+          >
+            {/* 텍스트 내용 (마크다운 렌더링) */}
+            {displayContent && (
+              <div className={cn(
+                "text-sm leading-relaxed prose prose-sm max-w-none",
+                isUser ? "prose-invert" : "prose-gray",
+                // 마크다운 스타일 커스텀
+                "[&_p]:my-1 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0.5",
+                "[&_h1]:text-base [&_h1]:font-bold [&_h1]:mt-2 [&_h1]:mb-1",
+                "[&_h2]:text-sm [&_h2]:font-semibold [&_h2]:mt-2 [&_h2]:mb-1",
+                "[&_h3]:text-sm [&_h3]:font-medium [&_h3]:mt-1 [&_h3]:mb-0.5",
+                "[&_strong]:font-semibold",
+                "[&_ul]:list-disc [&_ul]:pl-4",
+                "[&_ol]:list-decimal [&_ol]:pl-4",
+                "[&_code]:bg-gray-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs",
+                isUser && "[&_code]:bg-blue-400/30"
+              )}>
+                {isStreaming ? (
+                  // 스트리밍 중에는 마크다운 없이 텍스트만 표시 (깜빡임 방지)
+                  <span className="whitespace-pre-wrap">
+                    {displayContent}
+                    <span className="inline-block w-0.5 h-4 ml-0.5 bg-purple-500 animate-[blink_1s_infinite]" />
+                  </span>
+                ) : (
+                  <ReactMarkdown>{displayContent}</ReactMarkdown>
+                )}
+              </div>
+            )}
 
           {/* 진행 상태 표시 */}
           {message.metadata?.progress && (
@@ -138,7 +169,8 @@ export function MessageItem({ message, onSelectOption, isDisabled }: MessageItem
               </div>
             </div>
           )}
-        </div>
+          </div>
+        )}
 
         {/* 선택지 버튼 */}
         {message.metadata?.options && message.metadata.options.length > 0 && (
