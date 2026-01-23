@@ -473,10 +473,12 @@ ${scenarioPrompt}
   const overlayTextRequest = buildOverlayTextRequest(overlayTextPrompt, isFlashModel, aspectRatio, model);
 
   // ★★★ Step1/Step2 구조로 최종 프롬프트 조립 ★★★
+  const noTextInStep1 = isFlashModel ? `\n${NO_TEXT_IN_IMAGE_REINFORCEMENT}` : '';
   const step1Content = `
 [Step1. 이미지 디자인 - Image Design]
 ★ Generate the detail page image. DO NOT render any text/letters in the image.
 (상세페이지 이미지를 생성합니다. 텍스트는 이미지로 생성하지 않습니다.)
+${noTextInStep1}
 ${basePrompt}${orchestrationContext}
 
 ${I2I_SYSTEM_PROMPT}
