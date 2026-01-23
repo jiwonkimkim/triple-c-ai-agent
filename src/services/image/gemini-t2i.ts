@@ -220,7 +220,8 @@ ${imagePrompt}`;
   // ★★★ Step1/Step2 구조로 최종 프롬프트 조립 ★★★
   const step1Content = `
 [Step1. 이미지 디자인 - Image Design]
-(텍스트/글씨 없이 상세페이지 이미지를 디자인)
+★ Generate the detail page image. DO NOT render any text/letters in the image.
+(상세페이지 이미지를 생성합니다. 텍스트는 이미지로 생성하지 않습니다.)
 ${sectionPrompt}${orchestrationContext}`;
 
   const finalPrompt = MISSION_PROMPT + step1Content + overlayTextRequest;
