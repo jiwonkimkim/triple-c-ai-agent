@@ -656,7 +656,7 @@ Design with free text colors that match the image.
       "text": "텍스트 내용",
       "x": (이미지에 맞는 x좌표 0.0-100.0),
       "y": (이미지에 맞는 y좌표 0.0-100.0),
-      "fontSize": (내용에 맞는 크기 12-80),
+      "fontSize": INTEGER 12-80,
       "fontWeight": "bold",
       "color": "(이미지에 어울리는 HEX 색상)",
       "textAlign": "center"
