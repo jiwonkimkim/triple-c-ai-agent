@@ -525,6 +525,9 @@ export function buildOverlayTextRequest(
 [Step2. 오버레이 텍스트 디자인 - Overlay Text Design]
 (이미지 위에 배치할 카피라이팅 오버레이 텍스트를 디자인하여 JSON으로 반환)
 
+★ 텍스트는 이미지에 생성하지 말고 JSON으로 반환합니다.
+(DO NOT render text in the image - return overlay text as JSON instead.)
+
 1. GENERATE IMAGE FIRST (REQUIRED) - This is the primary output
    (이미지 먼저 생성 (필수) - 이것이 주요 출력)
 2. THEN return overlay text JSON for placing text ON TOP of the generated image
