@@ -94,6 +94,8 @@ export interface ImageToImageOptions {
   preserveStrength?: number;
   /** 출력 이미지 비율 (기본: 3:4 상세페이지용) */
   aspectRatio?: ImageAspectRatio;
+  /** I2I 시스템 프롬프트 스킵 (상위에서 이미 포함한 경우) */
+  skipI2ISystemPrompt?: boolean;
 }
 
 /** 이미지 + 오버레이 텍스트 통합 결과 */

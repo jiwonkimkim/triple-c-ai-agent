@@ -86,10 +86,12 @@ export {
 // ============================================
 // [6] Image-to-Image 파이프라인 (gemini-i2i.ts)
 // ============================================
+// I2I_SYSTEM_PROMPT (I2I 전용 시스템 프롬프트)
 // generateImageFromImage (핵심 I2I API 호출)
 // generateSectionImageFromProduct (섹션별 I2I)
 // removeBackground, preprocessProductImage
 export {
+  I2I_SYSTEM_PROMPT,
   generateImageFromImage,
   generateSectionImageFromProduct,
   removeBackground,

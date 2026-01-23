@@ -23,6 +23,49 @@ import { getGeminiClient, extractBase64FromSource, base64ToDataUrl, extractIngre
 import { generateImageWithGemini } from './gemini-t2i';
 
 // ============================================
+// ★ I2I 시스템 프롬프트 (제품 재배치 규칙)
+// ============================================
+
+/** ★★★ I2I 모드 전용: 제품 모양 유지 + 자연스러운 재배치 규칙 ★★★ */
+export const I2I_SYSTEM_PROMPT = `[★★★ IMAGE-TO-IMAGE: PRODUCT REPOSITIONING ★★★]
+
+[CRITICAL RULES - 절대 규칙]
+1. DO NOT change the product's shape, design, color, or appearance
+2. DO NOT create different products or modify the attached products
+3. ONLY REPOSITION/REARRANGE the attached products naturally
+4. If the scenario doesn't need products, you may omit them entirely
+
+첨부된 제품의 "모양"을 바꾸거나 다른 제품을 만들지 마세요!
+오직 "재배치"만 하세요. 시나리오에 제품이 필요없으면 사용하지 않아도 됩니다.
+
+[★★★ REPOSITIONING RULES - 재배치 규칙 ★★★]
+- Keep the EXACT product appearance (shape, color, design, packaging)
+- Change ONLY: position, angle, size, lighting on the product
+- If multiple products in the image: treat each as a separate item and rearrange naturally
+- Products can be: tilted, stacked, grouped, partially visible - but SAME SHAPE
+- DO NOT copy the original arrangement - ALWAYS rearrange to fit the new scene
+
+제품이 여러개인 경우:
+- 각 제품을 개별 아이템으로 인식하세요
+- 입력된 배치를 그대로 복사하지 마세요!
+- 생성되는 시나리오/상황에 맞게 새롭게 재배치하세요
+- 자연스럽게 재배치, 그룹핑, 정렬하세요
+- 모든 제품의 원래 모양을 유지하세요
+
+[WHAT YOU CAN DO]
+✅ Reposition products to different locations
+✅ Adjust product angles (tilt, rotate)
+✅ Change product scale for composition
+✅ Add new background, lighting, props, atmosphere
+✅ Omit products entirely if scenario doesn't need them
+
+[WHAT YOU CANNOT DO]
+❌ Change product shape or design
+❌ Create new/different products
+❌ Modify product colors or packaging
+❌ Transform products into something else`;
+
+// ============================================
 // ★ 배경 제거 기능
 // ============================================
 
@@ -158,6 +201,7 @@ export async function generateImageFromImage(
     model = DEFAULT_IMAGE_MODEL,
     preserveStrength = 0.85,
     aspectRatio,
+    skipI2ISystemPrompt = false,
   } = options;
 
   const client = getGeminiClient();
@@ -184,47 +228,10 @@ export async function generateImageFromImage(
       aspectRatioSection = `\n[IMAGE FORMAT]\n${aspectRatioInstruction}\n`;
     }
 
-    // ★★★ I2I 모드: 제품 모양 유지 + 자연스러운 재배치 ★★★
-    const i2iSystemPrompt = `[★★★ IMAGE-TO-IMAGE: PRODUCT REPOSITIONING ★★★]
+    // ★★★ I2I 시스템 프롬프트: 상위에서 이미 포함한 경우 스킵 ★★★
+    const i2iPrefix = skipI2ISystemPrompt ? '' : `${I2I_SYSTEM_PROMPT}\n`;
 
-[CRITICAL RULES - 절대 규칙]
-1. DO NOT change the product's shape, design, color, or appearance
-2. DO NOT create different products or modify the attached products
-3. ONLY REPOSITION/REARRANGE the attached products naturally
-4. If the scenario doesn't need products, you may omit them entirely
-
-첨부된 제품의 "모양"을 바꾸거나 다른 제품을 만들지 마세요!
-오직 "재배치"만 하세요. 시나리오에 제품이 필요없으면 사용하지 않아도 됩니다.
-
-[★★★ REPOSITIONING RULES - 재배치 규칙 ★★★]
-- Keep the EXACT product appearance (shape, color, design, packaging)
-- Change ONLY: position, angle, size, lighting on the product
-- If multiple products in the image: treat each as a separate item and rearrange naturally
-- Products can be: tilted, stacked, grouped, partially visible - but SAME SHAPE
-- DO NOT copy the original arrangement - ALWAYS rearrange to fit the new scene
-
-제품이 여러개인 경우:
-- 각 제품을 개별 아이템으로 인식하세요
-- 입력된 배치를 그대로 복사하지 마세요!
-- 생성되는 시나리오/상황에 맞게 새롭게 재배치하세요
-- 자연스럽게 재배치, 그룹핑, 정렬하세요
-- 모든 제품의 원래 모양을 유지하세요
-
-[WHAT YOU CAN DO]
-✅ Reposition products to different locations
-✅ Adjust product angles (tilt, rotate)
-✅ Change product scale for composition
-✅ Add new background, lighting, props, atmosphere
-✅ Omit products entirely if scenario doesn't need them
-
-[WHAT YOU CANNOT DO]
-❌ Change product shape or design
-❌ Create new/different products
-❌ Modify product colors or packaging
-❌ Transform products into something else`;
-
-    const enhancedPrompt = `${i2iSystemPrompt}
-${aspectRatioSection}
+    const enhancedPrompt = `${i2iPrefix}${aspectRatioSection}
 [CREATIVE DIRECTION / 시나리오]
 ${prompt}
 
@@ -292,7 +299,7 @@ ${prompt}
             mimeType: part.inlineData.mimeType || 'image/png',
             // ★ 개발자 모드용: I2I 시스템 프롬프트 포함
             promptComponents: {
-              i2iSystemPrompt: i2iSystemPrompt,
+              i2iSystemPrompt: I2I_SYSTEM_PROMPT,
             },
           });
         }
@@ -469,6 +476,9 @@ ${scenarioPrompt}
   const step1Content = `
 [Step1. 이미지 디자인 - Image Design]
 (텍스트/글씨 없이 상세페이지 이미지를 디자인)
+
+${I2I_SYSTEM_PROMPT}
+
 ${basePrompt}${orchestrationContext}
 
 Product: ${productName}
@@ -490,6 +500,7 @@ ${overlayTextRequest}`;
     prompt: fullPrompt,
     model,
     preserveStrength: 0.75,
+    skipI2ISystemPrompt: true,  // ★ Step1에 이미 포함됨
     ...(aspectRatio && { aspectRatio }),
   });
 
@@ -508,7 +519,7 @@ ${overlayTextRequest}`;
       missionPrompt: MISSION_PROMPT.trim(),
       sectionBasePrompt: basePrompt,
       orchestrationPrompt: scenarioPrompt || undefined,
-      i2iSystemPrompt: orchestrationContext || undefined,
+      i2iSystemPrompt: I2I_SYSTEM_PROMPT,
       overlayTextPrompt,
       overlayGuidePrompt: buildCreativeOverlayGuide(aspectRatio, model),
       noTextReinforcement: isFlashModel ? NO_TEXT_IN_IMAGE_REINFORCEMENT : undefined,
