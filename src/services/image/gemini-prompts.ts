@@ -27,10 +27,12 @@ Step2. Design the copywriting overlay text for the detail page and return it as 
 /** Flash 모델용 이미지 내 텍스트 생성 금지 강화 프롬프트 */
 export const NO_TEXT_IN_IMAGE_REINFORCEMENT = `
 [⚠️⚠️⚠️ CRITICAL - ABSOLUTELY NO TEXT IN IMAGE ⚠️⚠️⚠️]
-(절대 이미지 안에 텍스트 금지)
 
-★★★ THIS IS THE MOST IMPORTANT RULE ★★★
-(이것이 가장 중요한 규칙입니다)
+★★★ DO NOT put Korean text directly in the detail page design. Return ONLY the detail page image.
+(상세페이지 디자인에 한글 텍스트를 직접 넣지 마세요. 상세페이지 디자인만 반환하세요.)
+
+★★★ Text for the detail page is returned SEPARATELY as JSON overlay.
+(상세페이지에 넣을 텍스트는 JSON으로 별도 반환합니다.)
 
 1. DO NOT generate ANY text, letters, words, numbers, or typography INSIDE the image
    (이미지 내부에 텍스트, 글자, 단어, 숫자, 타이포그래피 생성 금지)
@@ -38,26 +40,13 @@ export const NO_TEXT_IN_IMAGE_REINFORCEMENT = `
    (한글, 영어, 중국어 등 어떤 언어 텍스트도 이미지에 렌더링 금지)
 3. The image must be 100% PURELY VISUAL: only product, background, props, lighting, effects
    (이미지는 100% 순수 비주얼: 제품, 배경, 소품, 조명, 효과만)
-4. NEVER attempt to write "24H", "95%", "글로시", "촉촉한", or ANY text directly in the image
-   (이미지에 직접 텍스트 쓰기 시도 금지)
-5. Korean text especially MUST NOT appear in images - it will look broken and distorted!
+4. Korean text especially MUST NOT appear in images - it will look broken and distorted!
    (특히 한글은 이미지에 절대 안됨 - 깨져서 보임!)
-
-★ WHERE TEXT GOES:
-(텍스트가 가는 곳)
-- All text content → overlay JSON
-  (모든 텍스트 내용 → 오버레이 JSON)
-- The frontend renders text ON TOP of your clean image using HTML/CSS
-  (프론트엔드가 HTML/CSS로 깨끗한 이미지 위에 텍스트 렌더링)
-- Your job: generate a beautiful TEXT-FREE background image only
-  (당신의 역할: 텍스트 없는 아름다운 배경 이미지만 생성)
 
 ★ VIOLATION = FAILED IMAGE:
 (위반 = 실패한 이미지)
 - If ANY text/letters/numbers/Korean characters appear in the generated image, it is REJECTED
   (텍스트/글자/숫자/한글이 이미지에 나타나면 거부됨)
-- This includes: product labels with text, stats, titles, Korean words, watermarks, ANY text at all
-  (포함: 텍스트가 있는 제품 라벨, 통계, 제목, 한글, 워터마크, 모든 텍스트)
 - Generate ONLY: product visuals, backgrounds, lighting effects, decorative elements - NO TEXT
   (생성: 제품 비주얼, 배경, 조명 효과, 장식 요소만 - 텍스트 없음)
 `;
