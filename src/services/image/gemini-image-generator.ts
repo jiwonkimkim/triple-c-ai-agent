@@ -626,6 +626,14 @@ export type GeminiImageModel =
 export const DEFAULT_IMAGE_MODEL: GeminiImageModel = 'gemini-2.5-flash-image';
 export type ImageAspectRatio = '1:1' | '16:9' | '9:16' | '4:3' | '3:4';
 
+// ★★★ 미션 프롬프트: 모든 이미지 생성 프롬프트 맨 앞에 추가 ★★★
+const MISSION_PROMPT = `We are designing a product detail page. Our mission has 2 steps:
+1. Design the detail page IMAGE (DO NOT render any text/letters on the image)
+2. Design the copywriting overlay text for the detail page and return it as JSON.
+(상세페이지를 디자인합니다. 미션 2단계: 1. 이미지 디자인 (글씨는 그리지 않음) 2. 오버레이 카피라이트를 디자인하여 JSON 반환)
+
+`;
+
 export interface GeminiGenerateImageOptions {
   prompt: string;
   model?: GeminiImageModel;
@@ -1072,7 +1080,7 @@ ${imagePrompt}`;
   // ★ 모델별 해상도 적용 (Flash: 864x1184, Pro: 896x1200 등)
   const overlayTextRequest = buildOverlayTextRequest(overlayTextPrompt, isFlashModel, aspectRatio, model);
 
-  const finalPrompt = sectionPrompt + overlayTextRequest;
+  const finalPrompt = MISSION_PROMPT + sectionPrompt + overlayTextRequest;
 
   console.log(`[Gemini T2I] Generating ${sectionType} (→${mappedSectionType}) with aspectRatio: ${aspectRatio || '3:4'}, with overlay text request`);
 
@@ -1770,7 +1778,7 @@ ${scenarioPrompt}
   // ★ 모델별 해상도 적용 (Flash: 864x1184, Pro: 896x1200 등)
   const overlayTextRequest = buildOverlayTextRequest(overlayTextPrompt, isFlashModel, aspectRatio, model);
 
-  const fullPrompt = `${basePrompt}${orchestrationContext}
+  const fullPrompt = `${MISSION_PROMPT}${basePrompt}${orchestrationContext}
 
 Product: ${productName}
 Category: ${category}
