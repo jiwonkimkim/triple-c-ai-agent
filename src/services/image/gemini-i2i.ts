@@ -476,10 +476,9 @@ ${scenarioPrompt}
   const step1Content = `
 [Step1. 이미지 디자인 - Image Design]
 (텍스트/글씨 없이 상세페이지 이미지를 디자인)
+${basePrompt}${orchestrationContext}
 
 ${I2I_SYSTEM_PROMPT}
-
-${basePrompt}${orchestrationContext}
 
 Product: ${productName}
 Category: ${category}
