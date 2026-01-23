@@ -45,6 +45,8 @@ export interface DevPromptInfo {
     generationMode?: 'T2I' | 'I2I';    // 생성 모드 (Text-to-Image / Image-to-Image)
     sectionTypeOriginal?: string;      // 원본 섹션 타입 (예: FEATURES_01)
     sectionTypeMapped?: string;        // 매핑된 섹션 타입 (예: FEATURES)
+    // ★ 핵심 지침 (미션 프롬프트)
+    missionPrompt?: string;            // 이미지 디자인 + 오버레이 JSON 반환 2단계 미션
     // ★★★ [1] 섹션별 프롬프트 ★★★
     sectionBasePrompt?: string;        // 섹션별 기본 프롬프트 (buildSharedSectionPrompt - MAIN, HERO, FEATURES 등)
     orchestrationPrompt?: string;      // 오케스트레이션 AI가 생성한 시나리오 프롬프트
@@ -294,6 +296,23 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                           </div>
                           <ScrollArea className="h-[400px] rounded-lg border-2 border-purple-200 bg-purple-50 dark:bg-purple-950/20 p-4">
                             <div className="space-y-4">
+                              {/* ★ 핵심 지침 (미션 프롬프트) */}
+                              {section.missionPrompt && (
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <Badge variant="outline" className="text-xs bg-indigo-100 text-indigo-700 border-indigo-300 px-2 py-1">
+                                      🎯 핵심 지침
+                                    </Badge>
+                                    <CopyButton text={section.missionPrompt} />
+                                  </div>
+                                  <div className="rounded-lg border bg-indigo-50 dark:bg-indigo-950/30 p-3">
+                                    <pre className="text-[11px] whitespace-pre-wrap font-mono text-indigo-900 dark:text-indigo-200 leading-relaxed">
+                                      {section.missionPrompt}
+                                    </pre>
+                                  </div>
+                                </div>
+                              )}
+
                               {/* ★★★ [1] 섹션별 프롬프트 ★★★ */}
                               {section.sectionBasePrompt && (
                                 <div className="space-y-2">
@@ -461,6 +480,7 @@ export function DevPromptViewer({ prompts, className }: DevPromptViewerProps) {
                           {(() => {
                             // 오버레이 관련 프롬프트를 제외한 이미지 생성 프롬프트만 결합
                             const imageOnlyPrompt = [
+                              section.missionPrompt,
                               section.sectionBasePrompt,
                               section.orchestrationPrompt,
                               section.i2iSystemPrompt,

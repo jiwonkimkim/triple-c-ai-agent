@@ -1116,6 +1116,8 @@ ${imagePrompt}`;
       generationMode: 'T2I',
       sectionTypeOriginal: sectionType,
       sectionTypeMapped: mappedSectionType,
+      // ★ 미션 프롬프트
+      missionPrompt: MISSION_PROMPT.trim(),
       // [1] 섹션별 프롬프트
       sectionBasePrompt,                                      // 섹션별 기본 프롬프트 (MAIN, HERO, FEATURES 등)
       orchestrationPrompt: (mappedSectionType !== 'MAIN' && imagePrompt) ? imagePrompt : undefined,  // 오케스트레이션 AI 생성 시나리오
@@ -1816,6 +1818,8 @@ ${overlayTextRequest}`;
       generationMode: 'I2I',
       sectionTypeOriginal: sectionType,
       sectionTypeMapped: mappedSectionType,
+      // ★ 미션 프롬프트
+      missionPrompt: MISSION_PROMPT.trim(),
       // [1] 섹션별 프롬프트
       sectionBasePrompt: basePrompt,                          // 섹션별 기본 프롬프트 (MAIN, HERO, FEATURES 등)
       orchestrationPrompt: scenarioPrompt || undefined,       // 오케스트레이션 AI 생성 시나리오
