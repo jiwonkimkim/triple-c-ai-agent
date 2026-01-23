@@ -274,10 +274,11 @@ export function useChat({ conversationId, onComplete }: UseChatOptions) {
       setMessages((prev) => [...prev, userMessage]);
       setError(null);
 
-      // SSE 스트림 시작 - content를 보내지 않아서 백엔드에서 "[선택] {optionId}" 형식으로 저장
-      // 이렇게 하면 인텐트 파서가 SELECT_OPTION으로 인식함
+      // SSE 스트림 시작 - 라벨도 함께 전송하여 DB에 사용자 친화적인 텍스트 저장
+      // 인텐트 파서는 selectedOptionId로 SELECT_OPTION 인식
       await startStream(`/api/chat/${conversationId}/messages`, {
         selectedOptionId: optionId,
+        selectedOptionLabel: optionLabel,
       });
     },
     [conversationId, startStream, isStreaming, isTyping]

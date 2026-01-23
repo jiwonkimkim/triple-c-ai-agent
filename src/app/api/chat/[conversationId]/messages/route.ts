@@ -96,7 +96,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const { conversationId } = params;
     const body = await request.json();
-    const { content, attachments = [], selectedOptionId } = body;
+    const { content, attachments = [], selectedOptionId, selectedOptionLabel } = body;
 
     // 메시지 내용, 선택 옵션, 또는 첨부 파일 중 하나는 있어야 함
     if (!content && !selectedOptionId && (!attachments || attachments.length === 0)) {
@@ -127,10 +127,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // 사용자 메시지 저장
-    // content 결정: 텍스트 > 선택 옵션 > 이미지 첨부
+    // content 결정: 텍스트 > 선택 옵션 라벨 > 이미지 첨부
     let messageContent = content;
     if (!messageContent && selectedOptionId) {
-      messageContent = `[선택] ${selectedOptionId}`;
+      // 라벨이 있으면 라벨 사용, 없으면 ID 사용 (하위 호환성)
+      messageContent = selectedOptionLabel || `[선택] ${selectedOptionId}`;
     } else if (!messageContent && attachments.length > 0) {
       messageContent = `[이미지 ${attachments.length}장 첨부]`;
     }
@@ -172,7 +173,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           existingMessages.push({
             id: userMessage.id,
             role: 'user',
-            content: content || `[선택] ${selectedOptionId}`,
+            content: content || selectedOptionLabel || `[선택] ${selectedOptionId}`,
             attachments,
             createdAt: userMessage.createdAt,
           });
