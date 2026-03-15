@@ -408,6 +408,47 @@ stateDiagram-v2
 
 ---
 
+## 🧾 API Integrity Test (Postman)
+
+백엔드 로직의 안정성을 검증하기 위해 API 시나리오 테스트를 수행했습니다.
+
+- **공유 자료**: [Postman Collection 파일 바로가기](./tests/api/triple-c-api.postman_collection.json)
+- **검증 항목**:
+  - 유효한 세션에서의 채팅 메시지 전송 (200 OK)
+  - 인증 정보 누락 시 에러 처리 (401 Unauthorized)
+  - 필수 필드(`productName` 등) 누락 시 유효성 검사 (400 Bad Request)
+
+### 컬렉션 구성
+
+| 폴더 | 요청 수 | 대표 엔드포인트 |
+|------|--------|---------------|
+| 🔐 Auth | 4 | `POST /api/auth/signup` (B2C / B2B) |
+| 💬 Chat | 7 | `POST /api/chat/{id}/messages` (SSE 스트리밍) |
+| 🏷️ Brands | 12 | CRUD + URL 크롤링 / RAG 검색 / 청크 관리 |
+| 📁 Projects | 13 | CRUD + 버전 관리 / 임시저장 / HTML 내보내기 |
+| 🤖 Generate | 1 | `POST /api/generate/detail-page` |
+| 🖼️ Upload | 1 | `POST /api/upload` (multipart/form-data, Cloudflare R2) |
+| 🛍️ Marketplace | 6 | 템플릿 목록 / 시맨틱 검색 / 구매 |
+| 📋 Templates | 6 | CRUD + 마켓플레이스 게시 |
+| 🧪 A/B Tests | 7 | CRUD + 이벤트 기록 (공개 엔드포인트) |
+| 💰 Billing | 6 | Stripe 구독 / 결제 / 크레딧 / 포털 |
+| 🏪 Seller | 5 | 잔액 / 거래 내역 / 출금 신청 |
+| ⚙️ Settings | 19 | 프로필 / 비밀번호 / 2FA / 세션 / 워크스페이스 |
+| 📊 Analytics | 2 | 대시보드 통계 / 사용량 분석 |
+| 🛠️ Admin | 2 | 템플릿 임베딩 배치 |
+| **합계** | **91** | **14개 폴더, 11개 경로 변수** |
+
+### Import 방법
+
+```
+1. Postman 실행 → [Import] 클릭
+2. tests/api/triple-c-api.postman_collection.json 파일 선택
+3. Environments에서 base_url = http://localhost:3000 확인
+4. 로그인 후 발급된 next-auth.session-token 쿠키가 자동으로 인증에 사용됩니다
+```
+
+---
+
 ## 팀 구성
 
 | 이름 | 역할 | 담당 기능 |
