@@ -16,8 +16,8 @@ import * as fs from 'fs';
 const AUTH_FILE = path.join(__dirname, '.auth/user.json');
 
 setup('로그인 세션 저장', async ({ page }) => {
-  const email = process.env.TEST_USER_EMAIL ?? 'test@triple-c.dev';
-  const password = process.env.TEST_USER_PASSWORD ?? 'Test1234!@';
+  const email = process.env.TEST_USER_EMAIL ?? 'e2e-test@triple-c.dev';
+  const password = process.env.TEST_USER_PASSWORD ?? 'E2eTestPw1234!';
 
   // .auth 폴더가 없으면 생성
   const authDir = path.dirname(AUTH_FILE);

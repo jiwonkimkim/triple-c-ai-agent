@@ -1,0 +1,179 @@
+name: Playwright E2E Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# [auto-deploy] 봇 커밋은 건너뜀 (build-notify.yml 자동 커밋과 충돌 방지)
+jobs:
+  e2e:
+    if: "!contains(github.event.head_commit.message, '[auto-deploy]')"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    # ── PostgreSQL 서비스 컨테이너 ─────────────────────────────────────────
+    services:
+      postgres:
+        image: pgvector/pgvector:pg15        # pgvector 확장 포함 이미지
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci_test_pw
+          POSTGRES_DB: triple_c_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    # ── 환경 변수 ───────────────────────────────────────────────────────────
+    env:
+      # DB (PostgreSQL 서비스 컨테이너)
+      DATABASE_URL: postgresql://postgres:ci_test_pw@localhost:5432/triple_c_test
+
+      # NextAuth
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: e2e-ci-nextauth-secret-not-for-production
+
+      # Google OAuth — E2E에서 사용 안 하므로 더미값
+      GOOGLE_CLIENT_ID: dummy-google-client-id
+      GOOGLE_CLIENT_SECRET: dummy-google-client-secret
+
+      # AI API — E2E에서 전부 모킹하므로 더미값
+      GOOGLE_AI_API_KEY: dummy-ai-key-not-called-in-e2e
+      OPENAI_API_KEY: dummy-openai-key
+      ANTHROPIC_API_KEY: dummy-anthropic-key
+
+      # E2E 테스트용 계정 (scripts/create-e2e-user.ts 에서 생성)
+      TEST_USER_EMAIL: e2e-test@triple-c.dev
+      TEST_USER_PASSWORD: E2eTestPw1234!
+
+      # Playwright
+      PLAYWRIGHT_BASE_URL: http://localhost:3000
+      NODE_OPTIONS: --max-old-space-size=4096
+
+    # ── Steps ───────────────────────────────────────────────────────────────
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Playwright 브라우저 캐시 (package-lock.json 변경 시 무효화)
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install chromium --with-deps
+
+      - name: Install Playwright system dependencies (cache hit)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      # DB 스키마 생성 (pgvector 확장 포함)
+      - name: Run Prisma migrations
+        run: npx prisma migrate deploy
+
+      # 테스트 유저 생성 (auth.setup.ts 로그인에 필요)
+      - name: Create E2E test user
+        run: npx tsx scripts/create-e2e-user.ts
+
+      # Playwright E2E 테스트 실행
+      # - setup 프로젝트(auth.setup.ts): 실제 로그인 후 세션 저장
+      # - chromium 프로젝트: 저장된 세션으로 채팅 E2E 테스트 실행
+      - name: Run Playwright E2E tests
+        id: playwright
+        run: npx playwright test
+
+      # GitHub Actions 요약 페이지에 결과 기록
+      - name: Write test summary
+        if: always()
+        run: |
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          echo "## 🎭 Playwright E2E Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.playwright.outcome }}" == "success" ]; then
+            echo "### ✅ All tests passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Some tests failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| | |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Branch** | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Commit** | \`${SHORT_SHA}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Author** | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📦 [Playwright Report Artifact](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}#artifacts)" >> $GITHUB_STEP_SUMMARY
+
+      # HTML 리포트를 Artifact로 업로드 (7일 보관)
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: playwright-report/
+          retention-days: 7
+
+      # 테스트 실패 시 Slack 알림 (SLACK_BOT_TOKEN 시크릿이 있을 때만)
+      - name: Notify Slack on failure
+        if: failure() && secrets.SLACK_BOT_TOKEN != ''
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        run: |
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          curl -s -X POST "https://slack.com/api/chat.postMessage" \
+            -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+            -H "Content-type: application/json" \
+            -d "{
+              \"channel\": \"$SLACK_CHANNEL_ID\",
+              \"attachments\": [{
+                \"color\": \"#ef4444\",
+                \"blocks\": [
+                  {
+                    \"type\": \"header\",
+                    \"text\": {\"type\": \"plain_text\", \"text\": \"❌ E2E 테스트 실패\", \"emoji\": true}
+                  },
+                  {
+                    \"type\": \"section\",
+                    \"fields\": [
+                      {\"type\": \"mrkdwn\", \"text\": \"*Branch*\n\`${{ github.ref_name }}\`\"},
+                      {\"type\": \"mrkdwn\", \"text\": \"*Commit*\n\`${SHORT_SHA}\`\"},
+                      {\"type\": \"mrkdwn\", \"text\": \"*Author*\n${{ github.actor }}\"},
+                      {\"type\": \"mrkdwn\", \"text\": \"*Event*\n${{ github.event_name }}\"}
+                    ]
+                  },
+                  {
+                    \"type\": \"section\",
+                    \"text\": {\"type\": \"mrkdwn\", \"text\": \"${{ github.event.head_commit.message }}\"}
+                  },
+                  {
+                    \"type\": \"actions\",
+                    \"elements\": [{
+                      \"type\": \"button\",
+                      \"text\": {\"type\": \"plain_text\", \"text\": \"🔍 리포트 보기\"},
+                      \"url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\",
+                      \"style\": \"danger\"
+                    }]
+                  }
+                ]
+              }]
+            }"
