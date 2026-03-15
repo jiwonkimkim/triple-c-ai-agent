@@ -11,7 +11,7 @@ services:
     container_name: ngrinder_controller
     restart: unless-stopped
     ports:
-      - "8080:8080"   # Web UI + REST API
+      - "8080:80"     # Web UI + REST API (컨테이너 내부 포트: 80)
       - "9010:9010"   # Agent 연결 포트
       - "9011:9011"   # Agent 연결 포트 (reserved)
       - "9012:9012"   # Agent 연결 포트 (reserved)
