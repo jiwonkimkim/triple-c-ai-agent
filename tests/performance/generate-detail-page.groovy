@@ -66,7 +66,7 @@ class TestRunner {
   // ─── 환경 설정 ────────────────────────────────────────────────────────────
 
   /** 테스트 대상 서버 URL */
-  static final String BASE_URL = "http://localhost:3000"
+  static final String BASE_URL = "http://host.docker.internal:3000"
 
   /**
    * 요청 타임아웃 (ms)
