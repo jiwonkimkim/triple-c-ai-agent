@@ -198,6 +198,7 @@ export default function ChatListPage() {
         </div>
         <Button
           onClick={handleNewChat}
+          data-testid="new-chat-button"
           className="rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -226,6 +227,7 @@ export default function ChatListPage() {
           </p>
           <Button
             onClick={handleNewChat}
+            data-testid="new-chat-button"
             className="rounded-full bg-gradient-to-r from-blue-500 to-indigo-500"
           >
             <Plus className="w-4 h-4 mr-2" />

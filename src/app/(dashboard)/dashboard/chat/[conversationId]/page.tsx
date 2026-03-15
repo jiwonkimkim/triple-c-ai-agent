@@ -179,7 +179,7 @@ export default function ChatPage() {
             {isTyping && !messages.some((m) => m.isStreaming) && (
               <TypingIndicator />
             )}
-            <div ref={messagesEndRef} />
+            <div ref={messagesEndRef} data-testid="messages-end" />
           </div>
         )}
       </div>

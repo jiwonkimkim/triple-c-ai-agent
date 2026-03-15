@@ -24,6 +24,7 @@ export function MessageItem({ message, onSelectOption, isDisabled }: MessageItem
 
   return (
     <div
+      data-testid="message-item"
       className={cn(
         'flex gap-3 p-4',
         isUser ? 'flex-row-reverse' : 'flex-row'

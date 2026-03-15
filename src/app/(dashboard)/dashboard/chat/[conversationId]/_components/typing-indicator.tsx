@@ -9,7 +9,7 @@ import { Bot } from 'lucide-react';
 
 export function TypingIndicator() {
   return (
-    <div className="flex gap-3 p-4">
+    <div data-testid="typing-indicator" className="flex gap-3 p-4">
       {/* 아바타 */}
       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 text-white flex items-center justify-center">
         <Bot className="w-4 h-4" />
