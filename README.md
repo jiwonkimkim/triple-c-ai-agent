@@ -370,6 +370,44 @@ stateDiagram-v2
 
 ---
 
+## 🌐 크로스 브라우저 호환성 테스트 결과
+
+`npx playwright test --project=chromium --project=firefox --project=webkit` 실행 기준
+
+### 테스트 항목
+
+| TC-ID | 검증 내용 |
+|-------|----------|
+| TC-01 | 채팅 목록 페이지 — 빈 상태 핵심 UI (제목·서브타이틀·새 대화 버튼·CTA) |
+| TC-02 | 채팅 목록 페이지 — 대화 항목 렌더링 (제목·상태 배지·메시지 미리보기·메시지 수) |
+| TC-03 | 채팅 대화 페이지 — 헤더 및 입력창 (뒤로가기 버튼·h1·textarea·placeholder) |
+| TC-04 | SSE 스트리밍 — AI 메시지 렌더링 및 전송 후 textarea 재활성화 |
+| TC-05 | API 오류 — 에러 배너 텍스트·textarea 재활성화·URL 유지 |
+
+### 브라우저별 실행 결과
+
+| 브라우저 | TC-01 | TC-02 | TC-03 | TC-04 | TC-05 | 합계 |
+|---------|-------|-------|-------|-------|-------|------|
+| **Chrome** (chromium) | — | — | — | — | — | DB + `.env.local` 필요 |
+| **Firefox** | ✅ PASS | ✅ PASS | ✅ PASS | ✅ PASS | ✅ PASS | **5 / 5** |
+| **WebKit** (Safari) | ✅ PASS | ✅ PASS | ✅ PASS | ✅ PASS | ✅ PASS | **5 / 5** |
+
+> Chrome은 `DATABASE_URL` + `NEXTAUTH_SECRET`이 담긴 `.env.local`이 있으면 동일하게 실행됩니다.
+
+### 발견된 문제와 해결
+
+| 문제 | 원인 | 해결 |
+|------|------|------|
+| 프로젝트 이름 불일치 | Playwright config에 `compat-chrome` 등 비표준 이름 사용 | `chromium / firefox / webkit`으로 표준화 |
+| webServer 120초 타임아웃 | `NEXTAUTH_SECRET` 누락 → `/` 루트가 500 에러로 리디렉트 | `.env.local` 자동 로드 후 `webServer.env`에 주입, 헬스체크 URL을 `/login`으로 변경 |
+| Firefox / WebKit 바이너리 없음 | 초기 설치 미완료 | `npx playwright install firefox webkit` |
+| DB 없이 auth setup 불가 | `auth.setup.ts`가 실제 DB 로그인 요구 | `compat-auth.setup.ts` 추가 — `next-auth/jwt encode()`로 JWT 직접 생성, DB 없이 인증 쿠키 발급 |
+| Strict mode 위반 — heading | `'대화'`가 h1(`대화`)과 h3(`아직 대화가 없습니다`) 두 개에 매칭 | 로케이터에 `{ exact: true }` 추가 |
+| Strict mode 위반 — button | `header button.first()`이 `lg:hidden` 모바일 버튼을 잡음 | 뒤로가기 버튼에 `data-testid="back-button"` 추가 |
+| 로그인 버튼 중복 감지 | `'로그인'` 버튼이 일반 로그인 + `🔧 개인 개발자 로그인` 두 개 매칭 | `{ exact: true }` 추가로 정확히 지정 |
+
+---
+
 ## 팀 구성
 
 | 이름 | 역할 | 담당 기능 |
