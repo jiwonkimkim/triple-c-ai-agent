@@ -195,6 +195,163 @@ npm test
 
 ---
 
+## 🔍 System State Transition Diagram (QA Analysis)
+
+채팅 에이전트 시스템의 상태 전이를 LangGraph 소스코드 기반으로 분석한 다이어그램입니다.
+QA 관점에서 **정상 경로(Happy Path)** 와 **예외 경로(Error Path)** 를 함께 표현합니다.
+
+```mermaid
+stateDiagram-v2
+    direction TB
+
+    [*] --> Lobby
+
+    %% ── 🏠 로비 ─────────────────────────────────────────────
+    state "🏠 로비 (Lobby)" as Lobby {
+        [*]         --> COORDINATOR
+        COORDINATOR --> DISCOVERY   : Discovery 의도 감지
+        DISCOVERY   --> Await_L     : await_input (트렌드/시즌 선택지)
+        COORDINATOR --> Await_L     : await_input (웰컴 메시지)
+        Await_L     --> [*]
+    }
+
+    Lobby --> InfoCollection : PROVIDE_INFO / CREATE 의도 감지
+    Lobby --> InfoCollection : Discovery 선택지 선택 완료
+
+    %% ── 📋 정보수집 ──────────────────────────────────────────
+    state "📋 정보수집 (Info Collection)" as InfoCollection {
+        [*]        --> INTAKE
+        INTAKE     --> CLARIFIER  : 모호한 답변 감지
+        CLARIFIER  --> INTAKE     : continue (명확화 완료)
+        CLARIFIER  --> Await_IC   : await_input (재질문)
+        INTAKE     --> SUGGESTER  : 필드 누락 (category / copyLength 등)
+        SUGGESTER  --> Await_IC   : await_input (순차 선택지 제시)
+        INTAKE     --> Await_IC   : await_input (추가 질문 중)
+        Await_IC   --> [*]
+
+        INTAKE     --> INTAKE_ERR  : ⚠ LLM API 호출 실패 (Gemini 오류)
+        INTAKE_ERR --> Await_IC    : 오류 메시지 반환 후 대기
+        CLARIFIER  --> CLARIFY_ERR : ⚠ LLM API 호출 실패
+        CLARIFY_ERR --> Await_IC   : 오류 메시지 반환 후 대기
+    }
+
+    InfoCollection --> Planning   : 필수 필드 완료 (productName · category · copyLength · imageModel)
+    InfoCollection --> UPLOAD_ERR : ⚠ /api/upload 실패 (R2 오류 / 네트워크)
+    UPLOAD_ERR     --> InfoCollection : toast 알림 후 재시도 가능
+
+    %% ── 🗂 기획 ──────────────────────────────────────────────
+    state "🗂 기획 (Planning)" as Planning {
+        [*]          --> PLANNER
+        PLANNER      --> PLAN_CONSULT : BEAUTY 카테고리 감지
+        PLANNER      --> Await_PL     : 플랜 제시 await_input
+        PLAN_CONSULT --> Await_PL     : 전문 플랜 제시 await_input
+        Await_PL     --> [*]
+
+        PLANNER      --> PLAN_ERR  : ⚠ LLM 플랜 생성 실패
+        PLAN_CONSULT --> PLAN_ERR  : ⚠ LLM 전문 플랜 생성 실패
+        PLAN_ERR     --> [*]
+    }
+
+    Planning   --> GenConfirm : generate 선택 (readyToGenerate=true)
+    Planning   --> Feedback   : modify 선택 (modifyRequest 설정)
+    Planning   --> Feedback   : ⚠ 기획 LLM 실패 → error 위임
+
+    %% ── ✅ 생성 확인 (이중 확인 구조) ───────────────────────
+    state "✅ 생성 확인 (Double-Check)" as GenConfirm {
+        [*]          --> DOUBLE_CHECK
+        DOUBLE_CHECK --> Await_GC : await_input (confirm / modify)
+        Await_GC     --> [*]
+    }
+
+    GenConfirm --> Generation : confirm 선택 (confirmedGenerate=true)
+    GenConfirm --> Feedback   : modify 재선택
+
+    %% ── ⚙️ 생성 ────────────────────────────────────────────
+    state "⚙️ 생성 (Generation)" as Generation {
+        [*]         --> DUP_CHECK
+        DUP_CHECK   --> SET_GEN    : 신규 요청
+        DUP_CHECK   --> EXIST_PROJ : ⚠ 중복 요청 감지 (status=GENERATING)
+        EXIST_PROJ  --> [*]
+
+        SET_GEN     --> FIELD_VALID
+        FIELD_VALID --> AI_GEN   : 필드 검증 통과
+        FIELD_VALID --> GEN_ERR  : ⚠ 필수 필드 누락 (getMissingFields)
+
+        AI_GEN      --> SAVE_DB   : AI 생성 성공 (generateDetailPage)
+        SAVE_DB     --> DEDUCT_CR : DB 저장 (DetailPageVersion · ProjectVersion)
+        DEDUCT_CR   --> COMPLETED : 크레딧 차감 (trialCredits--)
+        COMPLETED   --> [*]
+
+        AI_GEN    --> GEN_ERR : ⚠ AI API 타임아웃 / 실패
+        SAVE_DB   --> GEN_ERR : ⚠ DB 오류 (Prisma)
+        DEDUCT_CR --> GEN_ERR : ⚠ DB 오류 (크레딧 갱신 실패)
+        GEN_ERR   --> [*]
+    }
+
+    Generation --> Complete  : nextAction=complete (에디터 리다이렉트)
+    Generation --> Feedback  : nextAction=error (AI 생성 실패)
+    Complete   --> [*]
+
+    %% ── 🔄 피드백 ──────────────────────────────────────────
+    state "🔄 피드백 (Feedback)" as Feedback {
+        [*]        --> ANALYZE_FB
+        ANALYZE_FB --> Await_FB   : clarification (의도 불명확)
+        ANALYZE_FB --> FB_TO_PLAN : field_update / section_change
+        ANALYZE_FB --> FB_REGEN   : regenerate
+        Await_FB   --> [*]
+        FB_TO_PLAN --> [*]
+        FB_REGEN   --> [*]
+
+        ANALYZE_FB --> FB_ERR  : ⚠ LLM 피드백 분석 실패
+        FB_ERR     --> Await_FB : 오류 메시지 후 재입력 대기
+    }
+
+    Feedback --> Planning   : field_update / section_change
+    Feedback --> Generation : regenerate
+    Feedback --> End_Await  : await_input (clarification)
+    End_Await --> [*]
+
+    note right of Generation
+        ⚠ 전역 예외 — QA 체크포인트
+        ─────────────────────────────
+        세션 만료       → 401 → 로그인 리다이렉트
+        LLM Rate Limit  → Gemini 429 오류 (모든 LLM 호출 공통)
+        Graph 재귀 한도 → 50회 초과 시 강제 종료 (recursionLimit)
+        SSE 끊김        → 클라이언트 재연결 / 오류 표시 필요
+    end note
+```
+
+### 단계별 예외 (QA 체크포인트)
+
+| 단계 | 예외 | 코드 위치 | 실제 동작 |
+|------|------|-----------|-----------|
+| 정보수집 | LLM API 실패 (INTAKE/CLARIFIER) | `intake.ts` LLM 호출 블록 | 오류 메시지 → `await_input` |
+| 정보수집 | `/api/upload` 실패 | `chat-input.tsx` → `route.ts` | toast 알림 후 재시도 가능 |
+| 기획 | LLM 플랜 생성 실패 | `planner.ts` LLM 호출 블록 | `nextAction: error` → Feedback 위임 |
+| 생성 | 중복 요청 (`status=GENERATING`) | `generator.ts:18` | 기존 프로젝트 반환, 신규 생성 차단 |
+| 생성 | 필수 필드 누락 | `generator.ts:88` + `types.ts:484` | `GEN_ERR` → `nextAction: error` → Feedback |
+| 생성 | AI API 타임아웃/실패 | `generator.ts:243` | `GEN_ERR` → Feedback으로 라우팅 |
+| 생성 | DB 오류 | `generator.ts:129, 273, 334` | `GEN_ERR` → Feedback으로 라우팅 |
+| 피드백 | LLM 피드백 분석 실패 | `feedback.ts` LLM 호출 블록 | 오류 메시지 → `await_input` |
+
+### 전역 예외 (모든 단계 공통)
+
+| 예외 | 발생 위치 | 트리거 조건 |
+|------|-----------|-------------|
+| 세션 만료 | `messages/route.ts` 상단 auth 체크 | NextAuth 세션 없음 → 401 |
+| LLM Rate Limit | 모든 에이전트 LLM 호출 | Gemini 429 응답 |
+| Graph 재귀 초과 | `graph.ts:325` `recursionLimit: 50` | 에이전트 루프 50회 |
+| SSE 연결 끊김 | `route.ts` ReadableStream | 클라이언트 네트워크 단절 |
+
+### ⚠ 주의해야 할 QA 취약 구간
+
+1. **생성 확인 이중 구조** — `readyToGenerate=true` 후 COORDINATOR가 한 번 더 확인 메시지를 보내야 `confirmedGenerate=true`가 됨. 확인 없이 바로 생성 진입하는 경로 테스트 필요
+2. **이미지 스킵 키워드 의존** — `route.ts`에서 `'스킵/건너뛰/없어...'` 키워드 매칭으로 스킵 처리. 다른 표현 사용 시 `waitingForImageUpload` 상태에 갇힘
+3. **SUGGESTER 순차 루프** — 필드 완성 후 SUGGESTER가 다음 빈 필드로 계속 이동. 특정 필드 스킵 불가 시 무한 대기
+4. **Graph 재귀 50회 한도** — COORDINATOR ↔ 에이전트 루프 + Feedback ↔ 재생성 반복 시 도달 가능
+
+---
+
 ## 팀 구성
 
 | 이름 | 역할 | 담당 기능 |
