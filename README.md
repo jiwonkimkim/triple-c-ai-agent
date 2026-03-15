@@ -458,6 +458,52 @@ stateDiagram-v2
 
 ---
 
+## ⚡ 성능 테스트 (Load Test)
+
+nGrinder를 활용해 핵심 API인 `POST /api/generate/detail-page`의 부하 특성을 분석하고, **임계 지점과 인프라 개선 방향**을 도출했습니다.
+
+### 테스트 환경
+
+| 항목 | 내용 |
+|------|------|
+| 도구 | nGrinder 3.5.9 (Docker Compose, Controller + Agent) |
+| 스크립트 | Groovy — 4-step 시나리오 (CSRF → 로그인 → 프로젝트 생성 → 상세페이지 생성) |
+| SLA 기준 | 응답시간 < 10,000ms (CLAUDE.md Performance targets 기준) |
+
+### 부하 테스트 결과
+
+> 테스트 수행 후 실측값으로 채워주세요. 템플릿 양식: [성능 테스트 결과 보고서](./docs/PERFORMANCE_TEST_REPORT.md)
+
+| Vuser | TPS | Peak TPS | MTT (ms) | 에러율 | SLA |
+|------:|----:|---------:|---------:|-------:|:---:|
+| 1  |  |  |  |  |  |
+| 5  |  |  |  |  |  |
+| 10 |  |  |  |  |  |
+| 20 |  |  |  |  |  |
+
+### 발견된 임계 지점
+
+| 병목 구간 | 원인 | 응답시간 비중 |
+|-----------|------|:------------:|
+| AI 호출 (`generateDetailPage`) | OpenAI / Gemini 외부 API 레이턴시 | **~90%** |
+| 직렬 DB 쿼리 × 5회 | `await` 순차 실행, 병렬화 미적용 | ~5% |
+| 크레딧 차감 Race Condition | Read-then-write 패턴, 원자적 처리 없음 | — |
+
+### 개선 제안 (우선순위 순)
+
+| 개선 항목 | 방법 | 기대 효과 |
+|-----------|------|-----------|
+| DB 쿼리 병렬화 | `Promise.all()` 적용 | MTT 20~30% 단축 |
+| 크레딧 원자적 차감 | `updateMany` + 조건절 | 동시 요청 시 데이터 정합성 보장 |
+| 비동기 큐 전환 | BullMQ + Redis Worker | 동시 처리량 수평 확장 가능 |
+| 응답 캐싱 | Redis TTL 캐시 (입력값 해시 키) | 중복 요청 비용·시간 99% 절감 |
+
+> 상세 분석 및 Before/After 코드: [성능 테스트 결과 보고서](./docs/PERFORMANCE_TEST_REPORT.md)
+> nGrinder 실행 방법: [nGrinder 설치 및 스크립트 등록 가이드](./docs/NGRINDER_LOAD_TEST_GUIDE.md)
+> 테스트 스크립트: [`tests/performance/generate-detail-page.groovy`](./tests/performance/generate-detail-page.groovy)
+
+---
+
 ## 팀 구성
 
 | 이름 | 역할 | 담당 기능 |
