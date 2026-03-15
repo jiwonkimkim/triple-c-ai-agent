@@ -255,6 +255,88 @@ export async function setupAndNavigateToChatPage(
   return MOCK_CONVERSATION_ID;
 }
 
+// ─── 추가 SSE 빌더 ─────────────────────────────────────────────────────────
+
+/**
+ * SSE 에러 이벤트를 생성합니다.
+ * route.ts catch 블록이 실제로 보내는 형식과 동일:
+ *   typing(true) → error
+ *
+ * @param errorMessage - 클라이언트에 전달할 오류 메시지
+ */
+export function buildSSEErrorResponse(errorMessage: string): string {
+  const makeEvent = (name: string, data: object) =>
+    `event: ${name}\ndata: ${JSON.stringify(data)}\n\n`;
+
+  return [
+    makeEvent('typing', { isTyping: true }),
+    makeEvent('error', { message: errorMessage }),
+  ].join('');
+}
+
+/**
+ * done 이벤트에 임의의 상태(collectedData, currentAgent 등)를 담은 SSE를 생성합니다.
+ * 특정 상태(기획 완료, 생성 확인 등)를 테스트에서 재현할 때 사용합니다.
+ *
+ * @param replyContent - 스트리밍할 AI 메시지 텍스트
+ * @param donePayload  - done 이벤트에 포함할 추가 데이터 (currentAgent, collectedData 등)
+ * @param messageId    - 메시지 ID (기본값: 자동 생성)
+ */
+export function buildSSEWithDoneData(
+  replyContent: string,
+  donePayload: {
+    status?: string;
+    currentAgent?: string;
+    collectedData?: Record<string, unknown>;
+    projectId?: string;
+  },
+  messageId = `ai-msg-${Date.now()}`
+): string {
+  const makeEvent = (name: string, data: object) =>
+    `event: ${name}\ndata: ${JSON.stringify(data)}\n\n`;
+
+  const events: string[] = [];
+
+  events.push(makeEvent('typing', { isTyping: true }));
+
+  const tokens = replyContent.match(/\S+|\s+/g) ?? [replyContent];
+  let accumulated = '';
+  tokens.forEach((token, i) => {
+    accumulated += token;
+    events.push(
+      makeEvent('chunk', {
+        messageId,
+        content: accumulated,
+        isComplete: i === tokens.length - 1,
+      })
+    );
+  });
+
+  events.push(
+    makeEvent('message', {
+      id: messageId,
+      role: 'assistant',
+      content: replyContent,
+      agentType: donePayload.currentAgent ?? 'COORDINATOR',
+      metadata: {},
+      createdAt: new Date().toISOString(),
+    })
+  );
+
+  events.push(makeEvent('typing', { isTyping: false }));
+
+  events.push(
+    makeEvent('done', {
+      status: donePayload.status ?? 'await_input',
+      currentAgent: donePayload.currentAgent ?? 'COORDINATOR',
+      collectedData: donePayload.collectedData ?? {},
+      ...(donePayload.projectId && { projectId: donePayload.projectId }),
+    })
+  );
+
+  return events.join('');
+}
+
 /** 테스트용 샘플 이미지 경로 (200×200 보라-인디고 그라디언트 PNG) */
 export const SAMPLE_IMAGE_PATH = path.join(
   __dirname,

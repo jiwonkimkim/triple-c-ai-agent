@@ -9,6 +9,7 @@ import { useState, useRef, KeyboardEvent } from 'react';
 import { Send, Paperclip, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface AttachmentItem {
   url: string;
@@ -27,6 +28,7 @@ export function ChatInput({
   disabled = false,
   placeholder = '메시지를 입력하세요...',
 }: ChatInputProps) {
+  const { toast } = useToast();
   const [message, setMessage] = useState('');
   const [attachments, setAttachments] = useState<AttachmentItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -75,7 +77,11 @@ export function ChatInput({
     const filesToUpload = Array.from(files).slice(0, remainingSlots);
 
     if (filesToUpload.length === 0) {
-      alert('이미지는 최대 5장까지 첨부할 수 있습니다.');
+      toast({
+        variant: 'destructive',
+        title: '첨부 제한 초과',
+        description: '이미지는 최대 5장까지 첨부할 수 있습니다.',
+      });
       return;
     }
 
@@ -125,7 +131,11 @@ export function ChatInput({
         console.error('이미지 업로드 실패:', error);
         // 실패한 항목 제거
         setAttachments((prev) => prev.filter((a) => a.url !== tempId));
-        alert('이미지 업로드에 실패했습니다.');
+        toast({
+          variant: 'destructive',
+          title: '업로드 실패',
+          description: '이미지 업로드에 실패했습니다. 다시 시도해 주세요.',
+        });
       }
     }
 
