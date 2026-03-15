@@ -33,8 +33,8 @@ setup('로그인 세션 저장', async ({ page }) => {
   await page.fill('input#email', email);
   await page.fill('input#password', password);
 
-  // 로그인 버튼 클릭
-  await page.getByRole('button', { name: '로그인' }).click();
+  // 로그인 버튼 클릭 (exact: true — '🔧 개인 개발자 로그인' 버튼과 구분)
+  await page.getByRole('button', { name: '로그인', exact: true }).click();
 
   // 대시보드 이동 확인
   await page.waitForURL('**/dashboard', { timeout: 20_000 });

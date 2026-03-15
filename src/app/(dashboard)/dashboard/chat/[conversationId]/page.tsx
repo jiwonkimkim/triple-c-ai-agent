@@ -115,6 +115,7 @@ export default function ChatPage() {
             size="icon"
             className="rounded-full"
             onClick={handleBack}
+            data-testid="back-button"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>

@@ -222,8 +222,8 @@ test.describe('Cross-Browser Compatibility', () => {
     await page.goto('/dashboard/chat');
     await page.waitForLoadState('networkidle');
 
-    // 페이지 제목
-    await expect(page.getByRole('heading', { name: '대화' })).toBeVisible();
+    // 페이지 제목 (exact: true — '아직 대화가 없습니다' 등 다른 heading과 구분)
+    await expect(page.getByRole('heading', { name: '대화', exact: true })).toBeVisible();
 
     // 서브타이틀
     await expect(
@@ -304,13 +304,8 @@ test.describe('Cross-Browser Compatibility', () => {
 
     await navigateToChatPage(page);
 
-    // 헤더 — 뒤로가기 버튼
-    await expect(
-      page.getByRole('button', { name: /뒤로|back/i }).or(
-        // ArrowLeft 아이콘 버튼은 aria-label 없이 렌더링되므로 header 내 첫 번째 버튼으로 탐색
-        page.locator('header button').first()
-      )
-    ).toBeVisible();
+    // 헤더 — 뒤로가기 버튼 (data-testid="back-button")
+    await expect(page.getByTestId('back-button')).toBeVisible();
 
     // 헤더 — 페이지 제목
     await expect(page.getByRole('heading', { name: '새 프로젝트' })).toBeVisible();
