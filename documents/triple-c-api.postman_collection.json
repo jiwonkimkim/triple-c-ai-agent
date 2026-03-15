@@ -1,0 +1,1489 @@
+{
+  "info": {
+    "_postman_id": "triple-c-ai-agent-api-v1",
+    "name": "Triple C AI Agent API",
+    "description": "Triple C Marketing Contents Agent — 전체 API 엔드포인트 컬렉션\n\n## 사용 방법\n1. `base_url` 변수를 환경에 맞게 설정하세요 (기본값: http://localhost:3000)\n2. `auth_cookie` 변수에 로그인 후 발급된 `next-auth.session-token` 쿠키 값을 입력하세요\n3. 인증이 필요한 요청은 모두 NextAuth.js 세션 쿠키를 사용합니다\n\n## 인증\n- `POST /api/auth/[...nextauth]` 로 로그인 후 세션 쿠키 자동 사용\n- 모든 API(공개 라우트 제외)는 401 Unauthorized 반환",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:3000", "type": "string" },
+    { "key": "conversation_id", "value": "conv-id-here", "type": "string" },
+    { "key": "brand_id", "value": "brand-id-here", "type": "string" },
+    { "key": "project_id", "value": "project-id-here", "type": "string" },
+    { "key": "version_id", "value": "version-id-here", "type": "string" },
+    { "key": "template_id", "value": "template-id-here", "type": "string" },
+    { "key": "ab_test_id", "value": "ab-test-id-here", "type": "string" },
+    { "key": "workspace_id", "value": "workspace-id-here", "type": "string" },
+    { "key": "member_id", "value": "member-id-here", "type": "string" },
+    { "key": "session_id", "value": "session-id-here", "type": "string" },
+    { "key": "chunk_id", "value": "chunk-id-here", "type": "string" }
+  ],
+  "item": [
+
+    {
+      "name": "🔐 Auth",
+      "item": [
+        {
+          "name": "회원가입 (B2C)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password123!\",\n  \"name\": \"홍길동\",\n  \"nickname\": \"길동이\",\n  \"industry\": \"패션\",\n  \"userType\": \"B2C\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/signup",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "signup"]
+            }
+          }
+        },
+        {
+          "name": "회원가입 (B2B)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@company.com\",\n  \"password\": \"Password123!\",\n  \"name\": \"김대표\",\n  \"userType\": \"B2B\",\n  \"companyName\": \"(주)무신사\",\n  \"companyDomain\": \"musinsa.com\",\n  \"businessNumber\": \"123-45-67890\",\n  \"companySize\": \"51-200\",\n  \"contactName\": \"김대표\",\n  \"contactPosition\": \"대표이사\",\n  \"contactPhone\": \"010-1234-5678\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/signup",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "signup"]
+            }
+          }
+        },
+        {
+          "name": "세션 기기 정보 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/record-session",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "record-session"]
+            }
+          }
+        },
+        {
+          "name": "세션 기기 정보 기록",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/record-session",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "record-session"]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "💬 Chat",
+      "item": [
+        {
+          "name": "대화 목록 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/chat?status=ACTIVE&limit=20&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat"],
+              "query": [
+                { "key": "status", "value": "ACTIVE", "description": "ACTIVE | AWAITING_INPUT | GENERATING | COMPLETED | ABANDONED" },
+                { "key": "limit", "value": "20" },
+                { "key": "offset", "value": "0" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "새 대화 생성",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"initialMessage\": \"에어팟 프로 케이스 상세페이지 만들어줘\",\n  \"source\": \"chat_list\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat"]
+            }
+          }
+        },
+        {
+          "name": "대화 상세 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/chat/{{conversation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "{{conversation_id}}"]
+            }
+          }
+        },
+        {
+          "name": "대화 수정 (제목/상태)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"에어팟 프로 케이스 프로젝트\",\n  \"status\": \"ACTIVE\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat/{{conversation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "{{conversation_id}}"]
+            }
+          }
+        },
+        {
+          "name": "대화 삭제",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/chat/{{conversation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "{{conversation_id}}"]
+            }
+          }
+        },
+        {
+          "name": "메시지 목록 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/chat/{{conversation_id}}/messages",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "{{conversation_id}}", "messages"]
+            }
+          }
+        },
+        {
+          "name": "메시지 전송 (SSE 스트리밍)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"FLUX Pro로 만들어줘\",\n  \"attachments\": [],\n  \"selectedOptionId\": \"imageModel_FLUX_PRO\",\n  \"selectedOptionLabel\": \"FLUX Pro (고품질)\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat/{{conversation_id}}/messages",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "{{conversation_id}}", "messages"]
+            },
+            "description": "응답은 SSE(Server-Sent Events) 스트림으로 반환됩니다.\n\n이벤트 순서:\n  event: typing   → { isTyping: true }\n  event: chunk    → { messageId, content, isComplete }\n  event: message  → { id, role, content, agentType, metadata }\n  event: typing   → { isTyping: false }\n  event: done     → { status, currentAgent, collectedData, projectId? }\n  event: error    → { message }"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🏷️ Brands",
+      "item": [
+        {
+          "name": "브랜드 목록 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/brands?workspaceId={{workspace_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "brands"],
+              "query": [{ "key": "workspaceId", "value": "{{workspace_id}}", "description": "선택사항" }]
+            }
+          }
+        },
+        {
+          "name": "브랜드 생성",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"무신사 스탠다드\",\n  \"description\": \"무신사의 자체 패션 브랜드\",\n  \"websiteUrl\": \"https://standard.musinsa.com\",\n  \"instagramUrl\": \"https://instagram.com/musinsa_standard\",\n  \"tone\": \"트렌디하고 캐주얼한\",\n  \"keywords\": [\"스트리트\", \"캐주얼\", \"합리적\"],\n  \"targetAudience\": \"20-30대 남녀\",\n  \"workspaceId\": \"{{workspace_id}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/brands",
+              "host": ["{{base_url}}"],
+              "path": ["api", "brands"]
+            }
+          }
+        },
+        {
+          "name": "브랜드 상세 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/brands/{{brand_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "brands", "{{brand_id}}"]
+            }
+          }
+        },
+        {
+          "name": "브랜드 수정",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"무신사 스탠다드 (수정)\",\n  \"tone\": \"모던하고 미니멀한\",\n  \"keywords\": [\"미니멀\", \"모던\", \"기본템\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/brands/{{brand_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "brands", "{{brand_id}}"]
+            }
+          }
+        },
+        {
+          "name": "브랜드 삭제",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/brands/{{brand_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "brands", "{{brand_id}}"]
+            }
+          }
+        },
+        {
+          "name": "브랜드 지식 현황 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/brands/{{brand_id}}/knowledge",
+              "host": ["{{base_url}}"],
+              "path": ["api", "brands", "{{brand_id}}", "knowledge"]
+            }
+          }
+        },
+        {
+          "name": "브랜드 URL 크롤링 & 인덱싱",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"websiteUrls\": [\"https://standard.musinsa.com\", \"https://blog.musinsa.com\"],\n  \"manualContent\": \"브랜드 추가 설명 텍스트\",\n  \"maxPagesPerUrl\": 10,\n  \"clearExisting\": false\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/brands/{{brand_id}}/knowledge",
+              "host": ["{{base_url}}"],
+              "path": ["api", "brands", "{{brand_id}}", "knowledge"]
+            },
+            "description": "크레딧 1개 소모. maxPagesPerUrl 기본값: 10"
+          }
+        },
+        {
+          "name": "브랜드 지식 검색 (RAG 쿼리)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"무신사 스탠다드의 브랜드 톤앤매너\",\n  \"topK\": 5\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/brands/{{brand_id}}/knowledge",
+              "host": ["{{base_url}}"],
+              "path": ["api", "brands", "{{brand_id}}", "knowledge"]
+            }
+          }
+        },
+        {
+          "name": "브랜드 지식 전체 삭제",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/brands/{{brand_id}}/knowledge",
+              "host": ["{{base_url}}"],
+              "path": ["api", "brands", "{{brand_id}}", "knowledge"]
+            }
+          }
+        },
+        {
+          "name": "지식 청크 목록 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/brands/{{brand_id}}/knowledge/chunks?page=1&limit=10&search=브랜드",
+              "host": ["{{base_url}}"],
+              "path": ["api", "brands", "{{brand_id}}", "knowledge", "chunks"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "source", "value": "", "disabled": true, "description": "URL 필터" },
+                { "key": "search", "value": "브랜드", "description": "키워드 검색" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "지식 청크 삭제",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chunkIds\": [\"{{chunk_id}}\", \"chunk-id-2\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/brands/{{brand_id}}/knowledge/chunks",
+              "host": ["{{base_url}}"],
+              "path": ["api", "brands", "{{brand_id}}", "knowledge", "chunks"]
+            }
+          }
+        },
+        {
+          "name": "브랜드 문서 업로드",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "/path/to/brand-guide.pdf", "description": "TXT, MD, PDF, DOCX 허용 / 최대 10MB" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/brands/{{brand_id}}/knowledge/upload",
+              "host": ["{{base_url}}"],
+              "path": ["api", "brands", "{{brand_id}}", "knowledge", "upload"]
+            },
+            "description": "크레딧 1개 소모"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "📁 Projects",
+      "item": [
+        {
+          "name": "프로젝트 목록 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects?page=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects"],
+              "query": [
+                { "key": "workspaceId", "value": "", "disabled": true },
+                { "key": "status", "value": "", "disabled": true, "description": "DRAFT | ACTIVE | COMPLETED | DELETED" },
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "10" },
+                { "key": "includeDeleted", "value": "false", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "프로젝트 생성",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"에어팟 프로 케이스 상세페이지\",\n  \"productName\": \"에어팟 프로 케이스\",\n  \"category\": \"디지털 액세서리\",\n  \"brandProfileId\": \"{{brand_id}}\",\n  \"workspaceId\": \"{{workspace_id}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/projects",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects"]
+            }
+          }
+        },
+        {
+          "name": "프로젝트 상세 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/{{project_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "{{project_id}}"]
+            }
+          }
+        },
+        {
+          "name": "프로젝트 수정",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"에어팟 프로 케이스 상세페이지 v2\",\n  \"status\": \"ACTIVE\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/projects/{{project_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "{{project_id}}"]
+            }
+          }
+        },
+        {
+          "name": "프로젝트 삭제 (소프트)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/{{project_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "{{project_id}}"]
+            }
+          }
+        },
+        {
+          "name": "에디터 콘텐츠 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/{{project_id}}/content",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "{{project_id}}", "content"]
+            }
+          }
+        },
+        {
+          "name": "에디터 콘텐츠 저장",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"elements\": [\n    {\n      \"id\": \"elem-1\",\n      \"type\": \"text\",\n      \"content\": \"제품 설명 텍스트\",\n      \"style\": {}\n    }\n  ],\n  \"versionId\": \"{{version_id}}\",\n  \"action\": \"auto_save\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/projects/{{project_id}}/content",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "{{project_id}}", "content"]
+            }
+          }
+        },
+        {
+          "name": "프로젝트 내보내기 (HTML/JSON)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sections\": [\n    {\n      \"type\": \"HERO\",\n      \"hookMessage\": \"지금 가장 트렌디한 에어팟 케이스\",\n      \"body\": \"제품 설명...\",\n      \"imageUrl\": \"https://cdn.example.com/product.jpg\"\n    }\n  ],\n  \"format\": \"html\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/projects/{{project_id}}/export",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "{{project_id}}", "export"]
+            },
+            "description": "format: 'html' | 'json'\nhtml은 Tailwind CSS 포함 독립 실행 가능한 HTML 파일로 반환"
+          }
+        },
+        {
+          "name": "버전 목록 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/{{project_id}}/versions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "{{project_id}}", "versions"]
+            }
+          }
+        },
+        {
+          "name": "버전 설명 수정",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"첫 번째 AI 생성 버전\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/projects/{{project_id}}/versions/{{version_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "{{project_id}}", "versions", "{{version_id}}"]
+            }
+          }
+        },
+        {
+          "name": "버전 복원",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/{{project_id}}/versions/{{version_id}}/restore",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "{{project_id}}", "versions", "{{version_id}}", "restore"]
+            },
+            "description": "AI 포맷 → 에디터 포맷으로 자동 변환 후 새 버전으로 복원"
+          }
+        },
+        {
+          "name": "임시저장 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/projects/{{project_id}}/drafts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "{{project_id}}", "drafts"]
+            }
+          }
+        },
+        {
+          "name": "임시저장",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"versionId\": \"{{version_id}}\",\n  \"content\": { \"elements\": [] },\n  \"isManualSave\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/projects/{{project_id}}/drafts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "projects", "{{project_id}}", "drafts"]
+            },
+            "description": "자동 저장은 30분 간격, isManualSave: true 시 즉시 저장"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🤖 Generate",
+      "item": [
+        {
+          "name": "상세페이지 자동 생성",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectId\": \"{{project_id}}\",\n  \"productName\": \"에어팟 프로 케이스\",\n  \"category\": \"디지털 액세서리\",\n  \"subCategory\": \"스마트폰 케이스\",\n  \"keyFeatures\": [\"충격 방지\", \"슬림 디자인\", \"무선충전 지원\"],\n  \"targetAudience\": \"20-30대 직장인\",\n  \"copyLength\": \"medium\",\n  \"productImages\": [\"https://cdn.example.com/product.jpg\"],\n  \"generateImages\": true,\n  \"imageModel\": \"FLUX_PRO\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/generate/detail-page",
+              "host": ["{{base_url}}"],
+              "path": ["api", "generate", "detail-page"]
+            },
+            "description": "크레딧 1개 소모 / 최대 응답시간 300s\ncopyLength: 'short' | 'medium' | 'long'\nimageModel: 'FLUX_PRO' | 'FLUX_SCHNELL'\n응답: { success, data: { versions[2], remainingCredits } }"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🖼️ Upload",
+      "item": [
+        {
+          "name": "이미지 업로드 (R2)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "/path/to/product.jpg", "description": "image/jpeg, image/png, image/webp, image/gif / 최대 10MB" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/upload",
+              "host": ["{{base_url}}"],
+              "path": ["api", "upload"]
+            },
+            "description": "응답: { success: true, url: 'https://cdn.r2.../filename.jpg', fileName }\nCloudflare R2에 저장"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🛍️ Marketplace",
+      "item": [
+        {
+          "name": "템플릿 목록 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/marketplace/templates?page=1&limit=12",
+              "host": ["{{base_url}}"],
+              "path": ["api", "marketplace", "templates"],
+              "query": [
+                { "key": "category", "value": "", "disabled": true, "description": "FASHION | FOOD | BEAUTY | DIGITAL | GENERIC" },
+                { "key": "search", "value": "", "disabled": true },
+                { "key": "sortBy", "value": "newest", "description": "newest|popular|rating|price_low|price_high|credits_low|credits_high|name" },
+                { "key": "minPrice", "value": "", "disabled": true },
+                { "key": "maxPrice", "value": "", "disabled": true },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "12" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "템플릿 검색 (텍스트/시맨틱)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/marketplace/templates/search?q=패션 상세페이지&mode=hybrid&page=1&limit=12",
+              "host": ["{{base_url}}"],
+              "path": ["api", "marketplace", "templates", "search"],
+              "query": [
+                { "key": "q", "value": "패션 상세페이지", "description": "필수, 최소 2자" },
+                { "key": "category", "value": "", "disabled": true },
+                { "key": "mode", "value": "hybrid", "description": "semantic|keyword|hybrid|style|image" },
+                { "key": "minPrice", "value": "", "disabled": true },
+                { "key": "maxPrice", "value": "", "disabled": true },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "12" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "이미지로 템플릿 검색",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "image", "type": "file", "src": "/path/to/reference.jpg" },
+                { "key": "mode", "value": "image", "type": "text" }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/marketplace/templates/search",
+              "host": ["{{base_url}}"],
+              "path": ["api", "marketplace", "templates", "search"]
+            }
+          }
+        },
+        {
+          "name": "유사 템플릿 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/marketplace/templates/{{template_id}}/similar",
+              "host": ["{{base_url}}"],
+              "path": ["api", "marketplace", "templates", "{{template_id}}", "similar"]
+            }
+          }
+        },
+        {
+          "name": "템플릿 구매",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/marketplace/templates/{{template_id}}/purchase",
+              "host": ["{{base_url}}"],
+              "path": ["api", "marketplace", "templates", "{{template_id}}", "purchase"]
+            }
+          }
+        },
+        {
+          "name": "내 구매 목록 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/marketplace/purchases?page=1&limit=12",
+              "host": ["{{base_url}}"],
+              "path": ["api", "marketplace", "purchases"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "12" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "📋 Templates",
+      "item": [
+        {
+          "name": "내 템플릿 목록 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/templates?mine=true&page=1&limit=12",
+              "host": ["{{base_url}}"],
+              "path": ["api", "templates"],
+              "query": [
+                { "key": "category", "value": "", "disabled": true },
+                { "key": "search", "value": "", "disabled": true },
+                { "key": "mine", "value": "true" },
+                { "key": "sortBy", "value": "createdAt", "disabled": true },
+                { "key": "sortOrder", "value": "desc", "disabled": true },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "12" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "템플릿 생성",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"패션 브랜드 기본 템플릿\",\n  \"description\": \"패션 상품 상세페이지 기본 구조\",\n  \"category\": \"FASHION\",\n  \"content\": { \"sections\": [] },\n  \"thumbnail\": \"https://cdn.example.com/thumb.jpg\",\n  \"isPublic\": false,\n  \"tags\": [\"패션\", \"기본\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/templates",
+              "host": ["{{base_url}}"],
+              "path": ["api", "templates"]
+            }
+          }
+        },
+        {
+          "name": "템플릿 상세 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/templates/{{template_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "templates", "{{template_id}}"]
+            }
+          }
+        },
+        {
+          "name": "템플릿 수정",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"패션 브랜드 기본 템플릿 v2\",\n  \"isPublic\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/templates/{{template_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "templates", "{{template_id}}"]
+            }
+          }
+        },
+        {
+          "name": "템플릿 삭제",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/templates/{{template_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "templates", "{{template_id}}"]
+            }
+          }
+        },
+        {
+          "name": "템플릿 마켓플레이스 게시",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 5000,\n  \"credits\": 10,\n  \"description\": \"마켓에 게시할 상세 설명\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/marketplace/templates/{{template_id}}/publish",
+              "host": ["{{base_url}}"],
+              "path": ["api", "marketplace", "templates", "{{template_id}}", "publish"]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🧪 A/B Tests",
+      "item": [
+        {
+          "name": "A/B 테스트 목록 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ab-tests?projectId={{project_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ab-tests"],
+              "query": [
+                { "key": "projectId", "value": "{{project_id}}" },
+                { "key": "status", "value": "", "disabled": true, "description": "DRAFT | RUNNING | PAUSED | COMPLETED" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "A/B 테스트 생성",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectId\": \"{{project_id}}\",\n  \"name\": \"헤드라인 A/B 테스트\",\n  \"description\": \"두 가지 헤드라인 문구 효과 비교\",\n  \"variants\": [\n    {\n      \"name\": \"기존 헤드라인\",\n      \"description\": \"현재 사용 중인 문구\",\n      \"content\": { \"headline\": \"지금 가장 트렌디한 에어팟 케이스\" },\n      \"weight\": 50,\n      \"isControl\": true\n    },\n    {\n      \"name\": \"신규 헤드라인\",\n      \"description\": \"새로운 감성 문구\",\n      \"content\": { \"headline\": \"당신의 에어팟을 더 특별하게\" },\n      \"weight\": 50,\n      \"isControl\": false\n    }\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ab-tests",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ab-tests"]
+            },
+            "description": "weight 합계 = 100 필수 / isControl은 반드시 1개"
+          }
+        },
+        {
+          "name": "A/B 테스트 상세 조회 (통계 포함)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ab-tests/{{ab_test_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ab-tests", "{{ab_test_id}}"]
+            },
+            "description": "CTR, 전환율 등 통계 자동 계산 포함"
+          }
+        },
+        {
+          "name": "A/B 테스트 상태 변경",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"RUNNING\",\n  \"name\": \"헤드라인 A/B 테스트 (수정)\",\n  \"description\": \"업데이트된 설명\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ab-tests/{{ab_test_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ab-tests", "{{ab_test_id}}"]
+            }
+          }
+        },
+        {
+          "name": "A/B 테스트 삭제",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ab-tests/{{ab_test_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ab-tests", "{{ab_test_id}}"]
+            }
+          }
+        },
+        {
+          "name": "이벤트 기록 (조회수/클릭)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"variantId\": \"variant-id-here\",\n  \"type\": \"VIEW\",\n  \"visitorId\": \"visitor-uuid-123\",\n  \"metadata\": {\n    \"referrer\": \"https://instagram.com\",\n    \"device\": \"mobile\"\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ab-tests/{{ab_test_id}}/events",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ab-tests", "{{ab_test_id}}", "events"]
+            },
+            "description": "인증 불필요 (공개 엔드포인트)\ntype: VIEW | CLICK | CONVERSION | SCROLL | TIME_SPENT"
+          }
+        },
+        {
+          "name": "이벤트 목록 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ab-tests/{{ab_test_id}}/events?limit=100",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ab-tests", "{{ab_test_id}}", "events"],
+              "query": [
+                { "key": "variantId", "value": "", "disabled": true },
+                { "key": "type", "value": "", "disabled": true },
+                { "key": "limit", "value": "100" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "💰 Billing",
+      "item": [
+        {
+          "name": "구독 현황 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/billing/subscription",
+              "host": ["{{base_url}}"],
+              "path": ["api", "billing", "subscription"]
+            }
+          }
+        },
+        {
+          "name": "구독 플랜 변경",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planId\": \"pro\",\n  \"billingCycle\": \"monthly\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/billing/subscription",
+              "host": ["{{base_url}}"],
+              "path": ["api", "billing", "subscription"]
+            }
+          }
+        },
+        {
+          "name": "구독 취소",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cancelAtPeriodEnd\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/billing/subscription",
+              "host": ["{{base_url}}"],
+              "path": ["api", "billing", "subscription"]
+            }
+          }
+        },
+        {
+          "name": "크레딧 잔액 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/billing/credits",
+              "host": ["{{base_url}}"],
+              "path": ["api", "billing", "credits"]
+            }
+          }
+        },
+        {
+          "name": "Stripe 결제 세션 생성",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planId\": \"pro\",\n  \"billingCycle\": \"yearly\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/billing/checkout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "billing", "checkout"]
+            }
+          }
+        },
+        {
+          "name": "Stripe 고객 포털 링크",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/billing/portal",
+              "host": ["{{base_url}}"],
+              "path": ["api", "billing", "portal"]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🏪 Seller",
+      "item": [
+        {
+          "name": "판매자 잔액 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/seller/balance",
+              "host": ["{{base_url}}"],
+              "path": ["api", "seller", "balance"]
+            }
+          }
+        },
+        {
+          "name": "판매자 대시보드 통계",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/seller/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["api", "seller", "dashboard"]
+            }
+          }
+        },
+        {
+          "name": "판매 거래 내역 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/seller/transactions?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "seller", "transactions"],
+              "query": [
+                { "key": "type", "value": "", "disabled": true, "description": "SALE | WITHDRAWAL | REFUND" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "판매 템플릿 목록",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/seller/templates?status=published&page=1&limit=12",
+              "host": ["{{base_url}}"],
+              "path": ["api", "seller", "templates"],
+              "query": [
+                { "key": "status", "value": "published", "description": "published | draft | all" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "12" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "수익 출금 신청",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 50000\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/seller/withdraw",
+              "host": ["{{base_url}}"],
+              "path": ["api", "seller", "withdraw"]
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "⚙️ Settings",
+      "item": [
+        {
+          "name": "프로필 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/settings/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "settings", "profile"]
+            }
+          }
+        },
+        {
+          "name": "프로필 이름 수정",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"홍길동\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/settings/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "settings", "profile"]
+            }
+          }
+        },
+        {
+          "name": "비밀번호 변경",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"OldPassword123!\",\n  \"newPassword\": \"NewPassword456!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/settings/password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "settings", "password"]
+            }
+          }
+        },
+        {
+          "name": "활성 세션 목록 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/settings/sessions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "settings", "sessions"]
+            }
+          }
+        },
+        {
+          "name": "다른 모든 세션 종료",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/settings/sessions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "settings", "sessions"]
+            }
+          }
+        },
+        {
+          "name": "특정 세션 종료",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/settings/sessions/{{session_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "settings", "sessions", "{{session_id}}"]
+            }
+          }
+        },
+        {
+          "name": "2FA 설정 상태 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/settings/2fa",
+              "host": ["{{base_url}}"],
+              "path": ["api", "settings", "2fa"]
+            }
+          }
+        },
+        {
+          "name": "2FA QR코드 발급",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/settings/2fa/setup",
+              "host": ["{{base_url}}"],
+              "path": ["api", "settings", "2fa", "setup"]
+            },
+            "description": "응답: { secret, qrCode: DataURL } — 인증 앱(Google Authenticator)에서 QR 스캔"
+          }
+        },
+        {
+          "name": "2FA 활성화 (코드 검증)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"123456\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/settings/2fa/verify",
+              "host": ["{{base_url}}"],
+              "path": ["api", "settings", "2fa", "verify"]
+            }
+          }
+        },
+        {
+          "name": "2FA 비활성화",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/settings/2fa",
+              "host": ["{{base_url}}"],
+              "path": ["api", "settings", "2fa"]
+            }
+          }
+        },
+        {
+          "name": "알림 설정 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/settings/notifications",
+              "host": ["{{base_url}}"],
+              "path": ["api", "settings", "notifications"]
+            }
+          }
+        },
+        {
+          "name": "알림 설정 변경",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailNotifications\": true,\n  \"projectUpdates\": true,\n  \"marketingEmails\": false,\n  \"weeklyDigest\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/settings/notifications",
+              "host": ["{{base_url}}"],
+              "path": ["api", "settings", "notifications"]
+            }
+          }
+        },
+        {
+          "name": "로그인 기록 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/settings/login-history?limit=20&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["api", "settings", "login-history"],
+              "query": [
+                { "key": "limit", "value": "20" },
+                { "key": "offset", "value": "0" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "계정 탈퇴",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/settings/account",
+              "host": ["{{base_url}}"],
+              "path": ["api", "settings", "account"]
+            },
+            "description": "⚠️ 모든 사용자 데이터 cascade 삭제. 되돌릴 수 없습니다."
+          }
+        },
+        {
+          "name": "워크스페이스 목록 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/settings/workspaces",
+              "host": ["{{base_url}}"],
+              "path": ["api", "settings", "workspaces"]
+            }
+          }
+        },
+        {
+          "name": "워크스페이스 생성",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"마케팅팀 워크스페이스\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/settings/workspaces",
+              "host": ["{{base_url}}"],
+              "path": ["api", "settings", "workspaces"]
+            }
+          }
+        },
+        {
+          "name": "워크스페이스 멤버 초대",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"colleague@company.com\",\n  \"role\": \"EDITOR\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/settings/workspaces/{{workspace_id}}/invite",
+              "host": ["{{base_url}}"],
+              "path": ["api", "settings", "workspaces", "{{workspace_id}}", "invite"]
+            },
+            "description": "role: ADMIN | EDITOR | VIEWER\nOWNER/ADMIN만 초대 가능"
+          }
+        },
+        {
+          "name": "워크스페이스 멤버 목록",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/settings/workspaces/{{workspace_id}}/members",
+              "host": ["{{base_url}}"],
+              "path": ["api", "settings", "workspaces", "{{workspace_id}}", "members"]
+            }
+          }
+        },
+        {
+          "name": "워크스페이스 멤버 강퇴",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/settings/workspaces/{{workspace_id}}/members/{{member_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "settings", "workspaces", "{{workspace_id}}", "members", "{{member_id}}"]
+            },
+            "description": "OWNER만 가능"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "📊 Dashboard & Analytics",
+      "item": [
+        {
+          "name": "대시보드 통계 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "stats"]
+            },
+            "description": "응답: { totalProjects, totalBrands, generatedPages, remainingCredits, recentProjects[] }"
+          }
+        },
+        {
+          "name": "사용량 분석 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/usage?period=30d",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "usage"],
+              "query": [
+                { "key": "period", "value": "30d", "description": "7d | 30d | 90d | 1y" },
+                { "key": "workspaceId", "value": "", "disabled": true }
+              ]
+            },
+            "description": "응답: { summary, dailyStats[], operationBreakdown[], effectDistribution[], recentProjects[] }"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "🛠️ Admin",
+      "item": [
+        {
+          "name": "템플릿 임베딩 생성 (배치)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mode\": \"pending\",\n  \"templateIds\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/templates/embed",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "templates", "embed"]
+            },
+            "description": "mode: 'pending' | 'all' | 'specific' | 'single'\n'specific' 사용 시 templateIds 배열 필요"
+          }
+        },
+        {
+          "name": "템플릿 임베딩 현황 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/templates/embed",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "templates", "embed"]
+            }
+          }
+        }
+      ]
+    }
+
+  ]
+}
