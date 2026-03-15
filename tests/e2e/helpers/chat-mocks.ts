@@ -14,6 +14,8 @@
  *   typing(true) → chunk(×N) → message → typing(false) → done
  */
 
+import * as path from 'path';
+import * as fs from 'fs';
 import type { Page, Route } from '@playwright/test';
 
 // ─── 상수 ──────────────────────────────────────────────────────────────────
@@ -253,7 +255,13 @@ export async function setupAndNavigateToChatPage(
   return MOCK_CONVERSATION_ID;
 }
 
-/** 테스트용 최소 PNG (1×1 px, 흑색) */
+/** 테스트용 샘플 이미지 경로 (200×200 보라-인디고 그라디언트 PNG) */
+export const SAMPLE_IMAGE_PATH = path.join(
+  __dirname,
+  '../fixtures/sample-product.png'
+);
+
+/** 테스트용 최소 PNG (1×1 px, 흑색) — 빠른 단위 테스트용 */
 export const TINY_PNG_BUFFER = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQI12NgAAIABQAABjAAAAAElFTkSuQmCC',
   'base64'

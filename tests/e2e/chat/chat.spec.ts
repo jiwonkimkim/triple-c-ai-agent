@@ -29,14 +29,19 @@
  */
 
 import { test, expect } from '@playwright/test';
+import * as fs from 'fs';
 import {
   MOCK_CONVERSATION_ID,
   MOCK_WELCOME_MESSAGE,
   setupAndNavigateToChatPage,
   mockMessagesEndpoint,
   mockImageUpload,
+  SAMPLE_IMAGE_PATH,
   TINY_PNG_BUFFER,
 } from '../helpers/chat-mocks';
+
+/** 샘플 이미지 버퍼 (tests/e2e/fixtures/sample-product.png) */
+const SAMPLE_IMAGE_BUFFER = fs.readFileSync(SAMPLE_IMAGE_PATH);
 
 // ───────────────────────────────────────────────────────────────────────────
 // 공통 상수
@@ -347,7 +352,7 @@ test.describe('시나리오 3: 이미지 첨부 기능', () => {
     await fileInput.setInputFiles({
       name: 'product-image.png',
       mimeType: 'image/png',
-      buffer: TINY_PNG_BUFFER,
+      buffer: SAMPLE_IMAGE_BUFFER,
     });
 
     // 업로드 스피너 사라질 때까지 대기
@@ -371,7 +376,7 @@ test.describe('시나리오 3: 이미지 첨부 기능', () => {
     await fileInput.setInputFiles({
       name: 'product-image.png',
       mimeType: 'image/png',
-      buffer: TINY_PNG_BUFFER,
+      buffer: SAMPLE_IMAGE_BUFFER,
     });
 
     // 업로드 완료 대기
@@ -392,7 +397,7 @@ test.describe('시나리오 3: 이미지 첨부 기능', () => {
     await fileInput.setInputFiles({
       name: 'product-image.png',
       mimeType: 'image/png',
-      buffer: TINY_PNG_BUFFER,
+      buffer: SAMPLE_IMAGE_BUFFER,
     });
 
     await expect(page.locator('.animate-spin')).toHaveCount(0, {
@@ -422,7 +427,7 @@ test.describe('시나리오 3: 이미지 첨부 기능', () => {
     await fileInput.setInputFiles({
       name: 'product-image.png',
       mimeType: 'image/png',
-      buffer: TINY_PNG_BUFFER,
+      buffer: SAMPLE_IMAGE_BUFFER,
     });
 
     // 업로드 완료 후 활성화
@@ -437,7 +442,7 @@ test.describe('시나리오 3: 이미지 첨부 기능', () => {
     await fileInput.setInputFiles({
       name: 'product-image.png',
       mimeType: 'image/png',
-      buffer: TINY_PNG_BUFFER,
+      buffer: SAMPLE_IMAGE_BUFFER,
     });
 
     await expect(page.locator('.animate-spin')).toHaveCount(0, {
@@ -465,7 +470,7 @@ test.describe('시나리오 3: 이미지 첨부 기능', () => {
     await fileInput.setInputFiles({
       name: 'product-image.png',
       mimeType: 'image/png',
-      buffer: TINY_PNG_BUFFER,
+      buffer: SAMPLE_IMAGE_BUFFER,
     });
 
     await expect(page.locator('.animate-spin')).toHaveCount(0, {
@@ -491,7 +496,7 @@ test.describe('시나리오 3: 이미지 첨부 기능', () => {
     const fiveFiles = Array.from({ length: 5 }, (_, i) => ({
       name: `product-${i + 1}.png`,
       mimeType: 'image/png' as const,
-      buffer: TINY_PNG_BUFFER,
+      buffer: SAMPLE_IMAGE_BUFFER,
     }));
 
     await fileInput.setInputFiles(fiveFiles);
@@ -524,7 +529,7 @@ test.describe('시나리오 3: 이미지 첨부 기능', () => {
     await fileInput.setInputFiles({
       name: 'product-image.png',
       mimeType: 'image/png',
-      buffer: TINY_PNG_BUFFER,
+      buffer: SAMPLE_IMAGE_BUFFER,
     });
 
     // 업로드 중 전송 버튼 비활성화 확인
