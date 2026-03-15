@@ -27,8 +27,7 @@ services:
     restart: unless-stopped
     # Agent는 Controller의 Web UI 포트로 접속해 자동 등록됨
     # CONTROLLER_ADDR 형식: <host>:<web-ui-port>
-    environment:
-      - CONTROLLER_ADDR=ngrinder-controller:8080
+    command: "ngrinder-controller:80"
     volumes:
       - ngrinder_agent_data:/opt/ngrinder-agent
     depends_on:
