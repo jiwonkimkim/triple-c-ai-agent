@@ -449,6 +449,15 @@ stateDiagram-v2
 
 ---
 
+## 🔬 버그 회고 분석 (Retrospective QA)
+
+`fix:` 커밋 20개를 QA 엔지니어 관점에서 역분석하여, 각 버그를 **코딩 전에 잡을 수 있었던 테스트 케이스**를 정리했습니다.
+
+- [회고 분석 문서](./docs/RETROSPECTIVE_TEST_ANALYSIS.md) — 20개 사례별 Playwright 아이디어 + 테스트 설계 기법 (BVA, 동등 분할, 에러 추정)
+- [재발 방지 테스트 코드](./tests/e2e/bug-prevention.spec.ts) — Case #1 · Case #14 실행 가능한 Playwright 구현체
+
+---
+
 ## 팀 구성
 
 | 이름 | 역할 | 담당 기능 |
