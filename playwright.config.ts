@@ -17,10 +17,13 @@ export default defineConfig({
     locale: 'ko-KR',
   },
   projects: [
+    // ── 인증 셋업 ──────────────────────────────────────────────────────────
     {
       name: 'setup',
       testMatch: /auth\.setup\.ts/,
     },
+
+    // ── 일반 테스트: Chromium 전용 ─────────────────────────────────────────
     {
       name: 'chromium',
       use: {
@@ -28,6 +31,36 @@ export default defineConfig({
         storageState: 'tests/e2e/.auth/user.json',
       },
       dependencies: ['setup'],
+      testIgnore: /compatibility\.spec\.ts/,
+    },
+
+    // ── 크로스 브라우저 호환성 테스트 (compatibility.spec.ts 전용) ─────────
+    {
+      name: 'compat-chrome',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'tests/e2e/.auth/user.json',
+      },
+      dependencies: ['setup'],
+      testMatch: /compatibility\.spec\.ts/,
+    },
+    {
+      name: 'compat-firefox',
+      use: {
+        ...devices['Desktop Firefox'],
+        storageState: 'tests/e2e/.auth/user.json',
+      },
+      dependencies: ['setup'],
+      testMatch: /compatibility\.spec\.ts/,
+    },
+    {
+      name: 'compat-webkit',
+      use: {
+        ...devices['Desktop Safari'],
+        storageState: 'tests/e2e/.auth/user.json',
+      },
+      dependencies: ['setup'],
+      testMatch: /compatibility\.spec\.ts/,
     },
   ],
   webServer: {
