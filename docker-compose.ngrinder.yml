@@ -1,0 +1,47 @@
+version: '3.8'
+
+# nGrinder 로드 테스트 환경
+# 사용법: docker compose -f docker-compose.ngrinder.yml up -d
+# 접속:   http://localhost:8080  (admin / admin)
+
+services:
+  ngrinder-controller:
+    image: ngrinder/controller:3.5.9
+    container_name: ngrinder_controller
+    restart: unless-stopped
+    ports:
+      - "8080:8080"   # Web UI + REST API
+      - "9010:9010"   # Agent 연결 포트
+      - "9011:9011"   # Agent 연결 포트 (reserved)
+      - "9012:9012"   # Agent 연결 포트 (reserved)
+    volumes:
+      - ngrinder_controller_data:/opt/ngrinder-controller
+    networks:
+      - ngrinder_network
+
+  ngrinder-agent:
+    image: ngrinder/agent:3.5.9
+    container_name: ngrinder_agent
+    restart: unless-stopped
+    # Agent는 Controller의 Web UI 포트로 접속해 자동 등록됨
+    # CONTROLLER_ADDR 형식: <host>:<web-ui-port>
+    environment:
+      - CONTROLLER_ADDR=ngrinder-controller:8080
+    volumes:
+      - ngrinder_agent_data:/opt/ngrinder-agent
+    depends_on:
+      - ngrinder-controller
+    networks:
+      - ngrinder_network
+
+volumes:
+  # Controller: 스크립트, 테스트 결과, 사용자 설정 영속화
+  ngrinder_controller_data:
+    driver: local
+  # Agent: 다운로드된 라이브러리 캐시 영속화
+  ngrinder_agent_data:
+    driver: local
+
+networks:
+  ngrinder_network:
+    driver: bridge
