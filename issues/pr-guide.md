@@ -21,7 +21,7 @@
 
 PR 제목과 본문 예시입니다. `#이슈번호`는 실제 등록 후 부여된 번호로 교체하세요.
 
-### Bug #1 — 이미지 메시지 소실
+### Closes #3
 
 ```
 제목: fix: 이미지만 첨부한 메시지가 대화창에서 사라지는 문제 수정
@@ -41,12 +41,12 @@ PR 제목과 본문 예시입니다. `#이슈번호`는 실제 등록 후 부여
 
 - `src/hooks/use-chat.ts`
 
-Closes #1
+Closes #3
 ```
 
 ---
 
-### Bug #2 — 선택 옵션 ID 노출
+### Closes #4
 
 ```
 제목: fix: 채팅 선택 옵션이 ID 대신 라벨로 저장되도록 수정
@@ -67,12 +67,12 @@ Closes #1
 - `src/hooks/use-chat.ts`
 - `src/app/api/chat/[conversationId]/messages/route.ts`
 
-Closes #2
+Closes #4
 ```
 
 ---
 
-### Bug #3 — 이미지 업로드 단계 스킵
+### Closes #5
 
 ```
 제목: fix: 이미지 업로드 질문 없이 기획/생성으로 넘어가는 버그 수정
@@ -93,7 +93,7 @@ coordinator.ts의 라우팅 분기 3곳에서 `productImages` 유무를 확인�
 
 - `src/services/chat-agents/agents/coordinator.ts`
 
-Closes #3
+Closes #5
 ```
 
 ---
@@ -103,15 +103,15 @@ Closes #3
 하나의 PR이 여러 이슈를 함께 수정한다면 본문 끝에 나열합니다:
 
 ```
-Closes #1
-Closes #2
 Closes #3
+Closes #4
+Closes #5
 ```
 
 또는 한 줄로:
 
 ```
-Closes #1, Closes #2, Closes #3
+Closes #3, Closes #4, Closes #5
 ```
 
 > **참고:** `Closes`, `Fixes`, `Resolves` 키워드 모두 GitHub에서 동일하게 동작합니다.
@@ -123,6 +123,6 @@ Closes #1, Closes #2, Closes #3
 
 | 버그 | 수정 커밋 |
 |------|-----------|
-| Bug #1 이미지 메시지 소실 | `12146b1` |
-| Bug #2 선택 옵션 ID 노출 | `c050584` |
-| Bug #3 이미지 단계 스킵 | `b80bfa1` |
+| Closes #3 | `12146b1` |
+| Closes #4 | `c050584` |
+| Closes #5 | `b80bfa1` |
