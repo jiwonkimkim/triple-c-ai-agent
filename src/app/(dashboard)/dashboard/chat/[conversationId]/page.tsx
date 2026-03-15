@@ -186,7 +186,10 @@ export default function ChatPage() {
 
       {/* 에러 표시 */}
       {error && (
-        <div className="mx-4 mb-2 p-3 bg-red-50 border border-red-100 rounded-lg">
+        <div
+          data-testid="error-banner"
+          className="mx-4 mb-2 p-3 bg-red-50 border border-red-100 rounded-lg"
+        >
           <p className="text-sm text-red-600">{error}</p>
         </div>
       )}
