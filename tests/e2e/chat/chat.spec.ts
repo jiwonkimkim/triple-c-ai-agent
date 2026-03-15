@@ -13,7 +13,7 @@
  * 사전 조건:
  *   - 개발 서버가 실행 중이거나 webServer 설정으로 자동 시작됨
  *   - TEST_USER_EMAIL / TEST_USER_PASSWORD 환경 변수 설정 (또는 기본값 사용)
- *   - auth.setup.ts 가 먼저 실행되어 .auth/user.json 에 세션이 저장됨
+ *   - auth.setup.ts 가 먼저 실행되어 .auth/user.json 에 세션이 저장됨.
  *
  * 모킹 전략:
  *   - AI 응답(LangGraph/Gemini): SSE 포맷으로 완전 모킹
