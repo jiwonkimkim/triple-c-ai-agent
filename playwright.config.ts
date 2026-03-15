@@ -23,7 +23,10 @@ export default defineConfig({
       testMatch: /auth\.setup\.ts/,
     },
 
-    // ── 일반 테스트: Chromium 전용 ─────────────────────────────────────────
+    // ── chromium: 전체 테스트 스위트 (기본 실행 환경) ──────────────────────
+    // npx playwright test                          → chromium만 실행
+    // npx playwright test --project=chromium       → 전체 테스트
+    // npx playwright test compatibility.spec.ts    → compatibility만 chromium 실행
     {
       name: 'chromium',
       use: {
@@ -31,21 +34,12 @@ export default defineConfig({
         storageState: 'tests/e2e/.auth/user.json',
       },
       dependencies: ['setup'],
-      testIgnore: /compatibility\.spec\.ts/,
     },
 
-    // ── 크로스 브라우저 호환성 테스트 (compatibility.spec.ts 전용) ─────────
+    // ── firefox / webkit: compatibility.spec.ts 전용 ───────────────────────
+    // npx playwright test --project=chromium --project=firefox --project=webkit
     {
-      name: 'compat-chrome',
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: 'tests/e2e/.auth/user.json',
-      },
-      dependencies: ['setup'],
-      testMatch: /compatibility\.spec\.ts/,
-    },
-    {
-      name: 'compat-firefox',
+      name: 'firefox',
       use: {
         ...devices['Desktop Firefox'],
         storageState: 'tests/e2e/.auth/user.json',
@@ -54,7 +48,7 @@ export default defineConfig({
       testMatch: /compatibility\.spec\.ts/,
     },
     {
-      name: 'compat-webkit',
+      name: 'webkit',
       use: {
         ...devices['Desktop Safari'],
         storageState: 'tests/e2e/.auth/user.json',
