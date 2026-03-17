@@ -24,17 +24,35 @@ function loadEnvFile(filePath: string): Record<string, string> {
 const localEnv = loadEnvFile(path.join(__dirname, '.env.local'));
 const testEnv = loadEnvFile(path.join(__dirname, '.env.test'));
 
-// webServer에 주입할 환경변수: .env.local > .env.test > 테스트 전용 기본값
+// webServer에 주입할 환경변수 우선순위:
+//   .env.local (로컬 개발) > process.env (CI job env) > .env.test > 하드코딩 기본값
+//
+// ⚠️ 주의: Playwright webServer의 env 옵션은 process.env에 MERGE됩니다.
+//   즉, 여기서 명시한 키가 process.env의 동일 키를 덮어씁니다.
+//   .env.test에 플레이스홀더(YOUR_PASSWORD_HERE 등)가 있으면 CI의 올바른 값을
+//   덮어쓰게 되므로, 반드시 process.env를 명시적 폴백으로 포함해야 합니다.
 const webServerEnv: Record<string, string> = {
-  // DB / Auth
   ...testEnv,
   ...localEnv,
-  // NEXTAUTH_SECRET이 없으면 테스트 전용 값으로 채워 webServer 헬스체크 통과
+  // DATABASE_URL: .env.local > CI process.env > .env.test > 빈 문자열
+  // CI에서 .env.test의 플레이스홀더가 process.env(DB 컨테이너 URL)를 덮어쓰는 버그 방지
+  DATABASE_URL:
+    localEnv.DATABASE_URL ??
+    process.env.DATABASE_URL ??
+    testEnv.DATABASE_URL ??
+    '',
+  // NEXTAUTH_SECRET: webServer와 테스트 러너가 동일한 시크릿을 써야 JWT 검증 통과
+  // .env.local > .env.test > CI process.env > 하드코딩 기본값 순으로 결정
   NEXTAUTH_SECRET:
     localEnv.NEXTAUTH_SECRET ??
     testEnv.NEXTAUTH_SECRET ??
+    process.env.NEXTAUTH_SECRET ??
     'e2e-test-secret-do-not-use-in-production',
-  NEXTAUTH_URL: localEnv.NEXTAUTH_URL ?? testEnv.NEXTAUTH_URL ?? BASE_URL,
+  NEXTAUTH_URL:
+    localEnv.NEXTAUTH_URL ??
+    testEnv.NEXTAUTH_URL ??
+    process.env.NEXTAUTH_URL ??
+    BASE_URL,
 };
 
 export default defineConfig({

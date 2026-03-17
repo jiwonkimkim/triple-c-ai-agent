@@ -39,8 +39,11 @@ jobs:
       DATABASE_URL: postgresql://postgres:ci_test_pw@localhost:5432/triple_c_test
 
       # NextAuth
+      # ⚠️ playwright.config.ts webServerEnv 폴백값과 반드시 일치해야 합니다.
+      # compat-auth.setup.ts가 이 시크릿으로 JWT를 서명하고,
+      # webServer(Next.js)가 동일 시크릿으로 검증합니다.
       NEXTAUTH_URL: http://localhost:3000
-      NEXTAUTH_SECRET: e2e-ci-nextauth-secret-not-for-production
+      NEXTAUTH_SECRET: e2e-test-secret-do-not-use-in-production
 
       # Google OAuth — E2E에서 사용 안 하므로 더미값
       GOOGLE_CLIENT_ID: dummy-google-client-id
