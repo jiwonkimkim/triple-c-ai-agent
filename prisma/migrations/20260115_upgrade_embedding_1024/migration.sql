@@ -10,8 +10,23 @@ ALTER TABLE templates DROP COLUMN IF EXISTS embedding;
 -- Step 2: Add new embedding column with 1024 dimensions
 ALTER TABLE templates ADD COLUMN embedding vector(1024);
 
+-- Step 2b: Ensure metadata and image-embedding columns exist
+-- (may be missing on fresh DBs where earlier migrations pre-date these fields)
+ALTER TABLE templates ADD COLUMN IF NOT EXISTS embedding_text TEXT;
+ALTER TABLE templates ADD COLUMN IF NOT EXISTS embedded_at TIMESTAMP(3);
+ALTER TABLE templates ADD COLUMN IF NOT EXISTS image_embedding vector(512);
+
 -- Step 3: Clear embedding metadata to indicate re-embedding is needed
-UPDATE templates SET embedding_text = NULL, embedded_at = NULL;
+-- (columns may not exist on a fresh DB — use conditional to stay idempotent)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'templates' AND column_name = 'embedding_text'
+  ) THEN
+    UPDATE templates SET embedding_text = NULL, embedded_at = NULL;
+  END IF;
+END $$;
 
 -- Note: After running this migration, you must re-embed all templates
 -- Run: npx ts-node scripts/reembed-templates.ts
