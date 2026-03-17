@@ -92,6 +92,12 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
 
+      # pgvector extension 활성화
+      # pgvector/pgvector:pg15 이미지는 extension 파일을 포함하지만 DB에 활성화되어 있지 않음.
+      # 마이그레이션의 vector(1024) 타입 사용 전 반드시 CREATE EXTENSION이 선행되어야 함.
+      - name: Enable pgvector extension
+        run: psql $DATABASE_URL -c "CREATE EXTENSION IF NOT EXISTS vector;"
+
       # DB 스키마 생성 (pgvector 확장 포함)
       - name: Run Prisma migrations
         run: npx prisma migrate deploy
