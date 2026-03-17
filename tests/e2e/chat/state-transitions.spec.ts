@@ -24,6 +24,7 @@ import { test, expect } from '@playwright/test';
 import type { Route } from '@playwright/test';
 import {
   mockCreateConversation,
+  mockChatList,
   buildSSEErrorResponse,
   buildSSEWithDoneData,
   MOCK_CONVERSATION_ID,
@@ -107,6 +108,7 @@ async function setupChatWithCustomMock(
   initialMessages: object[],
   postHandler: (route: Route, callCount: number) => Promise<void>
 ): Promise<void> {
+  await mockChatList(page, []);
   await page.goto('/dashboard/chat');
   await page.waitForLoadState('networkidle');
   await mockCreateConversation(page);
@@ -308,11 +310,9 @@ test.describe('시나리오 2: 기획 AI 실패 → 에러 복구', () => {
 
     // [검증 1] 에러 메시지가 채팅창에 표시되어야 한다
     //          빈 화면이나 무한 로딩 상태면 안 됨
+    //          에러는 error-banner (UI 상단 배너) 또는 message-item 으로 표시될 수 있음
     await expect(
-      page
-        .locator('[data-testid="message-item"]')
-        .filter({ hasText: /실패|오류|에러|error/i })
-        .first()
+      page.locator('[data-testid="error-banner"]')
     ).toBeVisible({ timeout: 15_000 });
 
     // [검증 2] typing-indicator(로딩 스피너)가 사라져야 한다
@@ -384,12 +384,9 @@ test.describe('시나리오 2: 기획 AI 실패 → 에러 복구', () => {
     await page.fill('[data-testid="chat-textarea"]', '기획 시작해줘');
     await page.locator('[data-testid="send-button"]').click();
 
-    // 에러 메시지 등장 대기
+    // 에러 메시지 등장 대기 (error-banner 에 표시됨)
     await expect(
-      page
-        .locator('[data-testid="message-item"]')
-        .filter({ hasText: /실패|오류/i })
-        .first()
+      page.locator('[data-testid="error-banner"]')
     ).toBeVisible({ timeout: 15_000 });
 
     // 2차 전송 → 재시도

@@ -133,7 +133,7 @@ export default function ChatPage() {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full">
+            <Button variant="ghost" size="icon" className="rounded-full" data-testid="chat-options-button">
               <MoreVertical className="w-5 h-5" />
             </Button>
           </DropdownMenuTrigger>

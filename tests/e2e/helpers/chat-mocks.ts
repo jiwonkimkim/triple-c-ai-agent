@@ -100,6 +100,25 @@ export function buildSSEResponse(
 // ─── API 모킹 함수 ─────────────────────────────────────────────────────────
 
 /**
+ * GET /api/chat — 대화 목록 응답 모킹
+ * 빈 목록 또는 지정된 대화 목록을 반환합니다.
+ * 페이지 로드 전에 호출해야 합니다.
+ */
+export async function mockChatList(
+  page: Page,
+  conversations: object[] = []
+): Promise<void> {
+  await page.route('**/api/chat', async (route: Route) => {
+    if (route.request().method() !== 'GET') return route.continue();
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ conversations }),
+    });
+  });
+}
+
+/**
  * POST /api/chat — 새 대화 생성 모킹
  * 고정된 conversationId를 반환하여 결정론적인 URL 이동을 보장합니다.
  */
@@ -218,6 +237,9 @@ export async function setupAndNavigateToChatPage(
 ): Promise<string> {
   const { replyContent, initialMessages, uploadedImageUrl, sseDelayMs } =
     options;
+
+  // 채팅 목록 API 모킹 — 페이지 로드 전에 설정해야 로딩 상태 없이 렌더링됨
+  await mockChatList(page, []);
 
   // 채팅 목록 페이지로 이동
   await page.goto('/dashboard/chat');

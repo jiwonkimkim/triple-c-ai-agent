@@ -36,6 +36,7 @@ import {
   setupAndNavigateToChatPage,
   mockMessagesEndpoint,
   mockImageUpload,
+  mockChatList,
   SAMPLE_IMAGE_PATH,
   TINY_PNG_BUFFER,
 } from '../helpers/chat-mocks';
@@ -60,6 +61,7 @@ test.describe('시나리오 1: 로그인 후 메시지 전송', () => {
   // storageState 덕분에 이미 로그인된 상태로 시작
 
   test('로그인 후 채팅 목록 페이지에 접근할 수 있다', async ({ page }) => {
+    await mockChatList(page, []);
     await page.goto('/dashboard/chat');
 
     // 로그인 페이지로 리다이렉트되지 않아야 함
@@ -321,8 +323,8 @@ test.describe('시나리오 2: 스트리밍 응답 확인', () => {
   test('대화 삭제 메뉴가 표시된다', async ({ page }) => {
     await setupAndNavigateToChatPage(page);
 
-    // MoreVertical 메뉴 클릭
-    await page.locator('button').filter({ has: page.locator('.lucide-more-vertical') }).click();
+    // MoreVertical 메뉴 클릭 (data-testid 사용 — 가장 안정적인 방법)
+    await page.getByTestId('chat-options-button').click();
 
     await expect(page.getByText('대화 삭제')).toBeVisible({ timeout: 3_000 });
   });

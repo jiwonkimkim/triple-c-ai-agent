@@ -109,9 +109,11 @@ jobs:
       # Playwright E2E 테스트 실행
       # - setup 프로젝트(auth.setup.ts): 실제 로그인 후 세션 저장
       # - chromium 프로젝트: 저장된 세션으로 채팅 E2E 테스트 실행
+      # ※ firefox/webkit 은 CI에 브라우저가 설치되지 않으므로 제외합니다.
+      #   (로컬에서 npx playwright test 로 전체 실행 가능)
       - name: Run Playwright E2E tests
         id: playwright
-        run: npx playwright test
+        run: npx playwright test --project=setup --project=chromium
 
       # HTML 리포트를 Artifact로 업로드 (7일 보관)
       - name: Upload Playwright report
