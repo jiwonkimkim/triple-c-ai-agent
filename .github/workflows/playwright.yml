@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+# gh-pages 브랜치 배포를 위한 쓰기 권한
+permissions:
+  contents: write
+
 # [auto-deploy] 봇 커밋은 건너뜀 (build-notify.yml 자동 커밋과 충돌 방지)
 jobs:
   e2e:
@@ -100,6 +104,27 @@ jobs:
         id: playwright
         run: npx playwright test
 
+      # HTML 리포트를 Artifact로 업로드 (7일 보관)
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: playwright-report/
+          retention-days: 7
+
+      # GitHub Pages(gh-pages 브랜치)로 리포트 배포
+      # - push 이벤트(main 브랜치)에서만 실행 — PR은 fork write 권한 없어 스킵
+      - name: Deploy Playwright report to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./playwright-report
+          publish_branch: gh-pages
+          destination_dir: playwright-report
+          commit_message: "ci: deploy playwright report [${{ github.run_id }}]"
+
       # GitHub Actions 요약 페이지에 결과 기록
       - name: Write test summary
         if: always()
@@ -121,16 +146,11 @@ jobs:
           echo "| **Commit** | \`${SHORT_SHA}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| **Author** | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📦 [Playwright Report Artifact](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}#artifacts)" >> $GITHUB_STEP_SUMMARY
-
-      # HTML 리포트를 Artifact로 업로드 (7일 보관)
-      - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: playwright-report-${{ github.run_id }}
-          path: playwright-report/
-          retention-days: 7
+          echo "📦 [Artifact](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}#artifacts)" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event_name }}" == "push" ]; then
+            PAGES_URL="https://$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]').github.io/$(basename '${{ github.repository }}')/playwright-report/"
+            echo "🌐 [GitHub Pages Report](${PAGES_URL})" >> $GITHUB_STEP_SUMMARY
+          fi
 
       # 테스트 실패 시 Slack 알림 (SLACK_BOT_TOKEN 시크릿이 있을 때만)
       - name: Notify Slack on failure
