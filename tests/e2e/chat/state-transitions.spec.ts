@@ -443,7 +443,8 @@ test.describe('시나리오 3: 생성 이중 확인 → modify 선택 시 피드
       MESSAGES_AFTER_PLANNING,
       async (route, callCount) => {
         postCallCount = callCount;
-        const body = await route.request().postDataJSON().catch(() => ({}));
+        let body: Record<string, unknown> = {};
+        try { body = route.request().postDataJSON() ?? {}; } catch { body = {}; }
 
         if (callCount === 1) {
           // "이대로 생성하기" 선택 → route.ts가 readyToGenerate=true 로 설정
