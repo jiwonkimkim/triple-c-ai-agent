@@ -125,7 +125,7 @@ jobs:
       # GitHub Pages(gh-pages 브랜치)로 리포트 배포
       # - push 이벤트(main 브랜치)에서만 실행 — PR은 fork write 권한 없어 스킵
       - name: Deploy Playwright report to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -162,8 +162,9 @@ jobs:
           fi
 
       # 테스트 실패 시 Slack 알림 (SLACK_BOT_TOKEN 시크릿이 있을 때만)
+      # ⚠️ secrets 컨텍스트는 if 조건에서 사용 불가 → env 컨텍스트로 우회
       - name: Notify Slack on failure
-        if: failure() && secrets.SLACK_BOT_TOKEN != ''
+        if: failure() && env.SLACK_BOT_TOKEN != ''
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
