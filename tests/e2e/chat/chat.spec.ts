@@ -68,8 +68,8 @@ test.describe('시나리오 1: 로그인 후 메시지 전송', () => {
     await expect(page).not.toHaveURL(/\/login/);
     await expect(page).toHaveURL(/\/dashboard\/chat/);
 
-    // 페이지 제목 확인
-    await expect(page.getByRole('heading', { name: '대화' })).toBeVisible();
+    // 페이지 제목 확인 (exact: true — '아직 대화가 없습니다' 등 다른 heading과 구분)
+    await expect(page.getByRole('heading', { name: '대화', exact: true })).toBeVisible();
   });
 
   test('새 대화를 시작하면 채팅 입력창이 표시된다', async ({ page }) => {
