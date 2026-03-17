@@ -1,0 +1,180 @@
+name: API Tests (Newman)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# [auto-deploy] 봇 커밋은 건너뜀
+jobs:
+  api-test:
+    if: "!contains(github.event.head_commit.message, '[auto-deploy]')"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # ── PostgreSQL 서비스 컨테이너 ────────────────────────────────────────────
+    services:
+      postgres:
+        image: pgvector/pgvector:pg15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci_test_pw
+          POSTGRES_DB: triple_c_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    # ── 환경 변수 ─────────────────────────────────────────────────────────────
+    env:
+      DATABASE_URL: postgresql://postgres:ci_test_pw@localhost:5432/triple_c_test
+
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: api-ci-nextauth-secret-not-for-production
+
+      # Google OAuth — 더미값 (API 테스트에서 미사용)
+      GOOGLE_CLIENT_ID: dummy-google-client-id
+      GOOGLE_CLIENT_SECRET: dummy-google-client-secret
+
+      # AI API — 더미값 (API 테스트에서 미사용)
+      GOOGLE_AI_API_KEY: dummy-ai-key
+      OPENAI_API_KEY: dummy-openai-key
+      ANTHROPIC_API_KEY: dummy-anthropic-key
+
+      NODE_OPTIONS: --max-old-space-size=4096
+
+    # ── Steps ─────────────────────────────────────────────────────────────────
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # newman: CLI 실행 도구 / newman-reporter-htmlextra: HTML 리포트 생성
+      - name: Install Newman
+        run: npm install -g newman newman-reporter-htmlextra
+
+      # DB 스키마 생성 (pgvector 확장 포함)
+      - name: Run Prisma migrations
+        run: npx prisma migrate deploy
+
+      # Next.js dev 서버를 백그라운드에서 기동
+      - name: Start Next.js dev server
+        run: npm run dev &
+
+      # /api/auth/providers 응답으로 서버 준비 여부 확인 (최대 150초 대기)
+      - name: Wait for Next.js server to be ready
+        run: |
+          echo "Next.js 서버 준비 대기 중..."
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3000/api/auth/providers > /dev/null 2>&1; then
+              echo "✅ 서버 준비 완료 (${i}번째 시도)"
+              exit 0
+            fi
+            echo "  대기 중... ($i/30)"
+            sleep 5
+          done
+          echo "❌ 서버가 150초 내에 응답하지 않았습니다"
+          exit 1
+
+      # 테스트 유저 생성 후 NextAuth 세션 쿠키를 환경변수로 저장
+      - name: Create test user and obtain session cookie
+        run: |
+          TEST_EMAIL="api-ci@triple-c.dev"
+          TEST_PASSWORD="ApiCiTest1234!"
+
+          # 1) 테스트 유저 생성 (이미 존재하면 409 반환 — 무시)
+          SIGNUP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST http://localhost:3000/api/auth/signup \
+            -H "Content-Type: application/json" \
+            -d "{\"email\":\"${TEST_EMAIL}\",\"password\":\"${TEST_PASSWORD}\",\"name\":\"CI Tester\",\"userType\":\"B2C\"}")
+          echo "회원가입 응답: ${SIGNUP_STATUS}"
+
+          # 2) CSRF 토큰 획득
+          CSRF=$(curl -sf http://localhost:3000/api/auth/csrf | jq -r '.csrfToken')
+          if [ -z "$CSRF" ]; then
+            echo "❌ CSRF 토큰 획득 실패"
+            exit 1
+          fi
+          echo "✅ CSRF 토큰 획득"
+
+          # 3) Credentials 로그인 (쿠키 저장)
+          curl -sf -c /tmp/cookie.jar -b /tmp/cookie.jar \
+            -X POST "http://localhost:3000/api/auth/callback/credentials" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            --data-urlencode "csrfToken=${CSRF}" \
+            --data-urlencode "email=${TEST_EMAIL}" \
+            --data-urlencode "password=${TEST_PASSWORD}" \
+            --data-urlencode "callbackUrl=http://localhost:3000/dashboard" \
+            -o /dev/null
+
+          # 4) 세션 토큰 추출
+          SESSION_TOKEN=$(awk '/next-auth\.session-token/{print $NF}' /tmp/cookie.jar | tail -1)
+          if [ -z "$SESSION_TOKEN" ]; then
+            echo "❌ 세션 토큰 획득 실패 — 쿠키 내용:"
+            cat /tmp/cookie.jar
+            exit 1
+          fi
+
+          echo "✅ 세션 토큰 획득 완료"
+          # 마스킹 처리
+          echo "::add-mask::${SESSION_TOKEN}"
+          echo "AUTH_COOKIE=${SESSION_TOKEN}" >> $GITHUB_ENV
+
+      # Newman으로 Postman 컬렉션 실행
+      # --bail: 첫 번째 테스트 실패 시 즉시 중단 → 워크플로우 실패 처리
+      - name: Run Newman API tests
+        run: |
+          newman run tests/api/triple-c-api.postman_collection.json \
+            --env-var "base_url=http://localhost:3000" \
+            --env-var "auth_cookie=$AUTH_COOKIE" \
+            --bail \
+            --timeout-request 15000 \
+            --reporters cli,htmlextra \
+            --reporter-htmlextra-export newman-report/index.html \
+            --reporter-htmlextra-title "Triple C API Test Report — #${{ github.run_number }}" \
+            --reporter-htmlextra-logs
+
+      # 리포트를 Artifact로 업로드 (테스트 결과와 무관하게 항상 실행)
+      - name: Upload Newman report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: newman-report-${{ github.run_id }}
+          path: newman-report/
+          retention-days: 7
+
+      # GitHub Actions 요약 페이지에 결과 기록
+      - name: Write test summary
+        if: always()
+        run: |
+          SHORT_SHA="${GITHUB_SHA:0:7}"
+          echo "## 📬 Newman API Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "### ✅ All API tests passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Some API tests failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| | |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| **Collection** | \`tests/api/triple-c-api.postman_collection.json\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Branch** | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Commit** | \`${SHORT_SHA}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Author** | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📦 [Newman Report Artifact](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}#artifacts)" >> $GITHUB_STEP_SUMMARY
