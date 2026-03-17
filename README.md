@@ -2,6 +2,20 @@
 
 > **상품 상세페이지 제작 시간을 1시간 → 10분으로 단축하는 AI 기반 마케팅 콘텐츠 자동화 플랫폼**
 
+**CI Status**
+
+[![Playwright E2E Tests](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/playwright.yml/badge.svg)](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/playwright.yml)
+[![API Tests (Newman)](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/api-test.yml/badge.svg)](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/api-test.yml)
+
+**Quality**
+
+[![Playwright Report](https://img.shields.io/badge/Playwright_Report-GitHub_Pages-45ba4b?logo=playwright&logoColor=white)](https://jiwonkimkim.github.io/triple-c-ai-agent/playwright-report/)
+[![QA Coverage](https://img.shields.io/badge/QA_Coverage-95%25-brightgreen?logo=checkmarx&logoColor=white)](./docs/TEST_CASE_SPECIFICATION.md)
+[![Test Cases](https://img.shields.io/badge/Test_Cases-20_cases-blue?logo=testcafe&logoColor=white)](./docs/TEST_CASE_SPECIFICATION.md)
+[![API Collection](https://img.shields.io/badge/API_Tests-91_requests-FF6C37?logo=postman&logoColor=white)](./tests/api/triple-c-api.postman_collection.json)
+
+**Tech Stack**
+
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
