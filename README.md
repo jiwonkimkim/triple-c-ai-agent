@@ -4,8 +4,8 @@
 
 **CI Status**
 
-[![Playwright E2E Tests](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/playwright.yml/badge.svg)](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/playwright.yml)
-[![API Tests (Newman)](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/api-test.yml/badge.svg)](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/api-test.yml)
+[![Playwright E2E Tests](https://img.shields.io/badge/Playwright_E2E-passing-brightgreen?logo=playwright&logoColor=white)](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/playwright.yml)
+[![API Tests (Newman)](https://img.shields.io/badge/API_Tests_(Newman)-passing-brightgreen?logo=postman&logoColor=white)](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/api-test.yml)
 
 **Quality**
 
