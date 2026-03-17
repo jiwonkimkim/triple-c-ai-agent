@@ -4,13 +4,14 @@
 
 **CI Status**
 
-[![Playwright E2E Tests](https://img.shields.io/badge/Playwright_E2E-passing-brightgreen?logo=playwright&logoColor=white)](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/playwright.yml)
-[![API Tests (Newman)](https://img.shields.io/badge/API_Tests_(Newman)-passing-brightgreen?logo=postman&logoColor=white)](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/api-test.yml)
+[![Playwright E2E Tests](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/playwright.yml/badge.svg)](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/playwright.yml)
+[![API Tests (Newman)](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/api-test.yml/badge.svg)](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/api-test.yml)
+[![Build & Deploy](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/build-notify.yml/badge.svg)](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/build-notify.yml)
 
 **Quality**
 
 [![Playwright Report](https://img.shields.io/badge/Playwright_Report-GitHub_Pages-45ba4b?logo=playwright&logoColor=white)](https://jiwonkimkim.github.io/triple-c-ai-agent/playwright-report/)
-[![QA Coverage](https://img.shields.io/badge/QA_Coverage-95%25-brightgreen?logo=checkmarx&logoColor=white)](./docs/TEST_CASE_SPECIFICATION.md)
+[![E2E Tests](https://img.shields.io/badge/E2E_Tests-59_cases-4FC08D?logo=playwright&logoColor=white)](./tests/e2e)
 [![Test Cases](https://img.shields.io/badge/Test_Cases-20_cases-blue?logo=testcafe&logoColor=white)](./docs/TEST_CASE_SPECIFICATION.md)
 [![API Collection](https://img.shields.io/badge/API_Tests-91_requests-FF6C37?logo=postman&logoColor=white)](./tests/api/triple-c-api.postman_collection.json)
 
