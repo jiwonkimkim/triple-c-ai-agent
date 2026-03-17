@@ -323,7 +323,7 @@ test.describe('[Case #14] fontSize 경계값 분석 — 에디터 오버레이 �
         imageModel: 'gemini-2.5-flash-image',
         brandProfile: null,
         workspace: null,
-        versions: [],
+        detailPageVersions: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },

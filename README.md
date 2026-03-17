@@ -6,7 +6,6 @@
 
 [![Playwright E2E Tests](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/playwright.yml/badge.svg)](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/playwright.yml)
 [![API Tests (Newman)](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/api-test.yml/badge.svg)](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/api-test.yml)
-[![Build & Slack Notify](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/build-notify.yml/badge.svg)](https://github.com/jiwonkimkim/triple-c-ai-agent/actions/workflows/build-notify.yml)
 
 **Quality**
 
