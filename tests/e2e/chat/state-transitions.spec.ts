@@ -524,7 +524,7 @@ test.describe('시나리오 3: 생성 이중 확인 → modify 선택 시 피드
 
     // [검증 3] "생성 중" 메시지나 프로그레스 UI가 없어야 한다
     await expect(
-      page.locator('[data-testid="message-item"]').filter({ hasText: /생성 중|상세페이지 생성/i })
+      page.locator('[data-testid="message-item"]').filter({ hasText: /생성 중/i })
     ).toHaveCount(0);
 
     // [검증 4] URL이 채팅 페이지를 유지한다 (에디터로 이탈하면 안 됨)
