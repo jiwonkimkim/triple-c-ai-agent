@@ -24,11 +24,59 @@ DO $$ BEGIN
   END IF;
 END $$;
 
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'DetailPageStatus') THEN
+    CREATE TYPE "DetailPageStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED');
+  END IF;
+END $$;
+
+-- ProjectStatus: add DELETED value (added after initial migration)
+ALTER TYPE "ProjectStatus" ADD VALUE IF NOT EXISTS 'DELETED';
+
 -- ── New columns on existing tables ────────────────────────────────────────────
 
 -- users: 2FA fields
 ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_secret TEXT;
+
+-- projects: product info fields added after initial migration
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS product_name TEXT;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS category TEXT;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS sub_category TEXT;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS key_features TEXT[] DEFAULT '{}';
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS target_audience TEXT;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS copy_length TEXT DEFAULT 'medium';
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS product_url TEXT;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS product_images TEXT[] DEFAULT '{}';
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS image_model TEXT DEFAULT 'gemini-2.5-flash-image';
+
+-- detail_page_versions: fields added and nullability changes after initial migration
+ALTER TABLE detail_page_versions ADD COLUMN IF NOT EXISTS version_number INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE detail_page_versions ADD COLUMN IF NOT EXISTS content_json JSONB;
+ALTER TABLE detail_page_versions ADD COLUMN IF NOT EXISTS content_html TEXT;
+ALTER TABLE detail_page_versions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP(3);
+DO $$ BEGIN
+  -- Add status column only after DetailPageStatus enum exists (created above)
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'detail_page_versions' AND column_name = 'status'
+  ) THEN
+    ALTER TABLE detail_page_versions ADD COLUMN status "DetailPageStatus" NOT NULL DEFAULT 'DRAFT';
+  END IF;
+END $$;
+-- Allow nullable hook_message and sections (schema marks them as optional for drafts)
+ALTER TABLE detail_page_versions ALTER COLUMN hook_message DROP NOT NULL;
+ALTER TABLE detail_page_versions ALTER COLUMN sections DROP NOT NULL;
+-- Add unique constraint on (project_id, version_number) if not present
+CREATE UNIQUE INDEX IF NOT EXISTS "detail_page_versions_project_id_version_number_key"
+  ON detail_page_versions(project_id, version_number);
+
+-- brand_profiles: voice_tone and style_guide added after initial migration
+ALTER TABLE brand_profiles ADD COLUMN IF NOT EXISTS voice_tone TEXT;
+ALTER TABLE brand_profiles ADD COLUMN IF NOT EXISTS style_guide JSONB;
+
+-- editor_drafts: add unique constraint on project_id
+CREATE UNIQUE INDEX IF NOT EXISTS "editor_drafts_project_id_key" ON editor_drafts(project_id);
 
 -- templates: marketplace + search fields
 ALTER TABLE templates ADD COLUMN IF NOT EXISTS is_published BOOLEAN NOT NULL DEFAULT false;
