@@ -115,15 +115,16 @@ jobs:
           fi
           echo "✅ CSRF 토큰 획득"
 
-          # 3) Credentials 로그인 (쿠키 저장)
-          curl -sf -c /tmp/cookie.jar -b /tmp/cookie.jar \
+          # 3) Credentials 로그인 (쿠키 저장) — -v: 응답 헤더 확인, -L: 리디렉트 추적
+          LOGIN_STATUS=$(curl -s -D - -c /tmp/cookie.jar -b /tmp/cookie.jar \
             -X POST "http://localhost:3000/api/auth/callback/credentials" \
             -H "Content-Type: application/x-www-form-urlencoded" \
             --data-urlencode "csrfToken=${CSRF}" \
             --data-urlencode "email=${TEST_EMAIL}" \
             --data-urlencode "password=${TEST_PASSWORD}" \
             --data-urlencode "callbackUrl=http://localhost:3000/dashboard" \
-            -o /dev/null
+            -o /dev/null -w "%{http_code}")
+          echo "로그인 응답 코드: ${LOGIN_STATUS}"
 
           # 4) 세션 토큰 추출
           SESSION_TOKEN=$(awk '/next-auth\.session-token/{print $NF}' /tmp/cookie.jar | tail -1)

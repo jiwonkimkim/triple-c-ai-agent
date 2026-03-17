@@ -25,7 +25,7 @@ import {
   setupAndNavigateToChatPage,
   MOCK_WELCOME_MESSAGE,
   SAMPLE_IMAGE_PATH,
-} from '../helpers/chat-mocks';
+} from './helpers/chat-mocks';
 
 // ─── 공통 상수 ──────────────────────────────────────────────────────────────
 
