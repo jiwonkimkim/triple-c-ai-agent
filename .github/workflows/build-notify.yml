@@ -19,6 +19,7 @@ jobs:
 
       - name: Trigger Vercel Deploy (Team Member)
         if: github.event_name == 'push' && github.actor != 'joycha3110' && !contains(github.event.head_commit.message, '[auto-deploy]')
+        continue-on-error: true  # 동시 푸시 충돌 등으로 실패해도 빌드/알림은 계속 진행
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ORIGINAL_MSG: ${{ github.event.head_commit.message }}
